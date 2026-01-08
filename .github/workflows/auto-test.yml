@@ -31,5 +31,7 @@ jobs:
         pip install pytest
 
     - name: Run pytest
+      env:
+          PYTHONPATH: ${{ github.workspace }}
       run: |
         pytest -v -s
