@@ -1,10 +1,10 @@
-from meshes import get_mesh_and_spaces
-from dynamics import get_dynamics
-from initial_conditions import get_initial_condition
-from output import Output
-from timestepping import get_timestepper
-from parameters import get_parameters
-from logger import Logger
+from .meshes import get_mesh_and_spaces
+from .dynamics import get_dynamics
+from .initial_conditions import get_initial_condition
+from .output import Output
+from .timestepping import get_timestepper
+from .parameters import get_parameters
+from .logger import Logger
 
 
 

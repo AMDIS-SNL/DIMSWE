@@ -1,5 +1,5 @@
-from model import run_model
-from plot_adv_dens import plot_variable, plot_statistic
+from .model import run_model
+from .plot_adv_dens import plot_variable, plot_statistic
 
 parameters = {}
 

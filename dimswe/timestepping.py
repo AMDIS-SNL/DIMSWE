@@ -1,5 +1,5 @@
 from firedrake import NonlinearVariationalProblem, NonlinearVariationalSolver, LinearVariationalProblem, LinearVariationalSolver
-from parameters import overall_solver_parameters
+from .parameters import overall_solver_parameters
 import numpy as np
 from firedrake import Constant, inner, dx, TestFunction, derivative, norm, assemble, Function, TestFunctions, split, TrialFunction
 

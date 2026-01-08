@@ -1,20 +1,20 @@
-from variables import ThermalShallowWaterVariables_CF, ThermalShallowWaterVariables_LP, ThermalShallowWaterVariables_CF_H1
-from variables import MoistThermalShallowWaterVariables_CF, MoistThermalShallowWaterVariables_LP, MoistThermalShallowWaterVariables_CF_H1
-from variables import CompressibleEulerVariables_CF, CompressibleEulerVariables_LP
-from variables import MaxwellVariables, MHDVariables_LP, EulerMaxwellVariables_LP, ScalarWaveVariables
-from poisson_brackets import LiePoisson_AdvectedDensities_Bracket, CurlForm_AdvectedDensities_Bracket, EulerMaxwellCouplingBracket_LP, MHDBracket_LP, ScalarWaveBracket, CurlForm_AdvectedDensities_Bracket_H1
-from metric_brackets import ThermodynamicallyCompatibleViscousRegularization_CF, ThermodynamicallyCompatibleViscousRegularization_LP
-from hamiltonians import CompressibleEuler_Hamiltonian_CF, CompressibleEuler_Hamiltonian_LP
-from hamiltonians import Maxwell_Hamiltonian, EulerMaxwell_Hamiltonian_LP, ScalarWave_Hamiltonian, MHD_Hamiltonian_LP, get_thermo
-from hamiltonians import ThermalShallowWater_Hamiltonian_CF, ThermalShallowWater_Hamiltonian_LP, ThermalShallowWater_Hamiltonian_CF_H1
-from hamiltonians import MoistThermalShallowWater_Hamiltonian_CF, MoistThermalShallowWater_Hamiltonian_LP, MoistThermalShallowWater_Hamiltonian_CF_H1
-from entropies import SimpleEntropy
-from statistics import AdvDensStatistics_CF, AdvDensStatistics_CF_H1, AdvDensStatistics_LP, MaxwellStatistics, MHDStatistics, EulerMaxwellStatistics, ScalarWaveStatistics
-from diagnostics import AdvDensDiagnostics_CF, AdvDensDiagnostics_CF_H1, AdvDensDiagnostics_LP, MaxwellDiagnostics, MHDDiagnostics, EulerMaxwellDiagnostics, ScalarWaveDiagnostics
-from hamiltonians import IdealGasThermo_Entropy, IdealGasThermo_PotTemp
-from dissipation import Hyperviscosity
-from physics import ThreeWayPhysics
-from transport_operators import SVLieDerivative, VVLieDerivative, CVLieDerivative
+from .variables import ThermalShallowWaterVariables_CF, ThermalShallowWaterVariables_LP, ThermalShallowWaterVariables_CF_H1
+from .variables import MoistThermalShallowWaterVariables_CF, MoistThermalShallowWaterVariables_LP, MoistThermalShallowWaterVariables_CF_H1
+from .variables import CompressibleEulerVariables_CF, CompressibleEulerVariables_LP
+from .variables import MaxwellVariables, MHDVariables_LP, EulerMaxwellVariables_LP, ScalarWaveVariables
+from .poisson_brackets import LiePoisson_AdvectedDensities_Bracket, CurlForm_AdvectedDensities_Bracket, EulerMaxwellCouplingBracket_LP, MHDBracket_LP, ScalarWaveBracket, CurlForm_AdvectedDensities_Bracket_H1
+from .metric_brackets import ThermodynamicallyCompatibleViscousRegularization_CF, ThermodynamicallyCompatibleViscousRegularization_LP
+from .hamiltonians import CompressibleEuler_Hamiltonian_CF, CompressibleEuler_Hamiltonian_LP
+from .hamiltonians import Maxwell_Hamiltonian, EulerMaxwell_Hamiltonian_LP, ScalarWave_Hamiltonian, MHD_Hamiltonian_LP, get_thermo
+from .hamiltonians import ThermalShallowWater_Hamiltonian_CF, ThermalShallowWater_Hamiltonian_LP, ThermalShallowWater_Hamiltonian_CF_H1
+from .hamiltonians import MoistThermalShallowWater_Hamiltonian_CF, MoistThermalShallowWater_Hamiltonian_LP, MoistThermalShallowWater_Hamiltonian_CF_H1
+from .entropies import SimpleEntropy
+from .statistics import AdvDensStatistics_CF, AdvDensStatistics_CF_H1, AdvDensStatistics_LP, MaxwellStatistics, MHDStatistics, EulerMaxwellStatistics, ScalarWaveStatistics
+from .diagnostics import AdvDensDiagnostics_CF, AdvDensDiagnostics_CF_H1, AdvDensDiagnostics_LP, MaxwellDiagnostics, MHDDiagnostics, EulerMaxwellDiagnostics, ScalarWaveDiagnostics
+from .hamiltonians import IdealGasThermo_Entropy, IdealGasThermo_PotTemp
+from .dissipation import Hyperviscosity
+from .physics import ThreeWayPhysics
+from .transport_operators import SVLieDerivative, VVLieDerivative, CVLieDerivative
 
 class Dynamics():
 
@@ -76,7 +76,7 @@ class AdvectionDynamics(Dynamics):
     def get_dfdx_aux_vars(self, terms='all'):
         if self.advection_type == 'CF':
             return {'F' : Function(self.spaces.Hdiv, name='F')}
-        elif self.advection_type == 'CF-H1'
+        elif self.advection_type == 'CF-H1':
             return {'F' : Function(self.spaces.CGV, name='F')}
         elif self.advection_type == 'LP':
             return {'u' : Function(self.spaces.DGV, name='u')}
