@@ -76,7 +76,7 @@ class AdvectionDynamics(Dynamics):
     def get_dfdx_aux_vars(self, terms='all'):
         if self.advection_type == 'CF':
             return {'F' : Function(self.spaces.Hdiv, name='F')}
-        elif self.advection_type == 'CF-H1'
+        elif self.advection_type == 'CF-H1':
             return {'F' : Function(self.spaces.CGV, name='F')}
         elif self.advection_type == 'LP':
             return {'u' : Function(self.spaces.DGV, name='u')}
