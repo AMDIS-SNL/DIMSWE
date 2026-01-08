@@ -1,6 +1,6 @@
 from firedrake import derivative, TestFunction, inner, TrialFunction, dx, curl, as_vector, Function, ds, dS, grad, div, dot, sign
-from ufl_helpers import skewgrad, curl2D, rot2D
-from transport_operators import SVLieDerivative, VVLieDerivative, CVLieDerivative
+from .ufl_helpers import skewgrad, curl2D, rot2D
+from .transport_operators import SVLieDerivative, VVLieDerivative, CVLieDerivative
 
 
 class PoissonBracket():

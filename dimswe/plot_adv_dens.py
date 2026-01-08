@@ -1,12 +1,14 @@
-from dynamics import get_dynamics
-from logger import Logger
-from parameters import get_parameters
-from firedrake.pyplot import tricontourf, tricontour, tripcolor, quiver, triplot, plot
+from .dynamics import get_dynamics
+from .logger import Logger
+from .parameters import get_parameters
+from .initial_conditions import get_initial_condition
+from .meshes import set_dimension
+
 import matplotlib.pyplot as plt
+from firedrake.pyplot import tricontourf, tricontour, tripcolor, quiver, triplot, plot
 from firedrake import CheckpointFile
 import numpy as np
-from initial_conditions import get_initial_condition
-from meshes import set_dimension
+
 
 #load mesh
 parameters = get_parameters()

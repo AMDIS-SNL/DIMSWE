@@ -1,6 +1,6 @@
 from firedrake import Function, LinearVariationalProblem, LinearVariationalSolver, TestFunction, TrialFunction, inner, dx, curl
-from ufl_helpers import skewgrad, curl2D
-from parameters import overall_solver_parameters
+from .ufl_helpers import skewgrad, curl2D
+from .parameters import overall_solver_parameters
 
 #Advected density diagnostics
 
