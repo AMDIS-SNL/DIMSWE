@@ -423,20 +423,15 @@ class CurlForm_AdvectedDensities_Bracket_H1(CurlForm_AdvectedDensities_Bracket_B
                 rhs_expr = rhs_expr + inner(denstest, div(dens/total_dens*F))*dx
                 rhs_expr = rhs_expr + inner(vtest, dens/total_dens*grad(Bdens))*dx
 
-        n = self.spaces.n
-        alpha = self.alpha_s * sign(dot(v('+'),n('+')))
-        total_dens_avg = 0.5 * (total_dens('+') + total_dens('-'))
-        for dens_name in self.dg_density_names:
-            denstest = xhats[dens_name]
-            Bdens = dfdx_vars['B_' + dens_name]
-            dens = qvars[dens_name]
-#MISSING BOUNDARY TERMS- ds
-            denstilde = 0.5 * ((1. + alpha) * dens('+') + (1. - alpha)*dens('-'))
-            rhs_expr = rhs_expr + (denstest('+')*inner(F('+'), n('+')) + denstest('-')*inner(F('-'), n('-')))*denstilde/total_dens_avg*dS
-            rhs_expr = rhs_expr - (Bdens('+')*inner(vtest('+'), n('+')) + Bdens('-')*inner(vtest('-'), n('-')))*denstilde/total_dens_avg*dS
-            if self.spaces.order >1:
-                rhs_expr = rhs_expr + inner(grad(Bdens   ), dens/total_dens * vtest)*dx
-                rhs_expr = rhs_expr - inner(grad(denstest), dens/total_dens * F   )*dx
+#SPLIT OFF THESE DG DENSITIES ENTIRELY I THINK
+#YES THIS ALSO FITS WITH HOMME APPROACH
+#WRITE IT AS TRANSPORT FORCING PEICE!
+
+
+
+#THIS IS SOME SORT OF THING THAT GETS APPLIED AT THE END OF EACH RHS CALCULATION!
+
+
         return rhs_expr
 
     def linear_rhs(self, const_state, dfdx_linear_vars, xhats):

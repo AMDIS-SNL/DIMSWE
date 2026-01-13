@@ -62,6 +62,7 @@ class DeRhamComplex():
         self.n = FacetNormal(mesh)
         self.order = parameters['order']
         self.family = parameters['family']
+        self.mesh = mesh
         if parameters['family'] == 'Q':
             self.CG = FunctionSpace(mesh, 'CG', parameters['order']) #TRY Q??
             self.DG = FunctionSpace(mesh, 'DG', parameters['order']-1) #TRY DQ?

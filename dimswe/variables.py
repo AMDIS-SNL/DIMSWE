@@ -163,7 +163,8 @@ class AdvDensVariables_CF_H1(AdvDensVariables_CF_Base):
             for dens in self.density_names:
                 self.spacelist.append(self.spaces.CG)
             for dens in self.dg_density_names:
-                self.spacelist.append(self.spaces.DG)
+#EVENTUALLY MAKE THIS TUNABLE, IFF THE SLOPE LIMITER EVER GETS GENERALIZED...
+                self.spacelist.append(FunctionSpace(self.spaces.mesh, 'DG', 1))
             self.mixedspace = MixedFunctionSpace(self.spacelist)
 
     def initialize(self, varexpr, vars):

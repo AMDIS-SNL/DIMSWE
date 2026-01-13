@@ -1,4 +1,7 @@
 from firedrake import inner, sign, dot, grad
+from firedrake import VertexBasedLimiter
+
+
 
 def SVLieDerivative(degree, dim, u, a, ahat, alpha_s, n, order):
     #0-forms
@@ -63,3 +66,48 @@ def CVLieDerivative(degree, dim, u, a, ahat):
         return
 
 #EVENTUALLY ADD SOME TENSOR-VALUED BUNDLES ALSO? Unclear...
+class DG1LimiterTransport():
+    def __init__(self, parameters, vars, spaces):
+        self.vars = vars
+        self.spaces = spaces
+        self.limiter = VertexBasedLimiter(DG1SPACE)
+
+    def initialize(self, varexpr):
+        pass
+
+    def get_aux_vars(self, vars):
+        pass
+
+    def get_aux_vars_list(self):
+        return []
+
+    def compute_q_expressions(self, vars, expressions):
+        pass
+
+    def post_step(self, state):
+        for varname in self.vars.dg_density_names:
+            field = state[varname] #WRONG
+            self.limiter.apply(field)
+
+#THIS IS PRETTY SPECIFIC TO CG METHODS
+#ALSO 2ND ORDER ONLY
+    def rhs(self, qvars, xhats):
+
+        n = self.spaces.n
+        alpha = self.alpha_s * sign(dot(v('+'),n('+')))
+        total_dens_avg = 0.5 * (total_dens('+') + total_dens('-'))
+        for dens_name in self.dg_density_names:
+            denstest = xhats[dens_name]
+            Bdens = dfdx_vars['B_' + dens_name]
+            dens = qvars[dens_name]
+#MISSING BOUNDARY TERMS- ds
+            denstilde = 0.5 * ((1. + alpha) * dens('+') + (1. - alpha)*dens('-'))
+            rhs_expr = rhs_expr + (denstest('+')*inner(F('+'), n('+')) + denstest('-')*inner(F('-'), n('-')))*denstilde/total_dens_avg*dS
+            rhs_expr = rhs_expr - (Bdens('+')*inner(vtest('+'), n('+')) + Bdens('-')*inner(vtest('-'), n('-')))*denstilde/total_dens_avg*dS
+            if self.spaces.order >1:
+                rhs_expr = rhs_expr + inner(grad(Bdens   ), dens/total_dens * vtest)*dx
+                rhs_expr = rhs_expr - inner(grad(denstest), dens/total_dens * F   )*dx
+        return rhs_expr
+
+    def linear_rhs(self, const_state, xstar, xhats):
+        return self.rhs(xstar, xhats)

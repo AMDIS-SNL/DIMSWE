@@ -4,12 +4,14 @@ import numpy as np
 from firedrake import Constant, inner, dx, TestFunction, derivative, norm, assemble, Function, TestFunctions, split, TrialFunction
 
 class FixedPointSolver():
-    def __init__(self, fexpr, xnp1, varspace, pre_function_callback):
+    def __init__(self, fexpr, xnp1, varspace, pre_function_callback, post_function_callback):
         self.fexpr = fexpr
         self.xnp1 = xnp1 #this is xk
         #self.xkp1 = xnp1.copy(deepcopy=True)
         self.xkp1 = Function(varspace)
         self.pre_function_callback = pre_function_callback
+        self.post_function_callback = post_function_callback
+
 #MOVE TO PARAMETERS AT SOME POINT
         self.eps = 1e-12
         self.max_iters = 50
@@ -31,6 +33,11 @@ class FixedPointSolver():
 
             self.linearsolver.solve()
             rel_tol = norm(self.xkp1 - self.xnp1) / max(norm(self.xkp1), 1.0)
+
+#SUPER UNCLEAR IF A LIMITER HERE WILL ACTUALLY WORK?
+            with self.xkp1.dat.vec_wo as xkp1:
+                    self.post_function_callback(xkp1)
+
             with self.xkp1.dat.vec_ro as xkp1:
                 with self.xnp1.dat.vec_wo as xnp1:
                     xkp1.copy(xnp1)
@@ -135,7 +142,9 @@ class AVF2_Integrator(TimeStepper):
 #probably possible with some careful combination of NL solver options
         if parameters['avf_solver'] == 'fixedpoint':
             nl_expr = inner(xhat, self.xn)*dx - self.dt*rhs_expr
-            self.rhs_nl_solver = FixedPointSolver(nl_expr, self.xnp1, self.dynamics.variableset.mixedspace, lambda state: self.pre_callback(state))
+            self.rhs_nl_solver = FixedPointSolver(nl_expr, self.xnp1, self.dynamics.variableset.mixedspace,
+                lambda state: self.pre_callback(state), lambda state: self.post_callback(state))
+#SUPER UNCLEAR IF A LIMITER HERE FOR POST FUNCTION CALLBACK WILL ACTUALLY WORK?
 
         elif parameters['avf_solver'] == 'qn':
             nl_expr = inner(xhat, self.xnp1 - self.xn)*dx + self.dt*rhs_expr
@@ -143,7 +152,8 @@ class AVF2_Integrator(TimeStepper):
             linear_expr = inner(xhat, self.xnp1 - self.xn)*dx + self.dt*rhs_linear_expr
             J_expr = derivative(linear_expr, self.xnp1)
             rhs_nl_problem = NonlinearVariationalProblem(nl_expr, self.xnp1, J=J_expr)
-            self.rhs_nl_solver = NonlinearVariationalSolver(rhs_nl_problem, solver_parameters=overall_solver_parameters['qn'], options_prefix = 'avf2qn', pre_function_callback=lambda state: self.pre_callback(state))
+            self.rhs_nl_solver = NonlinearVariationalSolver(rhs_nl_problem, solver_parameters=overall_solver_parameters['qn'],
+                options_prefix = 'avf2qn', pre_function_callback=lambda state: self.pre_callback(state), post_function_callback=lambda state: self.post_callback(state))
 
 
 
@@ -168,6 +178,11 @@ class AVF2_Integrator(TimeStepper):
         self.xnp1.assign(self.xn)
 #        self.xn.dat.copy(self.xk.dat) #DONT THINK WE NEED THIS COPY
         #self.xn.dat.copy(self.xnp1.dat)
+
+#HOW DO WE ADD IN self.dynamics.post_step(SOMETHING) STUFF?
+# PROBABLY A POST_CALLBACK?
+    def post_callback(self, state):
+        self.dynamics.post_step(SOMETHING)
 
     def take_step(self, dt):
         self.dt.assign(dt)
@@ -221,12 +236,14 @@ class TimeStaggered_Integrator(TimeStepper):
         self.pre_stepA_solvers()
         self.stepA_solver.solve()
         self.xn.assign(self.xn + self.dt * self.F)
+        self.dynamics.post_step(SOMETHING)
 
         self.xk.assign(self.xn)
         self.t.assign(self.tn + dt/2.0)
         self.pre_stepB_solvers()
         self.stepB_solver.solve()
         self.xn.assign(self.xn + self.dt * self.F)
+        self.dynamics.post_step(SOMETHING)
 
         self.tn = self.tn + dt
 
@@ -325,21 +342,25 @@ class RK4_Integrator(RK_Integrator):
         self.F1solver.solve()
 
         self.xk.assign(self.xn + self.dt/2.0*self.F1)
+        self.dynamics.post_step(SOMETHING)
         self.t.assign(self.tn + self.dt/2.)
         self.pre_step_solvers()
         self.F2solver.solve()
 
         self.xk.assign(self.xn + self.dt/2.0*self.F2)
+        self.dynamics.post_step(SOMETHING)
         self.t.assign(self.tn + self.dt/2.)
         self.pre_step_solvers()
         self.F3solver.solve()
 
         self.xk.assign(self.xn + self.dt*self.F3)
+        self.dynamics.post_step(SOMETHING)
         self.t.assign(self.tn + self.dt)
         self.pre_step_solvers()
         self.F4solver.solve()
 
         self.xn.assign(self.xn + self.dt/6. * (self.F1 + 2.*self.F2 + 2.*self.F3 + self.F4))
+        self.dynamics.post_step(SOMETHING)
         self.tn = self.tn + dt
 
 #three register kinnmark + grey time integrators
@@ -395,11 +416,13 @@ class KGRK3_Integrator(RK_Integrator):
 
         for i in range(self.num_stages-1):
             self.xk.assign(self.xn + self.dt * (self.beta[i] * self.F1 + self.alpha[i]* self.F2))
+            self.dynamics.post_step(SOMETHING)
             self.t.assign(self.tn + self.c[i] * self.dt)
             self.pre_step_solvers()
             self.F2solver.solve()
 
         self.xnp1.assign(self.xn + self.dt * (self.beta[-1] * self.F1 + self.alpha[-1] * self.F2))
+        self.dynamics.post_step(SOMETHING)
         self.tn = self.tn + dt
 
 #two register kinnemark + grey time integrators
@@ -469,11 +492,13 @@ class KGRK2_Integrator(RK_Integrator):
 
         for i in range(self.num_stages):
             self.xk.assign(self.xn + self.dt * self.alpha[i] * self.F)
+            self.dynamics.post_step(SOMETHING)
             self.t.assign(self.tn + self.c[i] * self.dt)
             self.pre_step_solvers()
             self.Fsolver.solve()
 
         self.xn.assign(self.xn + self.dt * self.alpha[-1] * self.F)
+        self.dynamics.post_step(SOMETHING)
         self.tn = self.tn + dt
 
 class TimeSplitIntegrator(TimeStepper):
@@ -504,6 +529,8 @@ class TimeSplitIntegrator(TimeStepper):
         for time_integrator in self.time_integrators:
             time_integrator.initialize(init_xn=False)
 
+#ADD ABILITY TO INTERLEAVE THIS ORDERING IE DYNAMICS, HYPER, DYNANICS, HPER, PHYSICS
+#ADD ABILITY TO SWITCH BETWEEN LIE AND STRANG SPLITTING
     def take_step(self, dt):
         for i,time_integrator in enumerate(self.time_integrators):
             for k in range(self.num_subcycles[i]):
@@ -534,6 +561,8 @@ class Euler_Integrator(RK_Integrator):
         self.F1solver.solve()
 
         self.xn.assign(self.xn + self.dt * self.F1)
+        self.dynamics.post_step(SOMETHING)
+
         self.tn = self.tn + dt
 
 class SSPRK3_Integrator(RK_Integrator):
@@ -562,21 +591,29 @@ class SSPRK3_Integrator(RK_Integrator):
 
 #ALL WRONG
         self.xk.assign(self.xn + 1./2. * self.dt * self.F)
+        self.dynamics.post_step(SOMETHING)
+
 #        self.t.assign(self.t + 1/2. * self.dt)
         self.pre_step_solvers()
         self.Fsolver.solve()
 
         self.xk.assign(self.xk + 1./2. * self.dt * self.F)
+        self.dynamics.post_step(SOMETHING)
+
 #        self.t.assign(self.t + 1/2. * self.dt)
         self.pre_step_solvers()
         self.Fsolver.solve()
 
         self.xk.assign(2./3. * self.xn + 1./3. * self.xk + 1./6. * self.dt * self.F)
+        self.dynamics.post_step(SOMETHING)
+
 #        self.t.assign(self.t + 1/2. * self.dt)
         self.pre_step_solvers()
         self.Fsolver.solve()
 
         self.xn.assign(self.xk + self.dt * 1./2. * self.F)
+        self.dynamics.post_step(SOMETHING)
+
         self.tn = self.tn + dt
 
 class SSPRK43_Integrator(RK_Integrator):
@@ -605,21 +642,29 @@ class SSPRK43_Integrator(RK_Integrator):
         self.Fsolver.solve()
 
         self.xk.assign(self.xn + 1./2. * self.dt * self.F)
+        self.dynamics.post_step(SOMETHING)
+
 #        self.t.assign(self.t + 1/2. * self.dt)
         self.pre_step_solvers()
         self.Fsolver.solve()
 
         self.xk.assign(self.xk + 1./2. * self.dt * self.F)
+        self.dynamics.post_step(SOMETHING)
+
 #        self.t.assign(self.t + 1/2. * self.dt)
         self.pre_step_solvers()
         self.Fsolver.solve()
 
         self.xk.assign(2./3. * self.xn + 1./3. * self.xk + 1./6. * self.dt * self.F)
+        self.dynamics.post_step(SOMETHING)
+
 #        self.t.assign(self.t + 1/2. * self.dt)
         self.pre_step_solvers()
         self.Fsolver.solve()
 
         self.xn.assign(self.xk + self.dt * 1./2. * self.F)
+        self.dynamics.post_step(SOMETHING)
+
         self.tn = self.tn + dt
 
 def get_time_integrator(name):

@@ -247,7 +247,8 @@ class MetriplecticDynamics(Dynamics):
         self.logger.output('computed linear rhs', 1)
         return linear_rhs
 
-
+    def post_step(self, SOMETHING):
+        pass
 
 
 
