@@ -5,7 +5,6 @@ from firedrake import (
     TestFunction,
     dx,
     inner,
-    derivative,
     TrialFunction,
     Constant,
 )
@@ -76,12 +75,16 @@ class Hamiltonian_Base:
         self.testvars = {}
         self.trialvars = {}
         if self.vars.spaces is not None:
-            for var, space in zip(self.vars.dhdx_var_list, self.vars.spacelist):
+            for var, space in zip(
+                self.vars.dhdx_var_list, self.vars.spacelist, strict=False
+            ):
                 self.testvars[var] = TestFunction(space)
                 self.trialvars[var] = TrialFunction(space)
 
     def get_aux_vars(self, vars):
-        for var, space in zip(self.vars.dhdx_var_list, self.vars.spacelist):
+        for var, space in zip(
+            self.vars.dhdx_var_list, self.vars.spacelist, strict=False
+        ):
             vars[var] = Function(space, name=var)
 
     def get_aux_vars_list(self):
@@ -100,7 +103,8 @@ class AdvDensHamiltonian_AdvectionOnly(Hamiltonian_Base):
         self.values = values
 
     def compute_dfdx_expressions(self, vars, expressions):
-        m = vars["m"]
+        mtrial = vars["m"]
+        mhat = self.testvars["u"]
         expressions["u"] = make_a_L(self.values["u"], mtrial, mhat)
         for dens_name in self.vars.density_names:
             denshat = self.testvars[dens_name]
@@ -169,7 +173,7 @@ class ThermalShallowWater_Hamiltonian_LP(ThermalShallowWater_Hamiltonian_Base):
 
         dfdx_linear_vars["u"] = m / H0
         dfdx_linear_vars["B_h"] = (S0 + S) / 2.0 + self.bottom_topography
-        dfdx_linear_vars["B_S"] = (H0 + H) / 2.0
+        dfdx_linear_vars["B_S"] = (H0 + h) / 2.0
         for tracer_name in self.vars.tracer_names:
             dfdx_linear_vars["B_" + tracer_name] = 0.0
 
@@ -322,27 +326,32 @@ class CompressibleEuler_Hamiltonian_LP(CompressibleEuler_Hamiltonian_Base):
     # ADD POTENTIAL PART!
     # EVENTUALLY MAKE TOTAL DENSITY AND ETA COMPUTATIONS PART OF VARIABLESET I THINK?
     def compute_dfdx_expressions(self, vars, expressions):
-        m = vars["m"]
-        rho = vars["rho"]
-        S = vars["S"]
-        mhat = self.testvars["m"]
-        hhat = self.testvars["h"]
-        Shat = self.testvars["S"]
-        eta = S / rho
-        int_energy = self.thermo.compute_u(rho, eta)
-        dudeta = self.thermo.compute_dudeta(rho, eta)
-        dudrho = self.thermo.compute_dudrho(rho, eta)
-        # FIX THESE!
-        expressions["u"] = m / rho
-        expressions["B_rho"] = (
-            -inner(m, m) / (2.0 * inner(rho, rho))
-            + +u
-            + SOMETHING * dudrho
-            + SOMETHING * dudeta
+        raise NotImplementedError(
+            "CompressibleEuler_Hamiltonian_LP::compute_dfdx_expressions not implemented yet."
         )
-        expressions["B_S"] = SOMETHING * dudeta
-        for tracer in self.vars.tracer_names:
-            expressions["B_" + tracer] = 0.0
+
+
+#         m = vars["m"]
+#         rho = vars["rho"]
+#         S = vars["S"]
+#         mhat = self.testvars["m"]
+#         hhat = self.testvars["h"]
+#         Shat = self.testvars["S"]
+#         eta = S / rho
+#         int_energy = self.thermo.compute_u(rho, eta)
+#         dudeta = self.thermo.compute_dudeta(rho, eta)
+#         dudrho = self.thermo.compute_dudrho(rho, eta)
+#         # FIX THESE!
+#         expressions["u"] = m / rho
+#         expressions["B_rho"] = (
+#             -inner(m, m) / (2.0 * inner(rho, rho))
+#             + +u
+#             + SOMETHING * dudrho
+#             + SOMETHING * dudeta
+#         )
+#         expressions["B_S"] = SOMETHING * dudeta
+#         for tracer in self.vars.tracer_names:
+#             expressions["B_" + tracer] = 0.0
 
 
 class CompressibleEuler_Hamiltonian_CF(CompressibleEuler_Hamiltonian_Base):
@@ -360,24 +369,29 @@ class CompressibleEuler_Hamiltonian_CF(CompressibleEuler_Hamiltonian_Base):
     # ADD POTENTIAL PART!
     # EVENTUALLY MAKE TOTAL DENSITY AND ETA COMPUTATIONS PART OF VARIABLESET I THINK?
     def compute_dfdx_expressions(self, vars, expressions):
-        v = vars["v"]
-        rho = vars["rho"]
-        S = vars["S"]
-        vhat = self.testvars["v"]
-        hhat = self.testvars["h"]
-        Shat = self.testvars["S"]
-        eta = S / rho
-        int_energy = self.thermo.compute_u(rho, eta)
-        dudeta = self.thermo.compute_dudeta(rho, eta)
-        dudrho = self.thermo.compute_dudrho(rho, eta)
-        # FIX THESE!
-        expressions["F"] = rho * v
-        expressions["B_rho"] = (
-            inner(v, v) / 2.0 + u + SOMETHING * dudrho + SOMETHING * dudeta
+        raise NotImplementedError(
+            "CompressibleEuler_Hamiltonian_CF::compute_dfdx_expressions not implemented yet."
         )
-        expressions["B_S"] = SOMETHING * dudeta
-        for tracer in self.vars.tracer_names:
-            expressions["B_" + tracer] = 0.0
+
+
+#         v = vars["v"]
+#         rho = vars["rho"]
+#         S = vars["S"]
+#         vhat = self.testvars["v"]
+#         hhat = self.testvars["h"]
+#         Shat = self.testvars["S"]
+#         eta = S / rho
+#         int_energy = self.thermo.compute_u(rho, eta)
+#         dudeta = self.thermo.compute_dudeta(rho, eta)
+#         dudrho = self.thermo.compute_dudrho(rho, eta)
+#         # FIX THESE!
+#         expressions["F"] = rho * v
+#         expressions["B_rho"] = (
+#             inner(v, v) / 2.0 + u + SOMETHING * dudrho + SOMETHING * dudeta
+#         )
+#         expressions["B_S"] = SOMETHING * dudeta
+#         for tracer in self.vars.tracer_names:
+#             expressions["B_" + tracer] = 0.0
 
 
 class MHD_Hamiltonian_LP(CompressibleEuler_Hamiltonian_Base):
