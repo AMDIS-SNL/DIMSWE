@@ -1,5 +1,12 @@
 from .model import run_model
 from .plot_adv_dens import plot_variable, plot_statistic
+from .parameters import get_parameters
+from .initial_conditions import get_initial_condition
+from .logger import Logger
+from .meshes import set_dimension
+from .dynamics import get_dynamics
+import numpy as np
+from firedrake import CheckpointFile
 
 parameters = {}
 
