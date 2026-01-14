@@ -1,6 +1,3 @@
-from firedrake.petsc import PETSc
-
-
 # EVENTUALLY DO SOMETHING MORE CLEVER- CMD LINE VS FILE OUTPUT, ERROR OUTPUT, SINGLE PROCESS, ETC.
 class Logger:
     def __init__(self, parameters):
