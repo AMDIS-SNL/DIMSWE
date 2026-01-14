@@ -1,3 +1,7 @@
+from firedrake import (
+    Function,
+    dim,
+)
 from .variables import (
     ThermalShallowWaterVariables_CF,
     ThermalShallowWaterVariables_LP,
@@ -22,6 +26,7 @@ from .poisson_brackets import (
     MHDBracket_LP,
     ScalarWaveBracket,
     CurlForm_AdvectedDensities_Bracket_H1,
+    MaxwellBracket,
 )
 from .metric_brackets import (
     ThermodynamicallyCompatibleViscousRegularization_CF,
@@ -95,12 +100,15 @@ class Dynamics:
 # can basically do it as a modified Hamiltonian, actually!!!
 # although maybe interaction with q for CF is a little tricky?
 class AdvectionDynamics(Dynamics):
-    def __init__(self, mesh, spaces, initcond, vars, statistics, diagnostics, logger):
+    def __init__(
+        self, mesh, spaces, initcond, vars, statistics, diagnostics, parameters, logger
+    ):
         self.mesh = mesh
         self.spaces = spaces
         self.variableset = vars
         self.diagnostics = diagnostics
         self.statistics = statistics
+        self.parameters = parameters
         self.logger = logger
         self.initcond = initcond
 
@@ -151,10 +159,14 @@ class AdvectionDynamics(Dynamics):
     # THIS IS A GREAT WAY TO TEST t dependence!
     def compute_dfdx_expressions(self, x, t, terms="all"):
         if self.advection_type in ["CF", "CF-H1"]:
-            Fexpr = SOMETHING
+            raise NotImplementedError(
+                "advection_type = CF and CF-H1 not implemented yet."
+            )
+            Fexpr = None
             return {"F": Fexpr}
         elif self.advection_type == "LP":
-            uexrp = SOMETHING
+            raise NotImplementedError("advection_type = LP not implemented yet.")
+            uexrp = None
             return {"u": uexrp}
 
     def rhs(self, qvars, dfdx_vars, xhats, t, terms="all"):
@@ -465,7 +477,7 @@ def get_dynamics(parameters, mesh, spaces, logger, initcond):
             MHDBracket_LP(spaces, vars, parameters),
         ]
         metric_brackets = [
-            ThermodynamicallyCompatibleViscousRegularization(spaces, vars),
+            ThermodynamicallyCompatibleViscousRegularization_LP(spaces, vars),
         ]
         entropy = SimpleEntropy(spaces)
         hamiltonian = MHD_Hamiltonian_LP(spaces)
@@ -495,7 +507,7 @@ def get_dynamics(parameters, mesh, spaces, logger, initcond):
             EulerMaxwellCouplingBracket_LP(spaces, vars, parameters),
         ]
         metric_brackets = [
-            ThermodynamicallyCompatibleViscousRegularization(spaces, vars),
+            ThermodynamicallyCompatibleViscousRegularization_LP(spaces, vars),
         ]
         entropy = SimpleEntropy(spaces)
         hamiltonian = EulerMaxwell_Hamiltonian_LP(spaces)
