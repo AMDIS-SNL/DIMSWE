@@ -1,4 +1,11 @@
-from firedrake import inner, sign, dot, grad
+from firedrake import (
+    inner,
+    dx,
+    dS,
+    grad,
+    dot,
+    sign,
+)
 from firedrake import VertexBasedLimiter
 
 
