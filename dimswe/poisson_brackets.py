@@ -1,18 +1,16 @@
 from firedrake import (
-    derivative,
     TestFunction,
     inner,
     TrialFunction,
     dx,
     curl,
-    as_vector,
     Function,
-    ds,
     dS,
     grad,
     div,
     dot,
     sign,
+    outer,
 )
 from .ufl_helpers import skewgrad, curl2D, rot2D
 from .transport_operators import SVLieDerivative, VVLieDerivative, CVLieDerivative
@@ -65,6 +63,7 @@ class LiePoisson_AdvectedQuantities_Bracket(PoissonBracket):
             self.advected_quantity_names,
             self.advected_quantity_bundle,
             self.advected_quantity_degree,
+            strict=False,
         ):
             if bundle == "S":
                 rhs_expr = rhs_expr + SVLieDerivative(
@@ -93,7 +92,7 @@ class LiePoisson_AdvectedQuantities_Bracket(PoissonBracket):
                 rhs_expr + inner(mtest, total_dens * self.coriolis * rot2D(u)) * dx
             )
         elif self.dim == 3:
-            ERROR
+            raise NotImplementedError("dim = 3 not implemented yet.")
         return rhs_expr
 
     def linear_rhs(self, const_state, dfdx_linear_vars, xhats):
@@ -162,8 +161,8 @@ class CurlForm_AdvectedQuantities_Bracket(PoissonBracket):
                     inner(-curl(qhat), v) * dx + inner(qhat, self.coriolis) * dx,
                 ]
 
-    def rhs(self, qvars, dfdx_vars, xhats):
-        v = qvars["v"]
+    def rhs(self, const_state, qvars, dfdx_vars, xhats):
+        #         v = qvars["v"]
         F = dfdx_vars["F"]
         vtest = xhats["v"]
         total_dens = self.total_density_func(qvars)
@@ -174,29 +173,31 @@ class CurlForm_AdvectedQuantities_Bracket(PoissonBracket):
             if self.upwind_v:
                 # PROBABLY WRAP THIS UP IN ONE OF THE LIE DERIVATIVE CLASSES! OR SOME SORT OF INTERIOR PRODUCT...
                 # TO DO THIS "RIGHT" SHOULD ACTUALLY COMPUTE FLOW VELOCITY U I THINK IE FOLLOWING GOLO PAPER!
-                nperp = rot2D(n)
-                rhs_expr = (
-                    rhs_expr + inner(vtest, self.coriolis / total_dens * rot2D(F)) * dx
-                )
-                vtilde = 0.5 * ((1.0 + alpha) * v("+") + (1.0 - alpha) * v("-"))
-                Fperp = rot2D(F)
-                rhs_expr = (
-                    rhs_expr + inner(vtest, self.coriolis / total_dens * Fperp) * dx
-                )
-                Fpart = inner(vtest, Fperp) / total_dens
-                rhs_expr = rhs_expr - inner(skewgrad(Fpart), v) * dx
-                jump_term = Fpart("+") * nperp("+") + Fpart("-") * nperp("-")
-                rhs_expr = rhs_expr + inner(jump_term, vtilde) * dS
+                raise NotImplementedError("upwind not implemented yet.")
+            #                 nperp = rot2D(n)
+            #                 rhs_expr = (
+            #                     rhs_expr + inner(vtest, self.coriolis / total_dens * rot2D(F)) * dx
+            #                 )
+            #                 vtilde = 0.5 * ((1.0 + alpha) * v("+") + (1.0 - alpha) * v("-"))
+            #                 Fperp = rot2D(F)
+            #                 rhs_expr = (
+            #                     rhs_expr + inner(vtest, self.coriolis / total_dens * Fperp) * dx
+            #                 )
+            #                 Fpart = inner(vtest, Fperp) / total_dens
+            #                 rhs_expr = rhs_expr - inner(skewgrad(Fpart), v) * dx
+            #                 jump_term = Fpart("+") * nperp("+") + Fpart("-") * nperp("-")
+            #                 rhs_expr = rhs_expr + inner(jump_term, vtilde) * dS
             else:
                 q = qvars["q"]
                 rhs_expr = inner(vtest, q * rot2D(F)) * dx  # q has coriolis in it!
         elif self.dim == 3:
-            ERROR
+            raise NotImplementedError("3d not implemented yet.")
 
         for name, bundle, degree in zip(
             self.advected_quantity_names,
             self.advected_quantity_bundle,
             self.advected_quantity_degree,
+            strict=False,
         ):
             if bundle == "S":
                 rhs_expr = rhs_expr + SVLieDerivative(
@@ -283,13 +284,14 @@ class LiePoisson_AdvectedDensities_Bracket(PoissonBracket):
             rhs_expr = rhs_expr + inner(grad(u), outer(mtest, m)) * dx
 
         if self.dim == 1:
-            ERROR
+            raise NotImplementedError("TODO: Fill this message")
         elif self.dim == 2:
-            rhs_expr = (
-                rhs_expr + inner(mtest, total_dens * self.coriolis * rot2D(u)) * dx
-            )
+            #             rhs_expr = (
+            #                 rhs_expr + inner(mtest, total_dens * self.coriolis * rot2D(u)) * dx
+            #             )
+            raise NotImplementedError("TODO: Fill this message")
         elif self.dim == 3:
-            ERROR
+            raise NotImplementedError("TODO: Fill this message")
 
         for dens_name in self.density_names:
             denstest = xhats[dens_name]
@@ -341,13 +343,13 @@ class LiePoisson_AdvectedDensities_Bracket(PoissonBracket):
         )
 
         if self.dim == 1:
-            ERROR
+            raise NotImplementedError("TODO: Fill this message")
         elif self.dim == 2:
             rhs_expr = (
                 rhs_expr + inner(mtest, total_dens * self.coriolis * rot2D(u)) * dx
             )
         elif self.dim == 3:
-            ERROR
+            raise NotImplementedError("TODO: Fill this message")
 
         if self.spaces.order > 1:
             # GRAD OR NABLA GRAD HERE?
@@ -360,7 +362,7 @@ class LiePoisson_AdvectedDensities_Bracket(PoissonBracket):
             dens = const_state[dens_name]
 
             # MISSING BOUNDARY TERMS- ds
-            denstilde = 0.5 * ((1.0 + alpha) * dens("+") + (1.0 - alpha) * dens("-"))
+            #             denstilde = 0.5 * ((1.0 + alpha) * dens("+") + (1.0 - alpha) * dens("-"))
             rhs_expr = (
                 rhs_expr
                 + (
@@ -460,11 +462,11 @@ class CurlForm_AdvectedDensities_Bracket(CurlForm_AdvectedDensities_Bracket_Base
         n = self.spaces.n
 
         if self.dim == 1:
-            ERROR
+            raise NotImplementedError("TODO: Fill this message")
         elif self.dim == 2:
             rhs_expr = inner(vtest, self.coriolis / total_dens * rot2D(F)) * dx
         elif self.dim == 3:
-            ERROR
+            raise NotImplementedError("TODO: Fill this message")
 
         for dens_name in self.density_names:
             denstest = xhats[dens_name]
@@ -507,7 +509,7 @@ class CurlForm_AdvectedDensities_Bracket(CurlForm_AdvectedDensities_Bracket_Base
 
         # MISSING BOUNDARY TERMS- ds
         if self.dim == 1:
-            ERROR
+            raise NotImplementedError("TODO: Fill this message")
         elif self.dim == 2:
             if self.upwind_v:
                 # TO DO THIS "RIGHT" SHOULD ACTUALLY COMPUTE FLOW VELOCITY U I THINK IE FOLLOWING GOLO PAPER!
@@ -523,7 +525,7 @@ class CurlForm_AdvectedDensities_Bracket(CurlForm_AdvectedDensities_Bracket_Base
                 q = qvars["q"]
                 rhs_expr = inner(vtest, q * rot2D(F)) * dx  # q has coriolis in it!
         elif self.dim == 3:
-            ERROR
+            raise NotImplementedError("TODO: Fill this message")
 
         # TO DO THIS "RIGHT" SHOULD ACTUALLY COMPUTE FLOW VELOCITY U I THINK IE FOLLOWING GOLO PAPER!
 
@@ -570,12 +572,12 @@ class CurlForm_AdvectedDensities_Bracket_H1(CurlForm_AdvectedDensities_Bracket_B
         vtest = xhats["v"]
 
         if self.dim == 1:
-            ERROR
+            raise NotImplementedError("TODO: Fill this message")
         elif self.dim == 2:
             rhs_expr = inner(vtest, self.coriolis / total_dens * rot2D(F)) * dx
             rhs_expr = rhs_expr + inner(vtest, curl2D(v) / total_dens * rot2D(F)) * dx
         elif self.dim == 3:
-            ERROR
+            raise NotImplementedError("TODO: Fill this message")
 
         for dens_name in self.density_names:
             denstest = xhats[dens_name]
