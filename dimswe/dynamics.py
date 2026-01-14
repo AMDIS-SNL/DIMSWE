@@ -67,10 +67,9 @@ from .diagnostics import (
     EulerMaxwellDiagnostics,
     ScalarWaveDiagnostics,
 )
-from .hamiltonians import IdealGasThermo_Entropy, IdealGasThermo_PotTemp
 from .dissipation import Hyperviscosity
 from .physics import ThreeWayPhysics
-from .transport_operators import SVLieDerivative, VVLieDerivative, CVLieDerivative
+from .transport_operators import SVLieDerivative, VVLieDerivative
 
 
 class Dynamics:
@@ -163,7 +162,10 @@ class AdvectionDynamics(Dynamics):
         if self.advection_type == "CF":
             total_dens = self.total_dens_func(qvars)
             for quantity, bundle, degree in zip(
-                self.advected_quantities, self.form_bundles, self.form_degrees
+                self.advected_quantities,
+                self.form_bundles,
+                self.form_degrees,
+                strict=False,
             ):
                 if bundle == "S":
                     rhs = rhs + SVLieDerivative(
@@ -195,7 +197,10 @@ class AdvectionDynamics(Dynamics):
             pass
         elif self.advection_type == "LP":
             for quantity, bundle, degree in zip(
-                self.advected_quantities, self.form_bundles, self.form_degrees
+                self.advected_quantities,
+                self.form_bundles,
+                self.form_degrees,
+                strict=False,
             ):
                 if bundle == "S":
                     rhs = rhs + SVLieDerivative(
