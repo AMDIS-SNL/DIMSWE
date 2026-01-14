@@ -22,7 +22,8 @@ def set_dimension(parameters):
     elif parameters["mesh"] in ["box", "box-periodic"]:
         parameters["dim"] = 3
     elif parameters["mesh"] == "file":
-        parameters["dim"] = XXX  # NEED TO READ SOMEHOW
+        #         parameters["dim"] = XXX  # NEED TO READ SOMEHOW
+        raise NotImplementedError("set_dimension from 'file' not implemented yet.")
 
 
 def get_mesh_and_spaces(parameters, initcond):
