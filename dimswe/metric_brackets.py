@@ -1,6 +1,3 @@
-from .parameters import overall_solver_parameters
-
-
 class ThermodynamicallyCompatibleViscousRegularization_Base:
     def __init__(self, spaces, vars, regularization_type="const"):
         self.spaces = spaces
