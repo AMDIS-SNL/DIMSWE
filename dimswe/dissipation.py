@@ -13,7 +13,7 @@ class Hyperviscosity:
         pass
 
     def get_aux_vars(self, vars):
-        for varname, varspace in zip(self.vars.varlist, self.vars.spacelist):
+        for varname, varspace in zip(self.vars.varlist, self.vars.spacelist, strict=False):
             vars["q_" + varname] = Function(varspace)
 
     def get_aux_vars_list(self):
@@ -23,7 +23,7 @@ class Hyperviscosity:
         return auxlist
 
     def compute_q_expressions(self, vars, expressions):
-        for varname, varspace in zip(self.vars.varlist, self.vars.spacelist):
+        for varname, varspace in zip(self.vars.varlist, self.vars.spacelist, strict=False):
             varhat = TestFunction(varspace)
             vartrial = TrialFunction(varspace)
             var = vars["q_" + varname]
