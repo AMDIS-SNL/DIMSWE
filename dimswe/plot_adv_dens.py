@@ -5,7 +5,7 @@ from .initial_conditions import get_initial_condition
 from .meshes import set_dimension
 
 import matplotlib.pyplot as plt
-from firedrake.pyplot import tricontourf, tricontour, tripcolor, quiver, triplot, plot
+from firedrake.pyplot import tripcolor, quiver, triplot, plot
 from firedrake import CheckpointFile
 import numpy as np
 
