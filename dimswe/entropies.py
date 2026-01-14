@@ -1,4 +1,4 @@
-class SimpleEntropy():
+class SimpleEntropy:
     def __init__(self, spaces, vars):
         self.spaces = spaces
         self.vars = vars

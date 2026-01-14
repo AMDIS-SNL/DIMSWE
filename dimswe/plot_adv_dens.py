@@ -10,7 +10,7 @@ from firedrake import CheckpointFile
 import numpy as np
 
 
-#load mesh
+# load mesh
 parameters = get_parameters()
 logger = Logger(parameters)
 set_dimension(parameters)
@@ -22,25 +22,28 @@ def plot_mesh(mesh):
     fig, axes = plt.subplots()
     triplot(mesh, axes=axes)
     axes.legend()
-    fig.savefig('mesh.png')
+    fig.savefig("mesh.png")
+
 
 def plot_scalar2D(func, name):
     fig, axes = plt.subplots()
-    #contours = tricontour(func, axes=axes)
-    #contours = tricontourf(func, axes=axes, cmap="inferno")
+    # contours = tricontour(func, axes=axes)
+    # contours = tricontourf(func, axes=axes, cmap="inferno")
     contours = tripcolor(func, axes=axes, cmap="inferno")
     axes.set_aspect("equal")
     fig.colorbar(contours)
-    fig.savefig(name + '.png')
+    fig.savefig(name + ".png")
     plt.close()
+
 
 def plot_vector2D_quiver(func, name):
     fig, axes = plt.subplots()
     contours = quiver(func, axes=axes)
     axes.set_aspect("equal")
     fig.colorbar(contours)
-    fig.savefig(name + '.png')
+    fig.savefig(name + ".png")
     plt.close()
+
 
 def plot_vector2D_mag(func, name):
     fig, axes = plt.subplots()
@@ -48,15 +51,17 @@ def plot_vector2D_mag(func, name):
     # contours = tricontourf(func, axes=axes, cmap="inferno")
     axes.set_aspect("equal")
     fig.colorbar(contours)
-    fig.savefig(name + '-mag.png')
+    fig.savefig(name + "-mag.png")
     plt.close()
+
 
 def plot_scalar1D(func, name):
 
     fig, axes = plt.subplots()
     plot(func, axes=axes)
-    fig.savefig(name + '.png')
+    fig.savefig(name + ".png")
     plt.close()
+
 
 def plot_variable(data, name, dim, is_vector):
     if dim == 1:
@@ -83,25 +88,27 @@ def plot_variable(data, name, dim, is_vector):
         else:
             plot_scalar2D(data, name)
 
+
 def plot_statistic(data, name):
     plt.figure()
     plt.plot(data)
-    plt.savefig(name + '.png')
+    plt.savefig(name + ".png")
     plt.close()
 
     plt.figure()
-    plt.plot((data - data[0])/data[0]*100)
-    plt.savefig(name + '-fractional-change.png')
+    plt.plot((data - data[0]) / data[0] * 100)
+    plt.savefig(name + "-fractional-change.png")
     plt.close()
 
-#EVETUALLY TIE THIS TO A VARIABLE TYPE THAT DYNAMICS KNOWS
-#ie scalar or vector
-vector_list = ['m', 'v', 'u', 'F']
 
-with CheckpointFile(parameters['outfile_name'] + '.h5', 'r') as chkpoint_file:
+# EVETUALLY TIE THIS TO A VARIABLE TYPE THAT DYNAMICS KNOWS
+# ie scalar or vector
+vector_list = ["m", "v", "u", "F"]
+
+with CheckpointFile(parameters["outfile_name"] + ".h5", "r") as chkpoint_file:
 
     mesh = chkpoint_file.load_mesh()
-    #if parameters['dim'] >= 2:
+    # if parameters['dim'] >= 2:
     #    plot_mesh(mesh)
 
     h5file = chkpoint_file.h5pyfile
@@ -109,25 +116,41 @@ with CheckpointFile(parameters['outfile_name'] + '.h5', 'r') as chkpoint_file:
         statdata = np.array(h5file[stat])
         plot_statistic(statdata, stat)
 
-    for n in range(0, parameters['num_steps']+1):
-        if ((n % parameters['output_freq']) == 0):
-            output_step = n // parameters['output_freq']
-            print('plotting output at step ' + str(n) + ' output step ' + str(output_step))
+    for n in range(0, parameters["num_steps"] + 1):
+        if (n % parameters["output_freq"]) == 0:
+            output_step = n // parameters["output_freq"]
+            print(
+                "plotting output at step " + str(n) + " output step " + str(output_step)
+            )
             for var in dynamics.variableset.varlist:
 
                 vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
-                plot_variable(vardat, var + '.' + str(n),  parameters['dim'], var in vector_list)
+                plot_variable(
+                    vardat, var + "." + str(n), parameters["dim"], var in vector_list
+                )
 
-            if parameters['output_aux_vars']:
+            if parameters["output_aux_vars"]:
 
                 for var in dynamics.q_aux_var_list:
                     vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
-                    plot_variable(vardat, var + '.'+  str(n), parameters['dim'], var in vector_list)
+                    plot_variable(
+                        vardat,
+                        var + "." + str(n),
+                        parameters["dim"],
+                        var in vector_list,
+                    )
 
                 for var in dynamics.dfdx_aux_var_list:
                     vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
-                    plot_variable(vardat, var + '.' + str(n), parameters['dim'], var in vector_list)
+                    plot_variable(
+                        vardat,
+                        var + "." + str(n),
+                        parameters["dim"],
+                        var in vector_list,
+                    )
 
             for var in dynamics.diagnostics.var_list:
                 vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
-                plot_variable(vardat, var + '.' + str(n),  parameters['dim'], var in vector_list)
+                plot_variable(
+                    vardat, var + "." + str(n), parameters["dim"], var in vector_list
+                )

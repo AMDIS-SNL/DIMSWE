@@ -1,7 +1,8 @@
 from .parameters import overall_solver_parameters
 
+
 class ThermodynamicallyCompatibleViscousRegularization_Base:
-    def __init__(self, spaces, vars, regularization_type='const'):
+    def __init__(self, spaces, vars, regularization_type="const"):
         self.spaces = spaces
         self.vars = vars
         self.density_names = vars.density_names
@@ -27,9 +28,13 @@ class ThermodynamicallyCompatibleViscousRegularization_Base:
         return 0.0
 
 
-class ThermodynamicallyCompatibleViscousRegularization_LP(ThermodynamicallyCompatibleViscousRegularization_Base):
+class ThermodynamicallyCompatibleViscousRegularization_LP(
+    ThermodynamicallyCompatibleViscousRegularization_Base
+):
     pass
 
 
-class ThermodynamicallyCompatibleViscousRegularization_CF(ThermodynamicallyCompatibleViscousRegularization_Base):
+class ThermodynamicallyCompatibleViscousRegularization_CF(
+    ThermodynamicallyCompatibleViscousRegularization_Base
+):
     pass
