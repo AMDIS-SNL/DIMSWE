@@ -187,11 +187,10 @@ class AdvDensDiagnostics_CF(AdvDensDiagnostics):
 class AdvDensDiagnostics_LP(AdvDensDiagnostics):
     @property
     def total_dens(self):
-      return self.hamiltonian.vars.get_total_density_expr(self.xn)
+        return self.hamiltonian.vars.get_total_density_expr(self.xn)
 
     def create(self, xn):
         self.xn = xn
-
 
         m = xn["m"]
         v = m / self.total_dens
