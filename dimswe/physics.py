@@ -1,14 +1,11 @@
-
-
-
-class ThreeWayPhysics():
+class ThreeWayPhysics:
     def __init__(self, parameters, vars, spaces):
         self.vars = vars
         self.spaces = spaces
 
     def initialize(self, varexpr):
         pass
-        
+
     def get_aux_vars(self, vars):
         pass
 
