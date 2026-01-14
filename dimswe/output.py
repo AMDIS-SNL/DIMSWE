@@ -1,4 +1,4 @@
-from firedrake import CheckpointFile, split
+from firedrake import CheckpointFile
 
 
 class Output:
