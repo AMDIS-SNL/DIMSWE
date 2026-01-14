@@ -18,27 +18,27 @@ def get_initial_condition(parameters):
     elif parameters["initialcondition"] == "RP3":
         return RiemannProblem3(parameters)
     elif parameters["initialcondition"] == "ModifiedSod":
-        return ModifiedSod(params)
+        return ModifiedSod(parameters)
     elif parameters["initialcondition"] == "ToroTest3":
-        return ToroTest3(params)
+        return ToroTest3(parameters)
     elif parameters["initialcondition"] == "StationaryContact":
-        return StationaryContact(params)
+        return StationaryContact(parameters)
     elif parameters["initialcondition"] == "SlowShock":
-        return SlowShock(params)
+        return SlowShock(parameters)
     elif parameters["initialcondition"] == "PeakProblem":
-        return PeakProblem(params)
+        return PeakProblem(parameters)
     elif parameters["initialcondition"] == "LeBlanc":
-        return LeBlanc(params)
+        return LeBlanc(parameters)
     elif parameters["initialcondition"] == "StreamCollision":
-        return StreamCollision(params)
+        return StreamCollision(parameters)
     elif parameters["initialcondition"] == "RCVCR":
-        return RCVCR(params)
+        return RCVCR(parameters)
     elif parameters["initialcondition"] == "VaccumExpansionRight":
-        return VaccumExpansionRight(params)
+        return VaccumExpansionRight(parameters)
     elif parameters["initialcondition"] == "VaccumExpansionLeft":
-        return VaccumExpansionLeft(params)
+        return VaccumExpansionLeft(parameters)
     elif parameters["initialcondition"] == "ToroTest4":
-        return ToroTest4(params)
+        return ToroTest4(parameters)
     else:
         raise ValueError("unknown initial condition " + parameters["initialcondition"])
     return None
