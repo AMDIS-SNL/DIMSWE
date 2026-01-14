@@ -1,11 +1,11 @@
 from firedrake import (
     Function,
+    FunctionSpace,
     MixedFunctionSpace,
     TestFunction,
     TestFunctions,
     TrialFunction,
 )
-from firedrake import project
 
 
 class VariablesBase:
@@ -66,8 +66,8 @@ class DiffFormVariablesBase(VariablesBase):
 
         if not spaces is None:
             self.spacelist = []
-            for var, bundle, degree in zip(
-                self.variablelist, self.bundlelist, self.degreelist
+            for _var, bundle, degree in zip(
+                self.variablelist, self.bundlelist, self.degreelist, strict=False
             ):
                 # NEED TO HANDLE 1-FORMS VS N-1 FORMS in 2D!
                 self.spacelist.append(get_space(spaces, bundle, degree, dim))
