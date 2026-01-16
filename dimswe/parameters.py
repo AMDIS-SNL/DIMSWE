@@ -23,14 +23,14 @@ def get_default_parameters():
 #FOR EXAMPLE
     #parameters['num_form_quad'] = 3
 
-    parameters['num_steps'] = 1000
+    parameters['num_steps'] = 100
     parameters['dt'] = 400
 #THESE ARE DYNAMICS TIME STEPS
 #200s at nx=100, order=1 for tswe double vortex
 #0.0001 at nx=100, order=1 for twse density wave
     parameters['timestep_method'] = 'TimeSplit' #AVF2 TimeStaggered SSPRK TimeSplit
     parameters['num_avf_quad'] = 2
-    parameters['output_freq'] = 100
+    parameters['output_freq'] = 10
     parameters['stat_freq'] = 1
     parameters['output_aux_vars'] = False #super useful for debugging
     parameters['avf_solver'] = 'qn' #fixedpoint qn
@@ -40,11 +40,12 @@ def get_default_parameters():
 #Unclear what is going on?
 #Maybe need hyperviscosity to stabilize?
 
-    parameters['forcing_terms'] = ['hyperviscosity', 'threewayphysics']
+    parameters['forcing_terms'] = ['dg1limiter', 'cgtransport', 'threewayphysics'] #hyperviscosity
 
-    parameters['timestepper_split_terms'] = [['model'], ['hyperviscosity',], ['threewayphysics',]]
-    parameters['timestepper_list'] = ['SSPRK43', 'Euler', 'Euler']
-    parameters['timestepper_substeps'] = [2, 2, 1]
+    parameters['timestepper_split_terms'] = [['model'], ['cgtransport'], ['dg1limiter',], ['threewayphysics',]]
+    #['hyperviscosity',]
+    parameters['timestepper_list'] = ['RK4', 'RK4', 'SSPRK43', 'Euler']
+    parameters['timestepper_substeps'] = [2, 2, 2, 1]
 
     parameters['alpha_s'] = 1 #0 = centered, 1 = upwind
     parameters['upwind_v'] = True
@@ -53,7 +54,11 @@ def get_default_parameters():
 #    parameters['use_split_form'] = {'h': False, 'S': True, 'T1': True, 'T2': True, 'DGT1': True, 'DGT2': True}
     parameters['use_split_form'] = {'h': True, 'S': True, 'T1': True, 'T2': True, 'DGT1': False, 'DGT2': False}
 
+    parameters['modeltype'] = 'advdens-cf-h1' #metriplectic advection
     parameters['model'] = 'tswe-cf-h1' # tswe-cf tswe-lp tswe-cf-h1 ce-cf ce-lp mhd maxwell eulermaxwell scalarwave
+
+    parameters['lump_mass'] = True
+
     parameters['tracer_names'] = ['T1', 'T2'] #['T1', 'T2']
     parameters['dg_tracer_names'] = ['DGT1', 'DGT2'] #['DGT1', 'DGT2']
     parameters['thermo'] = 'idealgas-entropy'

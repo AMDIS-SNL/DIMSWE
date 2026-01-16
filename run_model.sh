@@ -1,2 +1,3 @@
 source ~/venv-firedrake/bin/activate
-python src/model.py
+#python dimswe/model.py
+python -m dimswe.model

@@ -10,12 +10,6 @@ from firedrake import CheckpointFile
 import numpy as np
 
 
-#load mesh
-parameters = get_parameters()
-logger = Logger(parameters)
-set_dimension(parameters)
-initcond = get_initial_condition(parameters)
-dynamics = get_dynamics(parameters, None, None, logger, initcond)
 
 
 def plot_mesh(mesh):
@@ -64,22 +58,6 @@ def plot_variable(data, name, dim, is_vector):
     if dim == 2:
         if is_vector:
             plot_vector2D_quiver(data, name)
-            # from firedrake import Function, VectorFunctionSpace, FunctionSpace, TestFunction, TrialFunction, dx, inner, LinearVariationalProblem, LinearVariationalSolver
-            # from ufl_helpers import skewgrad
-            # from parameters import overall_solver_parameters
-            # space = VectorFunctionSpace(mesh, "CG", 2)
-            # vectordat = Function(space)
-            # vectordat.project(data)
-            # plot_vector2D_mag(vectordat, name)
-            # space = FunctionSpace(mesh, "CG", 2)
-            # qhat = TestFunction(space)
-            # qtrial = TrialFunction(space)
-            # zeta = Function(space)
-            # zeta_expr = [inner(qhat, qtrial)*dx, inner(-skewgrad(qhat), data)*dx]
-            # zeta_problem = LinearVariationalProblem(zeta_expr[0], zeta_expr[1], zeta)
-            # zeta_solver = LinearVariationalSolver(zeta_problem, solver_parameters=overall_solver_parameters['zetadiag'], options_prefix='zetadiag')
-            # zeta_solver.solve()
-            # plot_scalar2D(zeta, 'zeta-computed')
         else:
             plot_scalar2D(data, name)
 
@@ -94,40 +72,49 @@ def plot_statistic(data, name):
     plt.savefig(name + '-fractional-change.png')
     plt.close()
 
-#EVETUALLY TIE THIS TO A VARIABLE TYPE THAT DYNAMICS KNOWS
-#ie scalar or vector
-vector_list = ['m', 'v', 'u', 'F']
+if __name__ == "__main__":
 
-with CheckpointFile(parameters['outfile_name'] + '.h5', 'r') as chkpoint_file:
+    #load mesh
+    parameters = get_parameters()
+    logger = Logger(parameters)
+    set_dimension(parameters)
+    initcond = get_initial_condition(parameters)
+    dynamics = get_dynamics(parameters, None, None, logger, initcond)
 
-    mesh = chkpoint_file.load_mesh()
-    #if parameters['dim'] >= 2:
-    #    plot_mesh(mesh)
+    #EVETUALLY TIE THIS TO A VARIABLE TYPE THAT DYNAMICS KNOWS
+    #ie scalar or vector
+    vector_list = ['m', 'v', 'u', 'F']
 
-    h5file = chkpoint_file.h5pyfile
-    for stat in dynamics.statistics.statistic_names:
-        statdata = np.array(h5file[stat])
-        plot_statistic(statdata, stat)
+    with CheckpointFile(parameters['outfile_name'] + '.h5', 'r') as chkpoint_file:
 
-    for n in range(0, parameters['num_steps']+1):
-        if ((n % parameters['output_freq']) == 0):
-            output_step = n // parameters['output_freq']
-            print('plotting output at step ' + str(n) + ' output step ' + str(output_step))
-            for var in dynamics.variableset.varlist:
+        mesh = chkpoint_file.load_mesh()
+        #if parameters['dim'] >= 2:
+        #    plot_mesh(mesh)
 
-                vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
-                plot_variable(vardat, var + '.' + str(n),  parameters['dim'], var in vector_list)
+        h5file = chkpoint_file.h5pyfile
+        for stat in dynamics.statistics.statistic_names:
+            statdata = np.array(h5file[stat])
+            plot_statistic(statdata, stat)
 
-            if parameters['output_aux_vars']:
+        for n in range(0, parameters['num_steps']+1):
+            if ((n % parameters['output_freq']) == 0):
+                output_step = n // parameters['output_freq']
+                print('plotting output at step ' + str(n) + ' output step ' + str(output_step))
+                for var in dynamics.variableset.varlist:
 
-                for var in dynamics.q_aux_var_list:
                     vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
-                    plot_variable(vardat, var + '.'+  str(n), parameters['dim'], var in vector_list)
+                    plot_variable(vardat, var + '.' + str(n),  parameters['dim'], var in vector_list)
 
-                for var in dynamics.dfdx_aux_var_list:
+                if parameters['output_aux_vars']:
+
+                    for var in dynamics.q_aux_var_list:
+                        vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
+                        plot_variable(vardat, var + '.'+  str(n), parameters['dim'], var in vector_list)
+
+                    for var in dynamics.dfdx_aux_var_list:
+                        vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
+                        plot_variable(vardat, var + '.' + str(n), parameters['dim'], var in vector_list)
+
+                for var in dynamics.diagnostics.var_list:
                     vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
-                    plot_variable(vardat, var + '.' + str(n), parameters['dim'], var in vector_list)
-
-            for var in dynamics.diagnostics.var_list:
-                vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
-                plot_variable(vardat, var + '.' + str(n),  parameters['dim'], var in vector_list)
+                    plot_variable(vardat, var + '.' + str(n),  parameters['dim'], var in vector_list)
