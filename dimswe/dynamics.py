@@ -171,20 +171,37 @@ class AdvDensCF_H1_Dynamics(Dynamics):
             term.initialize(varexpr)
         self.coriolis.interpolate(varexpr['coriolis'])
         self.bottom_topography.interpolate(varexpr['bottom_topography'])
-
+        self.diagnostics.initialize(varexpr)
+        self.statistics.initialize(varexpr)
+        
     def get_q_aux_var_list(self, terms='all'):
-        return []
+        q_aux_var_list = []
+        for term in self.forcing_terms:
+            if terms == 'all' or term.name in terms:
+                q_aux_var_list = q_aux_var_list + term.get_aux_vars_list()
+        return q_aux_var_list
+
+    def get_q_aux_vars(self, terms='all'):
+        self.logger.output('creating q aux vars', 1)
+        vars = {}
+        for term in self.forcing_terms:
+            if terms == 'all' or term.name in terms:
+                term.get_aux_vars(vars)
+        self.logger.output('created q aux vars', 1)
+        return vars
+
+    def compute_q_expressions(self, x, terms='all'):
+        expressions = {}
+        for term in self.forcing_terms:
+            if terms == 'all' or term.name in terms:
+                term.compute_q_expressions(x, expressions)
+        return expressions
+
 
     def get_dfdx_aux_var_list(self, terms='all'):
         return []
 
-    def get_q_aux_vars(self, terms='all'):
-        return {}
-
     def get_dfdx_aux_vars(self, terms='all'):
-        return {}
-
-    def compute_q_expressions(self, x, terms='all'):
         return {}
 
     def compute_dfdx_expressions(self, x, terms='all'):
@@ -265,7 +282,9 @@ class MetriplecticDynamics(Dynamics):
             metric_bracket.initialize(varexpr)
         for term in self.forcing_terms:
             term.initialize(varexpr)
-
+        self.diagnostics.initialize(varexpr)
+        self.statistics.initialize(varexpr)
+        
     def get_q_aux_var_list(self, terms='all'):
         q_aux_var_list = []
         if terms == 'all' or 'model' in terms:
@@ -409,7 +428,7 @@ def get_dynamics(parameters, mesh, spaces, logger, initcond):
             metric_brackets = [ThermodynamicallyCompatibleViscousRegularization_LP(spaces, vars), ]
             entropy = SimpleEntropy(spaces, vars)
             statistics = AdvDensStatistics_LP(spaces, hamiltonian, vars, parameters['num_steps'] // parameters['stat_freq'] + 1)
-            diagnostics = AdvDensDiagnostics_LP(spaces, hamiltonian, vars, parameters['dim'])
+            diagnostics = AdvDensDiagnostics_LP(spaces, hamiltonian, vars, initcond, parameters['dim'])
 
         elif parameters['model'] in ['tswe-cf', 'ce-cf', 'mtswe-cf']:
             if parameters['model'] == 'tswe-cf':
@@ -428,7 +447,7 @@ def get_dynamics(parameters, mesh, spaces, logger, initcond):
             metric_brackets = [ThermodynamicallyCompatibleViscousRegularization_CF(spaces, vars), ]
             entropy = SimpleEntropy(spaces, vars)
             statistics = AdvDensStatistics_CF(spaces, hamiltonian, vars, parameters['num_steps'] // parameters['stat_freq'] + 1)
-            diagnostics = AdvDensDiagnostics_CF(spaces, hamiltonian, vars, parameters['dim'])
+            diagnostics = AdvDensDiagnostics_CF(spaces, hamiltonian, vars, initcond, parameters['dim'])
 
         elif parameters['model'] == 'mhd':
             vars = MHDVariables_LP(spaces)
@@ -491,7 +510,7 @@ def get_dynamics(parameters, mesh, spaces, logger, initcond):
             #metric_brackets = [ThermodynamicallyCompatibleViscousRegularization_CF(spaces, vars), ]
             entropy = SimpleEntropy(spaces, vars)
             statistics = AdvDensStatistics_CF_H1(spaces, hamiltonian, vars, parameters['num_steps'] // parameters['stat_freq'] + 1)
-            diagnostics = AdvDensDiagnostics_CF_H1(spaces, hamiltonian, vars, parameters['dim'])
+            diagnostics = AdvDensDiagnostics_CF_H1(spaces, hamiltonian, vars, initcond, parameters['dim'])
 
         else:
             raise ValueError("model " + parameters['model'] + " is unknown")

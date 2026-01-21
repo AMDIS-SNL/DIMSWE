@@ -118,3 +118,4 @@ if __name__ == "__main__":
                 for var in dynamics.diagnostics.var_list:
                     vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
                     plot_variable(vardat, var + '.' + str(n),  parameters['dim'], var in vector_list)
+    

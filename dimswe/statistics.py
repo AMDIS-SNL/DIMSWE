@@ -27,7 +27,9 @@ class AdvDensStatistics():
             self.statistic_names.append('total_' + dens)
             self.statistics['total_' + dens] = np.zeros(nstat)
 
-
+    def initialize(self, varexpr):
+        pass
+        
     def create(self, xn):
         self.total_energy_expression = self.hamiltonian.compute_total_energy(xn)*dx
         self.total_density_expression = self.hamiltonian.vars.get_total_density_expr(xn)*dx

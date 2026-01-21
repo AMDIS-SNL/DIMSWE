@@ -19,19 +19,21 @@ from .parameters import overall_solver_parameters
 
 #LOTS IS SHARED- COMBINE IT!
 class AdvDensDiagnostics():
-    def __init__(self, spaces, hamiltonian, variableset, dim):
+    def __init__(self, spaces, hamiltonian, variableset, initcond, dim):
         self.spaces = spaces
         self.hamiltonian = hamiltonian
         self.variableset = variableset
         self.density_names = variableset.density_names
         self.dim = dim
+        self.initcond = initcond
 
-#THIS SHOULD COME FROM INITIAL CONDITION
-#REALLY ACTUALLY THIS SHOULD SOME SORT OF CONSTANT FUNCTION CREATED BY INITIAL CONDITIONS
-#THAT IS THEN SHARED ACROSS POISSON BRACKETS, ETC.
-#SAME TREATMENT FOR HS, GEOPOTENTIAL, ETC.
-        self.coriolis = 0.00006147
-
+        if not spaces is None:
+            self.bottom_topography = Function(spaces.CG)
+            if self.dim == 2:
+                self.coriolis = Function(spaces.CG)
+            elif self.dim == 3:
+                self.coriolis = Function(spaces.CGV) #PRETTY UNCLEAR ACTUALLY- MAYBE H(curl) or even H(div)?
+                
         self.testvars = {}
         self.trialvars = {}
         self.var_list = []
@@ -41,7 +43,9 @@ class AdvDensDiagnostics():
             self.var_list.append('zeta')
         for dens in self.density_names:
             self.var_list.append(dens + '_l')
-
+        self.var_list.append('coriolis')
+        self.var_list.append('bottom_topography')
+        
         if not self.spaces is None:
             self.dx = spaces.dx
             self.ds = spaces.ds
@@ -63,9 +67,16 @@ class AdvDensDiagnostics():
             for dens in self.density_names:
                 varspace = self.variableset.spacelist[self.variableset.varlist.index(dens)]
                 self.vars[dens + '_l'] = Function(varspace)
+            self.vars['coriolis'] = self.coriolis
+            self.vars['bottom_topography'] = self.bottom_topography
 
+
+    def initialize(self, varexpr):
+        self.coriolis.interpolate(varexpr['coriolis'])
+        self.bottom_topography.interpolate(varexpr['bottom_topography'])
+        
 #FOR PERFORMANCE SHOULD PROBABLY CREATE AN INTERPOLATOR AND CALL IT?
-#ALSO UNCLEAR IF INTERPOLATE IS BEST, OR IF SOME SORT OF LINEAR SYTEM SHOULD BE USED?
+#ALSO UNCLEAR IF INTERPOLATE IS BEST, OR IF SOME SORT OF LINEAR SYSTEM SHOULD BE USED?
 
     def compute(self):
         for dens in self.density_names:
@@ -76,21 +87,6 @@ class AdvDensDiagnostics():
             self.zeta_solver.solve()
 
 class AdvDensDiagnostics_CF_H1(AdvDensDiagnostics):
-    # def __init__(self, spaces, hamiltonian, vars, dim):
-    #     AdvDensDiagnostics.__init__(self, spaces, hamiltonian, vars, dim)
-    #
-    #     self.dg_density_names = vars.dg_density_names
-    #     for dens in self.dg_density_names:
-    #         self.var_list.append(dens + '_l')
-    #
-    #     if not self.spaces is None:
-    #         for dens in self.dg_density_names:
-    #             self.vars[dens + '_l'] = Function(FunctionSpace(self.spaces.mesh, 'DG', 1))
-    #
-    # def compute(self):
-    #     AdvDensDiagnostics.compute(self)
-    #     for dens in self.dg_density_names:
-    #         self.vars[dens + '_l'].interpolate(self.xn[dens] / self.total_dens)
 
     def create(self, xn):
         self.xn = xn

@@ -50,6 +50,8 @@ def get_mesh_and_spaces(parameters, initcond):
         mesh = RectangleMesh(parameters['nx'], parameters['ny'], right_x, right_y, originX=left_x, originY=left_y, quadrilateral=not parameters['simplicial_cells'], diagonal=parameters['diagonal'])
     elif parameters['mesh'] == 'rectangle-periodic':
         mesh = PeriodicRectangleMesh(parameters['nx'], parameters['ny'], initcond.Lx, initcond.Ly, quadrilateral=not parameters['simplicial_cells'], diagonal=parameters['diagonal'])
+        mesh.dx = initcond.Lx / parameters['nx']
+        mesh.dy = initcond.Ly / parameters['ny']
 #NEED TO SCALE+CENTER MESH COORDINATES
     elif parameters['mesh'] == 'box':
         mesh = BoxMesh(parameters['nx'], parameters['ny'], parameters['nz'], initcond.Lx, initcond.Ly, initcond.Lz, hexahedral=not parameters['simplicial_cells'], diagonal=parameters['diagonal'])
