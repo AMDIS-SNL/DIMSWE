@@ -478,7 +478,7 @@ class TC5(TC2):
         xs = SpatialCoordinate(mesh)
         initcond = TC2.get_value(self, mesh, t)
         dist = sqrt((xs[0] - xm) * (xs[0] - self.xm) + (xs[1] - ym) * (xs[1] - self.ym))
-        initcond['bottom_topography'] = self.h0 * (1. - 1./self.R * ufl.min(self.R, dist))
+        initcond['bottom_topography'] = self.h0 * (1. - 1./self.R * ufl.Min(self.R, dist))
         initcond['h'] = initcond['h'] - initcond['bottom_topography']
         initcond['Qv'] = (1. - self.zeta) * qsat(initcond['h'], s, initcond['bottom_topography'], self.q0, self.H0, self.g)
 

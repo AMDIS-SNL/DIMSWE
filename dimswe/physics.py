@@ -1,9 +1,10 @@
 
 from .operators import ForcingBase
-from firedrake import exp, min, max
+from firedrake import exp
+import ufl
 
 def qsat(h, s, B, q0, H0, g):
-    return q0 * H0 / (h + B) * exp(20.(1.-s/g))
+    return q0 * H0 / (h + B) * exp(20.*(1.-s/g))
     
 class ThreeWayPhysics(ForcingBase):
     def __init__(self, parameters, vars, spaces):
@@ -40,9 +41,9 @@ class ThreeWayPhysics(ForcingBase):
         
         q_sat = qsat(h, s, self.B, self.q0, self.H0, self.g)
         gamma_v = 1./(1. + qsat * 20. * self.beta2 / self.g)
-        Dqv = 0.0 #max(0.0, (qv-qsat)/self.tau_v)
-        Dqc = 0.0 #min(qc/self.dt, max(0., gamma_v * (qsat - qv)/self.tau_v))
-        Dqr = 0.0 #max(0.0, self.gamma_r * (qc-self.qprecip)/self.tau_r)
+        Dqv = 0.0 #ufl.Max(0.0, (qv-qsat)/self.tau_v)
+        Dqc = 0.0 #ufl.Min(qc/self.dt, ufl.Max(0., gamma_v * (qsat - qv)/self.tau_v))
+        Dqr = 0.0 #ufl.Max(0.0, self.gamma_r * (qc-self.qprecip)/self.tau_r)
         Sv = Dqc - Dqv
         Sr = Dqr
         Sc = Dqv - Dqc - Dqr
