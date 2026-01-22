@@ -173,7 +173,7 @@ class AdvDensCF_H1_Dynamics(Dynamics):
         self.bottom_topography.interpolate(varexpr['bottom_topography'])
         self.diagnostics.initialize(varexpr)
         self.statistics.initialize(varexpr)
-        
+
     def get_q_aux_var_list(self, terms='all'):
         q_aux_var_list = []
         for term in self.forcing_terms:
@@ -284,7 +284,7 @@ class MetriplecticDynamics(Dynamics):
             term.initialize(varexpr)
         self.diagnostics.initialize(varexpr)
         self.statistics.initialize(varexpr)
-        
+
     def get_q_aux_var_list(self, terms='all'):
         q_aux_var_list = []
         if terms == 'all' or 'model' in terms:
@@ -392,13 +392,13 @@ class MetriplecticDynamics(Dynamics):
             if terms == 'all' or term.name in terms:
                 term.post_step(statevars)
 
-def get_forcing_terms(parameters, vars, spaces):
+def get_forcing_terms(parameters, vars, spaces, initcond):
     forcing_terms = []
     for forcing_term in parameters['forcing_terms']:
         if forcing_term == 'hyperviscosity':
             forcing_terms.append(Hyperviscosity(parameters, vars, spaces))
         elif forcing_term == 'threewayphysics':
-            forcing_terms.append(ThreeWayPhysics(parameters, vars, spaces))
+            forcing_terms.append(ThreeWayPhysics(parameters, vars, spaces, initcond))
         elif forcing_term == 'dg1limiter':
             forcing_terms.append(DG1LimiterTransport(parameters, vars, spaces))
         elif forcing_term == 'cgtransport':
@@ -492,7 +492,7 @@ def get_dynamics(parameters, mesh, spaces, logger, initcond):
         else:
             raise ValueError("model " + parameters['model'] + " is unknown")
 
-        forcing_terms = get_forcing_terms(parameters, vars, spaces)
+        forcing_terms = get_forcing_terms(parameters, vars, spaces, initcond)
         return MetriplecticDynamics(mesh, spaces, vars, poisson_brackets, metric_brackets,
             hamiltonian, entropy, statistics, diagnostics, forcing_terms, logger)
 
@@ -515,7 +515,7 @@ def get_dynamics(parameters, mesh, spaces, logger, initcond):
         else:
             raise ValueError("model " + parameters['model'] + " is unknown")
 
-        forcing_terms = get_forcing_terms(parameters, vars, spaces)
+        forcing_terms = get_forcing_terms(parameters, vars, spaces, initcond)
         return AdvDensCF_H1_Dynamics(parameters, mesh, spaces, vars, hamiltonian, entropy, statistics, diagnostics, forcing_terms, logger)
 
     elif parameters['modeltype'] == 'advection':
