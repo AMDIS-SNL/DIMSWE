@@ -116,3 +116,4 @@ overall_solver_parameters['Q_v'] = basic_linear_system
 overall_solver_parameters['Q_h'] = basic_linear_system
 overall_solver_parameters['Q_S'] = basic_linear_system
 overall_solver_parameters['rhdiag'] = basic_linear_system
+overall_solver_parameters['qsatdiag'] = basic_linear_system

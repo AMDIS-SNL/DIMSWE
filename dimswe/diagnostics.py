@@ -49,7 +49,8 @@ class AdvDensDiagnostics():
 
         if 'Qv' in variableset.varlist:
             self.var_list.append('rh')
-
+            self.var_list.append('qsat')
+            
         if not self.spaces is None:
             self.dx = spaces.dx
             self.ds = spaces.ds
@@ -77,7 +78,9 @@ class AdvDensDiagnostics():
                 self.vars['rh'] = Function(self.spaces.CG)
                 self.testvars['rh'] = TestFunction(self.spaces.CG)
                 self.trialvars['rh'] = TrialFunction(self.spaces.CG)
-
+                self.vars['qsat'] = Function(self.spaces.CG)
+                self.testvars['qsat'] = TestFunction(self.spaces.CG)
+                self.trialvars['qsat'] = TrialFunction(self.spaces.CG)
 
     def initialize(self, varexpr):
         self.coriolis.interpolate(varexpr['coriolis'])
@@ -95,7 +98,7 @@ class AdvDensDiagnostics():
             self.zeta_solver.solve()
         if 'Qv' in self.variableset.varlist:
             self.rh_solver.solve()
-
+            self.qsat_solver.solve()
 
     def create(self, xn):
         if 'Qv' in self.variableset.varlist:
@@ -106,10 +109,15 @@ class AdvDensDiagnostics():
             s = S / h
             rhhat = self.testvars['rh']
             rhtrial = self.trialvars['rh']
+            qsathat = self.testvars['qsat']
+            qsattrial = self.trialvars['qsat']
             q_sat = qsat(h, s, self.bottom_topography, self.initcond.q0, self.initcond.H0, self.initcond.g)
             rh_expr = [inner(rhhat, rhtrial)*self.dx, inner(rhhat, qv/q_sat*100.)*self.dx]
             rh_problem = LinearVariationalProblem(rh_expr[0], rh_expr[1], self.vars['rh'])
             self.rh_solver = LinearVariationalSolver(rh_problem, solver_parameters=overall_solver_parameters['rhdiag'], options_prefix='rhdiag')
+            qsat_expr = [inner(qsathat, qsattrial)*self.dx, inner(qsathat, q_sat)*self.dx]
+            qsat_problem = LinearVariationalProblem(qsat_expr[0], qsat_expr[1], self.vars['qsat'])
+            self.qsat_solver = LinearVariationalSolver(qsat_problem, solver_parameters=overall_solver_parameters['qsatdiag'], options_prefix='qsatdiag')
 
 
 class AdvDensDiagnostics_CF_H1(AdvDensDiagnostics):

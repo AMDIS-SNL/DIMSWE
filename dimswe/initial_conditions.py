@@ -447,10 +447,12 @@ class TC2(IC2D):
         self.zeta = 0.0 #10^-3, 0.02
         self.q0 = 0.007
 
-    def get_value(self, mesh, t):
+    def get_value(self, mesh, t, initcond=None):
         xs = SpatialCoordinate(mesh)
-        initcond = {}
-        initcond['h'] = self.H0 - self.a * self.f * self.u0 / self.g * sin(xs[1]/self.a)
+        if initcond is None:
+            initcond = {}
+            initcond['bottom_topography'] = 0.0
+        initcond['h'] = self.H0 - self.a * self.f * self.u0 / self.g * sin(xs[1]/self.a) - initcond['bottom_topography'] 
         u = self.u0 * cos(xs[1] / self.a)
         v = 0.0
         initcond['v'] = as_vector([u,v])
@@ -458,7 +460,6 @@ class TC2(IC2D):
         s = self.g * (1. + self.c * self.H0 * self.H0 / (initcond['h'] * initcond['h']))
         initcond['S'] = initcond['h'] * s
         initcond['coriolis'] = self.f
-        initcond['bottom_topography'] = 0.0
         initcond['Qv'] = initcond['h'] * (1. - self.zeta) * qsat(initcond['h'], s, initcond['bottom_topography'], self.q0, self.H0, self.g)
         initcond['Qr'] = 0.0
         initcond['Qc'] = 0.0
@@ -476,12 +477,10 @@ class TC5(TC2):
 
     def get_value(self, mesh, t):
         xs = SpatialCoordinate(mesh)
-        initcond = TC2.get_value(self, mesh, t)
+        initcond = {}
         dist = sqrt((xs[0] - self.xm) * (xs[0] - self.xm) + (xs[1] - self.ym) * (xs[1] - self.ym))
-        initcond['bottom_topography'] = self.h0 * (1. - 1./self.R * ufl.min_value(self.R, dist))
-        initcond['h'] = initcond['h'] - initcond['bottom_topography']
-        s = self.g * (1. + self.c * self.H0 * self.H0 / (initcond['h'] * initcond['h']))
-        initcond['Qv'] = initcond['h'] * (1. - self.zeta) * qsat(initcond['h'], s, initcond['bottom_topography'], self.q0, self.H0, self.g)
+        initcond['bottom_topography'] = self.h0 * (1. - 1./self.R * ufl.min_value(self.R, dist))        
+        initcond = TC2.get_value(self, mesh, t, initcond=initcond)
         return initcond
 
 #EVENTUALLY ADD AND FIX THIS

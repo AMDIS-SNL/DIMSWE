@@ -44,7 +44,7 @@ class ThreeWayPhysics(ForcingBase):
 
         q_sat = qsat(h, s, self.B, self.q0, self.H0, self.g)
         gamma_v = 1./(1. + q_sat * 20. * self.beta2 / self.g)
-        Dqv = ufl.max_value(0.0, (qv-q_sat)/self.tau_v)
+        Dqv = ufl.max_value(0.0, gamma_v*(qv-q_sat)/self.tau_v)
         Dqc = ufl.min_value(qc/self.dt, ufl.max_value(0., gamma_v * (q_sat - qv)/self.tau_v))
         Dqr = ufl.max_value(0.0, self.gamma_r * (qc-self.qprecip)/self.tau_r)
         Sv = Dqc - Dqv
