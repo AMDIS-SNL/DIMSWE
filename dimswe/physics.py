@@ -40,7 +40,7 @@ class ThreeWayPhysics(ForcingBase):
         qv = Qv / h
         qc = Qc / h
         qr = Qr / h
-        s = h/S
+        s = S/h
 
         q_sat = qsat(h, s, self.B, self.q0, self.H0, self.g)
         gamma_v = 1./(1. + q_sat * 20. * self.beta2 / self.g)

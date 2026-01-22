@@ -2,6 +2,7 @@ from firedrake import Function, LinearVariationalProblem, LinearVariationalSolve
 from firedrake import FunctionSpace, TestFunction, TrialFunction, inner, curl
 from .ufl_helpers import skewgrad, curl2D
 from .parameters import overall_solver_parameters
+from .physics import qsat
 
 #Advected density diagnostics
 
@@ -33,7 +34,7 @@ class AdvDensDiagnostics():
                 self.coriolis = Function(spaces.CG)
             elif self.dim == 3:
                 self.coriolis = Function(spaces.CGV) #PRETTY UNCLEAR ACTUALLY- MAYBE H(curl) or even H(div)?
-                
+
         self.testvars = {}
         self.trialvars = {}
         self.var_list = []
@@ -45,7 +46,10 @@ class AdvDensDiagnostics():
             self.var_list.append(dens + '_l')
         self.var_list.append('coriolis')
         self.var_list.append('bottom_topography')
-        
+
+        if 'Qv' in variableset.varlist:
+            self.var_list.append('rh')
+
         if not self.spaces is None:
             self.dx = spaces.dx
             self.ds = spaces.ds
@@ -69,12 +73,16 @@ class AdvDensDiagnostics():
                 self.vars[dens + '_l'] = Function(varspace)
             self.vars['coriolis'] = self.coriolis
             self.vars['bottom_topography'] = self.bottom_topography
+            if 'Qv' in variableset.varlist:
+                self.vars['rh'] = Function(self.spaces.CG)
+                self.testvars['rh'] = TestFunction(self.spaces.CG)
+                self.trialvars['rh'] = TrialFunction(self.spaces.CG)
 
 
     def initialize(self, varexpr):
         self.coriolis.interpolate(varexpr['coriolis'])
         self.bottom_topography.interpolate(varexpr['bottom_topography'])
-        
+
 #FOR PERFORMANCE SHOULD PROBABLY CREATE AN INTERPOLATOR AND CALL IT?
 #ALSO UNCLEAR IF INTERPOLATE IS BEST, OR IF SOME SORT OF LINEAR SYSTEM SHOULD BE USED?
 
@@ -85,10 +93,29 @@ class AdvDensDiagnostics():
             self.pv_solver.solve()
             self.eta_solver.solve()
             self.zeta_solver.solve()
+        if 'Qv' in self.variableset.varlist:
+            self.rh_solver.solve()
+
+
+    def create(self, xn):
+        if 'Qv' in self.variableset.varlist:
+            h = xn['h']
+            S = xn['S']
+            Qv = xn['Qv']
+            qv = Qv / h
+            s = S / h
+            rhhat = self.testvars['rh']
+            rhtrial = self.trialvars['rh']
+            q_sat = qsat(h, s, self.bottom_topography, self.initcond.q0, self.initcond.H0, self.initcond.g)
+            rh_expr = [inner(rhhat, rhtrial)*self.dx, inner(rhhat, qv/q_sat*100.)*self.dx]
+            rh_problem = LinearVariationalProblem(rh_expr[0], rh_expr[1], self.vars['rh'])
+            self.rh_solver = LinearVariationalSolver(rh_problem, solver_parameters=overall_solver_parameters['rhdiag'], options_prefix='rhdiag')
+
 
 class AdvDensDiagnostics_CF_H1(AdvDensDiagnostics):
 
     def create(self, xn):
+        AdvDensDiagnostics.create(self, xn)
         self.xn = xn
         self.total_dens = self.hamiltonian.vars.get_total_density_expr(self.xn)
 
@@ -114,6 +141,7 @@ class AdvDensDiagnostics_CF_H1(AdvDensDiagnostics):
 class AdvDensDiagnostics_CF(AdvDensDiagnostics):
 
     def create(self, xn):
+        AdvDensDiagnostics.create(self, xn)
         self.xn = xn
         self.total_dens = self.hamiltonian.vars.get_total_density_expr(self.xn)
 
@@ -143,6 +171,7 @@ class AdvDensDiagnostics_CF(AdvDensDiagnostics):
 #ADD M, U, V
 class AdvDensDiagnostics_LP(AdvDensDiagnostics):
     def create(self, xn):
+        AdvDensDiagnostics.create(self, xn)
         self.xn = xn
         total_dens = self.hamiltonian.vars.get_total_density_expr(self.xn)
 

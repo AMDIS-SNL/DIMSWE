@@ -427,7 +427,7 @@ def get_dynamics(parameters, mesh, spaces, logger, initcond):
             poisson_brackets = [LiePoisson_AdvectedDensities_Bracket(spaces, vars, parameters), ]
             metric_brackets = [ThermodynamicallyCompatibleViscousRegularization_LP(spaces, vars), ]
             entropy = SimpleEntropy(spaces, vars)
-            statistics = AdvDensStatistics_LP(spaces, hamiltonian, vars, parameters['num_steps'] // parameters['stat_freq'] + 1)
+            statistics = AdvDensStatistics_LP(spaces, hamiltonian, vars, initcond, parameters['num_steps'] // parameters['stat_freq'] + 1)
             diagnostics = AdvDensDiagnostics_LP(spaces, hamiltonian, vars, initcond, parameters['dim'])
 
         elif parameters['model'] in ['tswe-cf', 'ce-cf', 'mtswe-cf']:
@@ -446,7 +446,7 @@ def get_dynamics(parameters, mesh, spaces, logger, initcond):
             poisson_brackets = [CurlForm_AdvectedDensities_Bracket(spaces, vars, parameters), ]
             metric_brackets = [ThermodynamicallyCompatibleViscousRegularization_CF(spaces, vars), ]
             entropy = SimpleEntropy(spaces, vars)
-            statistics = AdvDensStatistics_CF(spaces, hamiltonian, vars, parameters['num_steps'] // parameters['stat_freq'] + 1)
+            statistics = AdvDensStatistics_CF(spaces, hamiltonian, vars, initcond, parameters['num_steps'] // parameters['stat_freq'] + 1)
             diagnostics = AdvDensDiagnostics_CF(spaces, hamiltonian, vars, initcond, parameters['dim'])
 
         elif parameters['model'] == 'mhd':
@@ -509,7 +509,7 @@ def get_dynamics(parameters, mesh, spaces, logger, initcond):
     #DOES METRIC BRACKET HAVE TO CHANGE FOR H1 SPACES?
             #metric_brackets = [ThermodynamicallyCompatibleViscousRegularization_CF(spaces, vars), ]
             entropy = SimpleEntropy(spaces, vars)
-            statistics = AdvDensStatistics_CF_H1(spaces, hamiltonian, vars, parameters['num_steps'] // parameters['stat_freq'] + 1)
+            statistics = AdvDensStatistics_CF_H1(spaces, hamiltonian, vars, initcond, parameters['num_steps'] // parameters['stat_freq'] + 1)
             diagnostics = AdvDensDiagnostics_CF_H1(spaces, hamiltonian, vars, initcond, parameters['dim'])
 
         else:
