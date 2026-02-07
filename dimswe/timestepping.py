@@ -1,23 +1,30 @@
 from firedrake import NonlinearVariationalProblem, NonlinearVariationalSolver, LinearVariationalProblem, LinearVariationalSolver
 from .parameters import overall_solver_parameters
 import numpy as np
-from firedrake import Constant, inner, dx, TestFunction, derivative, norm, assemble, Function, TestFunctions, split, TrialFunction
+from firedrake import Constant, inner, TestFunction, derivative, norm, assemble, Function, TestFunctions, split, TrialFunction
+
+
+def make_a_L(Lexpr, vartrial, varhat, dx):
+    a = inner(varhat, vartrial)*dx
+    L = inner(varhat, Lexpr)*dx
+    return [a, L]
 
 class FixedPointSolver():
-    def __init__(self, fexpr, xnp1, varspace, pre_function_callback, post_function_callback):
+    def __init__(self, fexpr, xnp1, varspace, pre_function_callback, post_function_callback, dx):
         self.fexpr = fexpr
         self.xnp1 = xnp1 #this is xk
         #self.xkp1 = xnp1.copy(deepcopy=True)
         self.xkp1 = Function(varspace)
         self.pre_function_callback = pre_function_callback
         self.post_function_callback = post_function_callback
+        self.dx = dx
 
 #MOVE TO PARAMETERS AT SOME POINT
         self.eps = 1e-12
         self.max_iters = 50
 
         xtest = TestFunction(varspace)
-        a = derivative(inner(xtest,self.xkp1)*dx, self.xkp1)
+        a = derivative(inner(xtest,self.xkp1)*self.dx, self.xkp1)
         linearproblem = LinearVariationalProblem(a, fexpr, self.xkp1)
         self.linearsolver = LinearVariationalSolver(linearproblem, solver_parameters=overall_solver_parameters['fixedpoint'], options_prefix = 'fixedpoint')
 
@@ -66,6 +73,8 @@ class AVF2_Integrator(TimeStepper):
         self.initcond = initcond
         self.logger = logger
         self.parameters = parameters
+        self.dx = dynamics.spaces.dx
+
 
         self.q_aux_vars = self.dynamics.get_q_aux_vars(terms=terms)
         self.dfdx_aux_vars = self.dynamics.get_dfdx_aux_vars(terms=terms)
@@ -85,6 +94,7 @@ class AVF2_Integrator(TimeStepper):
 
 #CAN TRIM OR REMOVE A LOT OF THIS?
         self.xn_sub = {}
+        self.xk_sub = {}
         self.xnp1_sub = {}
         self.xnp1_split = {}
         xnp1_split_temp = split(self.xnp1)
@@ -92,6 +102,7 @@ class AVF2_Integrator(TimeStepper):
             self.xn_sub[var] = self.xn.sub(i)
             self.xnp1_sub[var] = self.xnp1.sub(i)
             self.xnp1_split[var]  = xnp1_split_temp[i]
+            self.xk_sub[var] = self.xk.sub(i)
 
 
         for i,var in enumerate(self.dynamics.variableset.varlist):
@@ -118,7 +129,7 @@ class AVF2_Integrator(TimeStepper):
                 xq[var] = (1. - float(point)) * self.xn.sub(j) + float(point) * self.xk.sub(j)
             xq_dfdx_expressions = self.dynamics.compute_dfdx_expressions(xq, terms=terms)
             for var in self.dynamics.get_dfdx_aux_var_list(terms=terms):
-                a, L = xq_dfdx_expressions[var]
+                a, L = make_a_L(*xq_dfdx_expressions[var])
                 dfdx_expressions[var][0] = dfdx_expressions[var][0] + float(weight) * a
                 dfdx_expressions[var][1] = dfdx_expressions[var][1] + float(weight) * L
         for var in self.dynamics.get_dfdx_aux_var_list(terms=terms):
@@ -141,15 +152,15 @@ class AVF2_Integrator(TimeStepper):
 #CANNOT REALLY DO FIXED POINT USING PETSC, OR AT LEAST I CAN'T FIGURE IT OUT
 #probably possible with some careful combination of NL solver options
         if parameters['avf_solver'] == 'fixedpoint':
-            nl_expr = inner(xhat, self.xn)*dx - self.dt*rhs_expr
+            nl_expr = inner(xhat, self.xn)*self.dx - self.dt*rhs_expr
             self.rhs_nl_solver = FixedPointSolver(nl_expr, self.xnp1, self.dynamics.variableset.mixedspace,
-                lambda state: self.pre_callback(state), lambda state: self.post_callback(state))
+                lambda state: self.pre_callback(state), lambda state: self.post_callback(state), self.dx)
 #SUPER UNCLEAR IF A LIMITER HERE FOR POST FUNCTION CALLBACK WILL ACTUALLY WORK?
 
         elif parameters['avf_solver'] == 'qn':
-            nl_expr = inner(xhat, self.xnp1 - self.xn)*dx + self.dt*rhs_expr
+            nl_expr = inner(xhat, self.xnp1 - self.xn)*self.dx + self.dt*rhs_expr
             rhs_linear_expr = dynamics.linear_rhs(self.initcond.const_state, self.q_aux_vars, xhat_subs, terms=terms)
-            linear_expr = inner(xhat, self.xnp1 - self.xn)*dx + self.dt*rhs_linear_expr
+            linear_expr = inner(xhat, self.xnp1 - self.xn)*self.dx + self.dt*rhs_linear_expr
             J_expr = derivative(linear_expr, self.xnp1)
             rhs_nl_problem = NonlinearVariationalProblem(nl_expr, self.xnp1, J=J_expr)
             self.rhs_nl_solver = NonlinearVariationalSolver(rhs_nl_problem, solver_parameters=overall_solver_parameters['qn'],
@@ -174,15 +185,15 @@ class AVF2_Integrator(TimeStepper):
 
         #self.xnp1.zero()
         #self.xk.zero()
-#REPLACE WITH ASSIGNS PROBABLY
         self.xnp1.assign(self.xn)
 #        self.xn.dat.copy(self.xk.dat) #DONT THINK WE NEED THIS COPY
         #self.xn.dat.copy(self.xnp1.dat)
 
-#HOW DO WE ADD IN self.dynamics.post_step(SOMETHING) STUFF?
-# PROBABLY A POST_CALLBACK?
+#THIS IS ACTUALLY BROKEN- UNCLEAR EXACTLY HOW TO MODIFY CURRENT STATE AFTER A STEP IS COMPUTED?
     def post_callback(self, state):
-        self.dynamics.post_step(SOMETHING)
+        with self.xk.dat.vec_wo as xk:
+            state.copy(xk)
+        self.dynamics.post_step(self.xk_sub)
 
     def take_step(self, dt):
         self.dt.assign(dt)
@@ -204,6 +215,7 @@ class TimeStaggered_Integrator(TimeStepper):
         self.initcond = initcond
         self.logger = logger
         self.parameters = parameters
+        self.dx = dynamics.spaces.dx
 
 #FIX THIS
     def initialize(self, init_xn=True):
@@ -236,14 +248,14 @@ class TimeStaggered_Integrator(TimeStepper):
         self.pre_stepA_solvers()
         self.stepA_solver.solve()
         self.xn.assign(self.xn + self.dt * self.F)
-        self.dynamics.post_step(SOMETHING)
+        self.dynamics.post_step(self.xn_sub, terms=self.terms)
 
         self.xk.assign(self.xn)
         self.t.assign(self.tn + dt/2.0)
         self.pre_stepB_solvers()
         self.stepB_solver.solve()
         self.xn.assign(self.xn + self.dt * self.F)
-        self.dynamics.post_step(SOMETHING)
+        self.dynamics.post_step(self.xn_sub, terms=self.terms)
 
         self.tn = self.tn + dt
 
@@ -253,6 +265,9 @@ class RK_Integrator(TimeStepper):
         self.initcond = initcond
         self.logger = logger
         self.parameters = parameters
+        self.terms = terms
+
+        self.dx = dynamics.spaces.dx
 
         self.q_aux_vars = self.dynamics.get_q_aux_vars(terms=terms)
         self.dfdx_aux_vars = self.dynamics.get_dfdx_aux_vars(terms=terms)
@@ -268,8 +283,10 @@ class RK_Integrator(TimeStepper):
             self.xk = self.xn
 
         self.xn_sub = {}
+        self.xk_sub = {}
         for i,var in enumerate(self.dynamics.variableset.varlist):
             self.xn_sub[var] = self.xn.sub(i)
+            self.xk_sub[var] = self.xk.sub(i)
             self.q_aux_vars[var] = self.xk.sub(i)
 
 
@@ -284,7 +301,7 @@ class RK_Integrator(TimeStepper):
         self.dfdx_aux_solvers = []
         dfdx_expressions = self.dynamics.compute_dfdx_expressions(self.q_aux_vars, terms=terms)
         for var in self.dynamics.get_dfdx_aux_var_list(terms=terms):
-            a, L = dfdx_expressions[var]
+            a, L = make_a_L(*dfdx_expressions[var])
             dfdx_problem = LinearVariationalProblem(a, L, self.dfdx_aux_vars[var])
             dfdx_solver = LinearVariationalSolver(dfdx_problem, solver_parameters=overall_solver_parameters[var], options_prefix=var)
             self.dfdx_aux_solvers.append(dfdx_solver)
@@ -319,7 +336,7 @@ class RK4_Integrator(RK_Integrator):
         xtrial = self.dynamics.variableset.get_trial_var()
         xhat_subs =  self.dynamics.variableset.get_test_vars()
 
-        A = inner(xhat, xtrial)*dx
+        A = inner(xhat, xtrial)*self.dx
         rhsproblem = -dynamics.rhs(self.q_aux_vars, self.dfdx_aux_vars, xhat_subs, terms=terms)
 
         F1problem = LinearVariationalProblem(A, rhsproblem, self.F1)
@@ -342,25 +359,25 @@ class RK4_Integrator(RK_Integrator):
         self.F1solver.solve()
 
         self.xk.assign(self.xn + self.dt/2.0*self.F1)
-        self.dynamics.post_step(SOMETHING)
+        self.dynamics.post_step(self.xk_sub, terms=self.terms)
         self.t.assign(self.tn + self.dt/2.)
         self.pre_step_solvers()
         self.F2solver.solve()
 
         self.xk.assign(self.xn + self.dt/2.0*self.F2)
-        self.dynamics.post_step(SOMETHING)
+        self.dynamics.post_step(self.xk_sub, terms=self.terms)
         self.t.assign(self.tn + self.dt/2.)
         self.pre_step_solvers()
         self.F3solver.solve()
 
         self.xk.assign(self.xn + self.dt*self.F3)
-        self.dynamics.post_step(SOMETHING)
+        self.dynamics.post_step(self.xk_sub, terms=self.terms)
         self.t.assign(self.tn + self.dt)
         self.pre_step_solvers()
         self.F4solver.solve()
 
         self.xn.assign(self.xn + self.dt/6. * (self.F1 + 2.*self.F2 + 2.*self.F3 + self.F4))
-        self.dynamics.post_step(SOMETHING)
+        self.dynamics.post_step(self.xn_sub, terms=self.terms)
         self.tn = self.tn + dt
 
 #three register kinnmark + grey time integrators
@@ -396,7 +413,7 @@ class KGRK3_Integrator(RK_Integrator):
         xtrial = self.dynamics.variableset.get_trial_var()
         xhat_subs =  self.dynamics.variableset.get_test_vars()
 
-        A = inner(xhat, xtrial)*dx
+        A = inner(xhat, xtrial)*self.dx
         rhsproblem = -dynamics.rhs(self.q_aux_vars, self.dfdx_aux_vars, xhat_subs, terms=terms)
 
         F1problem = LinearVariationalProblem(A, rhsproblem, self.F1)
@@ -416,13 +433,13 @@ class KGRK3_Integrator(RK_Integrator):
 
         for i in range(self.num_stages-1):
             self.xk.assign(self.xn + self.dt * (self.beta[i] * self.F1 + self.alpha[i]* self.F2))
-            self.dynamics.post_step(SOMETHING)
+            self.dynamics.post_step(self.xk_sub, terms=self.terms)
             self.t.assign(self.tn + self.c[i] * self.dt)
             self.pre_step_solvers()
             self.F2solver.solve()
 
-        self.xnp1.assign(self.xn + self.dt * (self.beta[-1] * self.F1 + self.alpha[-1] * self.F2))
-        self.dynamics.post_step(SOMETHING)
+        self.xn.assign(self.xn + self.dt * (self.beta[-1] * self.F1 + self.alpha[-1] * self.F2))
+        self.dynamics.post_step(self.xn_sub, terms=self.terms)
         self.tn = self.tn + dt
 
 #two register kinnemark + grey time integrators
@@ -476,7 +493,7 @@ class KGRK2_Integrator(RK_Integrator):
         xtrial = self.dynamics.variableset.get_trial_var()
         xhat_subs =  self.dynamics.variableset.get_test_vars()
 
-        A = inner(xhat, xtrial)*dx
+        A = inner(xhat, xtrial)*self.dx
         rhsproblem = -dynamics.rhs(self.q_aux_vars, self.dfdx_aux_vars, xhat_subs, terms=terms)
 
         Fproblem = LinearVariationalProblem(A, rhsproblem, self.F)
@@ -492,13 +509,13 @@ class KGRK2_Integrator(RK_Integrator):
 
         for i in range(self.num_stages):
             self.xk.assign(self.xn + self.dt * self.alpha[i] * self.F)
-            self.dynamics.post_step(SOMETHING)
+            self.dynamics.post_step(self.xk_sub, terms=self.terms)
             self.t.assign(self.tn + self.c[i] * self.dt)
             self.pre_step_solvers()
             self.Fsolver.solve()
 
         self.xn.assign(self.xn + self.dt * self.alpha[-1] * self.F)
-        self.dynamics.post_step(SOMETHING)
+        self.dynamics.post_step(self.xn_sub, terms=self.terms)
         self.tn = self.tn + dt
 
 class TimeSplitIntegrator(TimeStepper):
@@ -547,7 +564,7 @@ class Euler_Integrator(RK_Integrator):
         xtrial = self.dynamics.variableset.get_trial_var()
         xhat_subs =  self.dynamics.variableset.get_test_vars()
 
-        A = inner(xhat, xtrial)*dx
+        A = inner(xhat, xtrial)*self.dx
         rhsproblem = -dynamics.rhs(self.q_aux_vars, self.dfdx_aux_vars, xhat_subs, terms=terms)
 
         F1problem = LinearVariationalProblem(A, rhsproblem, self.F1)
@@ -561,7 +578,7 @@ class Euler_Integrator(RK_Integrator):
         self.F1solver.solve()
 
         self.xn.assign(self.xn + self.dt * self.F1)
-        self.dynamics.post_step(SOMETHING)
+        self.dynamics.post_step(self.xn_sub, terms=self.terms)
 
         self.tn = self.tn + dt
 
@@ -575,7 +592,7 @@ class SSPRK3_Integrator(RK_Integrator):
         xtrial = self.dynamics.variableset.get_trial_var()
         xhat_subs =  self.dynamics.variableset.get_test_vars()
 
-        A = inner(xhat, xtrial)*dx
+        A = inner(xhat, xtrial)*self.dx
         rhsproblem = -dynamics.rhs(self.q_aux_vars, self.dfdx_aux_vars, xhat_subs, terms=terms)
 
         Fproblem = LinearVariationalProblem(A, rhsproblem, self.F)
@@ -591,28 +608,28 @@ class SSPRK3_Integrator(RK_Integrator):
 
 #ALL WRONG
         self.xk.assign(self.xn + 1./2. * self.dt * self.F)
-        self.dynamics.post_step(SOMETHING)
+        self.dynamics.post_step(self.xk_sub, terms=self.terms)
 
 #        self.t.assign(self.t + 1/2. * self.dt)
         self.pre_step_solvers()
         self.Fsolver.solve()
 
         self.xk.assign(self.xk + 1./2. * self.dt * self.F)
-        self.dynamics.post_step(SOMETHING)
+        self.dynamics.post_step(self.xk_sub, terms=self.terms)
 
 #        self.t.assign(self.t + 1/2. * self.dt)
         self.pre_step_solvers()
         self.Fsolver.solve()
 
         self.xk.assign(2./3. * self.xn + 1./3. * self.xk + 1./6. * self.dt * self.F)
-        self.dynamics.post_step(SOMETHING)
+        self.dynamics.post_step(self.xk_sub, terms=self.terms)
 
 #        self.t.assign(self.t + 1/2. * self.dt)
         self.pre_step_solvers()
         self.Fsolver.solve()
 
         self.xn.assign(self.xk + self.dt * 1./2. * self.F)
-        self.dynamics.post_step(SOMETHING)
+        self.dynamics.post_step(self.xn_sub, terms=self.terms)
 
         self.tn = self.tn + dt
 
@@ -627,7 +644,7 @@ class SSPRK43_Integrator(RK_Integrator):
         xtrial = self.dynamics.variableset.get_trial_var()
         xhat_subs =  self.dynamics.variableset.get_test_vars()
 
-        A = inner(xhat, xtrial)*dx
+        A = inner(xhat, xtrial)*self.dx
         rhsproblem = -dynamics.rhs(self.q_aux_vars, self.dfdx_aux_vars, xhat_subs, terms=terms)
 
         Fproblem = LinearVariationalProblem(A, rhsproblem, self.F)
@@ -642,28 +659,28 @@ class SSPRK43_Integrator(RK_Integrator):
         self.Fsolver.solve()
 
         self.xk.assign(self.xn + 1./2. * self.dt * self.F)
-        self.dynamics.post_step(SOMETHING)
+        self.dynamics.post_step(self.xk_sub, terms=self.terms)
 
 #        self.t.assign(self.t + 1/2. * self.dt)
         self.pre_step_solvers()
         self.Fsolver.solve()
 
         self.xk.assign(self.xk + 1./2. * self.dt * self.F)
-        self.dynamics.post_step(SOMETHING)
+        self.dynamics.post_step(self.xk_sub, terms=self.terms)
 
 #        self.t.assign(self.t + 1/2. * self.dt)
         self.pre_step_solvers()
         self.Fsolver.solve()
 
         self.xk.assign(2./3. * self.xn + 1./3. * self.xk + 1./6. * self.dt * self.F)
-        self.dynamics.post_step(SOMETHING)
+        self.dynamics.post_step(self.xk_sub, terms=self.terms)
 
 #        self.t.assign(self.t + 1/2. * self.dt)
         self.pre_step_solvers()
         self.Fsolver.solve()
 
         self.xn.assign(self.xk + self.dt * 1./2. * self.F)
-        self.dynamics.post_step(SOMETHING)
+        self.dynamics.post_step(self.xn_sub, terms=self.terms)
 
         self.tn = self.tn + dt
 

@@ -1,17 +1,11 @@
-from firedrake import derivative, TestFunction, inner, TrialFunction, dx, curl, as_vector, Function, ds, dS, grad, div, dot, sign
+from firedrake import derivative, TestFunction, inner, TrialFunction, curl, as_vector, Function, grad, div, dot, sign
 from .ufl_helpers import skewgrad, curl2D, rot2D
 from .transport_operators import SVLieDerivative, VVLieDerivative, CVLieDerivative
+from .operators import BracketBase
 
-
-class PoissonBracket():
-    def get_aux_vars(self, vars):
-        pass
-
-    def get_aux_vars_list(self):
-        return []
-
-    def compute_q_expressions(self, vars, expressions):
-        pass
+class PoissonBracket(BracketBase):
+    def linear_rhs(self, const_state, dfdx_linear_vars, xhats):
+        return self.rhs(const_state, dfdx_linear_vars, xhats)
 
 class LiePoisson_AdvectedQuantities_Bracket(PoissonBracket):
     def __init__(self, spaces, vars, parameters):
@@ -30,7 +24,9 @@ class LiePoisson_AdvectedQuantities_Bracket(PoissonBracket):
                 self.coriolis = Function(spaces.CG)
             elif self.dim == 3:
                 self.coriolis = Function(spaces.CGV) #PRETTY UNCLEAR ACTUALLY- MAYBE H(curl) or even H(div)?
-
+            self.dx = spaces.dx
+            self.dS = spaces.dS
+            self.ds = spaces.ds
 
     def initialize(self, varexpr):
         if self.dim == 2 or self.dim == 3:
@@ -56,13 +52,10 @@ class LiePoisson_AdvectedQuantities_Bracket(PoissonBracket):
                 rhs_expr = rhs_expr - CVLieDerivative(degree, self.dim, mtest, qvars[name], dfdx_vars[name])
 
         if self.dim == 2:
-            rhs_expr = rhs_expr + inner(mtest, total_dens*self.coriolis*rot2D(u))*dx
+            rhs_expr = rhs_expr + inner(mtest, total_dens*self.coriolis*rot2D(u))*self.dx
         elif self.dim == 3:
             ERROR
         return rhs_expr
-
-    def linear_rhs(self, const_state, dfdx_linear_vars, xhats):
-        return self.rhs(const_state, dfdx_linear_vars, xhats)
 
 class CurlForm_AdvectedQuantities_Bracket(PoissonBracket):
     def __init__(self, spaces, vars, parameters):
@@ -84,7 +77,10 @@ class CurlForm_AdvectedQuantities_Bracket(PoissonBracket):
                 self.coriolis = Function(spaces.CG)
             elif self.dim == 3:
                 self.coriolis = Function(spaces.CGV) #PRETTY UNCLEAR ACTUALLY- MAYBE H(curl) or even H(div)?
-
+            self.dx = spaces.dx
+            self.dS = spaces.dS
+            self.ds = spaces.ds
+            
             if self.dim == 2:
                 self.testvars['q'] = TestFunction(self.spaces.CG)
                 self.trialvars['q'] = TrialFunction(self.spaces.CG)
@@ -93,6 +89,9 @@ class CurlForm_AdvectedQuantities_Bracket(PoissonBracket):
             elif self.dim == 3:
                 self.testvars['q'] = TestFunction(self.spaces.Hcurl)
                 self.trialvars['q'] = TrialFunction(self.spaces.Hcurl)
+            self.dx = spaces.dx
+            self.dS = spaces.dS
+            self.ds = spaces.ds
 
 
     def initialize(self, varexpr):
@@ -113,9 +112,9 @@ class CurlForm_AdvectedQuantities_Bracket(PoissonBracket):
             qtrial = self.trialvars['q']
     #MISSING BOUNDARY TERMS...
             if self.dim == 2:
-                expressions['q'] = [inner(qhat, total_dens * qtrial)*dx, inner(-skewgrad(qhat), v)*dx + inner(qhat, self.coriolis)*dx]
+                expressions['q'] = [inner(qhat, total_dens * qtrial)*self.dx, inner(-skewgrad(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
             elif self.dim == 3:
-                expressions['q'] = [inner(qhat, total_dens * qtrial)*dx, inner(-curl(qhat), v)*dx + inner(qhat, self.coriolis)*dx]
+                expressions['q'] = [inner(qhat, total_dens * qtrial)*self.dx, inner(-curl(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
 
     def rhs(self, qvars, dfdx_vars, xhats):
         v = qvars['v']
@@ -130,17 +129,17 @@ class CurlForm_AdvectedQuantities_Bracket(PoissonBracket):
 #PROBABLY WRAP THIS UP IN ONE OF THE LIE DERIVATIVE CLASSES! OR SOME SORT OF INTERIOR PRODUCT...
 #TO DO THIS "RIGHT" SHOULD ACTUALLY COMPUTE FLOW VELOCITY U I THINK IE FOLLOWING GOLO PAPER!
                 nperp = rot2D(n)
-                rhs_expr = rhs_expr + inner(vtest, self.coriolis / total_dens * rot2D(F))*dx
+                rhs_expr = rhs_expr + inner(vtest, self.coriolis / total_dens * rot2D(F))*self.dx
                 vtilde = 0.5 * ((1. + alpha) * v('+') + (1. - alpha)*v('-'))
                 Fperp = rot2D(F)
-                rhs_expr = rhs_expr + inner(vtest, self.coriolis / total_dens * Fperp)*dx
+                rhs_expr = rhs_expr + inner(vtest, self.coriolis / total_dens * Fperp)*self.dx
                 Fpart = inner(vtest,Fperp)/total_dens
-                rhs_expr = rhs_expr - inner(skewgrad(Fpart), v)*dx
+                rhs_expr = rhs_expr - inner(skewgrad(Fpart), v)*self.dx
                 jump_term = Fpart('+')*nperp('+') + Fpart('-')*nperp('-')
-                rhs_expr = rhs_expr + inner(jump_term,vtilde)*dS
+                rhs_expr = rhs_expr + inner(jump_term,vtilde)*self.dS
             else:
                 q = qvars['q']
-                rhs_expr = inner(vtest, q * rot2D(F))*dx #q has coriolis in it!
+                rhs_expr = inner(vtest, q * rot2D(F))*self.dx #q has coriolis in it!
         elif self.dim == 3:
             ERROR
 
@@ -154,11 +153,6 @@ class CurlForm_AdvectedQuantities_Bracket(PoissonBracket):
             elif bundle == 'CV':
                 rhs_expr = rhs_expr + CVLieDerivative(degree, self.dim, F/total_dens, const_state[name], xhats[name])
                 rhs_expr = rhs_expr - CVLieDerivative(degree, self.dim, vtest/total_dens, const_state[name], dfdx_vars[name])
-
-
-    def linear_rhs(self, const_state, dfdx_linear_vars, xhats):
-        return self.rhs(const_state, dfdx_linear_vars, xhats)
-
 
 
 
@@ -176,7 +170,9 @@ class LiePoisson_AdvectedDensities_Bracket(PoissonBracket):
 
         if not spaces is None:
             self.coriolis = Function(spaces.CG)
-
+            self.dx = spaces.dx
+            self.dS = spaces.dS
+            self.ds = spaces.ds
 
     def initialize(self, varexpr):
         self.coriolis.interpolate(varexpr['coriolis'])
@@ -191,21 +187,21 @@ class LiePoisson_AdvectedDensities_Bracket(PoissonBracket):
 
 #FIX THIS STUFF UP!
         mtilde = 0.5 * ((1. + alpha) * m('+') + (1. - alpha)*m('-'))
-        rhs_expr = (mtest('+')*inner(u('+'), n('+')) + mtest('-')*inner(u('-'), n('-')))*mtilde*dS
-        rhs_expr = rhs_expr - (u('+')*inner(mtest('+'), n('+')) + u('-')*inner(mtest('-'), n('-')))*mtilde*dS
+        rhs_expr = (mtest('+')*inner(u('+'), n('+')) + mtest('-')*inner(u('-'), n('-')))*mtilde*self.dS
+        rhs_expr = rhs_expr - (u('+')*inner(mtest('+'), n('+')) + u('-')*inner(mtest('-'), n('-')))*mtilde*self.dS
 
 #FIX THIS STUFF UP!
 #super unclear if this is the correct notation
 #probably need some sort of tensor product type thing for u*m, etc.
 #could write in terms of coordinates pretty easy, so maybe do that?
         if self.spaces.order >1:
-            rhs_expr = rhs_expr - inner(grad(mtest), outer(u,m))*dx
-            rhs_expr = rhs_expr + inner(grad(u), outer(mtest,m))*dx
+            rhs_expr = rhs_expr - inner(grad(mtest), outer(u,m))*self.dx
+            rhs_expr = rhs_expr + inner(grad(u), outer(mtest,m))*self.dx
 
         if self.dim == 1:
             ERROR
         elif self.dim == 2:
-            rhs_expr = rhs_expr + inner(mtest, total_dens*self.coriolis*rot2D(u))*dx
+            rhs_expr = rhs_expr + inner(mtest, total_dens*self.coriolis*rot2D(u))*self.dx
         elif self.dim == 3:
             ERROR
 
@@ -216,13 +212,14 @@ class LiePoisson_AdvectedDensities_Bracket(PoissonBracket):
 
 #MISSING BOUNDARY TERMS- ds
             denstilde = 0.5 * ((1. + alpha) * dens('+') + (1. - alpha)*dens('-'))
-            rhs_expr = rhs_expr + (denstest('+')*inner(u('+'), n('+')) + denstest('-')*inner(u('-'), n('-')))*denstilde*dS
-            rhs_expr = rhs_expr - (Bdens('+')*inner(mtest('+'), n('+')) + Bdens('-')*inner(mtest('-'), n('-')))*denstilde*dS
+            rhs_expr = rhs_expr + (denstest('+')*inner(u('+'), n('+')) + denstest('-')*inner(u('-'), n('-')))*denstilde*self.dS
+            rhs_expr = rhs_expr - (Bdens('+')*inner(mtest('+'), n('+')) + Bdens('-')*inner(mtest('-'), n('-')))*denstilde*self.dS
             if self.spaces.order >1:
-                rhs_expr = rhs_expr + inner(grad(Bdens   ), dens * mtest)*dx
-                rhs_expr = rhs_expr - inner(grad(denstest), dens * u   )*dx
+                rhs_expr = rhs_expr + inner(grad(Bdens   ), dens * mtest)*self.dx
+                rhs_expr = rhs_expr - inner(grad(denstest), dens * u   )*self.dx
         return rhs_expr
 
+#THIS SHOULD BE CAPABLE OF USING THE SIMPLE LINEARIZED VERSION?
     def linear_rhs(self, const_state, dfdx_linear_vars, xhats):
         m = const_state['m']
         u = dfdx_linear_vars['u']
@@ -231,20 +228,20 @@ class LiePoisson_AdvectedDensities_Bracket(PoissonBracket):
         total_dens = self.total_density_func(const_state)
 
 
-        rhs_expr = (mtest('+')*inner(u('+'), n('+')) + mtest('-')*inner(u('-'), n('-')))*m*dS
-        rhs_expr = rhs_expr - (u('+')*inner(mtest('+'), n('+')) + u('-')*inner(mtest('-'), n('-')))*m*dS
+        rhs_expr = (mtest('+')*inner(u('+'), n('+')) + mtest('-')*inner(u('-'), n('-')))*m*self.dS
+        rhs_expr = rhs_expr - (u('+')*inner(mtest('+'), n('+')) + u('-')*inner(mtest('-'), n('-')))*m*self.dS
 
         if self.dim == 1:
             ERROR
         elif self.dim == 2:
-            rhs_expr = rhs_expr + inner(mtest, total_dens*self.coriolis*rot2D(u))*dx
+            rhs_expr = rhs_expr + inner(mtest, total_dens*self.coriolis*rot2D(u))*self.dx
         elif self.dim == 3:
             ERROR
 
         if self.spaces.order >1:
 #GRAD OR NABLA GRAD HERE?
-            rhs_expr = rhs_expr - inner(grad(mtest), outer(u,m))*dx
-            rhs_expr = rhs_expr + inner(grad(u), outer(mtest,m))*dx
+            rhs_expr = rhs_expr - inner(grad(mtest), outer(u,m))*self.dx
+            rhs_expr = rhs_expr + inner(grad(u), outer(mtest,m))*self.dx
 
         for dens_name in self.density_names:
             denstest = xhats[dens_name]
@@ -253,19 +250,18 @@ class LiePoisson_AdvectedDensities_Bracket(PoissonBracket):
 
 #MISSING BOUNDARY TERMS- ds
             denstilde = 0.5 * ((1. + alpha) * dens('+') + (1. - alpha)*dens('-'))
-            rhs_expr = rhs_expr + (denstest('+')*inner(u('+'), n('+')) + denstest('-')*inner(u('-'), n('-')))*dens*dS
-            rhs_expr = rhs_expr - (Bdens('+')*inner(mtest('+'), n('+')) + Bdens('-')*inner(mtest('-'), n('-')))*dens*dS
+            rhs_expr = rhs_expr + (denstest('+')*inner(u('+'), n('+')) + denstest('-')*inner(u('-'), n('-')))*dens*self.dS
+            rhs_expr = rhs_expr - (Bdens('+')*inner(mtest('+'), n('+')) + Bdens('-')*inner(mtest('-'), n('-')))*dens*self.dS
             if self.spaces.order >1:
-                rhs_expr = rhs_expr + inner(grad(Bdens   ), dens * mtest)*dx
-                rhs_expr = rhs_expr - inner(grad(denstest), dens * u   )*dx
+                rhs_expr = rhs_expr + inner(grad(Bdens   ), dens * mtest)*self.dx
+                rhs_expr = rhs_expr - inner(grad(denstest), dens * u   )*self.dx
         return rhs_expr
 
 class CurlForm_AdvectedDensities_Bracket_Base(PoissonBracket):
     def __init__(self, spaces, vars, parameters):
         self.spaces = spaces
         self.vars = vars
-        self.density_names = vars.density_names
-        self.dg_density_names = vars.dg_density_names
+        self.active_density_names = vars.active_density_names
         self.dim = parameters['dim']
         self.total_density_func = vars.get_total_density_expr
         self.testvars = {}
@@ -279,6 +275,9 @@ class CurlForm_AdvectedDensities_Bracket_Base(PoissonBracket):
 
         if not spaces is None:
             self.coriolis = Function(spaces.CG)
+            self.dx = spaces.dx
+            self.dS = spaces.dS
+            self.ds = spaces.ds
 
         if self.spaces is not None and not self.upwind_v:
             if self.dim == 2:
@@ -308,9 +307,9 @@ class CurlForm_AdvectedDensities_Bracket_Base(PoissonBracket):
             qtrial = self.trialvars['q']
     #MISSING BOUNDARY TERMS...
             if self.dim == 2:
-                expressions['q'] = [inner(qhat, total_dens * qtrial)*dx, inner(-skewgrad(qhat), v)*dx + inner(qhat, self.coriolis)*dx]
+                expressions['q'] = [inner(qhat, total_dens * qtrial)*self.dx, inner(-skewgrad(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
             elif self.dim == 3:
-                expressions['q'] = [inner(qhat, total_dens * qtrial)*dx, inner(-curl(qhat), v)*dx + inner(qhat, self.coriolis)*dx]
+                expressions['q'] = [inner(qhat, total_dens * qtrial)*self.dx, inner(-curl(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
 
 
 #SWAP THESE TO USE LIE DERIVATIVE FUNCTIONS
@@ -331,19 +330,19 @@ class CurlForm_AdvectedDensities_Bracket(CurlForm_AdvectedDensities_Bracket_Base
         if self.dim == 1:
             ERROR
         elif self.dim == 2:
-            rhs_expr = inner(vtest, self.coriolis / total_dens * rot2D(F))*dx
+            rhs_expr = inner(vtest, self.coriolis / total_dens * rot2D(F))*self.dx
         elif self.dim == 3:
             ERROR
 
-        for dens_name in self.density_names:
+        for dens_name in self.active_density_names:
             denstest = xhats[dens_name]
             Bdens = dfdx_linear_vars['B_' + dens_name]
             dens = const_state[dens_name]
-            rhs_expr = rhs_expr + (denstest('+')*inner(F('+'), n('+')) + denstest('-')*inner(F('-'), n('-')))*dens/total_dens*dS
-            rhs_expr = rhs_expr - (Bdens('+')*inner(vtest('+'), n('+')) + Bdens('-')*inner(vtest('-'), n('-')))*dens/total_dens*dS
+            rhs_expr = rhs_expr + (denstest('+')*inner(F('+'), n('+')) + denstest('-')*inner(F('-'), n('-')))*dens/total_dens*self.dS
+            rhs_expr = rhs_expr - (Bdens('+')*inner(vtest('+'), n('+')) + Bdens('-')*inner(vtest('-'), n('-')))*dens/total_dens*self.dS
             if self.spaces.order >1:
-                rhs_expr = rhs_expr - inner(grad(denstest), dens/total_dens * F   )*dx
-                rhs_expr = rhs_expr + inner(grad(Bdens   ), dens/total_dens * vtest)*dx
+                rhs_expr = rhs_expr - inner(grad(denstest), dens/total_dens * F   )*self.dx
+                rhs_expr = rhs_expr + inner(grad(Bdens   ), dens/total_dens * vtest)*self.dx
         return rhs_expr
 
     def rhs(self, qvars, dfdx_vars, xhats):
@@ -365,20 +364,20 @@ class CurlForm_AdvectedDensities_Bracket(CurlForm_AdvectedDensities_Bracket_Base
                 nperp = rot2D(n)
                 vtilde = 0.5 * ((1. + alpha) * v('+') + (1. - alpha)*v('-'))
                 Fperp = rot2D(F)
-                rhs_expr = inner(vtest, self.coriolis / total_dens * Fperp)*dx
+                rhs_expr = inner(vtest, self.coriolis / total_dens * Fperp)*self.dx
                 Fpart = inner(vtest,Fperp)/total_dens
-                rhs_expr = rhs_expr - inner(skewgrad(Fpart), v)*dx
+                rhs_expr = rhs_expr - inner(skewgrad(Fpart), v)*self.dx
                 jump_term = Fpart('+')*nperp('+') + Fpart('-')*nperp('-')
-                rhs_expr = rhs_expr + inner(jump_term,vtilde)*dS
+                rhs_expr = rhs_expr + inner(jump_term,vtilde)*self.dS
             else:
                 q = qvars['q']
-                rhs_expr = inner(vtest, q * rot2D(F))*dx #q has coriolis in it!
+                rhs_expr = inner(vtest, q * rot2D(F))*self.dx #q has coriolis in it!
         elif self.dim == 3:
             ERROR
 
 #TO DO THIS "RIGHT" SHOULD ACTUALLY COMPUTE FLOW VELOCITY U I THINK IE FOLLOWING GOLO PAPER!
 
-        for dens_name in self.density_names:
+        for dens_name in self.active_density_names:
             denstest = xhats[dens_name]
             Bdens = dfdx_vars['B_' + dens_name]
             dens = qvars[dens_name]
@@ -386,71 +385,63 @@ class CurlForm_AdvectedDensities_Bracket(CurlForm_AdvectedDensities_Bracket_Base
 #MISSING BOUNDARY TERMS- ds
 
             denstilde = 0.5 * ((1. + alpha) * dens('+') + (1. - alpha)*dens('-'))
-            rhs_expr = rhs_expr + (denstest('+')*inner(F('+'), n('+')) + denstest('-')*inner(F('-'), n('-')))*denstilde/total_dens_avg*dS
-            rhs_expr = rhs_expr - (Bdens('+')*inner(vtest('+'), n('+')) + Bdens('-')*inner(vtest('-'), n('-')))*denstilde/total_dens_avg*dS
+            rhs_expr = rhs_expr + (denstest('+')*inner(F('+'), n('+')) + denstest('-')*inner(F('-'), n('-')))*denstilde/total_dens_avg*self.dS
+            rhs_expr = rhs_expr - (Bdens('+')*inner(vtest('+'), n('+')) + Bdens('-')*inner(vtest('-'), n('-')))*denstilde/total_dens_avg*self.dS
             if self.spaces.order >1:
-                rhs_expr = rhs_expr + inner(grad(Bdens   ), dens/total_dens * vtest)*dx
-                rhs_expr = rhs_expr - inner(grad(denstest), dens/total_dens * F   )*dx
+                rhs_expr = rhs_expr + inner(grad(Bdens   ), dens/total_dens * vtest)*self.dx
+                rhs_expr = rhs_expr - inner(grad(denstest), dens/total_dens * F   )*self.dx
         return rhs_expr
 
 
-class CurlForm_AdvectedDensities_Bracket_H1(CurlForm_AdvectedDensities_Bracket_Base):
-
-    def rhs(self, qvars, dfdx_vars, xhats):
-        v = qvars['v']
-        F = dfdx_vars['F']
-        total_dens = self.total_density_func(qvars)
-        vtest = xhats['v']
-
-
-        if self.dim == 1:
-            ERROR
-        elif self.dim == 2:
-            rhs_expr = inner(vtest, self.coriolis / total_dens * rot2D(F))*dx
-            rhs_expr = rhs_expr + inner(vtest, curl2D(v) / total_dens * rot2D(F))*dx
-        elif self.dim == 3:
-            ERROR
-
-
-        for dens_name in self.density_names:
-            denstest = xhats[dens_name]
-            Bdens = dfdx_vars['B_' + dens_name]
-            dens = qvars[dens_name]
-            if self.use_split_form[dens_name]:
-                rhs_expr = rhs_expr + inner(denstest, 0.5 *( div(dens/total_dens*F) + dot(grad(dens/total_dens),F) + dens/total_dens * div(F)))*dx
-                rhs_expr = rhs_expr + inner(vtest, 0.5 *( dens/total_dens*grad(Bdens) + grad(Bdens*dens/total_dens)))*dx + 0.5 * inner(dens/total_dens, div(vtest*Bdens))*dx
-            else:
-                rhs_expr = rhs_expr + inner(denstest, div(dens/total_dens*F))*dx
-                rhs_expr = rhs_expr + inner(vtest, dens/total_dens*grad(Bdens))*dx
-
-#SPLIT OFF THESE DG DENSITIES ENTIRELY I THINK
-#YES THIS ALSO FITS WITH HOMME APPROACH
-#WRITE IT AS TRANSPORT FORCING PEICE!
-
-
-
-#THIS IS SOME SORT OF THING THAT GETS APPLIED AT THE END OF EACH RHS CALCULATION!
-
-
-        return rhs_expr
-
-    def linear_rhs(self, const_state, dfdx_linear_vars, xhats):
-        F = dfdx_linear_vars['F']
-        total_dens = self.total_density_func(const_state)
-        vtest = xhats['v']
-
-#THIS IS ALL 2D SPECIFIC, EVENTUALLY GENERALIZE TO 3D?
-
-        rhs_expr = inner(vtest, self.coriolis / total_dens * rot2D(F))*dx
-
-        for dens_name in self.density_names:
-            denstest = xhats[dens_name]
-            Bdens = dfdx_linear_vars['B_' + dens_name]
-            dens = const_state[dens_name]
-            #don't need split form here for approximate Jacobian
-            rhs_expr = rhs_expr + inner(denstest, div(dens/total_dens*F))*dx
-            rhs_expr = rhs_expr + inner(vtest, dens/total_dens*grad(Bdens))*dx
-        return rhs_expr
+# class CurlForm_AdvectedDensities_Bracket_H1(CurlForm_AdvectedDensities_Bracket_Base):
+#
+#     def rhs(self, qvars, dfdx_vars, xhats):
+#         v = qvars['v']
+#         F = dfdx_vars['F']
+#         total_dens = self.total_density_func(qvars)
+#         vtest = xhats['v']
+#
+#
+#         if self.dim == 1:
+#             ERROR
+#         elif self.dim == 2:
+#             rhs_expr = inner(vtest, self.coriolis / total_dens * rot2D(F))*self.dx
+#             rhs_expr = rhs_expr + inner(vtest, curl2D(v) / total_dens * rot2D(F))*self.dx
+#         elif self.dim == 3:
+#             ERROR
+#
+#
+#         for dens_name in self.active_density_names:
+#             denstest = xhats[dens_name]
+#             Bdens = dfdx_vars['B_' + dens_name]
+#             dens = qvars[dens_name]
+#             if self.use_split_form[dens_name]:
+#                 rhs_expr = rhs_expr + inner(denstest, 0.5 *( div(dens/total_dens*F) + dot(grad(dens/total_dens),F) + dens/total_dens * div(F)))*self.dx
+#                 rhs_expr = rhs_expr + inner(vtest, 0.5 *( dens/total_dens*grad(Bdens) + grad(Bdens*dens/total_dens)))*self.dx + 0.5 * inner(dens/total_dens, div(vtest*Bdens))*self.dx
+#             else:
+#                 rhs_expr = rhs_expr + inner(denstest, div(dens/total_dens*F))*self.dx
+#                 rhs_expr = rhs_expr + inner(vtest, dens/total_dens*grad(Bdens))*self.dx
+#
+#         return rhs_expr
+#
+# #SHOULD BE CAPABLE OF USING THE SIMPLIFIED VERSION, I THINK...
+#     def linear_rhs(self, const_state, dfdx_linear_vars, xhats):
+#         F = dfdx_linear_vars['F']
+#         total_dens = self.total_density_func(const_state)
+#         vtest = xhats['v']
+#
+# #THIS IS ALL 2D SPECIFIC, EVENTUALLY GENERALIZE TO 3D?
+#
+#         rhs_expr = inner(vtest, self.coriolis / total_dens * rot2D(F))*self.dx
+#
+#         for dens_name in self.active_density_names:
+#             denstest = xhats[dens_name]
+#             Bdens = dfdx_linear_vars['B_' + dens_name]
+#             dens = const_state[dens_name]
+#             #don't need split form here for approximate Jacobian
+#             rhs_expr = rhs_expr + inner(denstest, div(dens/total_dens*F))*self.dx
+#             rhs_expr = rhs_expr + inner(vtest, dens/total_dens*grad(Bdens))*self.dx
+#         return rhs_expr
 
 
 
@@ -458,78 +449,20 @@ class CurlForm_AdvectedDensities_Bracket_H1(CurlForm_AdvectedDensities_Bracket_B
 
 
 #WE CAN ELIMINATE THIS WITH THE APPROPRIATE GENERALIZATION OF LP AND CF BRACKETS!!!
-class MHDBracket_LP():
+class MHDBracket_LP(PoissonBracket):
     def __init__(self, spaces):
         self.spaces = spaces
 
-    def get_aux_vars(self, vars):
-        pass
 
-    def get_aux_vars_list(self):
-        return []
-
-    def compute_q_expressions(self, vars, expressions):
-        pass
-
-    def rhs(self, xn, xnp1, qvars, dfdx_vars):
-        pass
-
-    def initialize(self, varexpr):
-        pass
-
-class MaxwellBracket():
+class MaxwellBracket(PoissonBracket):
     def __init__(self, spaces):
         self.spaces = spaces
 
-    def get_aux_vars(self, vars):
-        pass
-
-    def get_aux_vars_list(self):
-        return []
-
-    def compute_q_expressions(self, vars, expressions):
-        pass
-
-    def rhs(self, xn, xnp1, qvars, dfdx_vars):
-        pass
-
-    def initialize(self, varexpr):
-        pass
-
-class EulerMaxwellCouplingBracket_LP():
+class EulerMaxwellCouplingBracket_LP(PoissonBracket):
     def __init__(self, spaces):
         self.spaces = spaces
 
-    def get_aux_vars(self, vars):
-        pass
 
-    def get_aux_vars_list(self):
-        return []
-
-    def compute_q_expressions(self, vars, expressions):
-        pass
-
-    def rhs(self, xn, xnp1, qvars, dfdx_vars):
-        pass
-
-    def initialize(self, varexpr):
-        pass
-
-class ScalarWaveBracket():
+class ScalarWaveBracket(PoissonBracket):
     def __init__(self, spaces):
         self.spaces = spaces
-
-    def get_aux_vars(self, vars):
-        pass
-
-    def get_aux_vars_list(self):
-        return []
-
-    def compute_q_expressions(self, vars, expressions):
-        pass
-
-    def rhs(self, xn, xnp1, qvars, dfdx_vars):
-        pass
-
-    def initialize(self, varexpr):
-        pass

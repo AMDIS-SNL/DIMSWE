@@ -1,3 +1,4 @@
 source ~/venv-firedrake/bin/activate
 rm *.png
-python src/plot_adv_dens.py
+#python dimswe/plot_adv_dens.py
+python -m dimswe.plot_adv_dens

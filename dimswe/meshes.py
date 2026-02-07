@@ -1,9 +1,23 @@
 
 from firedrake import IntervalMesh, PeriodicIntervalMesh, RectangleMesh, PeriodicRectangleMesh, BoxMesh, PeriodicBoxMesh, Mesh, FacetNormal
+from firedrake import FunctionSpace, VectorFunctionSpace, dx, ds, dS
+import finat
+import FIAT
 
-#THIS IS FIREDRAKE SPECIFIC
-#EVENTUALLY MAKE IT SUPPORT DECLIB AS WELL
-from firedrake import FunctionSpace, VectorFunctionSpace
+def gauss_lobatto_legendre_cube_rule(dimension, degree):
+    make_tensor_rule = finat.quadrature.TensorProductQuadratureRule
+    result = gauss_lobatto_legendre_line_rule(degree)
+    for _ in range(1, dimension):
+        line_rule = gauss_lobatto_legendre_line_rule(degree)
+        result = make_tensor_rule([result, line_rule])
+    return result
+
+def gauss_lobatto_legendre_line_rule(degree):
+    fiat_make_rule = FIAT.quadrature.GaussLobattoLegendreQuadratureLineRule
+    fiat_rule = fiat_make_rule(FIAT.ufc_simplex(1), degree + 1)
+    finat_ps = finat.point_set.GaussLobattoLegendrePointSet
+    finat_qr = finat.quadrature.QuadratureRule
+    return finat_qr(finat_ps(fiat_rule.get_points()), fiat_rule.get_weights())
 
 def set_dimension(parameters):
     if parameters['mesh'] in ['line', 'line-periodic']:
@@ -36,6 +50,8 @@ def get_mesh_and_spaces(parameters, initcond):
         mesh = RectangleMesh(parameters['nx'], parameters['ny'], right_x, right_y, originX=left_x, originY=left_y, quadrilateral=not parameters['simplicial_cells'], diagonal=parameters['diagonal'])
     elif parameters['mesh'] == 'rectangle-periodic':
         mesh = PeriodicRectangleMesh(parameters['nx'], parameters['ny'], initcond.Lx, initcond.Ly, quadrilateral=not parameters['simplicial_cells'], diagonal=parameters['diagonal'])
+        mesh.dx = initcond.Lx / parameters['nx']
+        mesh.dy = initcond.Ly / parameters['ny']
 #NEED TO SCALE+CENTER MESH COORDINATES
     elif parameters['mesh'] == 'box':
         mesh = BoxMesh(parameters['nx'], parameters['ny'], parameters['nz'], initcond.Lx, initcond.Ly, initcond.Lz, hexahedral=not parameters['simplicial_cells'], diagonal=parameters['diagonal'])
@@ -59,13 +75,14 @@ def get_mesh_and_spaces(parameters, initcond):
 
 class DeRhamComplex():
     def __init__(self, mesh, parameters):
+
         self.n = FacetNormal(mesh)
         self.order = parameters['order']
         self.family = parameters['family']
         self.mesh = mesh
         if parameters['family'] == 'Q':
-            self.CG = FunctionSpace(mesh, 'CG', parameters['order']) #TRY Q??
-            self.DG = FunctionSpace(mesh, 'DG', parameters['order']-1) #TRY DQ?
+            self.CG = FunctionSpace(mesh, 'CG', parameters['order'], variant="spectral") #TRY Q??
+            self.DG = FunctionSpace(mesh, 'DG', parameters['order']-1, variant="spectral") #TRY DQ?
 #PLOTTING FOR DG L2 IS BROKEN
 #UNCLEAR IF WE REALLY NEED DG L2?
             if mesh.cell_dimension() == 1:
@@ -83,6 +100,18 @@ class DeRhamComplex():
                 self.CGV = VectorFunctionSpace(mesh, 'CG', parameters['order']) #TRY DQ?
                 self.Hdiv = FunctionSpace(mesh, 'NCF', parameters['order'])
                 self.Hcurl = FunctionSpace(mesh, 'NCE', parameters['order'])
+
+            if parameters['lump_mass']:
+                gll_rule = gauss_lobatto_legendre_cube_rule(dimension=parameters['dim'], degree=self.CG.ufl_element().degree())
+                gll_surf_rule = gauss_lobatto_legendre_cube_rule(dimension=parameters['dim']-1, degree=self.CG.ufl_element().degree())
+                self.dx = dx(scheme=gll_rule)
+                self.dS = dS(scheme=gll_surf_rule)
+                self.ds = ds(scheme=gll_surf_rule)
+            else:
+                self.dx = dx
+                self.dS = dS
+                self.ds = ds
+
         #elif parameters['family'] == 'P-':
         #    pass
         #elif parameters['family'] == 'P+':

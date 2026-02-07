@@ -1,6 +1,8 @@
-from firedrake import Function, LinearVariationalProblem, LinearVariationalSolver, TestFunction, TrialFunction, inner, dx, curl
+from firedrake import Function, LinearVariationalProblem, LinearVariationalSolver
+from firedrake import FunctionSpace, TestFunction, TrialFunction, inner, curl
 from .ufl_helpers import skewgrad, curl2D
 from .parameters import overall_solver_parameters
+from .physics import qsat
 
 #Advected density diagnostics
 
@@ -18,15 +20,20 @@ from .parameters import overall_solver_parameters
 
 #LOTS IS SHARED- COMBINE IT!
 class AdvDensDiagnostics():
-    def __init__(self, spaces, hamiltonian, vars, dim):
+    def __init__(self, spaces, hamiltonian, variableset, initcond, dim):
         self.spaces = spaces
         self.hamiltonian = hamiltonian
-        self.vars = vars
-        self.density_names = vars.density_names
+        self.variableset = variableset
+        self.density_names = variableset.density_names
         self.dim = dim
+        self.initcond = initcond
 
-#THIS SHOULD COME FROM INITIAL CONDITION
-        self.coriolis = 0.00006147
+        if not spaces is None:
+            self.bottom_topography = Function(spaces.CG)
+            if self.dim == 2:
+                self.coriolis = Function(spaces.CG)
+            elif self.dim == 3:
+                self.coriolis = Function(spaces.CGV) #PRETTY UNCLEAR ACTUALLY- MAYBE H(curl) or even H(div)?
 
         self.testvars = {}
         self.trialvars = {}
@@ -37,8 +44,17 @@ class AdvDensDiagnostics():
             self.var_list.append('zeta')
         for dens in self.density_names:
             self.var_list.append(dens + '_l')
+        self.var_list.append('coriolis')
+        self.var_list.append('bottom_topography')
 
+        if 'Qv' in variableset.varlist:
+            self.var_list.append('rh')
+            self.var_list.append('qsat')
+            
         if not self.spaces is None:
+            self.dx = spaces.dx
+            self.ds = spaces.ds
+
             self.vars = {}
             if self.dim ==2:
                 self.vars['q'] = Function(self.spaces.CG)
@@ -54,10 +70,24 @@ class AdvDensDiagnostics():
                 self.testvars['q'] = TestFunction(self.spaces.Hcurl)
                 self.trialvars['q'] = TrialFunction(self.spaces.Hcurl)
             for dens in self.density_names:
-                self.vars[dens + '_l'] = Function(self.spaces.DG)
+                varspace = self.variableset.spacelist[self.variableset.varlist.index(dens)]
+                self.vars[dens + '_l'] = Function(varspace)
+            self.vars['coriolis'] = self.coriolis
+            self.vars['bottom_topography'] = self.bottom_topography
+            if 'Qv' in variableset.varlist:
+                self.vars['rh'] = Function(self.spaces.CG)
+                self.testvars['rh'] = TestFunction(self.spaces.CG)
+                self.trialvars['rh'] = TrialFunction(self.spaces.CG)
+                self.vars['qsat'] = Function(self.spaces.CG)
+                self.testvars['qsat'] = TestFunction(self.spaces.CG)
+                self.trialvars['qsat'] = TrialFunction(self.spaces.CG)
+
+    def initialize(self, varexpr):
+        self.coriolis.interpolate(varexpr['coriolis'])
+        self.bottom_topography.interpolate(varexpr['bottom_topography'])
 
 #FOR PERFORMANCE SHOULD PROBABLY CREATE AN INTERPOLATOR AND CALL IT?
-#ALSO UNCLEAR IF INTERPOLATE IS BEST, OR IF SOME SORT OF LINEAR SYTEM SHOULD BE USED?
+#ALSO UNCLEAR IF INTERPOLATE IS BEST, OR IF SOME SORT OF LINEAR SYSTEM SHOULD BE USED?
 
     def compute(self):
         for dens in self.density_names:
@@ -66,9 +96,34 @@ class AdvDensDiagnostics():
             self.pv_solver.solve()
             self.eta_solver.solve()
             self.zeta_solver.solve()
+        if 'Qv' in self.variableset.varlist:
+            self.rh_solver.solve()
+            self.qsat_solver.solve()
+
+    def create(self, xn):
+        if 'Qv' in self.variableset.varlist:
+            h = xn['h']
+            S = xn['S']
+            Qv = xn['Qv']
+            qv = Qv / h
+            s = S / h
+            rhhat = self.testvars['rh']
+            rhtrial = self.trialvars['rh']
+            qsathat = self.testvars['qsat']
+            qsattrial = self.trialvars['qsat']
+            q_sat = qsat(h, s, self.bottom_topography, self.initcond.q0, self.initcond.H0, self.initcond.g)
+            rh_expr = [inner(rhhat, rhtrial)*self.dx, inner(rhhat, qv/q_sat*100.)*self.dx]
+            rh_problem = LinearVariationalProblem(rh_expr[0], rh_expr[1], self.vars['rh'])
+            self.rh_solver = LinearVariationalSolver(rh_problem, solver_parameters=overall_solver_parameters['rhdiag'], options_prefix='rhdiag')
+            qsat_expr = [inner(qsathat, qsattrial)*self.dx, inner(qsathat, q_sat)*self.dx]
+            qsat_problem = LinearVariationalProblem(qsat_expr[0], qsat_expr[1], self.vars['qsat'])
+            self.qsat_solver = LinearVariationalSolver(qsat_problem, solver_parameters=overall_solver_parameters['qsatdiag'], options_prefix='qsatdiag')
+
 
 class AdvDensDiagnostics_CF_H1(AdvDensDiagnostics):
+
     def create(self, xn):
+        AdvDensDiagnostics.create(self, xn)
         self.xn = xn
         self.total_dens = self.hamiltonian.vars.get_total_density_expr(self.xn)
 
@@ -77,9 +132,9 @@ class AdvDensDiagnostics_CF_H1(AdvDensDiagnostics):
         qtrial = self.trialvars['q']
 
         if self.dim == 2:
-            pv_expr = [inner(qhat, self.total_dens * qtrial)*dx, inner(qhat, curl2D(v))*dx + inner(qhat, self.coriolis)*dx]
-            eta_expr = [inner(qhat, qtrial)*dx, inner(qhat, curl2D(v))*dx + inner(qhat, self.coriolis)*dx]
-            zeta_expr = [inner(qhat, qtrial)*dx, inner(qhat, curl2D(v))*dx]
+            pv_expr = [inner(qhat, self.total_dens * qtrial)*self.dx, inner(qhat, curl2D(v))*self.dx + inner(qhat, self.coriolis)*self.dx]
+            eta_expr = [inner(qhat, qtrial)*self.dx, inner(qhat, curl2D(v))*self.dx + inner(qhat, self.coriolis)*self.dx]
+            zeta_expr = [inner(qhat, qtrial)*self.dx, inner(qhat, curl2D(v))*self.dx]
         if self.dim == 3:
             pass
         if self.dim >=2:
@@ -94,6 +149,7 @@ class AdvDensDiagnostics_CF_H1(AdvDensDiagnostics):
 class AdvDensDiagnostics_CF(AdvDensDiagnostics):
 
     def create(self, xn):
+        AdvDensDiagnostics.create(self, xn)
         self.xn = xn
         self.total_dens = self.hamiltonian.vars.get_total_density_expr(self.xn)
 
@@ -103,13 +159,13 @@ class AdvDensDiagnostics_CF(AdvDensDiagnostics):
 
 #MISSING BOUNDARY TERMS...
         if self.dim == 2:
-            pv_expr = [inner(qhat, self.total_dens * qtrial)*dx, inner(-skewgrad(qhat), v)*dx + inner(qhat, self.coriolis)*dx]
-            eta_expr = [inner(qhat, qtrial)*dx, inner(-skewgrad(qhat), v)*dx + inner(qhat, self.coriolis)*dx]
-            zeta_expr = [inner(qhat, qtrial)*dx, inner(-skewgrad(qhat), v)*dx]
+            pv_expr = [inner(qhat, self.total_dens * qtrial)*self.dx, inner(-skewgrad(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
+            eta_expr = [inner(qhat, qtrial)*self.dx, inner(-skewgrad(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
+            zeta_expr = [inner(qhat, qtrial)*self.dx, inner(-skewgrad(qhat), v)*self.dx]
         if self.dim == 3:
-            pv_expr = [inner(qhat, self.total_dens * qtrial)*dx, inner(-curl(qhat), v)*dx + inner(qhat, self.coriolis)*dx]
-            eta_expr = [inner(qhat, qtrial)*dx, inner(-curl(qhat), v)*dx + inner(qhat, self.coriolis)*dx]
-            zeta_expr = [inner(qhat, qtrial)*dx, inner(-curl(qhat), v)*dx]
+            pv_expr = [inner(qhat, self.total_dens * qtrial)*self.dx, inner(-curl(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
+            eta_expr = [inner(qhat, qtrial)*self.dx, inner(-curl(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
+            zeta_expr = [inner(qhat, qtrial)*self.dx, inner(-curl(qhat), v)*self.dx]
         if self.dim >=2:
             pv_problem = LinearVariationalProblem(pv_expr[0], pv_expr[1], self.vars['q'])
             eta_problem = LinearVariationalProblem(eta_expr[0], eta_expr[1], self.vars['eta'])
@@ -123,6 +179,7 @@ class AdvDensDiagnostics_CF(AdvDensDiagnostics):
 #ADD M, U, V
 class AdvDensDiagnostics_LP(AdvDensDiagnostics):
     def create(self, xn):
+        AdvDensDiagnostics.create(self, xn)
         self.xn = xn
         total_dens = self.hamiltonian.vars.get_total_density_expr(self.xn)
 
@@ -133,13 +190,13 @@ class AdvDensDiagnostics_LP(AdvDensDiagnostics):
 
 
         if self.dim == 2:
-            pv_expr = [inner(qhat, self.total_dens * qtrial)*dx, inner(-skewgrad(qhat), v)*dx + inner(qhat, self.coriolis)*dx]
-            eta_expr = [inner(qhat, qtrial)*dx, inner(-skewgrad(qhat), v)*dx + inner(qhat, self.coriolis)*dx]
-            zeta_expr = [inner(qhat, qtrial)*dx, inner(-skewgrad(qhat), v)*dx]
+            pv_expr = [inner(qhat, self.total_dens * qtrial)*self.dx, inner(-skewgrad(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
+            eta_expr = [inner(qhat, qtrial)*self.dx, inner(-skewgrad(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
+            zeta_expr = [inner(qhat, qtrial)*self.dx, inner(-skewgrad(qhat), v)*self.dx]
         if self.dim == 3:
-            pv_expr = [inner(qhat, self.total_dens * qtrial)*dx, inner(-curl(qhat), v)*dx + inner(qhat, self.coriolis)*dx]
-            eta_expr = [inner(qhat, qtrial)*dx, inner(-curl(qhat), v)*dx + inner(qhat, self.coriolis)*dx]
-            zeta_expr = [inner(qhat, qtrial)*dx, inner(-curl(qhat), v)*dx]
+            pv_expr = [inner(qhat, self.total_dens * qtrial)*self.dx, inner(-curl(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
+            eta_expr = [inner(qhat, qtrial)*self.dx, inner(-curl(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
+            zeta_expr = [inner(qhat, qtrial)*self.dx, inner(-curl(qhat), v)*self.dx]
         if self.dim >=2:
             pv_problem = LinearVariationalProblem(pv_expr[0], pv_expr[1], self.vars['q'])
             eta_problem = LinearVariationalProblem(eta_expr[0], eta_expr[1], self.vars['eta'])

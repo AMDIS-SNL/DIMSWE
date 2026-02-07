@@ -1,9 +1,13 @@
-from firedrake import as_vector, Constant, SpatialCoordinate, exp, pi, sin
+from firedrake import as_vector, Constant, SpatialCoordinate, exp, pi, sin, cos, sqrt
 import ufl
+from .physics import qsat
 
 def get_initial_condition(parameters):
     if parameters['initialcondition'] == 'gaussian': return Gaussian(parameters)
     elif parameters['initialcondition'] == 'doublevortex': return DoubleVortex(parameters)
+    elif parameters['initialcondition'] == 'TC2': return TC2(parameters)
+    elif parameters['initialcondition'] == 'TC5': return TC5(parameters)
+    elif parameters['initialcondition'] == 'galewsky': return Galewsky(parameters)
     elif parameters['initialcondition'] == 'densitywave': return DensityWave(parameters)
 
 #ADD LOTS HERE!!!
@@ -389,8 +393,8 @@ class DoubleVortex(IC2D):
         self.a = 1./3.
         self.D = 0.5 * self.Lx
 
-        self.coriolis = 0.00006147
-        self.bottom_topography = 0.0
+        self.zeta = 0.0 #10^-3, 0.02
+        self.q0 = 0.002
 
         self.const_state = {}
         self.const_state['h'] = self.H0
@@ -408,19 +412,78 @@ class DoubleVortex(IC2D):
         yprimeprime1 = self.Ly / (2.0 * pi * self.sigmay) * sin(2 * pi / self.Ly * (xs[1] - self.yc1))
         xprimeprime2 = self.Lx / (2.0 * pi * self.sigmax) * sin(2 * pi / self.Lx * (xs[0] - self.xc2))
         yprimeprime2 = self.Ly / (2.0 * pi * self.sigmay) * sin(2 * pi / self.Ly * (xs[1] - self.yc2))
-
+        coriolis = 0.00006147
         initcond = {}
         initcond['h'] = self.H0 - self.dh * (exp(-0.5 * (xprime1 * xprime1 + yprime1 * yprime1)) + exp(-0.5 * (xprime2 * xprime2 + yprime2 * yprime2)) - 4. * pi * self.sigmax * self.sigmay / self.Lx / self.Ly)
-        u = - self.g * self.dh / self.coriolis / self.sigmay * (yprimeprime1 * exp(-0.5*(xprime1 * xprime1 + yprime1 * yprime1)) + yprimeprime2 * exp(-0.5*(xprime2 * xprime2 + yprime2 * yprime2)))
-        v = self.g * self.dh / self.coriolis / self.sigmax * (xprimeprime1 * exp(-0.5*(xprime1 * xprime1 + yprime1 * yprime1)) + xprimeprime2 * exp(-0.5*(xprime2 * xprime2 + yprime2 * yprime2)))
+        u = - self.g * self.dh / coriolis / self.sigmay * (yprimeprime1 * exp(-0.5*(xprime1 * xprime1 + yprime1 * yprime1)) + yprimeprime2 * exp(-0.5*(xprime2 * xprime2 + yprime2 * yprime2)))
+        v = self.g * self.dh / coriolis / self.sigmax * (xprimeprime1 * exp(-0.5*(xprime1 * xprime1 + yprime1 * yprime1)) + xprimeprime2 * exp(-0.5*(xprime2 * xprime2 + yprime2 * yprime2)))
         initcond['v'] = as_vector([u,v])
         s = self.g * (1. + self.c * exp(-((xs[0]-self.xc)*(xs[0]-self.xc) + (xs[1]-self.yc)*(xs[1]-self.yc))/(self.a*self.a*self.D*self.D)))
         initcond['m'] = initcond['h'] * initcond['v']
         initcond['S'] = initcond['h'] * s
-        initcond['coriolis'] = self.coriolis
-        initcond['bottom_topography'] = self.bottom_topography
+        initcond['coriolis'] = coriolis
+        initcond['bottom_topography'] = 0.0
+        initcond['Qv'] = initcond['h'] * (1. - self.zeta) * qsat(initcond['h'], s, initcond['bottom_topography'], self.q0, self.H0, self.g)
+        initcond['Qr'] = 0.0
+        initcond['Qc'] = 0.0
         self.set_tracers(xs, t, initcond)
         return initcond
 
-#class MoistDoubleVortex(IC2D):
-#        initcond['Qv'] = self.bottom_topography
+
+class TC2(IC2D):
+    def __init__(self, params):
+        IC2D.__init__(self, params)
+
+        self.a = 6371120.0
+        self.Lx = 2.* pi * self.a
+        self.Ly = 2.* pi * self.a
+        self.xc = 0.5 * self.Lx
+        self.yc = 0.5 * self.Ly
+        self.g = 9.80616
+        self.u0 = 20.
+        self.c = 0.05
+        self.H0 = 5960.
+        self.f = 0.00006147
+        self.zeta = 0.0 #10^-3, 0.02
+        self.q0 = 0.007
+
+    def get_value(self, mesh, t, initcond=None):
+        xs = SpatialCoordinate(mesh)
+        if initcond is None:
+            initcond = {}
+            initcond['bottom_topography'] = 0.0
+        initcond['h'] = self.H0 - self.a * self.f * self.u0 / self.g * sin(xs[1]/self.a) - initcond['bottom_topography'] 
+        u = self.u0 * cos(xs[1] / self.a)
+        v = 0.0
+        initcond['v'] = as_vector([u,v])
+        initcond['m'] = initcond['h'] * initcond['v']
+        s = self.g * (1. + self.c * self.H0 * self.H0 / (initcond['h'] * initcond['h']))
+        initcond['S'] = initcond['h'] * s
+        initcond['coriolis'] = self.f
+        initcond['Qv'] = initcond['h'] * (1. - self.zeta) * qsat(initcond['h'], s, initcond['bottom_topography'], self.q0, self.H0, self.g)
+        initcond['Qr'] = 0.0
+        initcond['Qc'] = 0.0
+        self.set_tracers(xs, t, initcond)
+        return initcond
+
+class TC5(TC2):
+
+    def __init__(self, params):
+        TC2.__init__(self, params)
+        self.h0 = 2000.
+        self.R = pi/9. * self.a
+        self.xm = self.Lx / 3. #3.*pi/2. * self.a
+        self.ym = self.Ly * 2. /3. #pi/6. * self.a
+
+    def get_value(self, mesh, t):
+        xs = SpatialCoordinate(mesh)
+        initcond = {}
+        dist = sqrt((xs[0] - self.xm) * (xs[0] - self.xm) + (xs[1] - self.ym) * (xs[1] - self.ym))
+        initcond['bottom_topography'] = self.h0 * (1. - 1./self.R * ufl.min_value(self.R, dist))        
+        initcond = TC2.get_value(self, mesh, t, initcond=initcond)
+        return initcond
+
+#EVENTUALLY ADD AND FIX THIS
+class Galewsky(IC2D):
+    def __init__(self, params):
+        IC2D.__init__(self, params)

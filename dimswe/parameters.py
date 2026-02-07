@@ -23,7 +23,7 @@ def get_default_parameters():
 #FOR EXAMPLE
     #parameters['num_form_quad'] = 3
 
-    parameters['num_steps'] = 1000
+    parameters['num_steps'] = 2000
     parameters['dt'] = 400
 #THESE ARE DYNAMICS TIME STEPS
 #200s at nx=100, order=1 for tswe double vortex
@@ -40,11 +40,12 @@ def get_default_parameters():
 #Unclear what is going on?
 #Maybe need hyperviscosity to stabilize?
 
-    parameters['forcing_terms'] = ['hyperviscosity', 'threewayphysics']
+    parameters['forcing_terms'] = ['dg1limiter', 'hyperviscosity', 'threewayphysics'] #
 
-    parameters['timestepper_split_terms'] = [['model'], ['hyperviscosity',], ['threewayphysics',]]
-    parameters['timestepper_list'] = ['SSPRK43', 'Euler', 'Euler']
-    parameters['timestepper_substeps'] = [2, 2, 1]
+    parameters['timestepper_split_terms'] = [['model'],  ['hyperviscosity'], ['dg1limiter',], ['threewayphysics',]] #
+    #['hyperviscosity',]
+    parameters['timestepper_list'] = ['RK4', 'Euler', 'SSPRK43', 'Euler'] #
+    parameters['timestepper_substeps'] = [2, 1, 2, 1] #  1
 
     parameters['alpha_s'] = 1 #0 = centered, 1 = upwind
     parameters['upwind_v'] = True
@@ -53,19 +54,23 @@ def get_default_parameters():
 #    parameters['use_split_form'] = {'h': False, 'S': True, 'T1': True, 'T2': True, 'DGT1': True, 'DGT2': True}
     parameters['use_split_form'] = {'h': True, 'S': True, 'T1': True, 'T2': True, 'DGT1': False, 'DGT2': False}
 
-    parameters['model'] = 'tswe-cf-h1' # tswe-cf tswe-lp tswe-cf-h1 ce-cf ce-lp mhd maxwell eulermaxwell scalarwave
-    parameters['tracer_names'] = ['T1', 'T2'] #['T1', 'T2']
-    parameters['dg_tracer_names'] = ['DGT1', 'DGT2'] #['DGT1', 'DGT2']
+    parameters['modeltype'] = 'advdens-cf-h1' #metriplectic advection
+    parameters['model'] = 'mtswe-cf-h1' # tswe-cf tswe-lp tswe-cf-h1 ce-cf ce-lp mhd maxwell eulermaxwell scalarwave
+
+    parameters['lump_mass'] = True
+
+    parameters['tracer_names'] = [] #['T1', 'T2']
+    parameters['dg_tracer_names'] = [] #['DGT1', 'DGT2']
     parameters['thermo'] = 'idealgas-entropy'
     parameters['tracer_init_conds'] = ['gaussian', 'block'] #['gaussian', 'block']
     parameters['dg_tracer_init_conds'] = ['gaussian', 'block'] #['gaussian', 'block']
 
-    parameters['initialcondition'] = 'doublevortex' #densitywave doublevortex
+    parameters['initialcondition'] = 'TC5' #densitywave doublevortex
 
 
 #WRONG, FIX THEM
-    parameters['c0'] = 1e-5
-    parameters['s'] = 3.0
+    parameters['c0'] = 7e-2
+    parameters['s'] = 3.2
     #tswe: doublevortex
     #ce: RP1 RP2 RP3 LOTSMORE
     #maxwell: LOTS HERE
@@ -107,3 +112,8 @@ overall_solver_parameters['B_T1'] = basic_linear_system
 overall_solver_parameters['B_T2'] = basic_linear_system
 overall_solver_parameters['B_DGT1'] = basic_linear_system
 overall_solver_parameters['B_DGT2'] = basic_linear_system
+overall_solver_parameters['Q_v'] = basic_linear_system
+overall_solver_parameters['Q_h'] = basic_linear_system
+overall_solver_parameters['Q_S'] = basic_linear_system
+overall_solver_parameters['rhdiag'] = basic_linear_system
+overall_solver_parameters['qsatdiag'] = basic_linear_system
