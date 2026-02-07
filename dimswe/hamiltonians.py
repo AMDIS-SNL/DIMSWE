@@ -1,5 +1,6 @@
 
 from firedrake import Function, exp, ln, TestFunction, dx, inner, derivative, TrialFunction, Constant
+import scipy as sp
 
 #THIS IS THE ABGRALL VERSION!
 class IdealGasThermo_Entropy():
@@ -323,14 +324,23 @@ class MHD_Hamiltonian_LP(CompressibleEuler_Hamiltonian_Base):
 
 class Maxwell_Hamiltonian(Hamiltonian_Base):
 
+    def __init__(self, vars):
+        Hamiltonian_Base.__init__(self, vars)
+        self.epsilon0 = sp.constants.epsilon_0
+        self.mu0 = sp.constants.mu_0
+
     def compute_total_energy(self, state):
-        pass
+        D, B = state['D'], state['B']
+        return 1./2./self.epsilon0 * inner(D,D) + 1./2./self.mu0 * inner(B,B)
 
     def compute_dfdx_expressions(self, vars, expressions):
-        pass
+        D, B = vars['D'], vars['B']
 
-    def solve_for_aux_vars(self, vars, aux_vars):
-        pass
+        expressions['E'] = 1./self.epsilon0 * D
+        expressions['H'] = 1./self.mu0 * B
+
+    def compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars):
+        self.compute_dfdx_expressions(xstar, dfdx_linear_vars)
 
 class ScalarWave_Hamiltonian(Hamiltonian_Base):
 

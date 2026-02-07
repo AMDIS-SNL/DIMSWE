@@ -66,7 +66,7 @@ class AdvDensStatistics_CF(AdvDensStatistics):
 class AdvDensStatistics_CF_H1(AdvDensStatistics):
     pass
 
-
+#add maxwell energy
 class MaxwellStatistics():
     def __init__(self, spaces, nstat):
         self.spaces = spaces

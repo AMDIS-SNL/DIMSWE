@@ -6,17 +6,29 @@ from .timestepping import get_timestepper
 from .parameters import get_parameters
 from .logger import Logger
 
-
+def calculate_timestep(cfl_const, mindx, wavespeed):
+    return cfl_const * mindx / wavespeed
 
 def run_model(parameters):
+
     logger = Logger(parameters)
 
     logger.output('Setting up simulation', 0)
     initcond = get_initial_condition(parameters)
     mesh, spaces = get_mesh_and_spaces(parameters, initcond)
     dynamics = get_dynamics(parameters, mesh, spaces, logger, initcond)
+
+#SUPER HACKY RIGHT NOW
+#THIS IS A HORRIBLE HACK FOR MAXWELL IN A BOX USING LOWEST ORDER SPACES
+    if parameters['dt_type'] == 'cfl':
+        min_dx = min(min(mesh.dx, mesh.dy), mesh.dz)
+        wavespeed = dynamics.get_max_wavespeed()
+        parameters['dt'] = calculate_timestep(parameters['cfl_const'], min_dx, wavespeed)
+
     timestepper = get_timestepper(parameters, dynamics, initcond, logger)
     output = Output(parameters, dynamics, timestepper, logger)
+
+
 
     logger.output('Starting simulation', 0)
     timestepper.initialize()

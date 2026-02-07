@@ -2,7 +2,7 @@ from .variables import ThermalShallowWaterVariables_CF, ThermalShallowWaterVaria
 from .variables import MoistThermalShallowWaterVariables_CF, MoistThermalShallowWaterVariables_LP, MoistThermalShallowWaterVariables_CF_H1
 from .variables import CompressibleEulerVariables_CF, CompressibleEulerVariables_LP
 from .variables import MaxwellVariables, MHDVariables_LP, EulerMaxwellVariables_LP, ScalarWaveVariables
-from .poisson_brackets import LiePoisson_AdvectedDensities_Bracket, CurlForm_AdvectedDensities_Bracket, EulerMaxwellCouplingBracket_LP, MHDBracket_LP, ScalarWaveBracket
+from .poisson_brackets import LiePoisson_AdvectedDensities_Bracket, CurlForm_AdvectedDensities_Bracket, EulerMaxwellCouplingBracket_LP, MHDBracket_LP, ScalarWaveBracket, MaxwellBracket
 from .metric_brackets import ThermodynamicallyCompatibleViscousRegularization_CF, ThermodynamicallyCompatibleViscousRegularization_LP
 from .hamiltonians import CompressibleEuler_Hamiltonian_CF, CompressibleEuler_Hamiltonian_LP
 from .hamiltonians import Maxwell_Hamiltonian, EulerMaxwell_Hamiltonian_LP, ScalarWave_Hamiltonian, MHD_Hamiltonian_LP, get_thermo
@@ -19,6 +19,8 @@ from .transport_operators import CGTransport, DG1LimiterTransport
 
 from firedrake import Function, inner, div, grad, dot
 from .ufl_helpers import skewgrad, curl2D, rot2D
+
+import scipy as sp
 
 class Dynamics():
 
@@ -274,6 +276,10 @@ class MetriplecticDynamics(Dynamics):
         self.logger = logger
         self.forcing_terms = forcing_terms
 
+#THIS IS A HORRIBLE HACK FOR MAXWELL
+    def get_max_wavespeed(self):
+        return sp.constants.c
+
     def initialize(self, varexpr, vars):
         self.variableset.initialize(varexpr, vars)
         for bracket in self.poisson_brackets:
@@ -453,8 +459,8 @@ def get_dynamics(parameters, mesh, spaces, logger, initcond):
             vars = MHDVariables_LP(spaces)
             poisson_brackets = [LiePoisson_AdvectedDensities_Bracket(spaces, vars, parameters), MHDBracket_LP(spaces, vars, parameters)]
             metric_brackets = [ThermodynamicallyCompatibleViscousRegularization(spaces, vars), ]
-            entropy = SimpleEntropy(spaces)
-            hamiltonian = MHD_Hamiltonian_LP(spaces)
+            entropy = SimpleEntropy(spaces, vars)
+            hamiltonian = MHD_Hamiltonian_LP(vars)
             statistics = MHDStatistics(spaces, parameters['num_steps'] // parameters['stat_freq'] + 1)
             diagnostics = MHDDiagnostics(spaces)
             initcond.set_thermo(hamiltonian.thermo)
@@ -462,10 +468,10 @@ def get_dynamics(parameters, mesh, spaces, logger, initcond):
 
         elif parameters['model'] == 'maxwell':
             vars = MaxwellVariables(spaces)
-            poisson_brackets = [MaxwellBracket(spaces)]
+            poisson_brackets = [MaxwellBracket(spaces),]
             metric_brackets = []
-            entropy = None
-            hamiltonian = Maxwell_Hamiltonian(spaces)
+            entropy = SimpleEntropy(spaces, vars)
+            hamiltonian = Maxwell_Hamiltonian(vars)
             statistics = MaxwellStatistics(spaces, parameters['num_steps'] // parameters['stat_freq'] + 1)
             diagnostics = MaxwellDiagnostics(spaces)
 
@@ -473,7 +479,7 @@ def get_dynamics(parameters, mesh, spaces, logger, initcond):
             vars = EulerMaxwellVariables_LP(spaces)
             poisson_brackets = [LiePoisson_AdvectedDensities_Bracket(spaces, vars, parameters), MaxwellBracket(spaces, vars, parameters), EulerMaxwellCouplingBracket_LP(spaces, vars, parameters)]
             metric_brackets = [ThermodynamicallyCompatibleViscousRegularization(spaces, vars), ]
-            entropy = SimpleEntropy(spaces)
+            entropy = SimpleEntropy(spaces, vars)
             hamiltonian = EulerMaxwell_Hamiltonian_LP(spaces)
             statistics = EulerMaxwellStatistics(spaces, parameters['num_steps'] // parameters['stat_freq'] + 1)
             diagnostics = EulerMaxwellDiagnostics(spaces)
