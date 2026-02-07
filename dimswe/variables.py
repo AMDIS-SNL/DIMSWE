@@ -65,7 +65,7 @@ class DiffFormVariablesBase(VariablesBase):
     def initialize(self, varexpr, vars):
         for i,var in enumerate(self.variablelist):
             if not varexpr[var]==0:
-                vars.sub(i).project(varexpr[dens])
+                vars.sub(i).project(varexpr[var])
 
 class LPVariablesBase(DiffFormVariablesBase):
     def __init__(self, spaces, advected_quantity_names, advected_quantity_bundles, advected_quantity_degrees, dim):
@@ -281,10 +281,15 @@ class MaxwellVariables(VariablesBase):
         self.spaces = spaces
         self.varlist = ['B', 'D']
         self.dhdx_var_list = ['H', 'E']
-
+        self.entropy_name = None
         if not spaces is None:
             self.spacelist = [self.spaces.Hdiv, self.spaces.Hcurl]
             self.mixedspace = MixedFunctionSpace(self.spacelist)
+
+    def initialize(self, varexpr, vars):
+        for i,var in enumerate(self.variablelist):
+            if not varexpr[var]==0:
+                vars.sub(i).project(varexpr[var])
 
 class EulerMaxwellVariables_LP(VariablesBase):
     def __init__(self, spaces):

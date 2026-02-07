@@ -197,6 +197,7 @@ class AdvDensDiagnostics_LP(AdvDensDiagnostics):
             self.eta_solver = LinearVariationalSolver(eta_problem, solver_parameters=overall_solver_parameters['etadiag'], options_prefix='etadiag')
             self.zeta_solver = LinearVariationalSolver(zeta_problem, solver_parameters=overall_solver_parameters['zetadiag'], options_prefix='zetadiag')
 
+#add involution constraints
 class MaxwellDiagnostics():
     def __init__(self, spaces):
         self.spaces = spaces

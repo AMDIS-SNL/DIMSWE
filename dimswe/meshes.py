@@ -57,7 +57,10 @@ def get_mesh_and_spaces(parameters, initcond):
         mesh = BoxMesh(parameters['nx'], parameters['ny'], parameters['nz'], initcond.Lx, initcond.Ly, initcond.Lz, hexahedral=not parameters['simplicial_cells'], diagonal=parameters['diagonal'])
 #NEED TO SCALE+CENTER MESH COORDINATES
     elif parameters['mesh'] == 'box-periodic':
-        mesh = PeriodicBoxMesh(parameters['nx'], parameters['ny'], parameters['nz'], initcond.Lx, initcond.Ly, initcond.Lz, hexahedral=not parameters['simplicial_cells'], diagonal=parameters['diagonal'])
+        mesh = PeriodicBoxMesh(parameters['nx'], parameters['ny'], parameters['nz'], initcond.Lx, initcond.Ly, initcond.Lz, hexahedral=not parameters['simplicial_cells'])
+        mesh.dx = initcond.Lx / parameters['nx']
+        mesh.dy = initcond.Ly / parameters['ny']
+        mesh.dz = initcond.Lz / parameters['nz']
 #NEED TO SCALE+CENTER MESH COORDINATES
     elif parameters['mesh'] == 'file':
         mesh = Mesh(parameters['meshfile'])
@@ -74,12 +77,14 @@ def get_mesh_and_spaces(parameters, initcond):
 #LOTS OF CHOICES HERE- QUADS VS TRIANGLES, DIFFERENT FAMILIES, ETC.
 
 class DeRhamComplex():
+
     def __init__(self, mesh, parameters):
 
         self.n = FacetNormal(mesh)
         self.order = parameters['order']
         self.family = parameters['family']
         self.mesh = mesh
+
         if parameters['family'] == 'Q':
             self.CG = FunctionSpace(mesh, 'CG', parameters['order'], variant="spectral") #TRY Q??
             self.DG = FunctionSpace(mesh, 'DG', parameters['order']-1, variant="spectral") #TRY DQ?
@@ -98,8 +103,11 @@ class DeRhamComplex():
             if mesh.cell_dimension() == 3:
                 self.DGV = VectorFunctionSpace(mesh, 'DG', parameters['order']-1) #TRY DQ?
                 self.CGV = VectorFunctionSpace(mesh, 'CG', parameters['order']) #TRY DQ?
-                self.Hdiv = FunctionSpace(mesh, 'NCF', parameters['order'])
-                self.Hcurl = FunctionSpace(mesh, 'NCE', parameters['order'])
+                self.Hdiv = VectorFunctionSpace(mesh, 'CG', parameters['order'])
+                self.Hcurl = VectorFunctionSpace(mesh, 'CG', parameters['order'])
+#THESE ARE NOT CURRENTLY SUPPORTED, UNFORTUNATELY
+                #self.Hdiv = FunctionSpace(mesh, 'NCF', parameters['order'])
+                #self.Hcurl = FunctionSpace(mesh, 'NCE', parameters['order'])
 
             if parameters['lump_mass']:
                 gll_rule = gauss_lobatto_legendre_cube_rule(dimension=parameters['dim'], degree=self.CG.ufl_element().degree())

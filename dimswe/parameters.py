@@ -1,11 +1,49 @@
 
 #EVENTUALLY READ THIS FROM AN INPUT FILE
 
+def get_maxwell_parameters():
+
+    parameters = {}
+
+    parameters['mesh'] = 'box-periodic' #line rectangle box-periodic
+    parameters['nx'] = 10
+    parameters['ny'] = 10
+    parameters['nz'] = 10
+    parameters['diagonal'] = 'crossed' #WHAT ARE THE OPTIONS HERE?
+    parameters['simplicial_cells'] = False
+
+    parameters['order'] = 1
+    parameters['family'] = 'Q'
+
+    parameters['loglevel'] = 100
+
+    parameters['num_steps'] = 10
+    parameters['dt_type'] = 'cfl'
+    parameters['cfl_const'] = 0.1
+
+    parameters['forcing_terms'] = [] #current
+
+
+    parameters['timestep_method'] = 'RK4' #AVF2 TimeStaggered SSPRK TimeSplit
+    parameters['num_avf_quad'] = 1
+    parameters['output_freq'] = 1
+    parameters['stat_freq'] = 1
+    parameters['output_aux_vars'] = False #super useful for debugging
+    parameters['avf_solver'] = 'qn' #fixedpoint qn
+    parameters['lump_mass'] = False
+
+    parameters['modeltype'] = 'metriplectic'
+    parameters['model'] = 'maxwell'
+    parameters['initialcondition'] = 'planewave'
+    parameters['outfile_name'] = 'sim'
+
+    return parameters
+
 def get_default_parameters():
 
     parameters = {}
 
-    parameters['mesh'] = 'rectangle-periodic' #line rectangle
+    parameters['mesh'] = 'rectangle-periodic' #line rectangle box-periodic
     parameters['nx'] = 50
     parameters['ny'] = 50
     parameters['nz'] = 100
@@ -23,6 +61,7 @@ def get_default_parameters():
 #FOR EXAMPLE
     #parameters['num_form_quad'] = 3
 
+    parameters['dt_type'] = 'direct'
     parameters['num_steps'] = 2000
     parameters['dt'] = 400
 #THESE ARE DYNAMICS TIME STEPS
@@ -81,7 +120,8 @@ def get_default_parameters():
     return parameters
 
 def get_parameters():
-    parameters = get_default_parameters()
+    #parameters = get_default_parameters()
+    parameters = get_maxwell_parameters()
     return parameters
 
 
