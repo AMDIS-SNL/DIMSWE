@@ -1,5 +1,5 @@
 from firedrake import Function, LinearVariationalProblem, LinearVariationalSolver
-from firedrake import FunctionSpace, TestFunction, TrialFunction, inner, curl
+from firedrake import FunctionSpace, TestFunction, TrialFunction, inner, curl, grad, div
 from .ufl_helpers import skewgrad, curl2D
 from .parameters import overall_solver_parameters
 from .physics import qsat
@@ -50,7 +50,7 @@ class AdvDensDiagnostics():
         if 'Qv' in variableset.varlist:
             self.var_list.append('rh')
             self.var_list.append('qsat')
-            
+
         if not self.spaces is None:
             self.dx = spaces.dx
             self.ds = spaces.ds
@@ -209,16 +209,74 @@ class AdvDensDiagnostics_LP(AdvDensDiagnostics):
 class MaxwellDiagnostics():
     def __init__(self, spaces):
         self.spaces = spaces
+        self.var_list = ['dB', 'dD']
+
+        if not self.spaces is None:
+            self.dx = spaces.dx
+            self.ds = spaces.ds
+
+            self.vars = {}
+            self.vars['dB'] = Function(self.spaces.DG)
+            self.vars['dD'] = Function(self.spaces.CG)
+
+    def initialize(self, varexpr):
+        pass
+
+    def create(self, xn):
+        D, B = xn['D'], xn['B']
+        dD, dB = self.vars['dD'], self.vars['dB']
+        Qhat = TestFunction(self.spaces.CG)
+        Qtrial = TrialFunction(self.spaces.CG)
+#MISSING BOUNDARY TERMS
+        dD_expression = -inner(grad(Qhat), D)*self.dx
+        a = inner(Qhat, Qtrial)*self.dx
+        dD_problem = LinearVariationalProblem(a, dD_expression, dD)
+        self.dD_solver = LinearVariationalSolver(dD_problem, solver_parameters=overall_solver_parameters['dD'], options_prefix='dD')
+
+        dBhat = TestFunction(self.spaces.DG)
+        dBtrial = TrialFunction(self.spaces.DG)
+        dB_expression = inner(dBhat, div(B))*self.dx
+        a = inner(dBhat, dBtrial)*self.dx
+        dB_problem = LinearVariationalProblem(a, dB_expression, dB)
+        self.dB_solver = LinearVariationalSolver(dB_problem, solver_parameters=overall_solver_parameters['dB'], options_prefix='dB')
+
+    def compute(self):
+        self.dD_solver.solve()
+        self.dB_solver.solve()
 
 class EulerMaxwellDiagnostics():
     def __init__(self, spaces):
         self.spaces = spaces
+        self.var_list = []
+    def initialize(self, varexpr):
+        pass
+    def create(self, xn):
+        pass
+
+    def compute(self):
+        pass
 
 
 class ScalarWaveDiagnostics():
     def __init__(self, spaces):
         self.spaces = spaces
+        self.var_list = []
+    def initialize(self, varexpr):
+        pass
+    def create(self, xn):
+        pass
+
+    def compute(self):
+        pass
 
 class MHDDiagnostics():
     def __init__(self, spaces):
         self.spaces = spaces
+        self.var_list = []
+    def initialize(self, varexpr):
+        pass
+    def create(self, xn):
+        pass
+
+    def compute(self):
+        pass

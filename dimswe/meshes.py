@@ -1,6 +1,6 @@
 
 from firedrake import IntervalMesh, PeriodicIntervalMesh, RectangleMesh, PeriodicRectangleMesh, BoxMesh, PeriodicBoxMesh, Mesh, FacetNormal
-from firedrake import FunctionSpace, VectorFunctionSpace, dx, ds, dS
+from firedrake import FunctionSpace, VectorFunctionSpace, dx, ds, dS, ExtrudedMesh
 import finat
 import FIAT
 
@@ -50,6 +50,7 @@ def get_mesh_and_spaces(parameters, initcond):
         mesh = RectangleMesh(parameters['nx'], parameters['ny'], right_x, right_y, originX=left_x, originY=left_y, quadrilateral=not parameters['simplicial_cells'], diagonal=parameters['diagonal'])
     elif parameters['mesh'] == 'rectangle-periodic':
         mesh = PeriodicRectangleMesh(parameters['nx'], parameters['ny'], initcond.Lx, initcond.Ly, quadrilateral=not parameters['simplicial_cells'], diagonal=parameters['diagonal'])
+#THESE ARE A LITTLE WRONG FOR TRI MESHES...
         mesh.dx = initcond.Lx / parameters['nx']
         mesh.dy = initcond.Ly / parameters['ny']
 #NEED TO SCALE+CENTER MESH COORDINATES
@@ -57,10 +58,15 @@ def get_mesh_and_spaces(parameters, initcond):
         mesh = BoxMesh(parameters['nx'], parameters['ny'], parameters['nz'], initcond.Lx, initcond.Ly, initcond.Lz, hexahedral=not parameters['simplicial_cells'], diagonal=parameters['diagonal'])
 #NEED TO SCALE+CENTER MESH COORDINATES
     elif parameters['mesh'] == 'box-periodic':
-        mesh = PeriodicBoxMesh(parameters['nx'], parameters['ny'], parameters['nz'], initcond.Lx, initcond.Ly, initcond.Lz, hexahedral=not parameters['simplicial_cells'])
-        mesh.dx = initcond.Lx / parameters['nx']
-        mesh.dy = initcond.Ly / parameters['ny']
-        mesh.dz = initcond.Lz / parameters['nz']
+#H(div) and H(curl) for hexehedra are only supported on extruded meshes for now'
+        if parameters['simplicial_cells']:
+            mesh = PeriodicBoxMesh(parameters['nx'], parameters['ny'], parameters['nz'], initcond.Lx, initcond.Ly, initcond.Lz, hexahedral=False)
+        else:
+            mesh2D = PeriodicRectangleMesh(parameters['nx'], parameters['ny'], initcond.Lx, initcond.Ly, quadrilateral=True)
+            mesh = ExtrudedMesh(mesh2D, parameters['nz'], layer_height=initcond.Lz / parameters['nz'], extrusion_type='uniform', periodic=True)
+            mesh.dx = initcond.Lx / parameters['nx']
+            mesh.dy = initcond.Ly / parameters['ny']
+            mesh.dz = initcond.Lz / parameters['nz']
 #NEED TO SCALE+CENTER MESH COORDINATES
     elif parameters['mesh'] == 'file':
         mesh = Mesh(parameters['meshfile'])
@@ -100,14 +106,12 @@ class DeRhamComplex():
                 self.CGV = VectorFunctionSpace(mesh, 'CG', parameters['order']) #TRY Q?
                 self.Hdiv = FunctionSpace(mesh, 'RTCF', parameters['order'])
                 self.Hcurl = FunctionSpace(mesh, 'RTCE', parameters['order'])
-            if mesh.cell_dimension() == 3:
+#THIS IS NEEDED SINCE 3D HEXAHEDRA ARE NOT SUPPORTED YET
+            if mesh.cell_dimension() == (2,1):
                 self.DGV = VectorFunctionSpace(mesh, 'DG', parameters['order']-1) #TRY DQ?
                 self.CGV = VectorFunctionSpace(mesh, 'CG', parameters['order']) #TRY DQ?
-                self.Hdiv = VectorFunctionSpace(mesh, 'CG', parameters['order'])
-                self.Hcurl = VectorFunctionSpace(mesh, 'CG', parameters['order'])
-#THESE ARE NOT CURRENTLY SUPPORTED, UNFORTUNATELY
-                #self.Hdiv = FunctionSpace(mesh, 'NCF', parameters['order'])
-                #self.Hcurl = FunctionSpace(mesh, 'NCE', parameters['order'])
+                self.Hdiv = FunctionSpace(mesh, 'NCF', parameters['order'])
+                self.Hcurl = FunctionSpace(mesh, 'NCE', parameters['order'])
 
             if parameters['lump_mass']:
                 gll_rule = gauss_lobatto_legendre_cube_rule(dimension=parameters['dim'], degree=self.CG.ufl_element().degree())

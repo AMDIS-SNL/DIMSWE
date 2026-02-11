@@ -335,12 +335,15 @@ class Maxwell_Hamiltonian(Hamiltonian_Base):
 
     def compute_dfdx_expressions(self, vars, expressions):
         D, B = vars['D'], vars['B']
-
-        expressions['E'] = 1./self.epsilon0 * D
-        expressions['H'] = 1./self.mu0 * B
+        Etrial, Ehat = self.trialvars['E'], self.testvars['E']
+        Htrial, Hhat = self.trialvars['H'], self.testvars['H']
+        expressions['E'] = [1./self.epsilon0 * D, Etrial, Ehat]
+        expressions['H'] = [1./self.mu0 * B, Htrial, Hhat]
 
     def compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars):
-        self.compute_dfdx_expressions(xstar, dfdx_linear_vars)
+        D, B = xstar['D'], xstar['B']
+        dfdx_linear_vars['E'] = 1./self.epsilon0 * D
+        dfdx_linear_vars['H'] = 1./self.mu0 * B
 
 class ScalarWave_Hamiltonian(Hamiltonian_Base):
 

@@ -6,9 +6,9 @@ def get_maxwell_parameters():
     parameters = {}
 
     parameters['mesh'] = 'box-periodic' #line rectangle box-periodic
-    parameters['nx'] = 10
-    parameters['ny'] = 10
-    parameters['nz'] = 10
+    parameters['nx'] = 20
+    parameters['ny'] = 20
+    parameters['nz'] = 20
     parameters['diagonal'] = 'crossed' #WHAT ARE THE OPTIONS HERE?
     parameters['simplicial_cells'] = False
 
@@ -17,16 +17,16 @@ def get_maxwell_parameters():
 
     parameters['loglevel'] = 100
 
-    parameters['num_steps'] = 10
+    parameters['num_steps'] = 100
     parameters['dt_type'] = 'cfl'
-    parameters['cfl_const'] = 0.1
+    parameters['cfl_const'] = 0.5
 
     parameters['forcing_terms'] = [] #current
 
 
-    parameters['timestep_method'] = 'RK4' #AVF2 TimeStaggered SSPRK TimeSplit
+    parameters['timestep_method'] = 'AVF2' #AVF2 TimeStaggered SSPRK TimeSplit
     parameters['num_avf_quad'] = 1
-    parameters['output_freq'] = 1
+    parameters['output_freq'] = 10
     parameters['stat_freq'] = 1
     parameters['output_aux_vars'] = False #super useful for debugging
     parameters['avf_solver'] = 'qn' #fixedpoint qn
@@ -137,7 +137,8 @@ overall_solver_parameters = {}
 overall_solver_parameters['qn'] = {'snes_monitor': None, 'snes_converged_reason': None,
     'snes_stol': 1e-12, 'snes_rtol': 1e-12, 'snes_atol': 1e-12,
     'snes_lag_jacobian': 100, 'snes_lag_preconditioner': 100, 'ksp_converged_reason': None,
-    'ksp_type': 'gmres', 'pc_type' : 'ilu', 'snes_max_it': 50}
+    'ksp_type': 'gmres', 'pc_type' : 'ilu', 'snes_max_it': 50,
+    'ksp_stol': 1e-25, 'ksp_rtol': 1e-25, 'ksp_atol': 1e-25}
 overall_solver_parameters['fixedpoint'] = basic_linear_system
 overall_solver_parameters['q'] = basic_linear_system
 overall_solver_parameters['u'] = basic_linear_system
@@ -157,3 +158,7 @@ overall_solver_parameters['Q_h'] = basic_linear_system
 overall_solver_parameters['Q_S'] = basic_linear_system
 overall_solver_parameters['rhdiag'] = basic_linear_system
 overall_solver_parameters['qsatdiag'] = basic_linear_system
+overall_solver_parameters['E'] = basic_linear_system
+overall_solver_parameters['H'] = basic_linear_system
+overall_solver_parameters['dD'] = basic_linear_system
+overall_solver_parameters['dB'] = basic_linear_system

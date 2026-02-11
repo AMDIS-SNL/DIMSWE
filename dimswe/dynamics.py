@@ -472,7 +472,7 @@ def get_dynamics(parameters, mesh, spaces, logger, initcond):
             metric_brackets = []
             entropy = SimpleEntropy(spaces, vars)
             hamiltonian = Maxwell_Hamiltonian(vars)
-            statistics = MaxwellStatistics(spaces, parameters['num_steps'] // parameters['stat_freq'] + 1)
+            statistics = MaxwellStatistics(spaces, hamiltonian, parameters['num_steps'] // parameters['stat_freq'] + 1)
             diagnostics = MaxwellDiagnostics(spaces)
 
         elif parameters['model'] == 'eulermaxwell':

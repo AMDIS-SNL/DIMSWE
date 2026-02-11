@@ -3,74 +3,14 @@ from .logger import Logger
 from .parameters import get_parameters
 from .initial_conditions import get_initial_condition
 from .meshes import set_dimension
-
-import matplotlib.pyplot as plt
-from firedrake.pyplot import tricontourf, tricontour, tripcolor, quiver, triplot, plot
+from .plotting import plot_mesh, plot_scalar2D, plot_scalar1D, plot_vector2D_mag, plot_vector2D_quiver, plot_variable, plot_statistic
 from firedrake import CheckpointFile
 import numpy as np
 
 
 
 
-def plot_mesh(mesh):
-    fig, axes = plt.subplots()
-    triplot(mesh, axes=axes)
-    axes.legend()
-    fig.savefig('mesh.png')
 
-def plot_scalar2D(func, name):
-    fig, axes = plt.subplots()
-    #contours = tricontour(func, axes=axes)
-    #contours = tricontourf(func, axes=axes, cmap="inferno")
-    contours = tripcolor(func, axes=axes, cmap="inferno")
-    axes.set_aspect("equal")
-    fig.colorbar(contours)
-    fig.savefig(name + '.png')
-    plt.close()
-
-def plot_vector2D_quiver(func, name):
-    fig, axes = plt.subplots()
-    contours = quiver(func, axes=axes)
-    axes.set_aspect("equal")
-    fig.colorbar(contours)
-    fig.savefig(name + '.png')
-    plt.close()
-
-def plot_vector2D_mag(func, name):
-    fig, axes = plt.subplots()
-    contours = tripcolor(func, axes=axes)
-    # contours = tricontourf(func, axes=axes, cmap="inferno")
-    axes.set_aspect("equal")
-    fig.colorbar(contours)
-    fig.savefig(name + '-mag.png')
-    plt.close()
-
-def plot_scalar1D(func, name):
-
-    fig, axes = plt.subplots()
-    plot(func, axes=axes)
-    fig.savefig(name + '.png')
-    plt.close()
-
-def plot_variable(data, name, dim, is_vector):
-    if dim == 1:
-        plot_scalar1D(data, name)
-    if dim == 2:
-        if is_vector:
-            plot_vector2D_quiver(data, name)
-        else:
-            plot_scalar2D(data, name)
-
-def plot_statistic(data, name):
-    plt.figure()
-    plt.plot(data)
-    plt.savefig(name + '.png')
-    plt.close()
-
-    plt.figure()
-    plt.plot((data - data[0])/data[0]*100)
-    plt.savefig(name + '-fractional-change.png')
-    plt.close()
 
 if __name__ == "__main__":
 
@@ -118,4 +58,3 @@ if __name__ == "__main__":
                 for var in dynamics.diagnostics.var_list:
                     vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
                     plot_variable(vardat, var + '.' + str(n),  parameters['dim'], var in vector_list)
-    

@@ -56,8 +56,10 @@ class PlaneWave(IC):
         self.w = self.k * self.c
         self.alpha_x = 0.0
         self.alpha_y = 0.0
-        self.E0x = 1.0
-        self.E0y = 1.0
+        self.E0x = 1000.0
+        self.E0y = 1000.0
+
+        self.const_state = {}
 
     def get_value(self, mesh, t):
         xs = SpatialCoordinate(mesh)
@@ -488,7 +490,7 @@ class TC2(IC2D):
         if initcond is None:
             initcond = {}
             initcond['bottom_topography'] = 0.0
-        initcond['h'] = self.H0 - self.a * self.f * self.u0 / self.g * sin(xs[1]/self.a) - initcond['bottom_topography'] 
+        initcond['h'] = self.H0 - self.a * self.f * self.u0 / self.g * sin(xs[1]/self.a) - initcond['bottom_topography']
         u = self.u0 * cos(xs[1] / self.a)
         v = 0.0
         initcond['v'] = as_vector([u,v])
@@ -515,7 +517,7 @@ class TC5(TC2):
         xs = SpatialCoordinate(mesh)
         initcond = {}
         dist = sqrt((xs[0] - self.xm) * (xs[0] - self.xm) + (xs[1] - self.ym) * (xs[1] - self.ym))
-        initcond['bottom_topography'] = self.h0 * (1. - 1./self.R * ufl.min_value(self.R, dist))        
+        initcond['bottom_topography'] = self.h0 * (1. - 1./self.R * ufl.min_value(self.R, dist))
         initcond = TC2.get_value(self, mesh, t, initcond=initcond)
         return initcond
 

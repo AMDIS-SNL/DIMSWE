@@ -287,7 +287,7 @@ class MaxwellVariables(VariablesBase):
             self.mixedspace = MixedFunctionSpace(self.spacelist)
 
     def initialize(self, varexpr, vars):
-        for i,var in enumerate(self.variablelist):
+        for i,var in enumerate(self.varlist):
             if not varexpr[var]==0:
                 vars.sub(i).project(varexpr[var])
 

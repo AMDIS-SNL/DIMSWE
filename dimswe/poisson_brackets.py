@@ -468,7 +468,8 @@ class MaxwellBracket(PoissonBracket):
         E, H = dfdx_vars['E'], dfdx_vars['H']
         Dhat, Bhat = xhats['D'], xhats['B']
         rhs_expr = inner(Bhat, curl(E))*self.dx - inner(curl(Dhat), H)*self.dx
-
+        return rhs_expr
+        
     def linear_rhs(self, const_state, dfdx_linear_vars, xhats):
         return self.rhs(None, dfdx_linear_vars, xhats)
 
