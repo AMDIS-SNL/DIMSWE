@@ -120,8 +120,8 @@ def get_default_parameters():
     return parameters
 
 def get_parameters():
-    #parameters = get_default_parameters()
-    parameters = get_maxwell_parameters()
+    parameters = get_default_parameters()
+    #parameters = get_maxwell_parameters()
     return parameters
 
 
