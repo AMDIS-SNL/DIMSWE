@@ -15,7 +15,7 @@ def get_initial_condition(parameters):
     elif parameters['initial-conditions']['name'] == 'galewsky': return Galewsky(parameters)
     elif parameters['initial-conditions']['name'] == 'densitywave': return DensityWave(parameters)
 
-    elif parameters['initialcondition'] == 'planewave': return PlaneWave(parameters)
+    elif parameters['initial-conditions']['name'] == 'planewave': return PlaneWave(parameters)
 
 #ADD LOTS HERE!!!
     elif parameters['initial-conditions']['name'] == 'RP1': return RiemannProblem1(parameters)
