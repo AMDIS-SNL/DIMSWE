@@ -80,7 +80,7 @@ class CurlForm_AdvectedQuantities_Bracket(PoissonBracket):
             self.dx = spaces.dx
             self.dS = spaces.dS
             self.ds = spaces.ds
-            
+
             if self.dim == 2:
                 self.testvars['q'] = TestFunction(self.spaces.CG)
                 self.trialvars['q'] = TrialFunction(self.spaces.CG)
@@ -299,6 +299,7 @@ class CurlForm_AdvectedDensities_Bracket_Base(PoissonBracket):
         else:
             return []
 
+
     def compute_q_expressions(self, vars, expressions):
         if not self.upwind_v:
             v = vars['v']
@@ -310,6 +311,7 @@ class CurlForm_AdvectedDensities_Bracket_Base(PoissonBracket):
                 expressions['q'] = [inner(qhat, total_dens * qtrial)*self.dx, inner(-skewgrad(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
             elif self.dim == 3:
                 expressions['q'] = [inner(qhat, total_dens * qtrial)*self.dx, inner(-curl(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
+
 
 
 #SWAP THESE TO USE LIE DERIVATIVE FUNCTIONS
@@ -448,15 +450,28 @@ class CurlForm_AdvectedDensities_Bracket(CurlForm_AdvectedDensities_Bracket_Base
 
 
 
+
 #WE CAN ELIMINATE THIS WITH THE APPROPRIATE GENERALIZATION OF LP AND CF BRACKETS!!!
 class MHDBracket_LP(PoissonBracket):
     def __init__(self, spaces):
         self.spaces = spaces
 
-
+#THIS IS MISSING BOUNDARY CONDITION STUFF!
 class MaxwellBracket(PoissonBracket):
     def __init__(self, spaces):
         self.spaces = spaces
+        if not self.spaces is None:
+            self.dx = spaces.dx
+
+#THIS IS MISSING BOUNDARY CONDITION STUFF!
+    def rhs(self, qvars, dfdx_vars, xhats):
+        E, H = dfdx_vars['E'], dfdx_vars['H']
+        Dhat, Bhat = xhats['D'], xhats['B']
+        rhs_expr = inner(Bhat, curl(E))*self.dx - inner(curl(Dhat), H)*self.dx
+        return rhs_expr
+        
+    def linear_rhs(self, const_state, dfdx_linear_vars, xhats):
+        return self.rhs(None, dfdx_linear_vars, xhats)
 
 class EulerMaxwellCouplingBracket_LP(PoissonBracket):
     def __init__(self, spaces):

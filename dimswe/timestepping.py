@@ -129,7 +129,7 @@ class AVF2_Integrator(TimeStepper):
                 xq[var] = (1. - float(point)) * self.xn.sub(j) + float(point) * self.xk.sub(j)
             xq_dfdx_expressions = self.dynamics.compute_dfdx_expressions(xq, terms=terms)
             for var in self.dynamics.get_dfdx_aux_var_list(terms=terms):
-                a, L = make_a_L(*xq_dfdx_expressions[var])
+                a, L = make_a_L(*xq_dfdx_expressions[var], self.dx)
                 dfdx_expressions[var][0] = dfdx_expressions[var][0] + float(weight) * a
                 dfdx_expressions[var][1] = dfdx_expressions[var][1] + float(weight) * L
         for var in self.dynamics.get_dfdx_aux_var_list(terms=terms):
@@ -164,7 +164,7 @@ class AVF2_Integrator(TimeStepper):
             J_expr = derivative(linear_expr, self.xnp1)
             rhs_nl_problem = NonlinearVariationalProblem(nl_expr, self.xnp1, J=J_expr)
             self.rhs_nl_solver = NonlinearVariationalSolver(rhs_nl_problem, solver_parameters=overall_solver_parameters['qn'],
-                options_prefix = 'avf2qn', pre_function_callback=lambda state: self.pre_callback(state), post_function_callback=lambda state: self.post_callback(state))
+                options_prefix = 'avf2qn', pre_function_callback=lambda state: self.pre_callback(state), post_function_callback=lambda state, jacobian: self.post_callback(state, jacobian))
 
 
 
@@ -190,10 +190,11 @@ class AVF2_Integrator(TimeStepper):
         #self.xn.dat.copy(self.xnp1.dat)
 
 #THIS IS ACTUALLY BROKEN- UNCLEAR EXACTLY HOW TO MODIFY CURRENT STATE AFTER A STEP IS COMPUTED?
-    def post_callback(self, state):
-        with self.xk.dat.vec_wo as xk:
-            state.copy(xk)
-        self.dynamics.post_step(self.xk_sub)
+    def post_callback(self, state, jacobian):
+        pass
+        #with self.xk.dat.vec_wo as xk:
+        #    state.copy(xk)
+        #self.dynamics.post_step(self.xk_sub)
 
     def take_step(self, dt):
         self.dt.assign(dt)
@@ -301,7 +302,7 @@ class RK_Integrator(TimeStepper):
         self.dfdx_aux_solvers = []
         dfdx_expressions = self.dynamics.compute_dfdx_expressions(self.q_aux_vars, terms=terms)
         for var in self.dynamics.get_dfdx_aux_var_list(terms=terms):
-            a, L = make_a_L(*dfdx_expressions[var])
+            a, L = make_a_L(*dfdx_expressions[var], self.dx)
             dfdx_problem = LinearVariationalProblem(a, L, self.dfdx_aux_vars[var])
             dfdx_solver = LinearVariationalSolver(dfdx_problem, solver_parameters=overall_solver_parameters[var], options_prefix=var)
             self.dfdx_aux_solvers.append(dfdx_solver)

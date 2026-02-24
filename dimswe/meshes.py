@@ -1,6 +1,6 @@
 
 from firedrake import IntervalMesh, PeriodicIntervalMesh, RectangleMesh, PeriodicRectangleMesh, BoxMesh, PeriodicBoxMesh, Mesh, FacetNormal
-from firedrake import FunctionSpace, VectorFunctionSpace, dx, ds, dS
+from firedrake import FunctionSpace, VectorFunctionSpace, dx, ds, dS, ExtrudedMesh
 import finat
 import FIAT
 
@@ -54,11 +54,19 @@ def get_mesh_and_spaces(parameters, initcond):
         mesh.dy = initcond.Ly / parameters['mesh']['ny']
 #NEED TO SCALE+CENTER MESH COORDINATES
     elif parameters['mesh']['type'] == 'box':
+#THIS WILL CHOKE IF DOING HEXAHEDRAL CELLS
         mesh = BoxMesh(parameters['mesh']['nx'], parameters['mesh']['ny'], parameters['mesh']['nz'], initcond.Lx, initcond.Ly, initcond.Lz, hexahedral=not parameters['mesh']['simplicial_cells'], diagonal=parameters['mesh']['diagonal'])
 #NEED TO SCALE+CENTER MESH COORDINATES
-    elif parameters['mesh'] == 'box-periodic':
-        mesh = PeriodicBoxMesh(parameters['mesh']['nx'], parameters['mesh']['ny'], parameters['mesh']['nz'], initcond.Lx, initcond.Ly, initcond.Lz, hexahedral=not parameters['mesh']['simplicial_cells'], diagonal=parameters['mesh']['diagonal'])
-#NEED TO SCALE+CENTER MESH COORDINATES
+    elif parameters['mesh']['type'] == 'box-periodic':
+#H(div) and H(curl) for hexehedra are only supported on extruded meshes for now'
+        if parameters['mesh']['simplicial_cells']:
+            mesh = PeriodicBoxMesh(parameters['mesh']['nx'], parameters['mesh']['ny'], parameters['mesh']['nz'], initcond.Lx, initcond.Ly, initcond.Lz, hexahedral=False)
+        else:
+            mesh2D = PeriodicRectangleMesh(parameters['mesh']['nx'], parameters['mesh']['ny'], initcond.Lx, initcond.Ly, quadrilateral=True)
+            mesh = ExtrudedMesh(mesh2D, parameters['mesh']['nz'], layer_height=initcond.Lz / parameters['mesh']['nz'], extrusion_type='uniform', periodic=True)
+            mesh.dx = initcond.Lx / parameters['mesh']['nx']
+            mesh.dy = initcond.Ly / parameters['mesh']['ny']
+            mesh.dz = initcond.Lz / parameters['mesh']['nz']
     elif parameters['mesh']['type'] == 'file':
         mesh = Mesh(parameters['mesh']['meshfile'])
         if parameters['mesh']['scale_center_meshfile_coords']:
@@ -74,6 +82,7 @@ def get_mesh_and_spaces(parameters, initcond):
 #LOTS OF CHOICES HERE- QUADS VS TRIANGLES, DIFFERENT FAMILIES, ETC.
 
 class DeRhamComplex():
+
     def __init__(self, mesh, parameters):
 
         self.n = FacetNormal(mesh)
@@ -95,12 +104,12 @@ class DeRhamComplex():
                 self.CGV = VectorFunctionSpace(mesh, 'CG', parameters['spatial-discretization']['order']) #TRY Q?
                 self.Hdiv = FunctionSpace(mesh, 'RTCF', parameters['spatial-discretization']['order'])
                 self.Hcurl = FunctionSpace(mesh, 'RTCE', parameters['spatial-discretization']['order'])
-            if mesh.cell_dimension() == 3:
-                self.DGV = VectorFunctionSpace(mesh, 'DG', parameters['spatial-discretization']['order']-1) #TRY DQ?
-                self.CGV = VectorFunctionSpace(mesh, 'CG', parameters['spatial-discretization']['order']) #TRY DQ?
-                self.Hdiv = FunctionSpace(mesh, 'NCF', parameters['spatial-discretization']['order'])
-                self.Hcurl = FunctionSpace(mesh, 'NCE', parameters['spatial-discretization']['order'])
-
+#THIS IS NEEDED SINCE 3D HEXAHEDRA ARE NOT SUPPORTED YET
+            if mesh.cell_dimension() == (2,1):
+                self.DGV = VectorFunctionSpace(mesh, 'DG', parameters['order']-1) #TRY DQ?
+                self.CGV = VectorFunctionSpace(mesh, 'CG', parameters['order']) #TRY DQ?
+                self.Hdiv = FunctionSpace(mesh, 'NCF', parameters['order'])
+                self.Hcurl = FunctionSpace(mesh, 'NCE', parameters['order'])
             if parameters['spatial-discretization']['lump_mass']:
                 gll_rule = gauss_lobatto_legendre_cube_rule(dimension=parameters['mesh']['dim'], degree=self.CG.ufl_element().degree())
                 gll_surf_rule = gauss_lobatto_legendre_cube_rule(dimension=parameters['mesh']['dim']-1, degree=self.CG.ufl_element().degree())

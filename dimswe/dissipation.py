@@ -16,6 +16,8 @@ class Hyperviscosity(ForcingBase):
         self.name = 'hyperviscosity'
 
         if not spaces is None:
+#IDEALLY HERE WE USE TENSOR HV- THEN WE CAN AVOID THE VERY HACKY SPACES.DX STUFF
+#CAN PROBABLY TIE TO CFL CONDITION STUFF ALSO
             self.dx = spaces.dx
             self.coeff = Function(FunctionSpace(self.spaces.mesh, 'CG', self.spaces.order, variant="spectral"))
             self.coeff.assign(self.c0 * pow(max(spaces.mesh.dx/spaces.order, spaces.mesh.dy/spaces.order), self.s))

@@ -1,6 +1,11 @@
 from firedrake import as_vector, Constant, SpatialCoordinate, exp, pi, sin, cos, sqrt
 import ufl
 from .physics import qsat
+import scipy as sp
+
+#WE SHOULD REALLY SPLIT THIS INTO INITIAL CONDITION ROUTINES FOR VARIOUS "MODELS"
+#AND ACTUALLY CREATE VARIOUS MODELS CLASSES IE MAXWELL, ADV DENS, EULER MAXWELL, ETC.
+#THIS WOULD SIMPLIFY HOW DYNAMICS WORKS...
 
 def get_initial_condition(parameters):
     if parameters['initial-conditions']['name'] == 'gaussian': return Gaussian(parameters)
@@ -9,6 +14,8 @@ def get_initial_condition(parameters):
     elif parameters['initial-conditions']['name'] == 'TC5': return TC5(parameters)
     elif parameters['initial-conditions']['name'] == 'galewsky': return Galewsky(parameters)
     elif parameters['initial-conditions']['name'] == 'densitywave': return DensityWave(parameters)
+
+    elif parameters['initialcondition'] == 'planewave': return PlaneWave(parameters)
 
 #ADD LOTS HERE!!!
     elif parameters['initial-conditions']['name'] == 'RP1': return RiemannProblem1(parameters)
@@ -32,6 +39,37 @@ def get_initial_condition(parameters):
 class IC():
     def set_thermo(self, thermo):
         self.thermo = thermo
+
+class PlaneWave(IC):
+    def __init__(self, parameters):
+        self.parameters = parameters
+        self.Lx = 1.0
+        self.Ly = 1.0
+        self.Lz = 1.0
+        self.xc = 0.5
+        self.xc = 0.5
+        self.xc = 0.5
+
+        self.c = sp.constants.c
+        self.epsilon0 = sp.constants.epsilon_0
+        self.k = 2. * pi
+        self.w = self.k * self.c
+        self.alpha_x = 0.0
+        self.alpha_y = 0.0
+        self.E0x = 1000.0
+        self.E0y = 1000.0
+
+        self.const_state = {}
+
+    def get_value(self, mesh, t):
+        xs = SpatialCoordinate(mesh)
+        initcond = {}
+        Ex = self.E0x * cos(self.k*xs[2] - self.w*t + self.alpha_x)
+        Ey = self.E0y * cos(self.k*xs[2] - self.w*t + self.alpha_y)
+        Ez = 0.
+        initcond['D'] = as_vector([Ex,Ey,Ez]) * self.epsilon0
+        initcond['B'] = as_vector([-Ey,Ex,Ez]) / self.c
+        return initcond
 
 class IC1D(IC):
 
@@ -452,7 +490,7 @@ class TC2(IC2D):
         if initcond is None:
             initcond = {}
             initcond['bottom_topography'] = 0.0
-        initcond['h'] = self.H0 - self.a * self.f * self.u0 / self.g * sin(xs[1]/self.a) - initcond['bottom_topography'] 
+        initcond['h'] = self.H0 - self.a * self.f * self.u0 / self.g * sin(xs[1]/self.a) - initcond['bottom_topography']
         u = self.u0 * cos(xs[1] / self.a)
         v = 0.0
         initcond['v'] = as_vector([u,v])
@@ -479,7 +517,7 @@ class TC5(TC2):
         xs = SpatialCoordinate(mesh)
         initcond = {}
         dist = sqrt((xs[0] - self.xm) * (xs[0] - self.xm) + (xs[1] - self.ym) * (xs[1] - self.ym))
-        initcond['bottom_topography'] = self.h0 * (1. - 1./self.R * ufl.min_value(self.R, dist))        
+        initcond['bottom_topography'] = self.h0 * (1. - 1./self.R * ufl.min_value(self.R, dist))
         initcond = TC2.get_value(self, mesh, t, initcond=initcond)
         return initcond
 
