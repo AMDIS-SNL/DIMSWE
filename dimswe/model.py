@@ -5,7 +5,7 @@ from .output import Output
 from .timestepping import get_timestepper
 from .parameters import get_parameters
 from .logger import Logger
-
+import sys
 
 
 def run_model(parameters):
@@ -24,16 +24,17 @@ def run_model(parameters):
     timestepper.compute_diagnostics()
     timestepper.compute_statistics(0, 0)
     output.output(0, 0, 0)
-    for n in range(1, parameters['num_steps']+1):
+    for n in range(1, parameters['timestepping']['num_steps']+1):
         logger.output('taking time step n=' + str(n), 1)
-        timestepper.take_step(parameters['dt'])
-        if ((n % parameters['stat_freq']) == 0):
-            timestepper.compute_statistics(n, n // parameters['stat_freq'])
-        if ((n % parameters['output_freq']) == 0):
+        timestepper.take_step(parameters['timestepping']['dt'])
+        if ((n % parameters['output']['stat_freq']) == 0):
+            timestepper.compute_statistics(n, n // parameters['output']['stat_freq'])
+        if ((n % parameters['output']['output_freq']) == 0):
             timestepper.compute_diagnostics()
-            output.output(n, n // parameters['output_freq'], n // parameters['stat_freq'])
+            output.output(n, n // parameters['output']['output_freq'], n // parameters['output']['stat_freq'])
     logger.output('Ended simulation', 0)
 
 if __name__ == "__main__":
-    parameters = get_parameters()
+    cfgfile = sys.argv[1]
+    parameters = get_parameters(cfgfile)
     run_model(parameters)

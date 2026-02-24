@@ -86,8 +86,8 @@ class AVF2_Integrator(TimeStepper):
         self.xk = self.dynamics.get_x_var('xk')
         self.xnp1 = self.dynamics.get_x_var('xnp1')
 
-        self.points, self.weights = np.polynomial.legendre.leggauss(parameters['num_avf_quad'])
-        self.npoints = parameters['num_avf_quad']
+        self.points, self.weights = np.polynomial.legendre.leggauss(parameters['timestepping']['num_avf_quad'])
+        self.npoints = parameters['timestepping']['num_avf_quad']
         #renormalize to [0,1] interval
         self.points = (self.points + 1.) / 2.0
         self.weights = self.weights / 2.
@@ -151,13 +151,13 @@ class AVF2_Integrator(TimeStepper):
 
 #CANNOT REALLY DO FIXED POINT USING PETSC, OR AT LEAST I CAN'T FIGURE IT OUT
 #probably possible with some careful combination of NL solver options
-        if parameters['avf_solver'] == 'fixedpoint':
+        if parameters['timestepping']['avf_solver'] == 'fixedpoint':
             nl_expr = inner(xhat, self.xn)*self.dx - self.dt*rhs_expr
             self.rhs_nl_solver = FixedPointSolver(nl_expr, self.xnp1, self.dynamics.variableset.mixedspace,
                 lambda state: self.pre_callback(state), lambda state: self.post_callback(state), self.dx)
 #SUPER UNCLEAR IF A LIMITER HERE FOR POST FUNCTION CALLBACK WILL ACTUALLY WORK?
 
-        elif parameters['avf_solver'] == 'qn':
+        elif parameters['timestepping']['avf_solver'] == 'qn':
             nl_expr = inner(xhat, self.xnp1 - self.xn)*self.dx + self.dt*rhs_expr
             rhs_linear_expr = dynamics.linear_rhs(self.initcond.const_state, self.q_aux_vars, xhat_subs, terms=terms)
             linear_expr = inner(xhat, self.xnp1 - self.xn)*self.dx + self.dt*rhs_linear_expr
@@ -394,15 +394,15 @@ class KGRK3_Integrator(RK_Integrator):
 
 #FIX THIS- THERE MIGHT BE TYPOS IN THE IMEX KG PAPER!
         #set values for alpha, beta, etc.!
-        if parameters['nkg_stages'] == 3:
+        if parameters['timestepping']['nkg_stages'] == 3:
             self.alpha = np.array([1./3., 1./3., 3./4.])
             self.beta = np.array([0., ])
             self.c = np.array([1./2., 1./2., 1.])
-        elif parameters['nkg_stages'] == 3:
+        elif parameters['timestepping']['nkg_stages'] == 3:
             self.alpha = np.array([1./4., 1./3., 1./2., 1.])
             self.beta = np.array([0., ])
             self.c = np.array([1./4., 1./3., 1./2., 1.])
-        elif parameters['nkg_stages'] == 3:
+        elif parameters['timestepping']['nkg_stages'] == 3:
             self.alpha = np.array([1./4., 1./6, 3./8., 1./2., 1.])
             self.beta = np.array([0., ])
             self.c = np.array([1./4., 1./6, 3./8., 1./2., 1.])
@@ -451,35 +451,35 @@ class KGRK2_Integrator(RK_Integrator):
         self.F = self.dynamics.get_x_var('F')
 
         #set values for alpha, etc.!
-        if parameters['kgrk2_name'] == '32': #NOT SURE THIS IS 2ND OR 1ST ORDER?
+        if parameters['timestepping']['kgrk2_name'] == '32': #NOT SURE THIS IS 2ND OR 1ST ORDER?
             self.alpha = np.array([1./2., 1./2., 1.])
             self.c = np.array([1./2., 1./2., 1.])
-        if parameters['kgrk2_name'] == '32a': #NOT SURE THIS IS 2ND OR 1ST ORDER?
+        if parameters['timestepping']['kgrk2_name'] == '32a': #NOT SURE THIS IS 2ND OR 1ST ORDER?
             self.alpha = np.array([1./3., 1./2., 1.])
             self.c = np.array([1./3., 1./2., 1.])
-        elif parameters['kgrk2_name'] == '42': #NOT SURE THIS IS 2ND OR 1ST ORDER?
+        elif parameters['timestepping']['kgrk2_name'] == '42': #NOT SURE THIS IS 2ND OR 1ST ORDER?
             self.alpha = np.array([1./4., 1./3., 1./2., 1.])
             self.c = np.array([1./4., 1./3., 1./2., 1.])
-        elif parameters['kgrk2_name'] == '52':
+        elif parameters['timestepping']['kgrk2_name'] == '52':
             self.alpha = np.array([1./4., 1./6, 3./8., 1./2., 1.])
             self.c = np.array([1./4., 1./6, 3./8., 1./2., 1.])
-        elif parameters['kgrk2_name'] == '53':
+        elif parameters['timestepping']['kgrk2_name'] == '53':
             self.alpha = np.array([1./5., 1./5., 1./3., 1./2., 1.])
             self.c = np.array([1./5., 1./5, 1./3., 1./2., 1.])
         #SUPER UNCLEAR WHAT THE ORDER OF THESE METHODS ARE?
-        elif parameters['kgrk2_name'] == '62':
+        elif parameters['timestepping']['kgrk2_name'] == '62':
             self.alpha = np.array([1./6., 2./15., 1./4., 1./3., 1./2., 1.])
             self.c = np.array([1./6., 2./15., 1./4., 1./3., 1./2., 1.])
-        elif parameters['kgrk2_name'] == '72':
+        elif parameters['timestepping']['kgrk2_name'] == '72':
             self.alpha = np.array([1./7., 2./21., 1./5., 8./35., 1./3., 1./2., 1.])
             self.c = np.array([1./7., 2./21., 1./5., 8./35., 1./3., 1./2., 1.])
-        elif parameters['kgrk2_name'] == '82':
+        elif parameters['timestepping']['kgrk2_name'] == '82':
             self.alpha = np.array([1./8., 1./14., 1./6., 1./6., 1./4., 1./3., 1./2., 1.])
             self.c = np.array([1./8., 1./14., 1./6., 1./6., 1./4., 1./3., 1./2., 1.])
-        elif parameters['kgrk2_name'] == '92':
+        elif parameters['timestepping']['kgrk2_name'] == '92':
             self.alpha = np.array([1./9., 1./18., 1./7., 8./63., 1./5., 5./21., 1./3., 1./2., 1.])
             self.c = np.array([1./9., 1./18., 1./7., 8./63., 1./5., 5./21., 1./3., 1./2., 1.])
-        elif parameters['kgrk2_name'] == '102':
+        elif parameters['timestepping']['kgrk2_name'] == '102':
             self.alpha = np.array([1./10., 2./45., 1./8., 1./10., 1./6., 9./50., 1./4., 1./3., 1./2., 1.])
             self.c = np.array([1./10., 2./45., 1./8., 1./10., 1./6., 9./50., 1./4., 1./3., 1./2., 1.])
 
@@ -525,9 +525,9 @@ class TimeSplitIntegrator(TimeStepper):
         self.logger = logger
         self.parameters = parameters
 
-        self.num_subcycles = parameters['timestepper_substeps']
+        self.num_subcycles = parameters['timestepping']['timestepper_substeps']
 
-        termlist = parameters['timestepper_split_terms']
+        termlist = parameters['timestepping']['timestepper_split_terms']
 
         self.xn = dynamics.get_x_var('xn')
         self.xn_sub = {}
@@ -535,7 +535,7 @@ class TimeSplitIntegrator(TimeStepper):
             self.xn_sub[var] = self.xn.sub(i)
 
         self.time_integrators = []
-        for i,time_integrator_name in enumerate(parameters['timestepper_list']):
+        for i,time_integrator_name in enumerate(parameters['timestepping']['timestepper_list']):
             time_integrator = get_time_integrator(time_integrator_name)
             self.time_integrators.append(time_integrator(parameters, dynamics, initcond, logger, xn=self.xn, terms=termlist[i]))
 
@@ -707,4 +707,4 @@ def get_time_integrator(name):
         raise ValueError("time step method " + name + " is unknown")
 
 def get_timestepper(parameters, dynamics, initcond, logger):
-    return get_time_integrator(parameters['timestep_method'])(parameters, dynamics, initcond, logger)
+    return get_time_integrator(parameters['timestepping']['method'])(parameters, dynamics, initcond, logger)

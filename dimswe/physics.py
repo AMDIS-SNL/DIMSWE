@@ -15,7 +15,7 @@ class ThreeWayPhysics(ForcingBase):
         self.g = initcond.g
         self.q0 = initcond.q0
         self.H0 = initcond.H0
-        self.dt = parameters['dt']
+        self.dt = parameters['timestepping']['dt']
         self.L = 10
         self.beta2 = self.g * self.L
         self.gamma_r = 10.**(-3.)
