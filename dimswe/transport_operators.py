@@ -90,7 +90,7 @@ class CGTransport(ForcingBase):
 #THIS NEEDS TO BE MODIFIED- SHOULD REALLY JUST BE SOME SET OF TRACERS
         self.density_names = vars.cg_inactive_density_names
         self.name = 'cgtransport'
-        self.use_split_form = parameters['use_split_form']
+        self.use_split_form = parameters['spatial-discretization']['use_split_form']
 
         if not spaces is None:
             self.dx = spaces.dx
@@ -119,7 +119,7 @@ class DG1LimiterTransport(ForcingBase):
         self.spaces = spaces
 
         self.dg_density_names = vars.dg_inactive_density_names
-        self.alpha_s = parameters['alpha_s']
+        self.alpha_s = parameters['spatial-discretization']['alpha_s']
         self.name = 'dg1limiter'
 
         if not spaces is None:

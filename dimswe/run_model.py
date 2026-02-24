@@ -5,9 +5,11 @@ from .output import Output
 from .timestepping import get_timestepper
 from .parameters import get_parameters
 from .logger import Logger
+import sys
 
 def calculate_timestep(cfl_const, mindx, wavespeed):
     return cfl_const * mindx / wavespeed
+
 
 def run_model(parameters):
 
@@ -20,11 +22,11 @@ def run_model(parameters):
 
 #SUPER HACKY RIGHT NOW
 #THIS IS A HORRIBLE HACK FOR MAXWELL IN A BOX USING LOWEST ORDER SPACES
-    if parameters['dt_type'] == 'cfl':
+    if parameters['timestepping']['dt_type'] == 'cfl':
         min_dx = min(min(mesh.dx, mesh.dy), mesh.dz)
         wavespeed = dynamics.get_max_wavespeed()
-        parameters['dt'] = calculate_timestep(parameters['cfl_const'], min_dx, wavespeed)
-        logger.output('calculated cfl-based dt as ' + str(parameters['dt']), 0)
+        parameters['timestepping']['dt'] = calculate_timestep(parameters['timestepping']['cfl_const'], min_dx, wavespeed)
+        logger.output('calculated cfl-based dt as ' + str(parameters['timestepping']['dt']), 0)
     timestepper = get_timestepper(parameters, dynamics, initcond, logger)
     output = Output(parameters, dynamics, timestepper, logger)
 
@@ -33,24 +35,27 @@ def run_model(parameters):
     timestepper.create_diagnostics_statistics()
     timestepper.compute_diagnostics()
     timestepper.compute_statistics(0, 0)
+
 #HORRIBLE HACK, SHOULD COME FROM INITCOND
     t0 = 0.0
 
     t = t0
-    dt = parameters['dt']
+    dt = parameters['timestepping']['dt']
     output.output(t, 0, 0, 0)
-    for n in range(1, parameters['num_steps']+1):
+    for n in range(1, parameters['timestepping']['num_steps']+1):
         logger.output('taking time step n=' + str(n), 1)\
         #THIS SHOULD ALSO REALLY EAT THE CURRENT T
         timestepper.take_step(dt)
         t = t + dt
-        if ((n % parameters['stat_freq']) == 0):
-            timestepper.compute_statistics(n, n // parameters['stat_freq']) #THIS SHOULD EAT THE CURRENT T
-        if ((n % parameters['output_freq']) == 0):
+        if ((n % parameters['output']['stat_freq']) == 0):
+            timestepper.compute_statistics(n, n // parameters['output']['stat_freq']) #THIS SHOULD EAT THE CURRENT T
+        if ((n % parameters['output']['output_freq']) == 0):
             timestepper.compute_diagnostics() #THIS SHOULD EAT THE CURRENT T
-            output.output(t, n, n // parameters['output_freq'], n // parameters['stat_freq'])
+            output.output(t, n, n // parameters['output']['output_freq'], n // parameters['output']['stat_freq'])
+
     logger.output('Ended simulation', 0)
 
 if __name__ == "__main__":
-    parameters = get_parameters()
+    cfgfile = sys.argv[1]
+    parameters = get_parameters(cfgfile)
     run_model(parameters)

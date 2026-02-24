@@ -7,11 +7,12 @@ class Output():
         self.timestepper = timestepper
         self.logger = logger
 
-        self.chkpoint_name = self.parameters['outfile_name'] + '.h5'
-        CheckpointFile(self.parameters['outfile_name'] + '.h5', 'w')
+        self.chkpoint_name = self.parameters['output']['outfile_name'] + '.h5'
+        CheckpointFile(self.chkpoint_name, 'w')
 
-        self.output_aux_vars = self.parameters['output_aux_vars']
-        self.plotoutfile = VTKFile(self.parameters['outfile_name'] + '.pvd')
+        self.output_aux_vars = self.parameters['output']['output_aux_vars']
+        self.plotoutfile = VTKFile(self.parameters['output']['outfile_name'] + '.pvd')
+
 
         self.varlist = self.dynamics.variableset.varlist
         self.q_aux_var_list = self.dynamics.get_q_aux_var_list()

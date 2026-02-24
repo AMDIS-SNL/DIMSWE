@@ -8,32 +8,32 @@ import scipy as sp
 #THIS WOULD SIMPLIFY HOW DYNAMICS WORKS...
 
 def get_initial_condition(parameters):
-    if parameters['initialcondition'] == 'gaussian': return Gaussian(parameters)
-    elif parameters['initialcondition'] == 'doublevortex': return DoubleVortex(parameters)
-    elif parameters['initialcondition'] == 'TC2': return TC2(parameters)
-    elif parameters['initialcondition'] == 'TC5': return TC5(parameters)
-    elif parameters['initialcondition'] == 'galewsky': return Galewsky(parameters)
-    elif parameters['initialcondition'] == 'densitywave': return DensityWave(parameters)
+    if parameters['initial-conditions']['name'] == 'gaussian': return Gaussian(parameters)
+    elif parameters['initial-conditions']['name'] == 'doublevortex': return DoubleVortex(parameters)
+    elif parameters['initial-conditions']['name'] == 'TC2': return TC2(parameters)
+    elif parameters['initial-conditions']['name'] == 'TC5': return TC5(parameters)
+    elif parameters['initial-conditions']['name'] == 'galewsky': return Galewsky(parameters)
+    elif parameters['initial-conditions']['name'] == 'densitywave': return DensityWave(parameters)
 
-    elif parameters['initialcondition'] == 'planewave': return PlaneWave(parameters)
+    elif parameters['initial-conditions']['name'] == 'planewave': return PlaneWave(parameters)
 
 #ADD LOTS HERE!!!
-    elif parameters['initialcondition'] == 'RP1': return RiemannProblem1(parameters)
-    elif parameters['initialcondition'] == 'RP2': return RiemannProblem2(parameters)
-    elif parameters['initialcondition'] == 'RP3': return RiemannProblem3(parameters)
-    elif parameters['initialcondition'] == 'ModifiedSod': return ModifiedSod(params)
-    elif parameters['initialcondition'] == 'ToroTest3': return ToroTest3(params)
-    elif parameters['initialcondition'] == 'StationaryContact': return StationaryContact(params)
-    elif parameters['initialcondition'] == 'SlowShock': return SlowShock(params)
-    elif parameters['initialcondition'] == 'PeakProblem': return PeakProblem(params)
-    elif parameters['initialcondition'] == 'LeBlanc': return LeBlanc(params)
-    elif parameters['initialcondition'] == 'StreamCollision': return StreamCollision(params)
-    elif parameters['initialcondition'] == 'RCVCR': return RCVCR(params)
-    elif parameters['initialcondition'] == 'VaccumExpansionRight': return VaccumExpansionRight(params)
-    elif parameters['initialcondition'] == 'VaccumExpansionLeft': return VaccumExpansionLeft(params)
-    elif parameters['initialcondition'] == 'ToroTest4': return ToroTest4(params)
+    elif parameters['initial-conditions']['name'] == 'RP1': return RiemannProblem1(parameters)
+    elif parameters['initial-conditions']['name'] == 'RP2': return RiemannProblem2(parameters)
+    elif parameters['initial-conditions']['name'] == 'RP3': return RiemannProblem3(parameters)
+    elif parameters['initial-conditions']['name'] == 'ModifiedSod': return ModifiedSod(params)
+    elif parameters['initial-conditions']['name'] == 'ToroTest3': return ToroTest3(params)
+    elif parameters['initial-conditions']['name'] == 'StationaryContact': return StationaryContact(params)
+    elif parameters['initial-conditions']['name'] == 'SlowShock': return SlowShock(params)
+    elif parameters['initial-conditions']['name'] == 'PeakProblem': return PeakProblem(params)
+    elif parameters['initial-conditions']['name'] == 'LeBlanc': return LeBlanc(params)
+    elif parameters['initial-conditions']['name'] == 'StreamCollision': return StreamCollision(params)
+    elif parameters['initial-conditions']['name'] == 'RCVCR': return RCVCR(params)
+    elif parameters['initial-conditions']['name'] == 'VaccumExpansionRight': return VaccumExpansionRight(params)
+    elif parameters['initial-conditions']['name'] == 'VaccumExpansionLeft': return VaccumExpansionLeft(params)
+    elif parameters['initial-conditions']['name'] == 'ToroTest4': return ToroTest4(params)
     else:
-        raise ValueError('unknown initial condition ' + parameters['initialcondition'])
+        raise ValueError('unknown initial condition ' + parameters['initial-condition']['name'])
     return None
 
 class IC():
@@ -82,21 +82,21 @@ class IC1D(IC):
         return ufl.conditional(ufl.gt(xscaled,2./3.), 0.0, ufl.conditional(ufl.lt(xscaled,1./3.), 0.0, 0.1*h))
 
     def set_tracers(self, x, t, initcond):
-        for i,name in enumerate(self.parameters['tracer_names']):
-            if self.parameters['tracer_init_conds'][i] == 'block':
+        for i,name in enumerate(self.parameters['model']['tracer_names']):
+            if self.parameters['initial-conditions']['tracer_init_conds'][i] == 'block':
                 initcond[name] = self.square_tracer(initcond['h'], x, t)
-            elif self.parameters['tracer_init_conds'][i] == 'gaussian':
+            elif self.parameters['initial-conditions']['tracer_init_conds'][i] == 'gaussian':
                 initcond[name] = self.gaussian_tracer(initcond['h'], x, t)
             else:
-                raise ValueError('unknown tracer initial condition ' + self.parameters['tracer_init_conds'][i])
+                raise ValueError('unknown tracer initial condition ' + self.parameters['initial-conditions']['tracer_init_conds'][i])
 
-        for i,name in enumerate(self.parameters['dg_tracer_names']):
-            if self.parameters['dg_tracer_init_conds'][i] == 'block':
+        for i,name in enumerate(self.parameters['model']['dg_tracer_names']):
+            if self.parameters['initial-conditions']['dg_tracer_init_conds'][i] == 'block':
                 initcond[name] = self.square_tracer(initcond['h'], x, t)
-            elif self.parameters['dg_tracer_init_conds'][i] == 'gaussian':
+            elif self.parameters['initial-conditions']['dg_tracer_init_conds'][i] == 'gaussian':
                 initcond[name] = self.gaussian_tracer(initcond['h'], x, t)
             else:
-                raise ValueError('unknown dg tracer initial condition ' + self.parameters['dg_tracer_init_conds'][i])
+                raise ValueError('unknown dg tracer initial condition ' + self.parameters['initial-conditions']['dg_tracer_init_conds'][i])
 
 
 class RiemannProblem(IC1D):
@@ -358,21 +358,21 @@ class IC2D(IC):
         return ufl.conditional(ufl.gt(xscaled,2./3.), 0.0, ufl.conditional(ufl.lt(xscaled,1./3.), 0.0, ufl.conditional(ufl.gt(yscaled,2./3.), 0.0, ufl.conditional(ufl.lt(yscaled,1./3.), 0.0, 0.1*h))))
 
     def set_tracers(self, x, t, initcond):
-        for i,name in enumerate(self.parameters['tracer_names']):
-            if self.parameters['tracer_init_conds'][i] == 'block':
+        for i,name in enumerate(self.parameters['model']['tracer_names']):
+            if self.parameters['initial-conditions']['tracer_init_conds'][i] == 'block':
                 initcond[name] = self.square_tracer(initcond['h'], x, t)
-            elif self.parameters['tracer_init_conds'][i] == 'gaussian':
+            elif self.parameters['initial-conditions']['tracer_init_conds'][i] == 'gaussian':
                 initcond[name] = self.gaussian_tracer(initcond['h'], x, t)
             else:
-                raise ValueError('unknown tracer initial condition ' + self.parameters['tracer_init_conds'][i])
+                raise ValueError('unknown tracer initial condition ' + self.parameters['initial-conditions']['tracer_init_conds'][i])
 
-        for i,name in enumerate(self.parameters['dg_tracer_names']):
-            if self.parameters['dg_tracer_init_conds'][i] == 'block':
+        for i,name in enumerate(self.parameters['model']['dg_tracer_names']):
+            if self.parameters['initial-conditions']['dg_tracer_init_conds'][i] == 'block':
                 initcond[name] = self.square_tracer(initcond['h'], x, t)
-            elif self.parameters['dg_tracer_init_conds'][i] == 'gaussian':
+            elif self.parameters['initial-conditions']['dg_tracer_init_conds'][i] == 'gaussian':
                 initcond[name] = self.gaussian_tracer(initcond['h'], x, t)
             else:
-                raise ValueError('unknown dg tracer initial condition ' + self.parameters['dg_tracer_init_conds'][i])
+                raise ValueError('unknown dg tracer initial condition ' + self.parameters['initial-conditions']['dg_tracer_init_conds'][i])
 
 
 class DensityWave(IC2D):

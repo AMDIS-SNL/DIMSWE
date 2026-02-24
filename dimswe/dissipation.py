@@ -10,8 +10,8 @@ class Hyperviscosity(ForcingBase):
         self.varlist = ['v',] + vars.active_density_names
 
         self.spaces = spaces
-        self.c0 = parameters['c0']
-        self.s = parameters['s']
+        self.c0 = parameters['hyperviscosity']['c0']
+        self.s = parameters['hyperviscosity']['s']
 
         self.name = 'hyperviscosity'
 
