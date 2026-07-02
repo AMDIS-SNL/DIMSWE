@@ -33,11 +33,11 @@ class Dynamics():
     def create_statistics(self, xn):
         self.statistics.create(xn)
 
-    def compute_diagnostics(self):
-        self.diagnostics.compute()
+    def compute_diagnostics(self, xn, t):
+        self.diagnostics.compute(xn, t)
 
-    def compute_statistics(self, step, stat_step):
-        self.statistics.compute(step, stat_step)
+    def compute_statistics(self, xn, t, step, stat_step):
+        self.statistics.compute(xn, tm step, stat_step)
 
 
 #This is basically going to be LP brackets (or CF, etc.) with prescribed u or F

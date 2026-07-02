@@ -4,10 +4,291 @@ import numpy as np
 from firedrake import Constant, inner, TestFunction, derivative, norm, assemble, Function, TestFunctions, split, TrialFunction
 
 
-def make_a_L(Lexpr, vartrial, varhat, dx):
-    a = inner(varhat, vartrial)*dx
-    L = inner(varhat, Lexpr)*dx
-    return [a, L]
+# def make_a_L(Lexpr, vartrial, varhat, dx):
+#     a = inner(varhat, vartrial)*dx
+#     L = inner(varhat, Lexpr)*dx
+#     return [a, L]
+
+
+#FIX THIS
+def get_time_integrator(name):
+    if name == 'AVF2':
+        return AVF2_Integrator
+    elif name == 'TimeStaggered':
+        return TimeStaggered_Integrator
+    elif name == 'SSPRK43':
+        return SSPRK43_Integrator
+    elif name == 'SSPRK3':
+        return SSPRK3_Integrator
+    elif name == 'KGRK2':
+        return KGRK2_Integrator
+    elif name == 'KGRK3':
+        return KGRK3_Integrator
+    elif name == 'RK4':
+        return RK4_Integrator
+    elif name == 'Euler':
+        return Euler_Integrator
+    elif name == 'TimeSplit':
+        return TimeSplitIntegrator
+    else:
+        raise ValueError("time step method " + name + " is unknown")
+
+def get_timestepper(parameters, dynamics, initcond, logger):
+    return get_time_integrator(parameters['timestepping']['method'])(dynamics, initcond, logger)
+
+
+class TimeStepper():
+
+    def __init__(self, dynamics, initcond, logger, terms='all'):
+        self.dynamics = dynamics
+        self.initcond = initcond
+        self.logger = logger
+        self.terms = terms
+        self.dx = dynamics.spaces.dx
+
+        self.q_aux_vars = self.dynamics.get_q_aux_vars(terms=terms)
+        self.dfdx_aux_vars = self.dynamics.get_dfdx_aux_vars(terms=terms)
+
+        self.xk = self.dynamics.get_x_var('xk')
+
+        self.lambda = Function(self.dynamics.get_x_var('lambda'))
+
+        self.xk_sub = {}
+        for i,var in enumerate(self.dynamics.variableset.varlist):
+            self.xk_sub[var] = self.xk.sub(i)
+            self.q_aux_vars[var] = self.xk.sub(i)
+
+        self.optimization_parameters = self.dynamics.optimization_parameters()
+
+        self.dt = Constant(1.)
+        self.t = Constant(1.)
+
+    def pre_step_solvers(self):
+        for solver in self.q_aux_solvers:
+            solver.solve()
+        for solver in self.dfdx_aux_solvers:
+            solver.solve()
+
+#    def initialize(self, init_xn=True):
+#        if init_xn:
+#            self.xn.zero()
+#            varexpr = self.initcond.get_value(self.dynamics.mesh, 0.0)
+#            self.dynamics.initialize(varexpr, self.xn)
+
+class ExplicitRK(TimeStepper):
+    def __init__(self, dynamics, initcond, logger, A, b, c, nstages, terms='all'):
+        TimeStepper.__init__(self, dynamics, initcond, logger, terms=terms)
+        self.A = A
+        self.b = b
+        self.c = c
+        self.nstages = nstages
+
+        self.Xi = []
+        self.Fi = []
+        self.mui = []
+        for i in range(nstages):
+            self.Xi.append(Function(self.dynamics.get_x_var('X'+str(i))))
+            self.Fi.append(Function(self.dynamics.get_x_var('F'+str(i))))
+            self.mui.append(Function(self.dynamics.get_x_var('mu'+str(i))))
+
+        xhat = self.dynamics.variableset.get_test_var()
+        xtrial = self.dynamics.variableset.get_trial_var()
+        xhat_subs =  self.dynamics.variableset.get_test_vars()
+
+        A = inner(xhat, xtrial)*self.dx
+        rhsproblem = -dynamics.rhs(self.q_aux_vars, self.dfdx_aux_vars, xhat_subs, terms=terms)
+#FIX THIS SYNTAX
+        self.gradT_state = ufl.adjoint(ufl.derivative(rhsproblem + A, self.xk))
+        self.gradT_params = ufl.adjoint(ufl.derivative(rhsproblem + A, self.optimization_parameters))
+
+        self.Fsolvers = []
+        self.muisolvers = []
+        for i in range(nstages):
+            Fproblem = LinearVariationalProblem(A, rhsproblem, self.Fi[i])
+            self.Fsolvers.append(LinearVariationalSolver(Fproblem, solver_parameters=overall_solver_parameters['erkstage'], options_prefix = 'erk-f')
+#FIX THIS!
+            muirhs = SOMETHING
+            muiproblem = LinearVariationalProblem(A, muirhs, self.mui[i])
+            self.muisolvers.append(LinearVariationalSolver(muiproblem, solver_parameters=overall_solver_parameters['muistage'], options_prefix = 'erk-mui')
+
+
+        q_expressions = self.dynamics.compute_q_expressions(self.q_aux_vars, terms=terms)
+        self.q_aux_solvers = []
+        for var in self.dynamics.get_q_aux_var_list(terms=terms):
+            a, L = q_expressions[var]
+            qproblem = LinearVariationalProblem(a, L, self.q_aux_vars[var])
+            qsolver = LinearVariationalSolver(qproblem, solver_parameters=overall_solver_parameters[var], options_prefix=var)
+            self.q_aux_solvers.append(qsolver)
+
+        self.dfdx_aux_solvers = []
+        dfdx_expressions = self.dynamics.compute_dfdx_expressions(self.q_aux_vars, terms=terms)
+        for var in self.dynamics.get_dfdx_aux_var_list(terms=terms):
+            a, L = make_a_L(*dfdx_expressions[var], self.dx)
+            dfdx_problem = LinearVariationalProblem(a, L, self.dfdx_aux_vars[var])
+            dfdx_solver = LinearVariationalSolver(dfdx_problem, solver_parameters=overall_solver_parameters[var], options_prefix=var)
+            self.dfdx_aux_solvers.append(dfdx_solver)
+
+
+    def take_forward_step(xnp1, xn, tn, dt):
+        self.dt.assign(dt)
+
+        #pre-stage computation based on X1
+        self.t.assign(tn)
+        self.xk.assign(xn)
+        self.pre_step_solvers()
+        self.Fsolvers[0].solve()
+        #POST STEP STUFF?
+        self.Xi[0].assign(self.xk)
+        for i in range(1,self.nstages):
+            self.t.assign(tn + self.c[i-1]*dt)
+        #FIX THIS- SHOULD BE A WAXPY-TYPE THING
+            self.xk.assign(xn + dt*self.A[i-1,j]*self.Fi[j])
+            self.pre_step_solvers()
+            self.Fsolvers[i].solve()
+            self.Xi[i].assign(self.xk)
+            #POST STEP STUFF?
+
+        #FIX THIS- SHOULD BE A WAXPY-TYPE THING
+        xnp1.assign(xn + dt * b[i]*self.Fi[i])
+        #POST STEP STUFF?
+
+    def take_backwards_step(grad, lambda_n, lambda_np1, tnp1, dt):
+
+        self.lambda.assign(lambda_np1)
+        self.t.assign(tnp1)
+        for i in range(self.nstages):
+            self.xk.assign(self.Xi[i])
+            self.t.assign(SOMETHING)
+        #WE NEED TO DO ADJOINTS THROUGH THESE PRE_STEP_SOLVERS ALSO!
+        #UGGGH...
+        #IE THE WHOLE SYSTEM NEEDS TO BE ADJOINTED...
+            self.pre_step_solvers()
+            self.muisolvers.solve()
+        #THIS MIGHT BE A SOLVE? UNCLEAR...
+            grad = grad + SOMETHING
+
+        lambda_n.assign(lambda_n + SOMETHING)
+
+
+#ONLY SIGNIFICANT DIFFERENCE HERE IS THAT YI PROBLEMS BECOME NONLINEAR BUT STILL SEPARATED, AND MUI BECOMES A TRUE LINEAR SYSTEM BUT SEPARATED!
+class DIRK(TimeStepper):
+    def __init__(self,):
+        pass
+    def take_forward_step(dt):
+        pass
+    def take_backwards_step(dt):
+        pass
+
+#ONLY SIGNIFICANT DIFFERENCE HERE IS THAT YI PROBLEMS BECOME NONLINEAR AND FULLY COUPLED, AND MUI BECOMES A TRUE LINEAR SYSTEM AND COUPLED!
+class ImplicitRK(TimeStepper):
+    def __init__(self,):
+        pass
+    def take_forward_step(dt):
+        pass
+    def take_backwards_step(dt):
+        pass
+
+
+class Euler(ExplicitRK):
+    def __init__(self, dynamics, initcond, logger, terms='all'):
+        A = None
+        b = np.array([1.,])
+        c = None
+        ExplicitRK.__init__(dynamics, initcond, logger, A, b, c, 1, terms=terms)
+
+class RK4(ExplicitRK):
+    def __init__(self, dynamics, initcond, logger, terms='all'):
+        A = np.array([[0.5, 0.0, 0.0], [0., 0.5, 0.], [0., 0., 1.]])
+        b = np.array([1./6., 1./3., 1./3., 1./6.])
+        c = np.array([0.5, 0.5, 1.])
+        ExplicitRK.__init__(dynamics, initcond, logger, A, b, c, 4, terms=terms)
+
+
+class KGRK2(ExplicitRK):
+    def __init__(self, dynamics, initcond, logger, terms='all'):
+        A = SOMETHING
+        b = SOMETHING
+        c = SOMETHING
+        nstages = SOMETHING
+        ExplicitRK.__init__(dynamics, initcond, logger, A, b, c, nstages, terms=terms)
+
+
+class KGRK3(ExplicitRK):
+    def __init__(self, dynamics, initcond, logger, terms='all'):
+        A = SOMETHING
+        b = SOMETHING
+        c = SOMETHING
+        nstages = SOMETHING
+        ExplicitRK.__init__(dynamics, initcond, logger, A, b, c, nstages, terms=terms)
+
+class SOMEDIRK(DIRK):
+    def __init__(self, dynamics, initcond, logger, terms='all'):
+        A = SOMETHING
+        b = SOMETHING
+        c = SOMETHING
+        nstages = SOMETHING
+        DIRK.__init__(dynamics, initcond, logger, A, b, c, nstages, terms=terms)
+#ADD SOME DIRK CLASSES HERE ALSO
+
+
+class SOMEIMPLICITRK(ImplicitRK):
+    def __init__(self, dynamics, initcond, logger, terms='all'):
+        A = SOMETHING
+        b = SOMETHING
+        c = SOMETHING
+        nstages = SOMETHING
+        DIRK.__init__(dynamics, initcond, logger, A, b, c, nstages, terms=terms)
+#ADD SOME DIRK CLASSES HERE ALSO
+
+class LieSplittingIntegrator(TimeStepper):
+    def __init__(self, dynamics, initcond, logger, timstepper_list, termlist, subcycle_list):
+
+        self.subcycle_list = subcycle_list
+        self.timestepper_list = timstepper_list
+        self.termlist = termlist
+
+        self.time_integrators = []
+        for i,time_integrator_name in enumerate(timestepper_list):
+            time_integrator = get_time_integrator(time_integrator_name)
+            self.time_integrators.append(time_integrator(dynamics, initcond, logger, terms=termlist[i]))
+
+        self.xk = Function(self.dynamics.get_x_var('xk'))
+        self.lambda_k = Function(self.dynamics.get_x_var('lambda_k'))
+
+    def take_forward_step(xnp1, xn, t0, dt):
+        self.xk.assign(xn)
+        for i,time_integrator in enumerate(self.time_integrators):
+            sub_dt = dt / self.subcycle_list[i]
+#PROBABLY NEED TO STORE INTERMEDIATE VALUES HERE
+            for k in range(self.subcycle_list[i]):
+                time_integrator.take_forward_step(self.xk, self.xk, t0 + k * sub_dt, sub_dt)
+        xnp1.assign(self.xk)
+
+#THERE IS A STORAGE CHOICE THAT NEEDS TO BE MADE HERE
+#BASICALLY, EACH TIMESTEPPER OBJECT ONLY KNOWS HOW TO STORA VALUES FOR A SINGLE ITERATION
+#SO THE SUBCYLCING ASPECT IS BROKEN!
+    def take_backwards_step(grad, lambda_n, lambda_np1, tnp1, dt):
+        self.lambda_k.assign(lambda_np1)
+        for i,time_integrator in enumerate(reversed(self.time_integrators)):
+            sub_dt = dt / self.subcycle_list[i]
+            #LIKELY NEED TO DO SOME RECOMPUTATION OF INTERMEDIATE VALUES HERE?
+            for k in range(self.subcycle_list[i]):
+                time_integrator.take_backwards_step(grad, self.lambda_k, tnp1 - k * sub_dt, sub_dt)
+        lambda_n.assign(self.lambda_k)
+#HOW DO WE ADD SUPPORT FOR INITIAL CONDITION SENSITIVITY?
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class FixedPointSolver():
     def __init__(self, fexpr, xnp1, varspace, pre_function_callback, post_function_callback, dx):
@@ -55,17 +336,7 @@ class FixedPointSolver():
 
 
 
-class TimeStepper():
 
-    def compute_diagnostics(self):
-        self.dynamics.compute_diagnostics()
-
-    def compute_statistics(self, step, stat_step):
-        self.dynamics.compute_statistics(step, stat_step)
-
-    def create_diagnostics_statistics(self):
-        self.dynamics.create_diagnostics(self.xn_sub)
-        self.dynamics.create_statistics(self.xn_sub)
 
 class AVF2_Integrator(TimeStepper):
     def __init__(self, parameters, dynamics, initcond, logger, xn=None, terms='all'):
@@ -684,28 +955,3 @@ class SSPRK43_Integrator(RK_Integrator):
         self.dynamics.post_step(self.xn_sub, terms=self.terms)
 
         self.tn = self.tn + dt
-
-def get_time_integrator(name):
-    if name == 'AVF2':
-        return AVF2_Integrator
-    elif name == 'TimeStaggered':
-        return TimeStaggered_Integrator
-    elif name == 'SSPRK43':
-        return SSPRK43_Integrator
-    elif name == 'SSPRK3':
-        return SSPRK3_Integrator
-    elif name == 'KGRK2':
-        return KGRK2_Integrator
-    elif name == 'KGRK3':
-        return KGRK3_Integrator
-    elif name == 'RK4':
-        return RK4_Integrator
-    elif name == 'Euler':
-        return Euler_Integrator
-    elif name == 'TimeSplit':
-        return TimeSplitIntegrator
-    else:
-        raise ValueError("time step method " + name + " is unknown")
-
-def get_timestepper(parameters, dynamics, initcond, logger):
-    return get_time_integrator(parameters['timestepping']['method'])(parameters, dynamics, initcond, logger)

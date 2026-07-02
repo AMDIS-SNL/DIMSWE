@@ -31,27 +31,27 @@ def run_model(parameters):
     output = Output(parameters, dynamics, timestepper, logger)
 
     logger.output('Starting simulation', 0)
-    timestepper.initialize()
-    timestepper.create_diagnostics_statistics()
-    timestepper.compute_diagnostics()
-    timestepper.compute_statistics(0, 0)
+    xn = dynamics.get_x_var('xn')
+    dynamics.initialize(xn)
+    #MIGHT NEED XN_SUB HERE?
+    #SHOULD THIS BE MORE STATELESS?
+    self.dynamics.create_diagnostics(xn)
+    self.dynamics.create_statistics(xn)
+    dynamics.compute_diagnostics(xn, t)
+    dynamics.compute_statistics(xn, t, 0, 0)
 
-#HORRIBLE HACK, SHOULD COME FROM INITCOND
-    t0 = 0.0
-
-    t = t0
+    t = dynamics.get_t0()
     dt = parameters['timestepping']['dt']
-    output.output(t, 0, 0, 0)
+    output.output(xn, t, 0, 0, 0)
     for n in range(1, parameters['timestepping']['num_steps']+1):
         logger.output('taking time step n=' + str(n), 1)\
-        #THIS SHOULD ALSO REALLY EAT THE CURRENT T
-        timestepper.take_step(dt)
+        timestepper.take_forward_step(xn, xn, t, dt)
         t = t + dt
         if ((n % parameters['output']['stat_freq']) == 0):
-            timestepper.compute_statistics(n, n // parameters['output']['stat_freq']) #THIS SHOULD EAT THE CURRENT T
+            dynamics.compute_statistics(xn, t, n, n // parameters['output']['stat_freq']) #THIS SHOULD EAT THE CURRENT T
         if ((n % parameters['output']['output_freq']) == 0):
-            timestepper.compute_diagnostics() #THIS SHOULD EAT THE CURRENT T
-            output.output(t, n, n // parameters['output']['output_freq'], n // parameters['output']['stat_freq'])
+            dynamics.compute_diagnostics(xn, t)
+            output.output(xn, t, n, n // parameters['output']['output_freq'], n // parameters['output']['stat_freq'])
 
     logger.output('Ended simulation', 0)
 
