@@ -51,7 +51,7 @@ class FixedPointSolver():
             niters = niters + 1
 #probably store these somewhere eventually
 #ALSO DO THIS FOR NEWTON SOLVER AS WELL!!!
-        print(rel_tol, niters)
+        #print(rel_tol, niters)
 
 
 

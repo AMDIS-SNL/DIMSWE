@@ -1,2 +1,2 @@
 source ~/venv-firedrake/bin/activate
-python -m dimswe.run_model $1
+mpiexec -n $2 python -m dimswe.run_model $1

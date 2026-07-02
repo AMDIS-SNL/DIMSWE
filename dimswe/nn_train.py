@@ -45,3 +45,16 @@ dJ = Jhat.derivative()
 
 dm = assemble(interpolate(Constant(1.), V))
 rate = taylor_test(Jhat, ic, dm)
+
+#load training data
+#create loss functional
+#create augmented Lagrangian?
+#create NN using Jax
+#loop over "epochs" (optimizer steps)
+#loop over training data i.e. "batches"
+#take forward step(s)
+#take adjoint steps(s)
+#compute derivative
+#use derivative in optimizer to update NN weights
+
+#QUESTION- DO WE WRAP DERIVATIVES/ETC. IN JAX, OR DO WE WRITE OUR OWN OPTIMIZERS, ETC.

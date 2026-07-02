@@ -3,7 +3,7 @@ import yaml
 def get_parameters(cfgfile):
     with open(cfgfile, 'r') as file:
         parameters = yaml.safe_load(file) # Use safe_load for security
-    print(parameters)
+    #print(parameters)
     return parameters
 
 #-nonlinsys_snes_max_it 100
@@ -12,7 +12,7 @@ def get_parameters(cfgfile):
 #-nonlinsys_snes_linesearch_damping 1.0
 
 preonly_linear_system = { 'ksp_type': 'preonly', 'pc_type' : 'lu', 'ksp_converged_reason': None,} #'ksp_monitor_true_residual': None}
-basic_linear_system = { 'ksp_type': 'cg', 'pc_type' : 'ilu', 'ksp_converged_reason': None,} #'ksp_monitor_true_residual': None}
+basic_linear_system = { 'ksp_type': 'cg', 'pc_type' : 'jacobi', 'ksp_converged_reason': None,} #'ksp_monitor_true_residual': None}
 
 overall_solver_parameters = {}
 overall_solver_parameters['qn'] = {'snes_monitor': None, 'snes_converged_reason': None,
