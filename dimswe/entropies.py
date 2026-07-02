@@ -10,7 +10,7 @@ class SimpleEntropy():
     def initialize(self, varexpr):
         pass
 
-    def compute_dfdx_expressions(self, vars, expressions):
+    def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
         pass
 
     def compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars):

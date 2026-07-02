@@ -17,7 +17,7 @@ from .physics import ThreeWayPhysics
 from .transport_operators import SVLieDerivative, VVLieDerivative, CVLieDerivative
 from .transport_operators import CGTransport, DG1LimiterTransport
 
-from firedrake import Function, inner, div, grad, dot
+from firedrake import Function, inner, div, grad, dot, Constant, split, MixedFunctionSpace, TrialFunction
 from .ufl_helpers import skewgrad, curl2D, rot2D
 
 import scipy as sp
@@ -25,19 +25,75 @@ import scipy as sp
 class Dynamics():
 
     def get_x_var(self, varname):
-        return self.variableset.get_vars(varname)
+        x = self.variableset.get_vars(varname)
+        x_sub = {}
+        x_split = {}
+        splitx = split(x)
+        for i,var in enumerate(self.variableset.varlist):
+            x_sub[var] = x.sub(i)
+            x_split[var] = splitx[i]
+        return x, x_sub, x_split
 
-    def create_diagnostics(self, xn):
-        self.diagnostics.create(xn)
+    def get_t_var(self):
+        return Constant(0.)
 
-    def create_statistics(self, xn):
-        self.statistics.create(xn)
+    def create_diagnostics(self, xn, t, coeff):
+        self.diagnostics.create(xn, t, coeff)
 
-    def compute_diagnostics(self, xn, t):
-        self.diagnostics.compute(xn, t)
+    def create_statistics(self, xn, t, coeff):
+        self.statistics.create(xn, t, coeff)
 
-    def compute_statistics(self, xn, t, step, stat_step):
-        self.statistics.compute(xn, tm step, stat_step)
+    def compute_diagnostics(self):
+        self.diagnostics.compute()
+
+    def compute_statistics(self, step, stat_step):
+        self.statistics.compute(step, stat_step)
+
+    def get_dfdx_aux_vars(self, terms='all'):
+        return {}
+
+    def get_dfdx_aux_var_list(self, terms='all'):
+        return []
+
+    def compute_dfdx_expressions(self, x, t, coeff, terms='all'):
+        return {}
+
+    def get_q_aux_vars(self, terms='all'):
+        return {}
+
+    def get_q_aux_var_list(self, terms='all'):
+        return []
+
+    def compute_q_expressions(self, x, t, coeff, terms='all'):
+        return {}
+
+#THIS IGNORES THAT THERE MIGHT BE PARAMETERS IN DYNAMICS (ex. through the Hamiltonian, etc.)
+#THIS IS AN EASY EXTENSION AS NEEDED...
+    def get_coeff_var(self):
+
+        if not (self.coeffspace is None):
+            coeff = Function(self.coeffspace)
+            coeff_trial = TrialFunction(self.coeffspace)
+            coeff_sub = {}
+            coeff_split = {}
+            splitcoeff = split(coeff)
+            for i,var in enumerate(self.coefflist):
+                coeff_sub[var] = coeff.sub(i)
+                coeff_split[var] = splitcoeff[i]
+
+            return coeff, coeff_sub, coeff_split, coeff_trial
+
+        else:
+            return None, None, None, None
+
+
+
+#THIS IGNORES THAT THERE MIGHT BE PARAMETERS IN DYNAMICS (ex. through the Hamiltonian, etc.)
+#THIS IS AN EASY EXTENSION AS NEEDED..
+    def set_default_coeffs(self, coeff):
+        for term in self.forcing_terms:
+            term.set_default_coeffs(coeff)
+
 
 
 #This is basically going to be LP brackets (or CF, etc.) with prescribed u or F
@@ -65,20 +121,12 @@ class AdvectionDynamics(Dynamics):
 #For Euler-Maxwell there are coupling terms that also need to be added, they are just various interior products though!
         self.total_dens_func = self.variableset.get_total_density_expr()
 
-    def initialize(self, varexpr, vars):
-        self.variableset.initialize(varexpr, vars)
-
-    def get_q_aux_var_list(self, terms='all'):
-        return []
-
     def get_dfdx_aux_var_list(self, terms='all'):
         if self.advection_type in ['CF', 'CF-H1']:
             return ['F',]
         elif self.advection_type == 'LP':
             return ['u', ]
 
-    def get_q_aux_vars(self, terms='all'):
-        return {}
 
     def get_dfdx_aux_vars(self, terms='all'):
         if self.advection_type == 'CF':
@@ -88,8 +136,10 @@ class AdvectionDynamics(Dynamics):
         elif self.advection_type == 'LP':
             return {'u' : Function(self.spaces.DGV, name='u')}
 
-    def compute_q_expressions(self, x, t, terms='all'):
-        return {}
+    def initialize(self, vars, t):
+        varexpr = SOMETHING
+        t.assign(SOMETHING)
+        self.variableset.initialize(varexpr, vars)
 
 #FIX THIS
 #THIS IS A GREAT WAY TO TEST t dependence!
@@ -139,7 +189,7 @@ class AdvectionDynamics(Dynamics):
 
 
 class AdvDensCF_H1_Dynamics(Dynamics):
-    def __init__(self, parameters, mesh, spaces, vars, hamiltonian, entropy, statistics, diagnostics, forcing_terms, logger):
+    def __init__(self, parameters, mesh, spaces, vars, hamiltonian, entropy, statistics, diagnostics, forcing_terms, logger, initcond):
         self.mesh = mesh
         self.spaces = spaces
         self.variableset = vars
@@ -149,12 +199,21 @@ class AdvDensCF_H1_Dynamics(Dynamics):
         self.statistics = statistics
         self.logger = logger
         self.forcing_terms = forcing_terms
+        self.initcond = initcond
 
 
         self.density_names = self.variableset.active_density_names
         self.dim = parameters['mesh']['dim']
         self.total_density_func = self.variableset.get_total_density_expr
         self.use_split_form = parameters['spatial-discretization']['use_split_form']
+
+        coeff_spacelist = []
+        self.coefflist = []
+        for term in self.forcing_terms:
+            if term.has_coeff():
+                name, space = term.get_coeff()
+                coeff_spacelist.append(space)
+                self.coefflist.append(name)
 
         if not spaces is None:
             self.coriolis = Function(spaces.CG)
@@ -163,12 +222,15 @@ class AdvDensCF_H1_Dynamics(Dynamics):
 
             self.dx = spaces.dx
 
+            if len(coeff_spacelist) > 0:
+                self.coeffspace = MixedFunctionSpace(coeff_spacelist)
+            else:
+                self.coeffspace = None
 
-
-
-
-    def initialize(self, varexpr, vars):
-        self.variableset.initialize(varexpr, vars)
+    def initialize(self, x, t):
+        t.assign(self.initcond.get_t0())
+        varexpr = self.initcond.get_value(self.mesh, t)
+        self.variableset.initialize(varexpr, x)
         for term in self.forcing_terms:
             term.initialize(varexpr)
         self.coriolis.interpolate(varexpr['coriolis'])
@@ -192,32 +254,25 @@ class AdvDensCF_H1_Dynamics(Dynamics):
         self.logger.output('created q aux vars', 1)
         return vars
 
-    def compute_q_expressions(self, x, terms='all'):
+    def compute_q_expressions(self, x, t, coeff, terms='all'):
         expressions = {}
         for term in self.forcing_terms:
             if terms == 'all' or term.name in terms:
-                term.compute_q_expressions(x, expressions)
+                term.compute_q_expressions(x, t, coeff, expressions)
         return expressions
 
 
-    def get_dfdx_aux_var_list(self, terms='all'):
-        return []
 
-    def get_dfdx_aux_vars(self, terms='all'):
-        return {}
 
-    def compute_dfdx_expressions(self, x, terms='all'):
-        return {}
+    def _rhs(self, xvars, t, coeff, qvars, dfdx_vars, xhats):
 
-    def _rhs(self, qvars, dfdx_vars, xhats):
-
-        v = qvars['v']
-        total_dens = self.total_density_func(qvars)
+        v = xvars['v']
+        total_dens = self.total_density_func(xvars)
         vtest = xhats['v']
 
         dfdx_expressions = {}
-        self.hamiltonian.compute_dfdx_expressions(qvars, dfdx_expressions)
-        self.entropy.compute_dfdx_expressions(qvars, dfdx_expressions)
+        self.hamiltonian.compute_dfdx_expressions(xvars, t, coeff, dfdx_expressions)
+        self.entropy.compute_dfdx_expressions(xvars, t, coeff, dfdx_expressions)
         F = dfdx_expressions['F'][0]
 
         if self.dim == 1:
@@ -228,11 +283,10 @@ class AdvDensCF_H1_Dynamics(Dynamics):
         elif self.dim == 3:
             raise NotImplementedError
 
-
         for dens_name in self.density_names:
             denstest = xhats[dens_name]
             Bdens = dfdx_expressions['B_' + dens_name][0]
-            dens = qvars[dens_name]
+            dens = xvars[dens_name]
             if self.use_split_form[dens_name]:
                 rhs_expr = rhs_expr + inner(denstest, 0.5 *( div(dens/total_dens*F) + dot(grad(dens/total_dens),F) + dens/total_dens * div(F)))*self.dx
                 rhs_expr = rhs_expr + inner(vtest, 0.5 *( dens/total_dens*grad(Bdens) + grad(Bdens*dens/total_dens)))*self.dx + 0.5 * inner(dens/total_dens, div(vtest*Bdens))*self.dx
@@ -242,14 +296,14 @@ class AdvDensCF_H1_Dynamics(Dynamics):
 
         return rhs_expr
 
-    def rhs(self, qvars, dfdx_vars, xhats, terms='all'):
+    def rhs(self, xvars, t, coeff, qvars, dfdx_vars, xhats, terms='all'):
         self.logger.output('computing rhs', 1)
         rhs = 0
         if terms == 'all' or 'model' in terms:
-            rhs = rhs + self._rhs(qvars, dfdx_vars, xhats)
+            rhs = rhs + self._rhs(xvars, t, coeff, qvars, dfdx_vars, xhats)
         for term in self.forcing_terms:
             if terms == 'all' or term.name in terms:
-                rhs = rhs + term.rhs(qvars, xhats)
+                rhs = rhs + term.rhs(xvars, t, coeff, qvars, xhats)
         return rhs
         self.logger.output('computing rhs', 1)
 
@@ -260,6 +314,10 @@ class AdvDensCF_H1_Dynamics(Dynamics):
         for term in self.forcing_terms:
             if terms == 'all' or term.name in terms:
                 term.post_step(statevars)
+
+
+
+
 
 class MetriplecticDynamics(Dynamics):
     def __init__(self, mesh, spaces, vars, poisson_brackets, metric_brackets,
@@ -280,7 +338,9 @@ class MetriplecticDynamics(Dynamics):
     def get_max_wavespeed(self):
         return sp.constants.c
 
-    def initialize(self, varexpr, vars):
+    def initialize(self, vars, t):
+        t.assign(self.initcond.get_t0())
+        varexpr = self.initcond.get_value(self.mesh, t)
         self.variableset.initialize(varexpr, vars)
         for bracket in self.poisson_brackets:
             bracket.initialize(varexpr)
@@ -522,7 +582,7 @@ def get_dynamics(parameters, mesh, spaces, logger, initcond):
             raise ValueError("model " + parameters['model']['type'] + " is unknown")
 
         forcing_terms = get_forcing_terms(parameters, vars, spaces, initcond)
-        return AdvDensCF_H1_Dynamics(parameters, mesh, spaces, vars, hamiltonian, entropy, statistics, diagnostics, forcing_terms, logger)
+        return AdvDensCF_H1_Dynamics(parameters, mesh, spaces, vars, hamiltonian, entropy, statistics, diagnostics, forcing_terms, logger, initcond)
 
     elif parameters['modeltype']['class'] == 'advection':
         raise NotImplementedError

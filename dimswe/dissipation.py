@@ -1,7 +1,7 @@
 
 from math import pow
 from .operators import ForcingBase
-from firedrake import Function, inner, grad, TestFunction, TrialFunction, FunctionSpace
+from firedrake import Function, inner, grad, TestFunction, TrialFunction, FunctionSpace, Constant
 
 #THIS IS PRETTY SPECIFIC TO CG METHODS
 #ALSO 2ND ORDER HYPERVISCOSITY ONLY
@@ -14,14 +14,24 @@ class Hyperviscosity(ForcingBase):
         self.s = parameters['hyperviscosity']['s']
 
         self.name = 'hyperviscosity'
+        self.mu_space = None
 
         if not spaces is None:
 #IDEALLY HERE WE USE TENSOR HV- THEN WE CAN AVOID THE VERY HACKY SPACES.DX STUFF
 #CAN PROBABLY TIE TO CFL CONDITION STUFF ALSO
             self.dx = spaces.dx
-            self.coeff = Function(FunctionSpace(self.spaces.mesh, 'CG', self.spaces.order, variant="spectral"))
-            self.coeff.assign(self.c0 * pow(max(spaces.mesh.dx/spaces.order, spaces.mesh.dy/spaces.order), self.s))
+            self.mu_space = FunctionSpace(self.spaces.mesh, 'CG', self.spaces.order, variant="spectral")
             self.spacelist = vars.spacelist[:len(self.varlist)]
+
+    def has_coeff(self):
+        return True
+
+    def set_default_coeffs(self, coeff):
+        coeff['mu'].assign(self.c0 * pow(max(self.spaces.mesh.dx/self.spaces.order, self.spaces.mesh.dy/self.spaces.order), self.s))
+
+    def get_coeff(self):
+        return ['mu', self.mu_space]
+
     def get_aux_vars(self, vars):
         for varname, varspace in zip(self.varlist, self.spacelist):
             vars['Q_' + varname] = Function(varspace)
@@ -32,19 +42,19 @@ class Hyperviscosity(ForcingBase):
             auxlist.append('Q_' + varname)
         return auxlist
 
-    def compute_q_expressions(self, vars, expressions):
+    def compute_q_expressions(self, xvars, t, coeff, expressions):
         for varname, varspace in zip(self.varlist, self.spacelist):
             varhat = TestFunction(varspace)
             vartrial = TrialFunction(varspace)
-            var = vars[varname]
+            var = xvars[varname]
             expressions['Q_' + varname] = [inner(varhat, vartrial)*self.dx, -inner(grad(varhat), grad(var))*self.dx]
 
-    def rhs(self, qvars, xhats):
+    def rhs(self, xvars, t, coeff, qvars, xhats):
         expr = 0
         for varname in self.varlist:
             qvar = qvars['Q_' + varname]
             varhat = xhats[varname]
-            expr = expr + inner(-self.coeff * grad(varhat), grad(qvar))*self.dx
+            expr = expr + inner(-coeff['mu'] * grad(varhat), grad(qvar))*self.dx
         return expr
 
 #THIS IS BROKEN!

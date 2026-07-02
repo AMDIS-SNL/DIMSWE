@@ -100,7 +100,9 @@ class AdvDensDiagnostics():
             self.rh_solver.solve()
             self.qsat_solver.solve()
 
-    def create(self, xn):
+    def create(self, xn, t, coeff):
+        self.xn = xn
+        self.t = t
         if 'Qv' in self.variableset.varlist:
             h = xn['h']
             S = xn['S']
@@ -122,9 +124,8 @@ class AdvDensDiagnostics():
 
 class AdvDensDiagnostics_CF_H1(AdvDensDiagnostics):
 
-    def create(self, xn):
-        AdvDensDiagnostics.create(self, xn)
-        self.xn = xn
+    def create(self, xn, t, coeff):
+        AdvDensDiagnostics.create(self, xn, t, coeff)
         self.total_dens = self.hamiltonian.vars.get_total_density_expr(self.xn)
 
         v = xn['v']
@@ -148,9 +149,8 @@ class AdvDensDiagnostics_CF_H1(AdvDensDiagnostics):
 
 class AdvDensDiagnostics_CF(AdvDensDiagnostics):
 
-    def create(self, xn):
-        AdvDensDiagnostics.create(self, xn)
-        self.xn = xn
+    def create(self, xn, t, coeff):
+        AdvDensDiagnostics.create(self, xn, t, coeff)
         self.total_dens = self.hamiltonian.vars.get_total_density_expr(self.xn)
 
         v = xn['v']
@@ -178,9 +178,8 @@ class AdvDensDiagnostics_CF(AdvDensDiagnostics):
 
 #ADD M, U, V
 class AdvDensDiagnostics_LP(AdvDensDiagnostics):
-    def create(self, xn):
-        AdvDensDiagnostics.create(self, xn)
-        self.xn = xn
+    def create(self, xn, t, coeff):
+        AdvDensDiagnostics.create(self, xn, t, coeff)
         total_dens = self.hamiltonian.vars.get_total_density_expr(self.xn)
 
         m = xn['m']
@@ -222,7 +221,10 @@ class MaxwellDiagnostics():
     def initialize(self, varexpr):
         pass
 
-    def create(self, xn):
+    def create(self, xn, t, coeff):
+        self.xn = xn
+        self.t = t
+
         D, B = xn['D'], xn['B']
         dD, dB = self.vars['dD'], self.vars['dB']
         Qhat = TestFunction(self.spaces.CG)
@@ -250,7 +252,7 @@ class EulerMaxwellDiagnostics():
         self.var_list = []
     def initialize(self, varexpr):
         pass
-    def create(self, xn):
+    def create(self, xn, t):
         pass
 
     def compute(self):
@@ -263,7 +265,7 @@ class ScalarWaveDiagnostics():
         self.var_list = []
     def initialize(self, varexpr):
         pass
-    def create(self, xn):
+    def create(self, xn, t, coeff):
         pass
 
     def compute(self):
@@ -275,7 +277,7 @@ class MHDDiagnostics():
         self.var_list = []
     def initialize(self, varexpr):
         pass
-    def create(self, xn):
+    def create(self, xn, t, coeff):
         pass
 
     def compute(self):

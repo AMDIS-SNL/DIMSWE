@@ -40,7 +40,7 @@ class AdvDensStatistics():
     def initialize(self, varexpr):
         pass
 
-    def create(self, xn):
+    def create(self, xn, t, coeff):
         self.total_energy_expression = self.hamiltonian.compute_total_energy(xn)*self.dx
         self.total_density_expression = self.hamiltonian.vars.get_total_density_expr(xn)*self.dx
         self.total_density_expressions = {}
@@ -89,7 +89,7 @@ class MaxwellStatistics():
     def initialize(self, varexpr):
         pass
 
-    def create(self, xn):
+    def create(self, xn, t, coeff):
 #THIS ENERGY EXPRESSION IS WRONG FOR STAGGERED INTEGRATORS!!!
         self.total_energy_expression = self.hamiltonian.compute_total_energy(xn)*self.dx
 
@@ -116,7 +116,7 @@ class EulerMaxwellStatistics():
     def initialize(self, varexpr):
         pass
 
-    def create(self, xn):
+    def create(self, xn, t, coeff):
         pass
 
     def compute(self, step, stat_step):
@@ -132,7 +132,7 @@ class ScalarWaveStatistics():
     def initialize(self, varexpr):
         pass
 
-    def create(self, xn):
+    def create(self, xn, t, coeff):
         pass
 
     def compute(self, step, stat_step):
@@ -146,7 +146,7 @@ class MHDStatistics():
     def initialize(self, varexpr):
         pass
 
-    def create(self, xn):
+    def create(self, xn, t, coeff):
         pass
 
     def compute(self, step, stat_step):

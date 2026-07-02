@@ -9,10 +9,19 @@ class OperatorBase():
     def get_aux_vars_list(self):
         return []
 
-    def compute_q_expressions(self, vars, expressions):
+    def compute_q_expressions(self, x, t, coeff, expressions):
         pass
 
     def post_step(self, statevars):
+        pass
+
+    def get_coeff(self):
+        return None
+
+    def has_coeff(self):
+        return False
+
+    def set_default_coeffs(self, coeff):
         pass
 
 class BracketBase(OperatorBase):

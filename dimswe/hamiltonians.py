@@ -71,8 +71,8 @@ class AdvDensHamiltonian_AdvectionOnly(Hamiltonian_Base):
         Hamiltonian_Base.__init__(self, vars)
         self.values = values
 
-    def compute_dfdx_expressions(self, vars, expressions):
-        m = vars['m']
+    def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
+        m = xvars['m']
         expressions['u'] = make_a_L(self.values['u'], mtrial, mhat)
         for dens_name in self.vars.density_names:
             denshat = self.testvars[dens_name]
@@ -101,10 +101,10 @@ class ThermalShallowWater_Hamiltonian_LP(ThermalShallowWater_Hamiltonian_Base):
         S = state['S']
         return inner(m,m)/(2. * h) + inner(h,S)/2. + inner(h,self.bottom_topography)
 
-    def compute_dfdx_expressions(self, vars, expressions):
-        m = vars['m']
-        h = vars['h']
-        S = vars['S']
+    def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
+        m = xvars['m']
+        h = xvars['h']
+        S = xvars['S']
         mhat = self.testvars['u']
         hhat = self.testvars['B_h']
         Shat = self.testvars['B_S']
@@ -142,10 +142,10 @@ class ThermalShallowWater_Hamiltonian_CF(ThermalShallowWater_Hamiltonian_Base):
         S = state['S']
         return h*inner(v,v)/2. + inner(h,S)/2. + inner(h,self.bottom_topography)
 
-    def compute_dfdx_expressions(self, vars, expressions):
-        v = vars['v']
-        h = vars['h']
-        S = vars['S']
+    def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
+        v = xvars['v']
+        h = xvars['h']
+        S = xvars['S']
         vhat = self.testvars['F']
         hhat = self.testvars['B_h']
         Shat = self.testvars['B_S']
@@ -255,10 +255,10 @@ class CompressibleEuler_Hamiltonian_LP(CompressibleEuler_Hamiltonian_Base):
 
 #ADD POTENTIAL PART!
 #EVENTUALLY MAKE TOTAL DENSITY AND ETA COMPUTATIONS PART OF VARIABLESET I THINK?
-    def compute_dfdx_expressions(self, vars, expressions):
-        m = vars['m']
-        rho = vars['rho']
-        S = vars['S']
+    def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
+        m = xvars['m']
+        rho = xvars['rho']
+        S = xvars['S']
         mhat = self.testvars['m']
         hhat = self.testvars['h']
         Shat = self.testvars['S']
@@ -290,10 +290,10 @@ class CompressibleEuler_Hamiltonian_CF(CompressibleEuler_Hamiltonian_Base):
 
 #ADD POTENTIAL PART!
 #EVENTUALLY MAKE TOTAL DENSITY AND ETA COMPUTATIONS PART OF VARIABLESET I THINK?
-    def compute_dfdx_expressions(self, vars, expressions):
-        v = vars['v']
-        rho = vars['rho']
-        S = vars['S']
+    def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
+        v = xvars['v']
+        rho = xvars['rho']
+        S = xvars['S']
         vhat = self.testvars['v']
         hhat = self.testvars['h']
         Shat = self.testvars['S']
@@ -333,8 +333,8 @@ class Maxwell_Hamiltonian(Hamiltonian_Base):
         D, B = state['D'], state['B']
         return 1./2./self.epsilon0 * inner(D,D) + 1./2./self.mu0 * inner(B,B)
 
-    def compute_dfdx_expressions(self, vars, expressions):
-        D, B = vars['D'], vars['B']
+    def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
+        D, B = xvars['D'], xvars['B']
         Etrial, Ehat = self.trialvars['E'], self.testvars['E']
         Htrial, Hhat = self.trialvars['H'], self.testvars['H']
         expressions['E'] = [1./self.epsilon0 * D, Etrial, Ehat]
@@ -350,7 +350,7 @@ class ScalarWave_Hamiltonian(Hamiltonian_Base):
     def compute_total_energy(self, state):
         pass
 
-    def compute_dfdx_expressions(self, vars, expressions):
+    def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
         pass
 
     def solve_for_aux_vars(self, vars, aux_vars):
@@ -361,7 +361,7 @@ class EulerMaxwell_Hamiltonian_LP(CompressibleEuler_Hamiltonian_Base):
     def compute_total_energy(self, state):
         pass
 
-    def compute_dfdx_expressions(self, vars, expressions):
+    def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
         pass
 
     def solve_for_aux_vars(self, vars, aux_vars):

@@ -31,12 +31,12 @@ class ThreeWayPhysics(ForcingBase):
     def initialize(self, varexpr):
         self.B.interpolate(varexpr['bottom_topography'])
 
-    def rhs(self, qvars, xhats):
-        h = qvars['h']
-        S = qvars['S']
-        Qv = qvars['Qv']
-        Qr = qvars['Qr']
-        Qc = qvars['Qc']
+    def rhs(self, xvars, t, coeff, qvars, xhats):
+        h = xvars['h']
+        S = xvars['S']
+        Qv = xvars['Qv']
+        Qr = xvars['Qr']
+        Qc = xvars['Qc']
         qv = Qv / h
         qc = Qc / h
         qr = Qr / h

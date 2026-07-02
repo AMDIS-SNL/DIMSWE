@@ -95,7 +95,7 @@ class CGTransport(ForcingBase):
         if not spaces is None:
             self.dx = spaces.dx
 
-    def rhs(self, xvars, xhats):
+    def rhs(self, xvars, t, coeff, qvars, xhats):
         v = xvars['v']
         rhs_expr = 0
         for dens_name in self.density_names:
@@ -127,14 +127,14 @@ class DG1LimiterTransport(ForcingBase):
             self.dx = spaces.dx
             self.dS = spaces.dS
             self.ds = spaces.ds
-            
+
     def post_step(self, statevars):
         for varname in self.dg_density_names:
             field = statevars[varname]
             self.limiter.apply(field)
 
 
-    def rhs(self, xvars, xhats):
+    def rhs(self, xvars, t, coeff, qvars, xhats):
         v = xvars['v']
         n = self.spaces.n
 
@@ -149,6 +149,8 @@ class DG1LimiterTransport(ForcingBase):
             rhs_expr = rhs_expr + (denstest('+')*inner(v('+'), n('+')) + denstest('-')*inner(v('-'), n('-')))*denstilde*self.dS
             rhs_expr = rhs_expr - inner(grad(denstest), dens * v   )*self.dx
         return rhs_expr
+
+
 
 #THIS IS BROKEN!
     def linear_rhs(self, const_state, xvars, xhats):

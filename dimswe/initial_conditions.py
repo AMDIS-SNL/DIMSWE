@@ -43,6 +43,9 @@ class IC():
     def set_thermo(self, thermo):
         self.thermo = thermo
 
+    def get_t0(self):
+        return self.t0
+
 class PlaneWave(IC):
     def __init__(self, parameters):
         self.parameters = parameters
@@ -63,6 +66,7 @@ class PlaneWave(IC):
         self.E0y = 1000.0
 
         self.const_state = {}
+        self.t0 = 0.
 
     def get_value(self, mesh, t):
         xs = SpatialCoordinate(mesh)
@@ -109,6 +113,7 @@ class RiemannProblem(IC1D):
         self.parameters = parameters
         self.gamma = 1.4
         self.Cv = 1.0
+        self.t0 = 0.
 
     def get_value(self, mesh, t):
         xs = SpatialCoordinate(mesh)
@@ -134,6 +139,7 @@ class Gaussian(IC1D):
         self.c = 0.05
         self.a = 1./3.
         self.D = 0.5 * self.Lx
+        self.t0 = 0.
 
     def get_value(self, mesh, t):
         xs = SpatialCoordinate(mesh)
@@ -396,6 +402,8 @@ class DensityWave(IC2D):
         self.const_state['S'] = self.g
         self.const_state['u'] = 0.
 
+        self.t0 = 0.
+
     def get_value(self, mesh, t):
         xs = SpatialCoordinate(mesh)
 
@@ -443,6 +451,8 @@ class DoubleVortex(IC2D):
         self.const_state['u'] = 0.
         self.const_state['m'] = 0.
 
+        self.t0 = 0.
+
     def get_value(self, mesh, t):
         xs = SpatialCoordinate(mesh)
         xprime1 = self.Lx / (pi * self.sigmax) * sin(pi / self.Lx * (xs[0] - self.xc1))
@@ -487,6 +497,8 @@ class TC2(IC2D):
         self.f = 0.00006147
         self.zeta = 0.0 #10^-3, 0.02
         self.q0 = 0.007
+
+        self.t0 = 0.
 
     def get_value(self, mesh, t, initcond=None):
         xs = SpatialCoordinate(mesh)
@@ -534,6 +546,8 @@ class IsolatedVortices(IC2D):
         self.xc = 0.5 * self.Lx
         self.yc = 0.5 * self.Ly
 
+        self.t0 = 0.
+
     def get_value(self, mesh, t):
         xs = SpatialCoordinate(mesh)
         initcond = {}
@@ -562,6 +576,7 @@ class GeostrophicTurbulence(IC2D):
         self.xc = 0.5 * self.Lx
         self.yc = 0.5 * self.Ly
 
+        self.t0 = 0.
 
 class GravityWave(IC2D):
     def __init__(self, params):
@@ -571,6 +586,8 @@ class GravityWave(IC2D):
         self.Ly = 5000. * 1000.
         self.xc = 0.5 * self.Lx
         self.yc = 0.5 * self.Ly
+
+        self.t0 = 0.
 
 #EVENTUALLY ADD AND FIX THIS
 class Galewsky(IC2D):
