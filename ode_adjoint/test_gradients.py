@@ -120,7 +120,6 @@ def test_single_timestep_gradient():
     delta_params = np.array([0.1,0.2,0.15,0.12])
 
     objective = L2Objective([xn,], [1,], [t,], dynamics.get_x_size(), dynamics.get_param_size())
-    params0 = np.array([2.,1.5,1.,1.])
 
     optimizer_single = Lagrangian_ODEConstrainedOptimization(timestepper, objective, dt)
 
@@ -135,6 +134,7 @@ def test_single_timestep_gradient():
     assert(np.allclose(jac_params.dot(delta_params), fd_jac_params ))
 
     #check gradients
+    params0 = np.array([2.,1.5,1.,1.])
 
     jac_params = optimizer_single.jac(params0)
     fd_jac_params = (optimizer_single.obj(params0+eps*delta_params) - optimizer_single.obj(params0))/eps

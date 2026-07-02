@@ -1,13 +1,13 @@
 from firedrake import NonlinearVariationalProblem, NonlinearVariationalSolver, LinearVariationalProblem, LinearVariationalSolver
 from .parameters import overall_solver_parameters
 import numpy as np
-from firedrake import Constant, inner, TestFunction, derivative, norm, assemble, Function, TestFunctions, split, TrialFunction, adjoint
+from firedrake import Constant, inner, TestFunction, derivative, norm, assemble, Function, TestFunctions, split, TrialFunction, adjoint, action
 
 
-# def make_a_L(Lexpr, vartrial, varhat, dx):
-#     a = inner(varhat, vartrial)*dx
-#     L = inner(varhat, Lexpr)*dx
-#     return [a, L]
+def make_a_L(Lexpr, vartrial, varhat, dx):
+    a = inner(varhat, vartrial)*dx
+    L = inner(varhat, Lexpr)*dx
+    return [a, L]
 
 
 #FIX THIS
@@ -62,7 +62,8 @@ class TimeStepper():
 
         self.coeff, self.coeff_sub, self.coeff_split, self.coeff_trial = coeffs
 
-        self.t = Constant(1.)
+        self.t = Constant(0.)
+        self.dt = Constant(0.)
 
     def set_coeff(self, coeff_val):
         self.coeff.assign(coeff_val)
@@ -103,14 +104,20 @@ class ExplicitRK(TimeStepper):
 
         self.Fsolvers = []
         self.muisolvers = []
+        #gradrhs = 0
         for i in range(nstages):
             Fproblem = LinearVariationalProblem(A, rhsproblem, self.Fi[i])
             self.Fsolvers.append(LinearVariationalSolver(Fproblem, solver_parameters=overall_solver_parameters['erkstage'], options_prefix = 'erk-f'))
-#FIX THIS!
-#            muirhs = SOMETHING
-#            muiproblem = LinearVariationalProblem(A, muirhs, self.mui[i])
-#            self.muisolvers.append(LinearVariationalSolver(muiproblem, solver_parameters=overall_solver_parameters['muistage'], options_prefix = 'erk-mui')
-
+            #THIS IS ALSO FAILING...
+            #li = self.dt * float(self.b[i]) * self.lambda_var + sum(float(self.A[i,j]) * self.mui[j+1] for j in range(i,self.nstages-1))
+            #WHY DOES THIS FAIL?
+            #muirhs = action(self.gradT_state, li)
+            #muiproblem = LinearVariationalProblem(A, muirhs, self.mui[i])
+            #self.muisolvers.append(LinearVariationalSolver(muiproblem, solver_parameters=overall_solver_parameters['muistage'], options_prefix = 'erk-mui'))
+            #gradrhs = gradrhs - action(self.gradT_params, li)
+        #Agrad = inner(gradhat, gradtrial)*self.dx
+        #gradproblem = LinearVariationalProblem(Agrad, gradrhs, self.grad)
+        #self.gradsolver = LinearVariationalSolver(gradproblem, solver_parameters=overall_solver_parameters['grad'], options_prefix='grad')
 
         q_expressions = self.dynamics.compute_q_expressions(self.xk_sub, self.t, self.coeff_sub, terms=terms)
         self.q_aux_solvers = []
@@ -133,39 +140,42 @@ class ExplicitRK(TimeStepper):
     def take_forward_step(self, xnp1, xnp1_sub, xn, tn, dt):
 
         self.t.assign(tn)
+        self.dt.assign(dt)
         self.xk.assign(xn)
         self.Xi[0].assign(self.xk)
         self.pre_step_solvers()
         self.Fsolvers[0].solve()
-        A = np.array([1,])
         for i in range(1,self.nstages):
-            self.t.assign(tn + self.c[i-1]*dt)
-            self.xk.assign(xn + dt*sum(float(self.A[i-1,j]) * self.Fi[j] for j in range(self.nstages-1)))
+            self.t.assign(self.t + self.c[i]*self.dt)
+            self.xk.assign(xn + self.dt*sum(float(self.A[i-1,j]) * self.Fi[j] for j in range(self.nstages-1)))
             self.dynamics.post_step(self.xk_sub, terms=self.terms)
             self.Xi[i].assign(self.xk)
             self.pre_step_solvers()
             self.Fsolvers[i].solve()
 
-        xnp1.assign(xn + dt * sum(float(self.b[i]) * self.Fi[i] for i in range(self.nstages)))
+        xnp1.assign(xn + self.dt * sum(float(self.b[i]) * self.Fi[i] for i in range(self.nstages)))
         self.dynamics.post_step(xnp1_sub, terms=self.terms)
 
 
-    def take_backwards_step(self, grad, lambda_n, lambda_np1, tnp1, dt):
+    def take_adjoint_step(self, grad, lambda_n, lambda_np1, tnp1, dt):
 
+        self.dt.assign(dt)
         self.lambda_var.assign(lambda_np1)
-        self.t.assign(tnp1)
-        for i in range(self.nstages):
+
+        #compute mui
+        for i in range(self.nstages-1,-1,-1):
             self.xk.assign(self.Xi[i])
-            self.t.assign(SOMETHING)
-        #WE NEED TO DO ADJOINTS THROUGH THESE PRE_STEP_SOLVERS ALSO!
-        #UGGGH...
-        #IE THE WHOLE SYSTEM NEEDS TO BE ADJOINTED...
+            self.t.assign(tnp1 - dt + self.c[i]*self.dt)
             self.pre_step_solvers()
             self.muisolvers.solve()
-        #THIS MIGHT BE A SOLVE? UNCLEAR...
-            grad = grad + SOMETHING
 
-        lambda_n.assign(lambda_n + SOMETHING)
+        #compute grad
+        self.gradsolver.solve()
+        grad.assign(grad + self.grad)
+
+        #compute lambda_n
+        lambda_n.assign(lambda_np1 + sum(self.mu[i] for i in range(self.nstages)))
+
 
 
 #ONLY SIGNIFICANT DIFFERENCE HERE IS THAT YI PROBLEMS BECOME NONLINEAR BUT STILL SEPARATED, AND MUI BECOMES A TRUE LINEAR SYSTEM BUT SEPARATED!
@@ -174,7 +184,7 @@ class DIRK(TimeStepper):
         pass
     def take_forward_step(dt):
         pass
-    def take_backwards_step(dt):
+    def take_adjoint_step(dt):
         pass
 
 #ONLY SIGNIFICANT DIFFERENCE HERE IS THAT YI PROBLEMS BECOME NONLINEAR AND FULLY COUPLED, AND MUI BECOMES A TRUE LINEAR SYSTEM AND COUPLED!
@@ -183,7 +193,7 @@ class ImplicitRK(TimeStepper):
         pass
     def take_forward_step(dt):
         pass
-    def take_backwards_step(dt):
+    def take_adjoint_step(dt):
         pass
 
 
@@ -198,14 +208,14 @@ class RK4(ExplicitRK):
     def __init__(self, dynamics, initcond, logger, coeffs, terms='all'):
         A = np.array([[0.5, 0.0, 0.0], [0., 0.5, 0.], [0., 0., 1.]])
         b = np.array([1./6., 1./3., 1./3., 1./6.])
-        c = np.array([0.5, 0.5, 1.])
+        c = np.array([0., 0.5, 0.5, 1.])
         ExplicitRK.__init__(self, dynamics, initcond, logger, coeffs, A, b, c, 4, terms=terms)
 
 class SSPRK3(ExplicitRK):
     def __init__(self, dynamics, initcond, logger, coeffs, terms='all'):
         A = np.array([[1.0, 0.0], [0.25, 0.25]])
         b = np.array([1./6., 1./6., 2./3.])
-        c = np.array([1., 0.5])
+        c = np.array([0., 1., 0.5])
         ExplicitRK.__init__(self, dynamics, initcond, logger, coeffs, A, b, c, 3, terms=terms)
 
 
@@ -277,13 +287,13 @@ class LieSplittingIntegrator():
 #THERE IS A STORAGE CHOICE THAT NEEDS TO BE MADE HERE
 #BASICALLY, EACH TIMESTEPPER OBJECT ONLY KNOWS HOW TO STORA VALUES FOR A SINGLE ITERATION
 #SO THE SUBCYLCING ASPECT IS BROKEN!
-    def take_backwards_step(grad, lambda_n, lambda_np1, tnp1, dt):
+    def take_adjoint_step(grad, lambda_n, lambda_np1, tnp1, dt):
         self.lambda_k.assign(lambda_np1)
         for i,time_integrator in enumerate(reversed(self.time_integrators)):
             sub_dt = dt / self.subcycle_list[i]
             #LIKELY NEED TO DO SOME RECOMPUTATION OF INTERMEDIATE VALUES HERE?
             for k in range(self.subcycle_list[i]):
-                time_integrator.take_backwards_step(grad, self.lambda_k, tnp1 - k * sub_dt, sub_dt)
+                time_integrator.take_adjoint_step(grad, self.lambda_k, tnp1 - k * sub_dt, sub_dt)
         lambda_n.assign(self.lambda_k)
 #HOW DO WE ADD SUPPORT FOR INITIAL CONDITION SENSITIVITY?
 
