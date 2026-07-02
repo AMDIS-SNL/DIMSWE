@@ -14,6 +14,9 @@ def get_initial_condition(parameters):
     elif parameters['initial-conditions']['name'] == 'TC5': return TC5(parameters)
     elif parameters['initial-conditions']['name'] == 'galewsky': return Galewsky(parameters)
     elif parameters['initial-conditions']['name'] == 'densitywave': return DensityWave(parameters)
+    elif parameters['initial-conditions']['name'] == 'isolatedvortices': return IsolatedVortices(parameters)
+    elif parameters['initial-conditions']['name'] == 'geostrophicturbulence': return GeostrophicTurbulence(parameters)
+    elif parameters['initial-conditions']['name'] == 'gravitywave': return GravityWave(parameters)
 
     elif parameters['initial-conditions']['name'] == 'planewave': return PlaneWave(parameters)
 
@@ -520,6 +523,54 @@ class TC5(TC2):
         initcond['bottom_topography'] = self.h0 * (1. - 1./self.R * ufl.min_value(self.R, dist))
         initcond = TC2.get_value(self, mesh, t, initcond=initcond)
         return initcond
+
+
+class IsolatedVortices(IC2D):
+    def __init__(self, params):
+        IC2D.__init__(self, params)
+
+        self.Lx = 5000. * 1000.
+        self.Ly = 5000. * 1000.
+        self.xc = 0.5 * self.Lx
+        self.yc = 0.5 * self.Ly
+
+    def get_value(self, mesh, t):
+        xs = SpatialCoordinate(mesh)
+        initcond = {}
+        initcond['bottom_topography'] = 0.0
+        initcond['h'] = self.H0 - self.a * self.f * self.u0 / self.g * sin(xs[1]/self.a) - initcond['bottom_topography']
+        u = self.u0 * cos(xs[1] / self.a)
+        v = 0.0
+        initcond['v'] = as_vector([u,v])
+        initcond['m'] = initcond['h'] * initcond['v']
+        s = self.g * (1. + self.c * self.H0 * self.H0 / (initcond['h'] * initcond['h']))
+        initcond['S'] = initcond['h'] * s
+        initcond['coriolis'] = self.f
+        initcond['Qv'] = initcond['h'] * (1. - self.zeta) * qsat(initcond['h'], s, initcond['bottom_topography'], self.q0, self.H0, self.g)
+        initcond['Qr'] = 0.0
+        initcond['Qc'] = 0.0
+        self.set_tracers(xs, t, initcond)
+        return initcond
+
+
+class GeostrophicTurbulence(IC2D):
+    def __init__(self, params):
+        IC2D.__init__(self, params)
+
+        self.Lx = 5000. * 1000.
+        self.Ly = 5000. * 1000.
+        self.xc = 0.5 * self.Lx
+        self.yc = 0.5 * self.Ly
+
+
+class GravityWave(IC2D):
+    def __init__(self, params):
+        IC2D.__init__(self, params)
+
+        self.Lx = 5000. * 1000.
+        self.Ly = 5000. * 1000.
+        self.xc = 0.5 * self.Lx
+        self.yc = 0.5 * self.Ly
 
 #EVENTUALLY ADD AND FIX THIS
 class Galewsky(IC2D):
