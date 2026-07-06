@@ -24,6 +24,9 @@ def run_model(parameters):
     coeffs = dynamics.get_coeff_var()
     coeff, coeff_sub, coeff_split, coeff_trial = coeffs
 
+#SWAP FROM DYNAMICS TO MODEL AS THE MAIN OBJECT!
+
+
 #SUPER HACKY RIGHT NOW
 #THIS IS A HORRIBLE HACK FOR MAXWELL IN A BOX USING LOWEST ORDER SPACES
     if parameters['timestepping']['dt_type'] == 'cfl':

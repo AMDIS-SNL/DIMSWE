@@ -26,7 +26,10 @@ def get_forcing_terms(parameters, vars, spaces, initcond):
             raise ValueError("forcing term " + forcing_term + " is unknown")
     return forcing_terms
 
-class AdvDensH1Model():
+class Model():
+    pass
+
+class AdvDensH1Model(Model):
     def __init__(self, mesh, spaces, parameters):
         self.initcond = get_advdens_initcond(parameters)
         self.mesh, self.spaces = get_mesh_and_spaces(parameters, self.initcond)
@@ -45,7 +48,7 @@ class AdvDensH1Model():
         forcing_terms = get_forcing_terms(parameters, vars, self.spaces, self.initcond)
         self.dynamics = AdvDensCF_H1_Dynamics(parameters, self.mesh, self.spaces, vars, hamiltonian, forcing_terms, logger)
 
-class MaxwellModel():
+class MaxwellModel(Model):
     def __init__(self, parameters, logger):
         self.initcond = get_maxwell_initcond(parameters)
         self.mesh, self.spaces = get_mesh_and_spaces(parameters, self.initcond)
@@ -61,7 +64,7 @@ class MaxwellModel():
         self.diagnostics = MaxwellDiagnostics(self.spaces)
         self.dynamics =  MetriplecticDynamics(self.mesh, self.spaces, vars, poisson_brackets, metric_brackets, hamiltonian, entropy, forcing_terms, logger)
 
-class AdvDensModelLP():
+class AdvDensModelLP(Model):
     def __init__(self, parameters, logger):
         self.initcond = get_maxwell_initcond(parameters)
         self.mesh, self.spaces = get_mesh_and_spaces(parameters, self.initcond)
@@ -97,7 +100,7 @@ class AdvDensModelLP():
         self.diagnostics = AdvDensDiagnostics_LP(spaces, hamiltonian, vars, initcond, parameters['dim'])
         self.dynamics =  MetriplecticDynamics(self.mesh, self.spaces, vars, poisson_brackets, metric_brackets, hamiltonian, entropy, forcing_terms, logger)
 
-class AdvDensModelCF():
+class AdvDensModelCF(Model):
     def __init__(self, parameters, logger):
         self.initcond = get_maxwell_initcond(parameters)
         self.mesh, self.spaces = get_mesh_and_spaces(parameters, self.initcond)
@@ -121,7 +124,7 @@ class AdvDensModelCF():
             statistics = AdvDensStatistics_CF(spaces, hamiltonian, vars, initcond, parameters['num_steps'] // parameters['stat_freq'] + 1)
             diagnostics = AdvDensDiagnostics_CF(spaces, hamiltonian, vars, initcond, parameters['dim'])
 
-class ScalarWaveModel():
+class ScalarWaveModel(Model):
     def __init__(self, parameters, logger):
         self.initcond = get_maxwell_initcond(parameters)
         self.mesh, self.spaces = get_mesh_and_spaces(parameters, self.initcond)
@@ -137,7 +140,7 @@ class ScalarWaveModel():
         self.diagnostics = ScalarWaveDiagnostics(self.spaces)
         self.dynamics =  MetriplecticDynamics(self.mesh, self.spaces, vars, poisson_brackets, metric_brackets, hamiltonian, entropy, forcing_terms, logger)
 
-class EulerMaxwellModel():
+class EulerMaxwellModel(Model):
     def __init__(self, parameters, logger):
         self.initcond = get_maxwell_initcond(parameters)
         self.mesh, self.spaces = get_mesh_and_spaces(parameters, self.initcond)

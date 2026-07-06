@@ -3,21 +3,21 @@ from firedrake import project, FunctionSpace
 
 class VariablesBase():
 
-    def get_vars(self, varname):
-        return Function(self.mixedspace, name=varname)
+    #def get_vars(self, varname):
+    #    return Function(self.mixedspace, name=varname)
 
-    def get_test_var(self):
-        return TestFunction(self.mixedspace)
+    #def get_test_var(self):
+    #    return TestFunction(self.mixedspace)
 
-    def get_trial_var(self):
-        return TrialFunction(self.mixedspace)
+    #def get_trial_var(self):
+    #    return TrialFunction(self.mixedspace)
 
-    def get_test_vars(self):
-        xhats = TestFunctions(self.mixedspace)
-        xhat_subs = {}
-        for i,var in enumerate(self.varlist):
-            xhat_subs[var] = xhats[i]
-        return xhat_subs
+    #def get_test_vars(self):
+    #    xhats = TestFunctions(self.mixedspace)
+    #    xhat_subs = {}
+    #    for i,var in enumerate(self.varlist):
+    #        xhat_subs[var] = xhats[i]
+    #    return xhat_subs
 
 def get_space(spaces, bundle, degree, dim, nm1):
     if bundle == 'S':

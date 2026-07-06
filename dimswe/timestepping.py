@@ -10,20 +10,7 @@ def make_a_L(Lexpr, vartrial, varhat, dx):
     return [a, L]
 
 
-#FIX THIS
 def get_time_integrator(name, parameters):
-    #if name == 'AVF2':
-    #    return AVF2_Integrator
-    #elif name == 'TimeStaggered':
-    #    return TimeStaggered_Integrator
-    #elif name == 'SSPRK43':
-    #    return SSPRK43_Integrator
-    #elif name == 'SSPRK3':
-    #    return SSPRK3_Integrator
-    #elif name == 'KGRK2':
-    #    return KGRK2_Integrator
-    #elif name == 'KGRK3':
-    #    return KGRK3_Integrator
     if name == 'RK4':
         return RK4
     elif name == 'Euler':
@@ -61,6 +48,7 @@ class TimeStepper():
         self.lambda_var, self.lambda_sub, self.lambda_split = self.dynamics.get_x_var('lambda')
 
         self.coeff, self.coeff_sub, self.coeff_split, self.coeff_trial = coeffs
+        #self.grad, self.grad_sub, self.grad_split, self.grad_trial = self.dynamics.get_coeff_var()
 
         self.t = Constant(0.)
         self.dt = Constant(0.)
@@ -85,10 +73,12 @@ class ExplicitRK(TimeStepper):
         self.Xi = []
         self.Fi = []
         self.mui = []
+        self.li = []
         for i in range(nstages):
             self.Xi.append(self.dynamics.get_x_var('X'+str(i))[0])
             self.Fi.append(self.dynamics.get_x_var('F'+str(i))[0])
             self.mui.append(self.dynamics.get_x_var('mu'+str(i))[0])
+            self.li.append(self.dynamics.get_x_var('li'+str(i))[0])
 
         xhat = self.dynamics.variableset.get_test_var()
         xtrial = self.dynamics.variableset.get_trial_var()
@@ -96,7 +86,6 @@ class ExplicitRK(TimeStepper):
 
         A = inner(xhat, xtrial)*self.dx
         rhsproblem = -dynamics.rhs(self.xk_split,  self.t, self.coeff_split, self.q_aux_vars, self.dfdx_aux_vars, xhat_subs, terms=terms)
-
         self.gradT_state = adjoint(derivative(rhsproblem, self.xk, xtrial))
         if not (self.coeff is None):
             self.gradT_params = adjoint(derivative(rhsproblem, self.coeff, self.coeff_trial))
@@ -108,14 +97,28 @@ class ExplicitRK(TimeStepper):
         for i in range(nstages):
             Fproblem = LinearVariationalProblem(A, rhsproblem, self.Fi[i])
             self.Fsolvers.append(LinearVariationalSolver(Fproblem, solver_parameters=overall_solver_parameters['erkstage'], options_prefix = 'erk-f'))
-            #THIS IS ALSO FAILING...
-            #li = self.dt * float(self.b[i]) * self.lambda_var + sum(float(self.A[i,j]) * self.mui[j+1] for j in range(i,self.nstages-1))
-            #WHY DOES THIS FAIL?
-            #muirhs = action(self.gradT_state, li)
+#THIS IS ALSO FAILING- REALLY UNCLEAR WHY?
+#WAIT- ISSUE IS EMPTY FORM!
+#MAYBE THIS IS THE ISSUE FOR GRAD ALSO?
+
+#UGGGH WAIT WITH AUXILIARY VARIABLES ACTUALLY COMPUTING THE CORRECT GRADIENT IS A MESS!
+#WHAT WE REALLY SHOULD HAVE IS X=FULL STATE (DYNAMICS + AUX VARS)
+#AND THEN CORRECTLY ASSEMBLE RHS SYSTEM
+#THIS TURNS INTO A BIT OF A MESS FOR LARGER SYSTEMS BUT I DON'T SEE HOW TO AVOID IT...
+#ESPECIALLY WHEN THERE ARE LINEAR SOLVES INVOLVED TO DETERMINE VARIABLES!
+#MIGHT BE ABLE TO DO SOME CHAIN RULE STUFF INVOLVING AUXILIARY VARIABLES BUT THAT IS HARD TO AUTOMATE...
+
+#GOOD NEWS- FOR H1 ADV DENS THE ONLY AUX VARIABLE IS IN HYPERVISCOSITY AND WE CAN MAYBE ELIMINATE IT?
+            #muirhs = action(self.gradT_state, self.li[i])
             #muiproblem = LinearVariationalProblem(A, muirhs, self.mui[i])
             #self.muisolvers.append(LinearVariationalSolver(muiproblem, solver_parameters=overall_solver_parameters['muistage'], options_prefix = 'erk-mui'))
-            #gradrhs = gradrhs - action(self.gradT_params, li)
-        #Agrad = inner(gradhat, gradtrial)*self.dx
+#THIS IS MAYBE WRONG?
+#WHAT IS THE CORRECT FORMAT ACTUALLY?
+#IE WHAT IS THE GRADIENT OF THE FUNCTIONAL WRT
+#Scipy optimizers want a (1,nparams) matrix (or similar)
+#I bet there is no solve needed, it is just assembly of a matrix!
+            #gradrhs = gradrhs - action(self.gradT_params, self.li[i])
+        #Agrad = derivative(inner(self.grad, self.gradtrial)*self.dx, self.grad)
         #gradproblem = LinearVariationalProblem(Agrad, gradrhs, self.grad)
         #self.gradsolver = LinearVariationalSolver(gradproblem, solver_parameters=overall_solver_parameters['grad'], options_prefix='grad')
 
@@ -167,11 +170,13 @@ class ExplicitRK(TimeStepper):
             self.xk.assign(self.Xi[i])
             self.t.assign(tnp1 - dt + self.c[i]*self.dt)
             self.pre_step_solvers()
+            self.li[i].assign(self.dt * float(self.b[i]) * self.lambda_var + sum(float(self.A[i,j]) * self.mui[j+1] for j in range(i,self.nstages-1)))
             self.muisolvers.solve()
 
         #compute grad
-        self.gradsolver.solve()
-        grad.assign(grad + self.grad)
+#HOW DO WE ACTUALLY DO THIS?
+        #self.gradsolver.solve()
+        #grad.assign(grad + self.grad)
 
         #compute lambda_n
         lambda_n.assign(lambda_np1 + sum(self.mu[i] for i in range(self.nstages)))
@@ -201,7 +206,7 @@ class Euler(ExplicitRK):
     def __init__(self, dynamics, initcond, logger, coeffs, terms='all'):
         A = None
         b = np.array([1.,])
-        c = None
+        c = np.array([0.,])
         ExplicitRK.__init__(self, dynamics, initcond, logger, coeffs, A, b, c, 1, terms=terms)
 
 class RK4(ExplicitRK):

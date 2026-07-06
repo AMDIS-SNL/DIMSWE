@@ -26,17 +26,17 @@ def plot_adv_dens(parameters):
         #    plot_mesh(mesh)
 
         h5file = chkpoint_file.h5pyfile
-        for stat in dynamics.statistics.statistic_names:
+        for stat in dynamics.get_statistics_list():
             statdata = np.array(h5file[stat])
             plot_statistic(statdata, stat)
 
         noutput = (parameters['timestepping']['num_steps'] // parameters['output']['output_freq']) + 1
-        for var in dynamics.variableset.varlist:
+        for var in dynamics.get_varlist():
             animate_scalar2D(chkpoint_file, mesh, var, noutput, var + '-mov')
-        for var in dynamics.coefflist:
+        for var in dynamics.get_coefflist():
             animate_scalar2D(chkpoint_file, mesh, var, noutput, var + '-mov')
-        for var in dynamics.diagnostics.var_list:
-              animate_scalar2D(chkpoint_file, mesh, var, noutput, var + '-mov')
+        for var in dynamics.get_diagnostics_list():
+            animate_scalar2D(chkpoint_file, mesh, var, noutput, var + '-mov')
 
         if parameters['plot']['static_plots']:
             for n in range(0, parameters['timestepping']['num_steps']+1):
@@ -44,24 +44,20 @@ def plot_adv_dens(parameters):
                     output_step = n // parameters['output']['output_freq']
                     print('plotting output at step ' + str(n) + ' output step ' + str(output_step))
 
-                    for var in dynamics.variableset.varlist:
+                    for var in dynamics.get_varlist():
                         vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
                         plot_variable(vardat, var + '.' + str(n),  parameters['mesh']['dim'], var in vector_list)
 
-                    for var in dynamics.coefflist:
+                    for var in dynamics.get_coefflist():
                         vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
                         plot_variable(vardat, var + '.' + str(n),  parameters['mesh']['dim'], var in vector_list)
 
                     if parameters['output']['output_aux_vars']:
 
-                        for var in dynamics.q_aux_var_list:
+                        for var in dynamics.get_aux_var_list():
                             vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
                             plot_variable(vardat, var + '.'+  str(n), parameters['mesh']['dim'], var in vector_list)
 
-                        for var in dynamics.dfdx_aux_var_list:
-                            vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
-                            plot_variable(vardat, var + '.' + str(n), parameters['mesh']['dim'], var in vector_list)
-
-                    for var in dynamics.diagnostics.var_list:
+                    for var in dynamics.get_diagnostics_list():
                         vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
                         plot_variable(vardat, var + '.' + str(n),  parameters['mesh']['dim'], var in vector_list)
