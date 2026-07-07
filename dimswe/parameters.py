@@ -12,7 +12,7 @@ def get_parameters(cfgfile):
 #-nonlinsys_snes_linesearch_damping 1.0
 
 preonly_linear_system = { 'ksp_type': 'preonly', 'pc_type' : 'lu', 'ksp_converged_reason': None,} #'ksp_monitor_true_residual': None}
-basic_linear_system = { 'ksp_type': 'cg', 'pc_type' : 'jacobi', 'ksp_converged_reason': None,} #'ksp_monitor_true_residual': None}
+basic_linear_system = { 'ksp_type': 'cg', 'pc_type' : 'jacobi', 'ksp_converged_reason': None} #'ksp_monitor_true_residual': None}
 
 overall_solver_parameters = {}
 overall_solver_parameters['qn'] = {'snes_monitor': None, 'snes_converged_reason': None,
@@ -31,7 +31,8 @@ overall_solver_parameters['etadiag'] = basic_linear_system
 overall_solver_parameters['zetadiag'] = basic_linear_system
 overall_solver_parameters['erkstage-f'] = basic_linear_system
 overall_solver_parameters['erkstage-aux'] = basic_linear_system
-overall_solver_parameters['muistage'] = basic_linear_system
+overall_solver_parameters['muistage-f'] = basic_linear_system
+overall_solver_parameters['muistage-aux'] = basic_linear_system
 overall_solver_parameters['grad'] = basic_linear_system
 #overall_solver_parameters['B_T1'] = basic_linear_system
 #overall_solver_parameters['B_T2'] = basic_linear_system

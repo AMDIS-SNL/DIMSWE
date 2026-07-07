@@ -72,16 +72,16 @@ class ExplicitRK(TimeStepper):
 #NOT SURE ABOUT THESE SPLITS YET...
         self.mui = []
         self.muauxi = []
-        self.li = []
-        self.lauxi = []
+        #self.li = []
+        #self.lauxi = []
         for i in range(nstages):
             self.auxi.append(self.model.get_aux_var('aux'+str(i)))
             self.Fi.append(self.model.get_x_var('F'+str(i)))
 #NOT SURE ABOUT THESE SPLITS YET...
             self.mui.append(self.model.get_x_var('mu'+str(i)))
             self.muauxi.append(self.model.get_aux_var('muaix'+str(i)))
-            self.li.append(self.model.get_x_var('li'+str(i)))
-            self.lauxi.append(self.model.get_aux_var('lauxi'+str(i)))
+            #self.li.append(self.model.get_x_var('li'+str(i)))
+            #self.lauxi.append(self.model.get_aux_var('lauxi'+str(i)))
 
         xhat, xhat_subs = self.model.get_x_test_vars()
         xtrial, xtrial_subs = self.model.get_x_trial_vars()
@@ -94,56 +94,80 @@ class ExplicitRK(TimeStepper):
 #CAREFUL WITH SUB VS SPLIT HERE!
         self.Fsolvers = []
         self.auxsolvers = []
+        self.residual_F = []
+        self.residual_aux = []
         for i in range(nstages):
-            xi_sub = {}
             xi_split = {}
             for var in self.model.get_x_var_list():
-                xi_sub[var] = self.xk_sub[var] + self.dt*sum(float(self.A[i,j]) * self.Fi[j][1][var] for j in range(self.nstages))
                 xi_split[var] = self.xk_split[var] + self.dt*sum(float(self.A[i,j]) * self.Fi[j][2][var] for j in range(self.nstages))
 
             if self.model.has_aux():
                 a_aux = 0
                 L_aux = 0
-                aux_expressions = self.model.compute_aux_expressions(xi_sub, self.auxi[i][2], self.t, self.coeff_sub, full_hat_subs, terms=terms)
+                aux_expressions = self.model.compute_aux_expressions(xi_split, self.auxi[i][2], self.t, self.coeff_sub, full_hat_subs, terms=terms)
                 for var in self.model.get_aux_var_list(terms=terms):
                     a_aux = a_aux + derivative(aux_expressions[var][0], self.auxi[i][0], auxtrial)
                     L_aux = L_aux + aux_expressions[var][1]
-                #print(i,residual_aux, residual_aux == 0)
                 if L_aux == 0:
                     self.auxsolvers.append(DummySolver())
-                    #a_aux = inner(auxtrial, auxhat) * self.dx
-                    #L_aux = 0 #inner(self.auxi[i][0], auxhat) * self.dx
+                    self.residual_aux.append(0)
                 else:
-                    #a_aux = derivative(residual_aux, self.auxi[i][0], auxtrial)
-                    #L_aux = action(a_aux, self.auxi[i][0]) - residual_aux
-                    auxproblem = LinearVariationalProblem(a_aux, L_aux, self.auxi[i][0])
+#THIS IS GOING TO FAIL WHEN AUXILIARY VARIABLES HAVE NON-CONSTANT JACOBIANS
+                    auxproblem = LinearVariationalProblem(a_aux, L_aux, self.auxi[i][0], constant_jacobian=True)
                     self.auxsolvers.append(LinearVariationalSolver(auxproblem, solver_parameters=overall_solver_parameters['erkstage-aux'], options_prefix = 'erk-aux'))
+                    self.residual_aux.append(action(a_aux, self.auxi[i][0]) - L_aux)
             else:
                 self.auxsolvers.append(DummySolver())
 
             #this sign is due to writing things as dxdt + F(x) = 0
-            #residual_F = inner(xhat, self.Fi[i][0])*self.dx +
             a_F = inner(xhat, xtrial)*self.dx
-            L_F  = -model.rhs(xi_split, self.auxi[i][1], self.t, self.coeff_sub, full_hat_subs, terms=terms) #action(a_F, self.Fi[i][0]) - residual_F
-            Fproblem = LinearVariationalProblem(a_F, L_F, self.Fi[i][0])
+            L_F  = -model.rhs(xi_split, self.auxi[i][2], self.t, self.coeff_sub, full_hat_subs, terms=terms) #action(a_F, self.Fi[i][0]) - residual_F
+            self.residual_F.append(inner(xhat, self.Fi[i][0])*self.dx - L_F)
+            Fproblem = LinearVariationalProblem(a_F, L_F, self.Fi[i][0], constant_jacobian=True)
             self.Fsolvers.append(LinearVariationalSolver(Fproblem, solver_parameters=overall_solver_parameters['erkstage-f'], options_prefix = 'erk-f'))
 
 
+        self.muisolvers = []
+        self.muauxisolvers = []
+        for i in range(self.nstages):
+#THIS IS WRONG
+#IT SHOULD BE DRES/DX VIA CHAIN RULE, not sure exactly how to accces that?
+#UGGGH...
+#SAME SORT OF ISSUES WITH OTHER DERIVATIVES...
+            gradT_residual_F_F = adjoint(derivative(self.residual_F[i], self.Fi[i][0], xtrial))
+            #print(derivative(self.residual_F[i], self.Fi[i][0], xtrial))
+            print(gradT_residual_F_F)
+            if not (self.coeff is None):
+                gradT_residual_F_coeff = adjoint(derivative(self.residual_F[i], self.coeff, self.coeff_trial))
+            if self.model.has_aux():
+                gradT_residual_F_aux = adjoint(derivative(self.residual_F[i], self.auxi[i][0], auxtrial))
+                if not self.residual_aux[i] == 0:
+                    gradT_residual_aux_F = adjoint(derivative(self.residual_aux[i], self.Fi[i][0], xtrial))
+#THIS IS NON-TRIVIAL IF AUX VARS ARE NOT SIMPLE MASS MATRICES
+                    #gradT_residual_aux_aux = adjoint(derivative(self.residual_aux[i], self.auxi[i][0], auxtrial))
+                    if not (self.coeff is None):
+                        gradT_residual_aux_coeff = adjoint(derivative(self.residual_aux[i], self.coeff, self.coeff_trial))
+#IF AUX VARS ARE NOT SIMPLE MASS MATRICES THEN THIS SHOULD ACTUALLY BE A DERIVATIVE OF a_aux...
+#WAIT- PROBABLY WRONG ANYWAYS, WE LIKELY WANT THE FULL RESIDUAL HERE...
+#IE FORM LINEAR PROBLEM FROM NONLINEAR ONE!
+                a_muauxi = inner(auxhat, auxtrial)*self.dx
+                #L_muauxi = 0 action(gradT_residual_F_aux, self.muauxi[i][0])
+                L_muauxi = 0
+                muauxiproblem = LinearVariationalProblem(a_muauxi, L_muauxi, self.muauxi[i][0])
+                self.muauxisolvers.append(LinearVariationalSolver(muauxiproblem, solver_parameters=overall_solver_parameters['muistage-aux'], options_prefix = 'erk-mui-aux'))
+            else:
+                self.muauixsolvers.append(DummySolver())
 
-#THIS PROBABLY REQUIRES WORKING ON THE FULL SPACE :(
-#CAN WE BUILD VARIOUS STATE GRADIENTS SEPARATELY?
-        #    residual = residual_aux + residual_F
+            a_mui = inner(xhat, xtrial)*self.dx
+            #li = self.dt * sum(float(self.A[i,j]) * self.mui[i][0] for j in range(self.nstages))
+            #L_mui = self.dt*float(self.b[i]) * self.lambda_var + action(gradT_residual_F_F, li)
+            #if self.model.has_aux():
+            #    lauxi = self.dt * sum(float(self.A[i,j]) * self.muauxi[i][0] for j in range(self.nstages))
+            #    L_mui = L_mui + action(gradT_residual_F_aux, lauxi)
+            L_mui = 0
+            muiproblem = LinearVariationalProblem(a_mui, L_mui, self.mui[i][0])
+            self.muisolvers.append(LinearVariationalSolver(muiproblem, solver_parameters=overall_solver_parameters['muistage-f'], options_prefix = 'erk-mui-f'))
 
-        #self.gradT_state = adjoint(derivative(rhs, self.xk, xtrial))
-        #if not (self.coeff is None):
-        #    self.gradT_params = adjoint(derivative(rhs, self.coeff, self.coeff_trial))
-
-        #self.muisolvers = []
-        #gradrhs = 0
-        #    self.Fsolvers.append(LinearVariationalSolver(Fproblem, solver_parameters=overall_solver_parameters['erkstage'], options_prefix = 'erk-f'))
-        #    muirhs = action(self.gradT_state, self.li[i])
-        #    muiproblem = LinearVariationalProblem(A, muirhs, self.mui[i])
-        #    self.muisolvers.append(LinearVariationalSolver(muiproblem, solver_parameters=overall_solver_parameters['muistage'], options_prefix = 'erk-mui'))
 #THIS IS MAYBE WRONG?
 #WHAT IS THE CORRECT FORMAT ACTUALLY?
 #IE WHAT IS THE GRADIENT OF THE FUNCTIONAL WRT
@@ -159,11 +183,10 @@ class ExplicitRK(TimeStepper):
 
     def take_forward_step(self, xnp1, xnp1_sub, xn, tn, dt):
 
-        self.t.assign(tn)
         self.dt.assign(dt)
         self.xk.assign(xn)
         for i in range(self.nstages):
-            self.t.assign(self.t + self.c[i]*self.dt)
+            self.t.assign(tn + self.c[i]*self.dt)
             #THIS PEICE IS A LITTLE BROKEN- WE DONT WANT TO DO THIS ANYWAYS!
             #self.model.post_step(self.xk_sub, terms=self.terms)
             self.auxsolvers[i].solve()
@@ -178,15 +201,11 @@ class ExplicitRK(TimeStepper):
         self.dt.assign(dt)
         self.lambda_var.assign(lambda_np1)
 
-#ALL BROKEN FOR NOW...
-        #compute mui
+        #compute mui and muauxi
         for i in range(self.nstages-1,-1,-1):
-            self.xk.assign(self.Xi[i])
-            self.aux_vars.assign(self.aux_i[i])
             self.t.assign(tnp1 - dt + self.c[i]*self.dt)
-            self.muauxisolvers.solve()
-            self.li[i].assign(self.dt * float(self.b[i]) * self.lambda_var + sum(float(self.A[i,j]) * self.mui[j+1] for j in range(i,self.nstages-1)))
             self.muisolvers.solve()
+            self.muauxisolvers.solve()
 
         #compute grad
 #HOW DO WE ACTUALLY DO THIS?
