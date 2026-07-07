@@ -6,9 +6,9 @@ from .parameters import get_parameters
 if __name__ == "__main__":
     cfgfile = sys.argv[1]
     parameters = get_parameters(cfgfile)
-    if parameters['model']['type'] in ['mtswe-cf-h1', 'tswe-cf', 'tswe-lp', 'tswe-cf-h1', 'ce-cf', 'ce-lp']:
+#ADD METRIPLECTIC STUFF HERE
+    if parameters['model']['type'] in ['advdens-cf-h1']:
         plot_adv_dens(parameters)
-    elif parameters['model']['type'] == 'maxwell':
-        plot_maxwell(parameters)
-    
-
+#WRONG- ADD TO IT
+    #elif parameters['model']['type'] == 'maxwell':
+    #    plot_maxwell(parameters)

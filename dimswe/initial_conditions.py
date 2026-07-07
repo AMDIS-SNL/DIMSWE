@@ -6,8 +6,7 @@ import scipy as sp
 #WE SHOULD REALLY SPLIT THIS INTO INITIAL CONDITION ROUTINES FOR VARIOUS "MODELS"
 #AND ACTUALLY CREATE VARIOUS MODELS CLASSES IE MAXWELL, ADV DENS, EULER MAXWELL, ETC.
 #THIS WOULD SIMPLIFY HOW DYNAMICS WORKS...
-
-def get_initial_condition(parameters):
+def get_advdens_initcond(parameters):
     if parameters['initial-conditions']['name'] == 'gaussian': return Gaussian(parameters)
     elif parameters['initial-conditions']['name'] == 'doublevortex': return DoubleVortex(parameters)
     elif parameters['initial-conditions']['name'] == 'TC2': return TC2(parameters)
@@ -17,8 +16,6 @@ def get_initial_condition(parameters):
     elif parameters['initial-conditions']['name'] == 'isolatedvortices': return IsolatedVortices(parameters)
     elif parameters['initial-conditions']['name'] == 'geostrophicturbulence': return GeostrophicTurbulence(parameters)
     elif parameters['initial-conditions']['name'] == 'gravitywave': return GravityWave(parameters)
-
-    elif parameters['initial-conditions']['name'] == 'planewave': return PlaneWave(parameters)
 
 #ADD LOTS HERE!!!
     elif parameters['initial-conditions']['name'] == 'RP1': return RiemannProblem1(parameters)
@@ -35,9 +32,18 @@ def get_initial_condition(parameters):
     elif parameters['initial-conditions']['name'] == 'VaccumExpansionRight': return VaccumExpansionRight(params)
     elif parameters['initial-conditions']['name'] == 'VaccumExpansionLeft': return VaccumExpansionLeft(params)
     elif parameters['initial-conditions']['name'] == 'ToroTest4': return ToroTest4(params)
+
     else:
         raise ValueError('unknown initial condition ' + parameters['initial-condition']['name'])
     return None
+
+def get_maxwell_initcond(parameters):
+    if parameters['initial-conditions']['name'] == 'planewave': return PlaneWave(parameters)
+    else:
+        raise ValueError('unknown initial condition ' + parameters['initial-condition']['name'])
+    return None
+
+
 
 class IC():
     def set_thermo(self, thermo):

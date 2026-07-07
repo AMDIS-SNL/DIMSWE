@@ -66,22 +66,22 @@ class Hamiltonian_Base():
 
 
 
-class AdvDensHamiltonian_AdvectionOnly(Hamiltonian_Base):
-    def __init__(self, vars, values):
-        Hamiltonian_Base.__init__(self, vars)
-        self.values = values
-
-    def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
-        m = xvars['m']
-        expressions['u'] = make_a_L(self.values['u'], mtrial, mhat)
-        for dens_name in self.vars.density_names:
-            denshat = self.testvars[dens_name]
-            denstrial = self.trialvars[dens_name]
-            expressions['B_' + dens_name] = make_a_L(Constant(0), denstrial, denshat)
-
-#WHAT DO WE ACTUALLY DO HERE?
-    def compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars):
-        pass
+# class AdvDensHamiltonian_AdvectionOnly(Hamiltonian_Base):
+#     def __init__(self, vars, values):
+#         Hamiltonian_Base.__init__(self, vars)
+#         self.values = values
+#
+#     def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
+#         m = xvars['m']
+#         expressions['u'] = make_a_L(self.values['u'], mtrial, mhat)
+#         for dens_name in self.vars.density_names:
+#             denshat = self.testvars[dens_name]
+#             denstrial = self.trialvars[dens_name]
+#             expressions['B_' + dens_name] = make_a_L(Constant(0), denstrial, denshat)
+#
+# #WHAT DO WE ACTUALLY DO HERE?
+#     def compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars):
+#         pass
 
 class ThermalShallowWater_Hamiltonian_Base(Hamiltonian_Base):
 
@@ -93,45 +93,45 @@ class ThermalShallowWater_Hamiltonian_Base(Hamiltonian_Base):
     def initialize(self, varexpr):
         self.bottom_topography.interpolate(varexpr['bottom_topography'])
 
-class ThermalShallowWater_Hamiltonian_LP(ThermalShallowWater_Hamiltonian_Base):
-
-    def compute_total_energy(self, state):
-        m = state['m']
-        h = state['h']
-        S = state['S']
-        return inner(m,m)/(2. * h) + inner(h,S)/2. + inner(h,self.bottom_topography)
-
-    def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
-        m = xvars['m']
-        h = xvars['h']
-        S = xvars['S']
-        mhat = self.testvars['u']
-        hhat = self.testvars['B_h']
-        Shat = self.testvars['B_S']
-        mtrial = self.trialvars['u']
-        htrial = self.trialvars['B_h']
-        Strial = self.trialvars['B_S']
-        expressions['u'] = [m / h, mtrial, mhat]
-        expressions['B_h'] = [-inner(m,m)/(2.*inner(h,h)) + S/2. + self.bottom_topography, htrial, hhat]
-        expressions['B_S'] = [h/2., Strial, Shat]
-        # for tracer_name in self.vars.tracer_names:
-        #     tracerhat = self.testvars['B_' + tracer_name]
-        #     tracertrial = self.trialvars['B_' + tracer_name]
-        #     expressions['B_' + tracer_name] = make_a_L(Constant(0), tracertrial, tracerhat)
-
-    def compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars):
-
-        H0 = const_state['h']
-        S0 = const_state['S']
-        m = xstar['m']
-        h = xstar['h']
-        S = xstar['S']
-
-        dfdx_linear_vars['u'] = m / H0
-        dfdx_linear_vars['B_h'] = (S0 + S)/2. + self.bottom_topography
-        dfdx_linear_vars['B_S'] = (H0 + H)/2.
-        #for tracer_name in self.vars.tracer_names:
-        #    dfdx_linear_vars['B_' + tracer_name] = 0.0
+# class ThermalShallowWater_Hamiltonian_LP(ThermalShallowWater_Hamiltonian_Base):
+#
+#     def compute_total_energy(self, state):
+#         m = state['m']
+#         h = state['h']
+#         S = state['S']
+#         return inner(m,m)/(2. * h) + inner(h,S)/2. + inner(h,self.bottom_topography)
+#
+#     def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
+#         m = xvars['m']
+#         h = xvars['h']
+#         S = xvars['S']
+#         mhat = self.testvars['u']
+#         hhat = self.testvars['B_h']
+#         Shat = self.testvars['B_S']
+#         mtrial = self.trialvars['u']
+#         htrial = self.trialvars['B_h']
+#         Strial = self.trialvars['B_S']
+#         expressions['u'] = [m / h, mtrial, mhat]
+#         expressions['B_h'] = [-inner(m,m)/(2.*inner(h,h)) + S/2. + self.bottom_topography, htrial, hhat]
+#         expressions['B_S'] = [h/2., Strial, Shat]
+#         # for tracer_name in self.vars.tracer_names:
+#         #     tracerhat = self.testvars['B_' + tracer_name]
+#         #     tracertrial = self.trialvars['B_' + tracer_name]
+#         #     expressions['B_' + tracer_name] = make_a_L(Constant(0), tracertrial, tracerhat)
+#
+#     def compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars):
+#
+#         H0 = const_state['h']
+#         S0 = const_state['S']
+#         m = xstar['m']
+#         h = xstar['h']
+#         S = xstar['S']
+#
+#         dfdx_linear_vars['u'] = m / H0
+#         dfdx_linear_vars['B_h'] = (S0 + S)/2. + self.bottom_topography
+#         dfdx_linear_vars['B_S'] = (H0 + H)/2.
+#         #for tracer_name in self.vars.tracer_names:
+#         #    dfdx_linear_vars['B_' + tracer_name] = 0.0
 
 class ThermalShallowWater_Hamiltonian_CF(ThermalShallowWater_Hamiltonian_Base):
 
@@ -228,141 +228,141 @@ class ThermalShallowWater_Hamiltonian_CF(ThermalShallowWater_Hamiltonian_Base):
 
 
 
-
-
-class CompressibleEuler_Hamiltonian_Base(Hamiltonian_Base):
-
-    def __init__(self, vars, thermo):
-        Hamiltonian_Base.__init__(self, vars)
-        self.thermo = thermo
-        if not vars.spaces is None:
-            self.geopotential = Function(vars.spaces.CG)
-
-    def initialize(self, varexpr):
-        self.geopotential.interpolate(varexpr['geopotential'])
-
-class CompressibleEuler_Hamiltonian_LP(CompressibleEuler_Hamiltonian_Base):
-
-#ADD POTENTIAL PART!
-#EVENTUALLY MAKE TOTAL DENSITY AND ETA COMPUTATIONS PART OF VARIABLESET I THINK?
-    def compute_total_energy(self, state):
-        m = state['m']
-        rho = state['rho']
-        S = state['S']
-        eta = S / rho
-        int_energy = self.thermo.compute_u(rho, eta)
-        return inner(m,m)/(2. * rho) + rho * int_energy
-
-#ADD POTENTIAL PART!
-#EVENTUALLY MAKE TOTAL DENSITY AND ETA COMPUTATIONS PART OF VARIABLESET I THINK?
-    def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
-        m = xvars['m']
-        rho = xvars['rho']
-        S = xvars['S']
-        mhat = self.testvars['m']
-        hhat = self.testvars['h']
-        Shat = self.testvars['S']
-        eta = S / rho
-        int_energy = self.thermo.compute_u(rho, eta)
-        dudeta = self.thermo.compute_dudeta(rho, eta)
-        dudrho = self.thermo.compute_dudrho(rho, eta)
-#FIX THESE!
-        expressions['u'] = m / rho
-        expressions['B_rho'] = -inner(m,m)/(2. * inner(rho,rho)) + + u + SOMETHING *dudrho + SOMETHING * dudeta
-        expressions['B_S'] = SOMETHING * dudeta
-        for tracer in self.vars.tracer_names:
-            expressions['B_' + tracer] = 0.0
-
-
-
-
-class CompressibleEuler_Hamiltonian_CF(CompressibleEuler_Hamiltonian_Base):
-
-#ADD POTENTIAL PART!
-#EVENTUALLY MAKE TOTAL DENSITY AND ETA COMPUTATIONS PART OF VARIABLESET I THINK?
-    def compute_total_energy(self, state):
-        v = state['v']
-        rho = state['rho']
-        S = state['S']
-        eta = S / rho
-        int_energy = self.thermo.compute_u(rho, eta)
-        return rho*inner(v,v)/2. + rho * int_energy
-
-#ADD POTENTIAL PART!
-#EVENTUALLY MAKE TOTAL DENSITY AND ETA COMPUTATIONS PART OF VARIABLESET I THINK?
-    def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
-        v = xvars['v']
-        rho = xvars['rho']
-        S = xvars['S']
-        vhat = self.testvars['v']
-        hhat = self.testvars['h']
-        Shat = self.testvars['S']
-        eta = S / rho
-        int_energy = self.thermo.compute_u(rho, eta)
-        dudeta = self.thermo.compute_dudeta(rho, eta)
-        dudrho = self.thermo.compute_dudrho(rho, eta)
-#FIX THESE!
-        expressions['F'] = rho*v
-        expressions['B_rho'] = inner(v,v)/2. + u + SOMETHING *dudrho + SOMETHING * dudeta
-        expressions['B_S'] = SOMETHING * dudeta
-        for tracer in self.vars.tracer_names:
-            expressions['B_' + tracer] = 0.0
-
-
-
-
-class MHD_Hamiltonian_LP(CompressibleEuler_Hamiltonian_Base):
-
-    def compute_total_energy(self, state):
-        pass
-
-    def compute_dfdx_expressions(self, vars, expressions):
-        pass
-
-    def solve_for_aux_vars(self, vars, aux_vars):
-        pass
-
-class Maxwell_Hamiltonian(Hamiltonian_Base):
-
-    def __init__(self, vars):
-        Hamiltonian_Base.__init__(self, vars)
-        self.epsilon0 = sp.constants.epsilon_0
-        self.mu0 = sp.constants.mu_0
-
-    def compute_total_energy(self, state):
-        D, B = state['D'], state['B']
-        return 1./2./self.epsilon0 * inner(D,D) + 1./2./self.mu0 * inner(B,B)
-
-    def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
-        D, B = xvars['D'], xvars['B']
-        Etrial, Ehat = self.trialvars['E'], self.testvars['E']
-        Htrial, Hhat = self.trialvars['H'], self.testvars['H']
-        expressions['E'] = [1./self.epsilon0 * D, Etrial, Ehat]
-        expressions['H'] = [1./self.mu0 * B, Htrial, Hhat]
-
-    def compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars):
-        D, B = xstar['D'], xstar['B']
-        dfdx_linear_vars['E'] = 1./self.epsilon0 * D
-        dfdx_linear_vars['H'] = 1./self.mu0 * B
-
-class ScalarWave_Hamiltonian(Hamiltonian_Base):
-
-    def compute_total_energy(self, state):
-        pass
-
-    def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
-        pass
-
-    def solve_for_aux_vars(self, vars, aux_vars):
-        pass
-
-class EulerMaxwell_Hamiltonian_LP(CompressibleEuler_Hamiltonian_Base):
-
-    def compute_total_energy(self, state):
-        pass
-
-    def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
-        pass
-
-    def solve_for_aux_vars(self, vars, aux_vars):
-        pass
+#
+#
+# class CompressibleEuler_Hamiltonian_Base(Hamiltonian_Base):
+#
+#     def __init__(self, vars, thermo):
+#         Hamiltonian_Base.__init__(self, vars)
+#         self.thermo = thermo
+#         if not vars.spaces is None:
+#             self.geopotential = Function(vars.spaces.CG)
+#
+#     def initialize(self, varexpr):
+#         self.geopotential.interpolate(varexpr['geopotential'])
+#
+# class CompressibleEuler_Hamiltonian_LP(CompressibleEuler_Hamiltonian_Base):
+#
+# #ADD POTENTIAL PART!
+# #EVENTUALLY MAKE TOTAL DENSITY AND ETA COMPUTATIONS PART OF VARIABLESET I THINK?
+#     def compute_total_energy(self, state):
+#         m = state['m']
+#         rho = state['rho']
+#         S = state['S']
+#         eta = S / rho
+#         int_energy = self.thermo.compute_u(rho, eta)
+#         return inner(m,m)/(2. * rho) + rho * int_energy
+#
+# #ADD POTENTIAL PART!
+# #EVENTUALLY MAKE TOTAL DENSITY AND ETA COMPUTATIONS PART OF VARIABLESET I THINK?
+#     def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
+#         m = xvars['m']
+#         rho = xvars['rho']
+#         S = xvars['S']
+#         mhat = self.testvars['m']
+#         hhat = self.testvars['h']
+#         Shat = self.testvars['S']
+#         eta = S / rho
+#         int_energy = self.thermo.compute_u(rho, eta)
+#         dudeta = self.thermo.compute_dudeta(rho, eta)
+#         dudrho = self.thermo.compute_dudrho(rho, eta)
+# #FIX THESE!
+#         expressions['u'] = m / rho
+#         expressions['B_rho'] = -inner(m,m)/(2. * inner(rho,rho)) + + u + SOMETHING *dudrho + SOMETHING * dudeta
+#         expressions['B_S'] = SOMETHING * dudeta
+#         for tracer in self.vars.tracer_names:
+#             expressions['B_' + tracer] = 0.0
+#
+#
+#
+#
+# class CompressibleEuler_Hamiltonian_CF(CompressibleEuler_Hamiltonian_Base):
+#
+# #ADD POTENTIAL PART!
+# #EVENTUALLY MAKE TOTAL DENSITY AND ETA COMPUTATIONS PART OF VARIABLESET I THINK?
+#     def compute_total_energy(self, state):
+#         v = state['v']
+#         rho = state['rho']
+#         S = state['S']
+#         eta = S / rho
+#         int_energy = self.thermo.compute_u(rho, eta)
+#         return rho*inner(v,v)/2. + rho * int_energy
+#
+# #ADD POTENTIAL PART!
+# #EVENTUALLY MAKE TOTAL DENSITY AND ETA COMPUTATIONS PART OF VARIABLESET I THINK?
+#     def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
+#         v = xvars['v']
+#         rho = xvars['rho']
+#         S = xvars['S']
+#         vhat = self.testvars['v']
+#         hhat = self.testvars['h']
+#         Shat = self.testvars['S']
+#         eta = S / rho
+#         int_energy = self.thermo.compute_u(rho, eta)
+#         dudeta = self.thermo.compute_dudeta(rho, eta)
+#         dudrho = self.thermo.compute_dudrho(rho, eta)
+# #FIX THESE!
+#         expressions['F'] = rho*v
+#         expressions['B_rho'] = inner(v,v)/2. + u + SOMETHING *dudrho + SOMETHING * dudeta
+#         expressions['B_S'] = SOMETHING * dudeta
+#         for tracer in self.vars.tracer_names:
+#             expressions['B_' + tracer] = 0.0
+#
+#
+#
+#
+# class MHD_Hamiltonian_LP(CompressibleEuler_Hamiltonian_Base):
+#
+#     def compute_total_energy(self, state):
+#         pass
+#
+#     def compute_dfdx_expressions(self, vars, expressions):
+#         pass
+#
+#     def solve_for_aux_vars(self, vars, aux_vars):
+#         pass
+#
+# class Maxwell_Hamiltonian(Hamiltonian_Base):
+#
+#     def __init__(self, vars):
+#         Hamiltonian_Base.__init__(self, vars)
+#         self.epsilon0 = sp.constants.epsilon_0
+#         self.mu0 = sp.constants.mu_0
+#
+#     def compute_total_energy(self, state):
+#         D, B = state['D'], state['B']
+#         return 1./2./self.epsilon0 * inner(D,D) + 1./2./self.mu0 * inner(B,B)
+#
+#     def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
+#         D, B = xvars['D'], xvars['B']
+#         Etrial, Ehat = self.trialvars['E'], self.testvars['E']
+#         Htrial, Hhat = self.trialvars['H'], self.testvars['H']
+#         expressions['E'] = [1./self.epsilon0 * D, Etrial, Ehat]
+#         expressions['H'] = [1./self.mu0 * B, Htrial, Hhat]
+#
+#     def compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars):
+#         D, B = xstar['D'], xstar['B']
+#         dfdx_linear_vars['E'] = 1./self.epsilon0 * D
+#         dfdx_linear_vars['H'] = 1./self.mu0 * B
+#
+# class ScalarWave_Hamiltonian(Hamiltonian_Base):
+#
+#     def compute_total_energy(self, state):
+#         pass
+#
+#     def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
+#         pass
+#
+#     def solve_for_aux_vars(self, vars, aux_vars):
+#         pass
+#
+# class EulerMaxwell_Hamiltonian_LP(CompressibleEuler_Hamiltonian_Base):
+#
+#     def compute_total_energy(self, state):
+#         pass
+#
+#     def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
+#         pass
+#
+#     def solve_for_aux_vars(self, vars, aux_vars):
+#         pass

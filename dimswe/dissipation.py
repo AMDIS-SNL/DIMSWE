@@ -21,7 +21,7 @@ class Hyperviscosity(ForcingBase):
 #CAN PROBABLY TIE TO CFL CONDITION STUFF ALSO
             self.dx = spaces.dx
             self.mu_space = FunctionSpace(self.spaces.mesh, 'CG', self.spaces.order, variant="spectral")
-            self.spacelist = vars.spacelist[:len(self.varlist)]
+            self.spacelist = vars.get_spacelist()[:len(self.varlist)]
 
     def has_coeff(self):
         return True
@@ -32,9 +32,8 @@ class Hyperviscosity(ForcingBase):
     def get_coeff(self):
         return ['mu', self.mu_space]
 
-    def get_aux_vars(self, vars):
-        for varname, varspace in zip(self.varlist, self.spacelist):
-            vars['Q_' + varname] = Function(varspace)
+    def get_spacelist(self):
+        return self.spacelist
 
     def get_aux_vars_list(self):
         auxlist = []
@@ -42,17 +41,16 @@ class Hyperviscosity(ForcingBase):
             auxlist.append('Q_' + varname)
         return auxlist
 
-    def compute_q_expressions(self, xvars, t, coeff, expressions):
+    def compute_aux_expressions(self, xvars, auxvars, t, coeff, xhats, expressions):
         for varname, varspace in zip(self.varlist, self.spacelist):
-            varhat = TestFunction(varspace)
-            vartrial = TrialFunction(varspace)
+            varhat = xhats['Q_' + varname]
             var = xvars[varname]
-            expressions['Q_' + varname] = [inner(varhat, vartrial)*self.dx, -inner(grad(varhat), grad(var))*self.dx]
+            expressions['Q_' + varname] = [inner(varhat, auxvars['Q_' + varname])*self.dx, -inner(grad(varhat), grad(var))*self.dx]
 
-    def rhs(self, xvars, t, coeff, qvars, xhats):
+    def rhs(self, xvars, auxvars, t, coeff, xhats):
         expr = 0
         for varname in self.varlist:
-            qvar = qvars['Q_' + varname]
+            qvar = auxvars['Q_' + varname]
             varhat = xhats[varname]
             expr = expr + inner(-coeff['mu'] * grad(varhat), grad(qvar))*self.dx
         return expr

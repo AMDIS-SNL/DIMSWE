@@ -3,13 +3,10 @@ class OperatorBase():
     def initialize(self, varexpr):
         pass
 
-    def get_aux_vars(self, vars):
-        pass
-
     def get_aux_vars_list(self):
         return []
 
-    def compute_q_expressions(self, x, t, coeff, expressions):
+    def compute_aux_expressions(self, x, aux, t, coeff, xhats, expressions):
         pass
 
     def post_step(self, statevars):
@@ -24,17 +21,22 @@ class OperatorBase():
     def set_default_coeffs(self, coeff):
         pass
 
-class BracketBase(OperatorBase):
-    def rhs(self, qvars, dfdx_vars, xhats):
+    def get_varlist(self):
+        return []
+
+    def get_spacelist(self):
+        return []
+
+    def rhs(self, xvars, auxvars, xhats):
         return 0.0
+
+#POSSIBLY FIX UP LINEAR RHS CALLING FORMAT?
+class BracketBase(OperatorBase):
 
     def linear_rhs(self, const_state, dfdx_linear_vars, xhats):
         return 0.0
 
-
 class ForcingBase(OperatorBase):
-    def rhs(self, xvars, xhats):
-        return 0.0
 
     def linear_rhs(self, const_state, xvars, xhats):
         return 0.0

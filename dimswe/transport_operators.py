@@ -4,112 +4,112 @@ from .operators import ForcingBase
 from .meshes import gauss_lobatto_legendre_cube_rule
 
 
-def SVLieDerivative(degree, dim, u, a, ahat, alpha_s, n, order, dx):
-    #0-forms
-    if degree == 0:
-        raise NotImplementedError
-    #volume forms
-    elif degree == dim:
-        alpha = alpha_s * sign(dot(u('+'),n('+')))
-#MISSING BOUNDARY TERMS- ds
-        atilde = 0.5 * ((1. + alpha) * a('+') + (1. - alpha)*a('-'))
-        expr = (ahat('+')*inner(u('+'), n('+')) + ahat('-')*inner(u('-'), n('-')))*atilde*dS
-        if order > 1:
-            rhs_expr = rhs_expr - inner(grad(ahat), a * u   )*dx
-        return expr
-#PROBABLY NEED TO DISTINGUISH BETWEEN 1-FORMS AND N-1 FORMS HERE!
-    #1-forms in 2D
-    elif degree == 1 and dim == 2:
-        raise NotImplementedError
-    #1-forms in 3D
-    elif degree == 1 and dim == 3:
-        raise NotImplementedError
-    #2-forms in 3D
-    elif degree == 2 and dim == 3:
-        raise NotImplementedError
-
-#MISSING LOTS OF THESE EXPRESSIONS...
-def VVLieDerivative(degree, dim, u, a, ahat, dx):
-    #0-forms
-    if degree == 0:
-        raise NotImplementedError
-    #volume forms
-    elif degree == dim:
-        raise NotImplementedError
-#PROBABLY NEED TO DISTINGUISH BETWEEN 1-FORMS AND N-1 FORMS HERE!
-    #1-forms in 2D
-    elif degree == 1 and dim == 2:
-        raise NotImplementedError
-    #1-forms in 3D
-    elif degree == 1 and dim == 3:
-        raise NotImplementedError
-    #2-forms in 3D
-    elif degree == 2 and dim == 3:
-        raise NotImplementedError
-
-#MISSING LOTS OF THESE EXPRESSIONS...
-def CVLieDerivative(degree, dim, u, a, ahat, dx):
-    #0-forms
-    if degree == 0:
-        raise NotImplementedError
-    #volume forms
-    elif degree == dim:
-        raise NotImplementedError
-#PROBABLY NEED TO DISTINGUISH BETWEEN 1-FORMS AND N-1 FORMS HERE!
-    #1-forms in 2D
-    elif degree == 1 and dim == 2:
-        raise NotImplementedError
-    #1-forms in 3D
-    elif degree == 1 and dim == 3:
-        raise NotImplementedError
-    #2-forms in 3D
-    elif degree == 2 and dim == 3:
-        raise NotImplementedError
-
-#EVENTUALLY ADD SOME TENSOR-VALUED BUNDLES ALSO? Unclear...
-
-#ADD THIS EVENTUALLY
-class LieDerivTransport(ForcingBase):
-    def __init__(self, parameters, vars, spaces):
-        self.vars = vars
-        self.spaces = spaces
-#THIS NEEDS TO BE MODIFIED- SHOULD REALLY JUST BE SOME SET OF TRACERS
-        self.inactive_advected_vars = vars.inactive_advected_vars
-        self.name = 'lietransport'
-
-    def rhs(self, xvars, xhats):
-        return 0
-
-    def linear_rhs(self, const_state, xvars, xhats):
-        raise NotImplementedError
-
-class CGTransport(ForcingBase):
-    def __init__(self, parameters, vars, spaces):
-        self.vars = vars
-        self.spaces = spaces
-#THIS NEEDS TO BE MODIFIED- SHOULD REALLY JUST BE SOME SET OF TRACERS
-        self.density_names = vars.cg_inactive_density_names
-        self.name = 'cgtransport'
-        self.use_split_form = parameters['spatial-discretization']['use_split_form']
-
-        if not spaces is None:
-            self.dx = spaces.dx
-
-    def rhs(self, xvars, t, coeff, qvars, xhats):
-        v = xvars['v']
-        rhs_expr = 0
-        for dens_name in self.density_names:
-            denstest = xhats[dens_name]
-            dens = xvars[dens_name]
-            if self.use_split_form[dens_name]:
-                rhs_expr = rhs_expr + inner(denstest, 0.5 *( div(dens*v) + dot(grad(dens),v) + dens * div(v)))*self.dx
-            else:
-                rhs_expr = rhs_expr + inner(denstest, div(dens*v))*self.dx
-        return rhs_expr
-
-#THIS IS BROKEN!
-    def linear_rhs(self, const_state, xvars, xhats):
-        raise NotImplementedError
+# def SVLieDerivative(degree, dim, u, a, ahat, alpha_s, n, order, dx):
+#     #0-forms
+#     if degree == 0:
+#         raise NotImplementedError
+#     #volume forms
+#     elif degree == dim:
+#         alpha = alpha_s * sign(dot(u('+'),n('+')))
+# #MISSING BOUNDARY TERMS- ds
+#         atilde = 0.5 * ((1. + alpha) * a('+') + (1. - alpha)*a('-'))
+#         expr = (ahat('+')*inner(u('+'), n('+')) + ahat('-')*inner(u('-'), n('-')))*atilde*dS
+#         if order > 1:
+#             rhs_expr = rhs_expr - inner(grad(ahat), a * u   )*dx
+#         return expr
+# #PROBABLY NEED TO DISTINGUISH BETWEEN 1-FORMS AND N-1 FORMS HERE!
+#     #1-forms in 2D
+#     elif degree == 1 and dim == 2:
+#         raise NotImplementedError
+#     #1-forms in 3D
+#     elif degree == 1 and dim == 3:
+#         raise NotImplementedError
+#     #2-forms in 3D
+#     elif degree == 2 and dim == 3:
+#         raise NotImplementedError
+#
+# #MISSING LOTS OF THESE EXPRESSIONS...
+# def VVLieDerivative(degree, dim, u, a, ahat, dx):
+#     #0-forms
+#     if degree == 0:
+#         raise NotImplementedError
+#     #volume forms
+#     elif degree == dim:
+#         raise NotImplementedError
+# #PROBABLY NEED TO DISTINGUISH BETWEEN 1-FORMS AND N-1 FORMS HERE!
+#     #1-forms in 2D
+#     elif degree == 1 and dim == 2:
+#         raise NotImplementedError
+#     #1-forms in 3D
+#     elif degree == 1 and dim == 3:
+#         raise NotImplementedError
+#     #2-forms in 3D
+#     elif degree == 2 and dim == 3:
+#         raise NotImplementedError
+#
+# #MISSING LOTS OF THESE EXPRESSIONS...
+# def CVLieDerivative(degree, dim, u, a, ahat, dx):
+#     #0-forms
+#     if degree == 0:
+#         raise NotImplementedError
+#     #volume forms
+#     elif degree == dim:
+#         raise NotImplementedError
+# #PROBABLY NEED TO DISTINGUISH BETWEEN 1-FORMS AND N-1 FORMS HERE!
+#     #1-forms in 2D
+#     elif degree == 1 and dim == 2:
+#         raise NotImplementedError
+#     #1-forms in 3D
+#     elif degree == 1 and dim == 3:
+#         raise NotImplementedError
+#     #2-forms in 3D
+#     elif degree == 2 and dim == 3:
+#         raise NotImplementedError
+#
+# #EVENTUALLY ADD SOME TENSOR-VALUED BUNDLES ALSO? Unclear...
+#
+# #ADD THIS EVENTUALLY
+# class LieDerivTransport(ForcingBase):
+#     def __init__(self, parameters, vars, spaces):
+#         self.vars = vars
+#         self.spaces = spaces
+# #THIS NEEDS TO BE MODIFIED- SHOULD REALLY JUST BE SOME SET OF TRACERS
+#         self.inactive_advected_vars = vars.inactive_advected_vars
+#         self.name = 'lietransport'
+#
+#     def rhs(self, xvars, xhats):
+#         return 0
+#
+#     def linear_rhs(self, const_state, xvars, xhats):
+#         raise NotImplementedError
+#
+# class CGTransport(ForcingBase):
+#     def __init__(self, parameters, vars, spaces):
+#         self.vars = vars
+#         self.spaces = spaces
+# #THIS NEEDS TO BE MODIFIED- SHOULD REALLY JUST BE SOME SET OF TRACERS
+#         self.density_names = vars.cg_inactive_density_names
+#         self.name = 'cgtransport'
+#         self.use_split_form = parameters['spatial-discretization']['use_split_form']
+#
+#         if not spaces is None:
+#             self.dx = spaces.dx
+#
+#     def rhs(self, xvars, t, coeff, qvars, xhats):
+#         v = xvars['v']
+#         rhs_expr = 0
+#         for dens_name in self.density_names:
+#             denstest = xhats[dens_name]
+#             dens = xvars[dens_name]
+#             if self.use_split_form[dens_name]:
+#                 rhs_expr = rhs_expr + inner(denstest, 0.5 *( div(dens*v) + dot(grad(dens),v) + dens * div(v)))*self.dx
+#             else:
+#                 rhs_expr = rhs_expr + inner(denstest, div(dens*v))*self.dx
+#         return rhs_expr
+#
+# #THIS IS BROKEN!
+#     def linear_rhs(self, const_state, xvars, xhats):
+#         raise NotImplementedError
 
 
 
@@ -134,7 +134,7 @@ class DG1LimiterTransport(ForcingBase):
             self.limiter.apply(field)
 
 
-    def rhs(self, xvars, t, coeff, qvars, xhats):
+    def rhs(self, xvars, auxvars, t, coeff, xhats):
         v = xvars['v']
         n = self.spaces.n
 
