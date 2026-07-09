@@ -28,7 +28,7 @@ jobs:
     
     - name: Install pytest
       run: |
-        pip install pytest
+        pip install pytest yaml
 
     - name: Run pytest
       env:
