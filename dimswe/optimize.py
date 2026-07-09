@@ -1,13 +1,14 @@
 from firedrake import assemble
 import numpy as np
 
+class _Objective:
+    pass
+
 #EVENTUALLY ADD REGULARIZED OBJECTIVE ALSO
 class L2Objective(_Objective):
-    def __init__(self, data_blocks, t_blocks, num_steps, nparams):
+    def __init__(self, data_blocks, t_blocks, coeff):
         self.data_blocks = data_blocks
-        self.num_steps = num_steps
-        self.nparams = nparams
-        #self.xsize = xsize
+        self.coeff = coeff
         self.t_blocks = t_blocks
         self.num_data_blocks = len(self.data_blocks)
 
@@ -38,8 +39,9 @@ class _ODEConstrainedOptimization():
         self.objective = objective
         self.states = []
         self.ts = []
+#THIS IS A CHECKPOINTING/STORAGE CHOICE
         for i in range(self.objective.num_steps+1):
-            self.states.append(self.timestepper.dynamics.get_x_var('x'+str(i))[0])
+            self.states.append(self.timestepper.dynamics.get_full_var('x'+str(i))[0])
         self.ts = np.zeros(self.objective.num_steps+1)
         self.dt = dt
         self.lambda_n = self.timestepper.dynamics.get_x_var('lambda')

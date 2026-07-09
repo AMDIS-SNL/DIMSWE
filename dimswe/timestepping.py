@@ -138,11 +138,13 @@ class GeneralRK(TimeStepper):
         #THIS IS A BIT OF A MESS FOR DIRK AND IRK- need to take derivatives wrt x and w independently, if that is possible?
         #MIGHT BE ABLE TO JUST TAKE A JOINT DERIVATIVE? UNCLEAR....
         derivT_F_F = adjoint(derivative(rhs_F, self.xk[0], xtrial[0]))
-        derivT_F_theta = adjoint(derivative(rhs_F, self.coeff, self.grad_trial))
+        if model.has_coeff():
+            derivT_F_theta = adjoint(derivative(rhs_F, self.coeff, self.grad_trial))
         if self.model.has_aux() and not (lhs_W == 0):
             derivT_F_w = adjoint(derivative(rhs_F, self.xk[1], xtrial[1]))
             derivT_W_F = adjoint(derivative(rhs_W, self.xk[0], xtrial[0]))
-            derivT_W_theta = adjoint(derivative(rhs_W, self.coeff, self.grad_trial))
+            if model.has_coeff():
+                derivT_W_theta = adjoint(derivative(rhs_W, self.coeff, self.grad_trial))
 
 
         xi_splits = []
@@ -182,12 +184,13 @@ class GeneralRK(TimeStepper):
                 term = action(derivT_W_F, self.mui[i][0][1])
                 residual_xk = residual_xk - replace(term, xi_splits[i])
 
-            if not derivT_F_theta.empty():
-                term = action(derivT_F_theta, self.mui[i][0][0])
-                residual_grad = residual_grad - replace(term, xi_splits[i])
-            if model.has_aux() and (not lhs_W == 0) and not derivT_W_theta.empty():
-                term = action(derivT_W_theta, self.mui[i][0][1])
-                residual_grad = residual_grad - replace(term, xi_splits[i])
+            if model.has_coeff():
+                if not derivT_F_theta.empty():
+                    term = action(derivT_F_theta, self.mui[i][0][0])
+                    residual_grad = residual_grad - replace(term, xi_splits[i])
+                if model.has_aux() and (not lhs_W == 0) and not derivT_W_theta.empty():
+                    term = action(derivT_W_theta, self.mui[i][0][1])
+                    residual_grad = residual_grad - replace(term, xi_splits[i])
 
             residual_aux = 0
             residual_muaux = 0
