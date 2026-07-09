@@ -148,11 +148,18 @@ class Model():
         t.assign(self.initcond.get_t0())
         varexpr = self.initcond.get_value(self.mesh, t)
         self.dynamics.initialize(xn, varexpr)
-        self.diagnostics.initialize(varexpr)
-        self.statistics.initialize(varexpr)
+        if self.has_dynamics_statistics:
+            self.diagnostics.initialize(varexpr)
+            self.statistics.initialize(varexpr)
+
+    def restart(self, xn, x0, t, t0):
+        t.assign(t0)
+        xn[0].assign(x0[0])
+#DIAGNOSTICS AND STATISTICS NEED TO BE RESET ALSO
+#ALONG WITH ANY MODEL CONSTANTS/COEFFICIENTS...
 
 class AdvDensH1Model(Model):
-    def __init__(self, parameters, logger):
+    def __init__(self, parameters, logger, has_dynamics_statistics=True):
         self.initcond = get_advdens_initcond(parameters)
         self.mesh, self.spaces = get_mesh_and_spaces(parameters, self.initcond)
 
@@ -165,18 +172,20 @@ class AdvDensH1Model(Model):
         else:
             raise ValueError("hamiltonian " + parameters['model']['hamiltonian'] + " is unknown")
 
-        self.statistics = AdvDensStatistics_CF_H1(self.spaces, hamiltonian, vars, self.initcond, parameters['timestepping']['num_steps'] // parameters['output']['stat_freq'] + 1)
-        self.diagnostics = AdvDensDiagnostics_CF_H1(self.spaces, hamiltonian, vars, self.initcond, parameters['mesh']['dim'])
+        self.has_dynamics_statistics=has_dynamics_statistics
+        if has_dynamics_statistics:
+            self.statistics = AdvDensStatistics_CF_H1(self.spaces, hamiltonian, vars, self.initcond, parameters['timestepping']['num_steps'] // parameters['output']['stat_freq'] + 1)
+            self.diagnostics = AdvDensDiagnostics_CF_H1(self.spaces, hamiltonian, vars, self.initcond, parameters['mesh']['dim'])
         forcing_terms = get_forcing_terms(parameters, vars, self.spaces, self.initcond)
         self.dynamics = AdvDensCF_H1_Dynamics(parameters, self.mesh, self.spaces, vars, hamiltonian, forcing_terms, logger)
 
-def get_model(parameters, logger):
+def get_model(parameters, logger, has_dynamics_statistics=True):
     if parameters['model']['type'] == 'advdens-cf-h1':
-        return AdvDensH1Model(parameters, logger)
+        return AdvDensH1Model(parameters, logger, has_dynamics_statistics=has_dynamics_statistics)
     elif parameters['model']['type'] == 'metriplectic':
-        return MetriplecticModel(parameters, logger)
+        return MetriplecticModel(parameters, logger, has_dynamics_statistics=has_dynamics_statistics)
     elif parameters['model']['type'] == 'advection':
-        return AdvectionModel(parameters, logger)
+        return AdvectionModel(parameters, logger, has_dynamics_statistics=has_dynamics_statistics)
     else:
         raise ValueError("model type" + parameters['model']['type'] + " is unknown")
 #
