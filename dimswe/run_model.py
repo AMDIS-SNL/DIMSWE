@@ -16,12 +16,6 @@ def run_model(parameters):
 
     logger.output('Setting up simulation', 0)
     model = get_model(parameters, logger)
-    xn, xn_sub, x_split = model.get_x_var('xn')
-    t = model.get_t_var()
-    coeffs = model.get_coeff_var('coeff')
-    coeff, coeff_sub, coeff_split, coeff_trial = coeffs
-
-
 
 #SUPER HACKY RIGHT NOW
 #THIS IS A HORRIBLE HACK FOR MAXWELL IN A BOX USING LOWEST ORDER SPACES
@@ -31,17 +25,30 @@ def run_model(parameters):
         parameters['timestepping']['dt'] = calculate_timestep(parameters['timestepping']['cfl_const'], min_dx, wavespeed)
         logger.output('calculated cfl-based dt as ' + str(parameters['timestepping']['dt']), 0)
 
+    coeffs = model.get_coeff_var('coeff')
+    coeff, coeff_sub, coeff_split = coeffs
+    t = model.get_t_var()
+
     timestepper = get_timestepper(parameters, model, logger, coeffs)
+
+#HOW DO WE HANDLE THIS IN THE GENERAL CASE FOR LIE SPLIT INTEGRATOR?
+#THE ISSUE IS A MIX OF EXPLICIT AND IMPLICIT
+#SIMILAR CONCERNS FOR IMEX SCHEMES...maybe not actually here- we are actually just doing a bunch of nonlinear solves, at least for dirk
+#REALLY THE PROBLEM IS- GIVEN X FULL, CAN I EXTRACT SUBFUNCTIONS AND ASSIGN INTO XPARTIAL?
+#THIS CAN BE EASILY DONE WITH SUBFUCTIONS, BUT IT WOULD BE NICE TO DO IT "ALL AT ONCE"
+
+    #xn, xn_sub, x_split = model.get_full_var('xn', split_x_and_aux=timestepper.split_x_and_aux())
+    xn, xn_sub, x_split = model.get_full_var('xn', split_x_and_aux=True)
 
     logger.output('Starting simulation', 0)
 
-    output = Output(xn_sub, coeff_sub, parameters, model, logger)
+    output = Output(xn, xn_sub, coeff_sub, parameters, model, logger)
 
-    model.initialize(xn, t)
+    model.initialize(xn_sub, t)
     model.set_default_coeffs(coeff_sub)
 
-    model.create_diagnostics(xn_sub, t, coeff)
-    model.create_statistics(xn_sub, t, coeff)
+    model.create_diagnostics(xn_sub, t, coeff_sub)
+    model.create_statistics(xn_sub, t, coeff_sub)
     model.compute_diagnostics()
     model.compute_statistics(0, 0)
 

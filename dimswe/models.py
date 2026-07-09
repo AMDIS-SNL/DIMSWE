@@ -36,14 +36,23 @@ class Model():
     def get_x_var(self, name):
         return self.dynamics.get_x_var(name)
 
+    def get_full_var(self, name, split_x_and_aux=False):
+        return self.dynamics.get_full_var(name, split_x_and_aux=split_x_and_aux)
+
     def get_aux_var(self, name):
         return self.dynamics.get_aux_var(name)
 
     def get_coeff_var(self, name):
         return self.dynamics.get_coeff_var(name)
 
+    def get_coeff_test_trial_vars(self):
+        return self.dynamics.get_coeff_test_trial_vars()
+
     def get_x_spaces(self,):
         return self.dynamics.get_x_spaces()
+
+    def get_full_spaces(self):
+        return self.dynamics.get_full_spaces()
 
     def get_aux_spaces(self):
         return self.dynamics.get_aux_spaces()
@@ -66,26 +75,35 @@ class Model():
     def get_x_trial_vars(self):
         return self.dynamics.get_x_trial_vars()
 
+    def get_full_test_vars(self, split_x_and_aux=False):
+        return self.dynamics.get_full_test_vars(split_x_and_aux=split_x_and_aux)
+
+    def get_full_trial_vars(self, split_x_and_aux=False):
+        return self.dynamics.get_full_trial_vars(split_x_and_aux=split_x_and_aux)
+
     def get_aux_test_vars(self):
         return self.dynamics.get_aux_test_vars()
 
     def get_aux_trial_vars(self):
         return self.dynamics.get_aux_trial_vars()
 
-    def compute_aux_expressions(self, xk_sub, aux, t, coeff_sub, xhats, terms='all'):
-        return self.dynamics.compute_aux_expressions(xk_sub, aux, t, coeff_sub, xhats, terms=terms)
+    def compute_aux_expressions(self, xk_sub, t, coeff_sub, xhats, terms='all'):
+        return self.dynamics.compute_aux_expressions(xk_sub, t, coeff_sub, xhats, terms=terms)
 
     def compute_q_expressions(self, xk_sub, aux, t, coeff_sub, xhats, terms='all'):
-        return self.dynamics.compute_q_expressions(xk_sub, aux, t, coeff_sub, xhats, terms=terms)
+        return self.dynamics.compute_q_expressions(xk_sub, t, coeff_sub, xhats, terms=terms)
 
     def compute_dfdx_expressions(self, xk_sub, aux, t, coeff_sub, xhats, terms='all'):
-        return self.dynamics.compute_dfdx_expressions(xk_sub, aux, t, coeff_sub, xhats, terms=terms)
+        return self.dynamics.compute_dfdx_expressions(xk_sub, t, coeff_sub, xhats, terms=terms)
 
-    def rhs(self, xk_split, aux, t, coeff_split, xhat_subs, terms='all'):
-        return self.dynamics.rhs(xk_split, aux, t, coeff_split, xhat_subs, terms=terms)
+    def rhs(self, xk_split, t, coeff_split, xhat_subs, terms='all'):
+        return self.dynamics.rhs(xk_split, t, coeff_split, xhat_subs, terms=terms)
 
     def get_x_var_list(self):
         return self.dynamics.get_x_var_list()
+
+    def get_full_var_list(self):
+        return self.dynamics.get_full_var_list()
 
     def get_coeff_list(self):
         return self.dynamics.get_coeff_list()
@@ -126,15 +144,12 @@ class Model():
     def get_diagnostics(self):
         return self.diagnostics.get_diagnostics()
 
-
     def initialize(self, xn, t):
         t.assign(self.initcond.get_t0())
         varexpr = self.initcond.get_value(self.mesh, t)
         self.dynamics.initialize(xn, varexpr)
         self.diagnostics.initialize(varexpr)
         self.statistics.initialize(varexpr)
-
-
 
 class AdvDensH1Model(Model):
     def __init__(self, parameters, logger):

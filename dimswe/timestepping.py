@@ -1,7 +1,7 @@
 from firedrake import NonlinearVariationalProblem, NonlinearVariationalSolver, LinearVariationalProblem, LinearVariationalSolver
 from .parameters import overall_solver_parameters
 import numpy as np
-from firedrake import Constant, inner, TestFunction, derivative, norm, assemble, Function, TestFunctions, split, TrialFunction, adjoint, action
+from firedrake import Constant, inner, TestFunction, derivative, norm, assemble, Function, TestFunctions, split, TrialFunction, adjoint, action, replace
 
 class DummySolver():
     def solve(self):
@@ -44,12 +44,12 @@ class TimeStepper():
         self.terms = terms
         self.dx = model.spaces.dx
 
-        self.xk, self.xk_sub, self.xk_split = self.model.get_x_var('xk')
 
-        self.lambda_var, self.lambda_sub, self.lambda_split = self.model.get_x_var('lambda')
+        self.delta_lambda_var, self.delta_lambda_sub, self.delta_lambda_split = self.model.get_x_var('delta_lambda')
 
-        self.coeff, self.coeff_sub, self.coeff_split, self.coeff_trial = coeffs
-        #self.grad, self.grad_sub, self.grad_split, self.grad_trial = self.model.get_coeff_var()
+        self.coeff, self.coeff_sub, self.coeff_split = coeffs
+        self.grad, self.grad_sub, self.grad_split = self.model.get_coeff_var('grad')
+        self.grad_test, self.grad_test_subs, self.grad_trial, self.grad_trial_subs = self.model.get_coeff_test_trial_vars()
 
         self.t = Constant(1.)
         self.dt = Constant(1.)
@@ -57,7 +57,36 @@ class TimeStepper():
     def set_coeff(self, coeff_val):
         self.coeff.assign(coeff_val)
 
-class ExplicitRK(TimeStepper):
+class AdditiveGeneralRK(TimeStepper):
+    def __init__(self, model, logger, coeffs, A1, A2, b1, b2, c1, c2, nstages, terms='all'):
+        TimeStepper.__init__(self, model, logger, coeffs, terms=terms)
+        self.A1 = A1
+        self.b1 = b1
+        self.c1 = c1
+        self.A2 = A2
+        self.b2 = b2
+        self.c2 = c2
+        self.nstages = nstages
+
+        zero_diag1 = not np.any(np.diagonal(self.A1))
+        triangular1 = np.allclose(self.A1, np.tril(self.A1))
+        self.is_explicit1 = triangular1 and zero_diag1
+        self.is_dirk1 = triangular1 and (not zero_diag1)
+
+        zero_diag2 = not np.any(np.diagonal(self.A2))
+        triangular2 = np.allclose(self.A2, np.tril(self.A2))
+        self.is_explicit2 = triangular2 and zero_diag2
+        self.is_dirk2 = triangular2 and (not zero_diag2)
+
+
+def create_linear_solver_from_residual(residual, var, trialvar, constant_jacobian=False, solver_parameters={}, options_prefix=''):
+    a = derivative(residual, var, trialvar)
+    L = action(a, var) - residual
+    problem = LinearVariationalProblem(a, L, var, constant_jacobian=constant_jacobian)
+    solver = LinearVariationalSolver(problem, solver_parameters=solver_parameters, options_prefix=options_prefix)
+    return solver
+
+class GeneralRK(TimeStepper):
     def __init__(self, model, logger, coeffs, A, b, c, nstages, terms='all'):
         TimeStepper.__init__(self, model, logger, coeffs, terms=terms)
         self.A = A
@@ -65,240 +94,292 @@ class ExplicitRK(TimeStepper):
         self.c = c
         self.nstages = nstages
 
+        zero_diag = not np.any(np.diagonal(self.A))
+        triangular = np.allclose(self.A, np.tril(self.A))
+        self.is_explicit = triangular and zero_diag
+        self.is_dirk = triangular and (not zero_diag)
+
         self.aux_var_list = self.model.get_aux_var_list(terms=terms)
 
+        self.xk, self.xk_sub, self.xk_split = self.model.get_full_var('xk', split_x_and_aux=self.is_explicit)
+
         self.Fi = []
-        self.auxi = []
-#NOT SURE ABOUT THESE SPLITS YET...
         self.mui = []
-        self.muauxi = []
-        #self.li = []
-        #self.lauxi = []
         for i in range(nstages):
-            self.auxi.append(self.model.get_aux_var('aux'+str(i)))
-            self.Fi.append(self.model.get_x_var('F'+str(i)))
-#NOT SURE ABOUT THESE SPLITS YET...
-            self.mui.append(self.model.get_x_var('mu'+str(i)))
-            self.muauxi.append(self.model.get_aux_var('muaix'+str(i)))
-            #self.li.append(self.model.get_x_var('li'+str(i)))
-            #self.lauxi.append(self.model.get_aux_var('lauxi'+str(i)))
+            self.Fi.append(self.model.get_full_var('F'+str(i), split_x_and_aux=self.is_explicit))
+            self.mui.append(self.model.get_full_var('mu'+str(i), split_x_and_aux=self.is_explicit))
 
-        xhat, xhat_subs = self.model.get_x_test_vars()
-        xtrial, xtrial_subs = self.model.get_x_trial_vars()
+        xhat, xhat_subs = self.model.get_full_test_vars(split_x_and_aux=self.is_explicit)
+        xtrial, xtrial_subs = self.model.get_full_trial_vars(split_x_and_aux=self.is_explicit)
 
-        auxhat, auxhat_subs = self.model.get_aux_test_vars()
-        auxtrial, auxtrial_subs = self.model.get_aux_trial_vars()
+#FOR IRK, we need to build the FULL space of s copies as a giant mixed system
+#then F[i][0][0], and xhat, etc. is actually a SPLIT of the full function (or really a sum of the appropriate splits...)
+#NOT SURE THIS WORKS, BUT SOMETHING LIKE THIS!
 
-        full_hat_subs = xhat_subs | auxhat_subs
+#what get_full should return is xfull,auxfull indexed by [i=num copies], etc.
+#then we can write general code below!
 
-#CAREFUL WITH SUB VS SPLIT HERE!
-        self.Fsolvers = []
-        self.auxsolvers = []
-        self.residual_F = []
-        self.residual_aux = []
+#but otherwise the code below is fine
+#WE SHOULD MODIFY XHAT AND XTRIAL TO HAVE AN I INDEX
+#easiest solution- modify get full test/trial vars and get full var to take an index for how many copies,
+#and also an arugment about whether to split the copies as well
+#then the code below (with xhat_subs[i] replacement, etc.) should seamlessly generalize!
+
+        #construct residuals for F and aux
+        #this sign is due to writing things as dxdt + F(x) = 0
+        rhs_F = -model.rhs(self.xk_split, self.t, self.coeff_sub, xhat_subs, terms=terms)
+        if self.model.has_aux():
+            aux_expressions = self.model.compute_aux_expressions(self.xk_split, self.t, self.coeff_sub, xhat_subs, terms=terms)
+            rhs_W = 0
+            lhs_W = 0
+            for var in self.model.get_aux_var_list(terms=terms):
+                rhs_W = rhs_W + aux_expressions[var][1]
+                lhs_W = lhs_W + aux_expressions[var][0]
+        #THIS IS A BIT OF A MESS FOR DIRK AND IRK- need to take derivatives wrt x and w independently, if that is possible?
+        #MIGHT BE ABLE TO JUST TAKE A JOINT DERIVATIVE? UNCLEAR....
+        derivT_F_F = adjoint(derivative(rhs_F, self.xk[0], xtrial[0]))
+        derivT_F_theta = adjoint(derivative(rhs_F, self.coeff, self.grad_trial))
+        if self.model.has_aux() and not (lhs_W == 0):
+            derivT_F_w = adjoint(derivative(rhs_F, self.xk[1], xtrial[1]))
+            derivT_W_F = adjoint(derivative(rhs_W, self.xk[0], xtrial[0]))
+            derivT_W_theta = adjoint(derivative(rhs_W, self.coeff, self.grad_trial))
+
+
+        xi_splits = []
         for i in range(nstages):
             xi_split = {}
             for var in self.model.get_x_var_list():
-                xi_split[var] = self.xk_split[var] + self.dt*sum(float(self.A[i,j]) * self.Fi[j][2][var] for j in range(self.nstages))
+                xi_split[self.xk_split[var]] = self.xk_split[var]
+                for j in range(nstages):
+                    if not (self.A[i,j] == 0): xi_split[self.xk_split[var]] = xi_split[self.xk_split[var]] + self.dt*float(self.A[i,j]) * self.Fi[j][2][var]
+            for var in self.model.get_aux_var_list():
+                xi_split[self.xk_split[var]] = self.Fi[i][2][var]
+            xi_split[self.t] = self.t + float(self.c[i])*self.dt
+            xi_splits.append(xi_split)
 
+        residuals_F = []
+        residuals_aux = []
+        residuals_mu = []
+        residuals_muaux = []
+        residual_xk = inner(self.delta_lambda_var, xhat[0])*self.dx
+        residual_grad = inner(self.grad, self.grad_test)*self.dx
+        for i in range(nstages):
+            #MIGHT HAVE TO MODIFY THIS INNER PRODUCT A LITTLE FOR IRK GENERALITY
+            residual_F = inner(xhat[0], self.Fi[i][0][0])*self.dx - replace(rhs_F, xi_splits[i])
+#ALL THESE RESIDUAL MU/MUAUX SUMS RELY ON SPLITTING AND TAKING DERIVATIVES WRT SPLITS
+#THIS IS A MESS WITH DIRK AND IRK!
+            residual_mu = inner(self.mui[i][0][0], xhat[0])*self.dx
+            for j in range(self.nstages):
+                if not derivT_F_F.empty():
+                    #print('adding derivT_F_F action for mu',i,j,self.A[j,i])
+                    term = self.dt*float(self.A[j,i])*action(derivT_F_F, self.mui[j][0][0])
+                    residual_mu = residual_mu - replace(term, xi_splits[j])
+
+            if not derivT_F_F.empty():
+                term = action(derivT_F_F, self.mui[i][0][0])
+                residual_xk = residual_xk - replace(term, xi_splits[i])
+            if model.has_aux() and (not lhs_W == 0) and not derivT_W_F.empty():
+                term = action(derivT_W_F, self.mui[i][0][1])
+                residual_xk = residual_xk - replace(term, xi_splits[i])
+
+            if not derivT_F_theta.empty():
+                term = action(derivT_F_theta, self.mui[i][0][0])
+                residual_grad = residual_grad - replace(term, xi_splits[i])
+            if model.has_aux() and (not lhs_W == 0) and not derivT_W_theta.empty():
+                term = action(derivT_W_theta, self.mui[i][0][1])
+                residual_grad = residual_grad - replace(term, xi_splits[i])
+
+            residual_aux = 0
+            residual_muaux = 0
             if self.model.has_aux():
-                a_aux = 0
-                L_aux = 0
-                aux_expressions = self.model.compute_aux_expressions(xi_split, self.auxi[i][2], self.t, self.coeff_sub, full_hat_subs, terms=terms)
-                for var in self.model.get_aux_var_list(terms=terms):
-                    a_aux = a_aux + derivative(aux_expressions[var][0], self.auxi[i][0], auxtrial)
-                    L_aux = L_aux + aux_expressions[var][1]
-                if L_aux == 0:
+                if not (lhs_W == 0):
+                    residual_aux = replace(lhs_W, xi_splits[i]) - replace(rhs_W, xi_splits[i])
+                    residual_muaux = inner(self.mui[i][0][1], xhat[1])*self.dx
+                    for j in range(self.nstages):
+                        if not derivT_F_w.empty():
+                            #print('adding derivT_F_w action for muaux',i,j,self.A[j,i])
+                            term = self.dt*float(self.A[j,i])*action(derivT_F_w, self.mui[j][0][0])
+                            residual_muaux = residual_muaux - replace(term, xi_splits[j])
+                        if not derivT_W_F.empty():
+                            #print('adding derivT_W_F action for mu',i,j,self.A[j,i])
+                            term = self.dt*float(self.A[j,i])*action(derivT_W_F, self.mui[j][0][1])
+                            residual_mu = residual_mu - replace(term, xi_splits[j])
+
+            residuals_aux.append(residual_aux)
+            residuals_F.append(residual_F)
+            residuals_mu.append(residual_mu)
+            residuals_muaux.append(residual_muaux)
+
+#EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF
+        #construct solvers
+        if self.is_explicit:
+            self.Fsolvers = []
+            self.auxsolvers = []
+            self.musolvers = []
+            self.muauxsolvers = []
+            for i in range(self.nstages):
+                #print('creating solvers', i)
+                if (not self.model.has_aux()) or residuals_aux[i] == 0:
                     self.auxsolvers.append(DummySolver())
-                    self.residual_aux.append(0)
+                    self.muauxsolvers.append(DummySolver())
                 else:
 #THIS IS GOING TO FAIL WHEN AUXILIARY VARIABLES HAVE NON-CONSTANT JACOBIANS
-                    auxproblem = LinearVariationalProblem(a_aux, L_aux, self.auxi[i][0], constant_jacobian=True)
-                    self.auxsolvers.append(LinearVariationalSolver(auxproblem, solver_parameters=overall_solver_parameters['erkstage-aux'], options_prefix = 'erk-aux'))
-                    self.residual_aux.append(action(a_aux, self.auxi[i][0]) - L_aux)
-            else:
-                self.auxsolvers.append(DummySolver())
+#CAN/SHOULD MAYBE SPLIT THESE INTO SEPARATE SOLVERS FOR EACH AUX VAR?
+#THIS WILL BE A MESS FOR COMPUTING ADJOINT STUFF, BUT MANAGEABLE!
+                    self.auxsolvers.append(create_linear_solver_from_residual(residuals_aux[i], self.Fi[i][0][1], xtrial[1], constant_jacobian=True, solver_parameters=overall_solver_parameters['erkstage-aux'], options_prefix = 'erk-aux'))
+                    self.muauxsolvers.append(create_linear_solver_from_residual(residuals_muaux[i], self.mui[i][0][1], xtrial[1], solver_parameters=overall_solver_parameters['erkstage-muaux'], options_prefix = 'erk-muaux'))
 
-            #this sign is due to writing things as dxdt + F(x) = 0
-            a_F = inner(xhat, xtrial)*self.dx
-            L_F  = -model.rhs(xi_split, self.auxi[i][2], self.t, self.coeff_sub, full_hat_subs, terms=terms) #action(a_F, self.Fi[i][0]) - residual_F
-            self.residual_F.append(inner(xhat, self.Fi[i][0])*self.dx - L_F)
-            Fproblem = LinearVariationalProblem(a_F, L_F, self.Fi[i][0], constant_jacobian=True)
-            self.Fsolvers.append(LinearVariationalSolver(Fproblem, solver_parameters=overall_solver_parameters['erkstage-f'], options_prefix = 'erk-f'))
+                self.Fsolvers.append(create_linear_solver_from_residual(residuals_F[i], self.Fi[i][0][0], xtrial[0], constant_jacobian=True, solver_parameters=overall_solver_parameters['erkstage-f'], options_prefix = 'erk-f'))
+                self.musolvers.append(create_linear_solver_from_residual(residuals_mu[i], self.mui[i][0][0], xtrial[0], solver_parameters=overall_solver_parameters['erkstage-mu'], options_prefix = 'erk-mu'))
+            self.deltalambdasolver = create_linear_solver_from_residual(residual_xk, self.delta_lambda_var, xtrial[0], solver_parameters=overall_solver_parameters['erk-dlambda'], options_prefix = 'erk-lambda')
+            self.gradsolver = create_linear_solver_from_residual(residual_grad, self.grad, self.grad_trial, solver_parameters=overall_solver_parameters['erk-grad'], options_prefix = 'erk-grad')
+        elif self.is_dirk:
+            raise NotImplementedError('dirk not done yet')
+            #self.Fauxsolvers = []
+            #self.mufullsolvers = []
+            #for i in range(self.nstages):
+            #    full_residual = self.residual_F[i] + self.residual_aux[i]
+            #    fullproblem = NonlinearVariationalProblem(full_residual, self.Fi[i][0][0])
+            #    self.Fauxsolvers.append(NonlinearVariationalSolver(fullproblem, solver_parameters=overall_solver_parameters['dirkstage'], options_prefix = 'dirk'))
+            #    full_mu_residual = self.residual_mu[i] + self.residual_muaux[i]
+            #    self.mufullsolvers.append(create_linear_solver_from_residual(full_mu_residual, self.Fi[i][0][0], xtrial[0], solver_parameters=overall_solver_parameters['dirkstage-mu'], options_prefix = 'dirk-mu'))
 
-
-        self.muisolvers = []
-        self.muauxisolvers = []
-        for i in range(self.nstages):
-#THIS IS WRONG
-#IT SHOULD BE DRES/DX VIA CHAIN RULE, not sure exactly how to accces that?
-#UGGGH...
-#SAME SORT OF ISSUES WITH OTHER DERIVATIVES...
-            gradT_residual_F_F = adjoint(derivative(self.residual_F[i], self.Fi[i][0], xtrial))
-            #print(derivative(self.residual_F[i], self.Fi[i][0], xtrial))
-            print(gradT_residual_F_F)
-            if not (self.coeff is None):
-                gradT_residual_F_coeff = adjoint(derivative(self.residual_F[i], self.coeff, self.coeff_trial))
-            if self.model.has_aux():
-                gradT_residual_F_aux = adjoint(derivative(self.residual_F[i], self.auxi[i][0], auxtrial))
-                if not self.residual_aux[i] == 0:
-                    gradT_residual_aux_F = adjoint(derivative(self.residual_aux[i], self.Fi[i][0], xtrial))
-#THIS IS NON-TRIVIAL IF AUX VARS ARE NOT SIMPLE MASS MATRICES
-                    #gradT_residual_aux_aux = adjoint(derivative(self.residual_aux[i], self.auxi[i][0], auxtrial))
-                    if not (self.coeff is None):
-                        gradT_residual_aux_coeff = adjoint(derivative(self.residual_aux[i], self.coeff, self.coeff_trial))
-#IF AUX VARS ARE NOT SIMPLE MASS MATRICES THEN THIS SHOULD ACTUALLY BE A DERIVATIVE OF a_aux...
-#WAIT- PROBABLY WRONG ANYWAYS, WE LIKELY WANT THE FULL RESIDUAL HERE...
-#IE FORM LINEAR PROBLEM FROM NONLINEAR ONE!
-                a_muauxi = inner(auxhat, auxtrial)*self.dx
-                #L_muauxi = 0 action(gradT_residual_F_aux, self.muauxi[i][0])
-                L_muauxi = 0
-                muauxiproblem = LinearVariationalProblem(a_muauxi, L_muauxi, self.muauxi[i][0])
-                self.muauxisolvers.append(LinearVariationalSolver(muauxiproblem, solver_parameters=overall_solver_parameters['muistage-aux'], options_prefix = 'erk-mui-aux'))
-            else:
-                self.muauixsolvers.append(DummySolver())
-
-            a_mui = inner(xhat, xtrial)*self.dx
-            #li = self.dt * sum(float(self.A[i,j]) * self.mui[i][0] for j in range(self.nstages))
-            #L_mui = self.dt*float(self.b[i]) * self.lambda_var + action(gradT_residual_F_F, li)
-            #if self.model.has_aux():
-            #    lauxi = self.dt * sum(float(self.A[i,j]) * self.muauxi[i][0] for j in range(self.nstages))
-            #    L_mui = L_mui + action(gradT_residual_F_aux, lauxi)
-            L_mui = 0
-            muiproblem = LinearVariationalProblem(a_mui, L_mui, self.mui[i][0])
-            self.muisolvers.append(LinearVariationalSolver(muiproblem, solver_parameters=overall_solver_parameters['muistage-f'], options_prefix = 'erk-mui-f'))
-
-#THIS IS MAYBE WRONG?
-#WHAT IS THE CORRECT FORMAT ACTUALLY?
-#IE WHAT IS THE GRADIENT OF THE FUNCTIONAL WRT
-#Scipy optimizers want a (1,nparams) matrix (or similar)
-#I bet there is no solve needed, it is just assembly of a matrix!
-            #gradrhs = gradrhs - action(self.gradT_params, self.li[i])
-        #Agrad = derivative(inner(self.grad, self.gradtrial)*self.dx, self.grad)
-        #gradproblem = LinearVariationalProblem(Agrad, gradrhs, self.grad)
-        #self.gradsolver = LinearVariationalSolver(gradproblem, solver_parameters=overall_solver_parameters['grad'], options_prefix='grad')
+        else:
+            raise NotImplementedError('implicit RK not done yet')
+            #total_residual = 0
+            #total_mu_residual = 0
+            #for i in range(self.nstages):
+            #    total_residual = total_residual + self.residual_F[i] + self.residual_aux[i]
+            #    total_mu_residual = total_mu_residual + self.residual_mu[i] + self.residual_muaux[i]
+            #totalproblem = NonlinearVariationalProblem(total_residual, self.Fi[0]) #SOMETHIGN LIKE THIS
+            #NEED TO RETURN THIS FULL VARIABLE SOMEHOW! This is pretty straightforward I think, just another thing that get_full_var (and get_full_test_vars, etc.) does!
+            #self.Fauxsolver = NonlinearVariationalSolver(totalproblem, solver_parameters=overall_solver_parameters['irk'], options_prefix = 'irk')
+            #self.mufullsolver = create_linear_solver_from_residual(total_mu_residual, self.mui[0], xtrial[0], solver_parameters=overall_solver_parameters['irk-mu'], options_prefix = 'irk-mu')
 
 
 
+    def split_x_and_aux(self):
+        return self.is_explicit
 
+#EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF
     def take_forward_step(self, xnp1, xnp1_sub, xn, tn, dt):
-
+        self.t.assign(tn)
         self.dt.assign(dt)
-        self.xk.assign(xn)
-        for i in range(self.nstages):
-            self.t.assign(tn + self.c[i]*self.dt)
-            #THIS PEICE IS A LITTLE BROKEN- WE DONT WANT TO DO THIS ANYWAYS!
-            #self.model.post_step(self.xk_sub, terms=self.terms)
-            self.auxsolvers[i].solve()
-            self.Fsolvers[i].solve()
+#THE BIG ISSUE HERE IS WHEN XK AND XN ARE NOT THE SAME TYPE!
+#HOW DO WE RESOLVE THIS?
+        #don't time step aux variables!
+        self.xk[0].assign(xn[0])
+#THIS BREAKS A LITTLE FOR FULL SPACE VERSION
+#REALLY WHAT WE NEED TO BE ABLE TO DO IS SPLIT A MIXED SPACE INTO TWO SUBSPACES...
 
-        xnp1.assign(xn + self.dt * sum(float(self.b[i]) * self.Fi[i][0] for i in range(self.nstages)))
-        #self.model.post_step(xnp1_sub, terms=self.terms)
+        if self.is_explicit:
+            for i in range(self.nstages):
+                self.auxsolvers[i].solve()
+                self.Fsolvers[i].solve()
+        elif self.is_dirk:
+            for i in range(self.nstages):
+                self.Fauxsolvers[i].solve()
+        else:
+            self.Fauxsolver.solve()
 
+#THIS BREAKS A LITTLE FOR FULL SPACE VERSION
+        #don't timestep aux variables!
+        xnp1[0].assign(xn[0] + self.dt * sum(float(self.b[i]) * self.Fi[i][0][0] for i in range(self.nstages)))
+#COULD SET AUX STUFF HERE FOR DIAGNOSTIC PURPOSES?
 
     def take_adjoint_step(self, grad, lambda_n, lambda_np1, tnp1, dt):
 
         self.dt.assign(dt)
         self.lambda_var.assign(lambda_np1)
+        self.t.assign(tnp1 - dt)
 
-        #compute mui and muauxi
-        for i in range(self.nstages-1,-1,-1):
-            self.t.assign(tnp1 - dt + self.c[i]*self.dt)
-            self.muisolvers.solve()
-            self.muauxisolvers.solve()
+#EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF
+        if self.is_explicit:
+            for i in range(self.nstages-1,-1,-1):
+                self.musolvers[i].solve()
+                self.muauxsolvers[i].solve()
+        elif self.is_dirk:
+            for i in range(self.nstages-1,-1,-1):
+                self.mufullsolvers.solve()
+        else:
+            self.mufullsolver.solve()
+        self.deltalambdasolver.solve()
 
         #compute grad
-#HOW DO WE ACTUALLY DO THIS?
-        #self.gradsolver.solve()
-        #grad.assign(grad + self.grad)
+        self.gradsolver.solve()
+        grad.assign(grad + self.grad)
 
         #compute lambda_n
-        lambda_n.assign(lambda_np1 + sum(self.mu[i] for i in range(self.nstages)) + sum(self.muaux[i] for i in range(self.nstages)))
+#SIGNS HERE?
+        lambda_n.assign(lambda_np1 + self.delta_lambda_var)
 
-class Euler(ExplicitRK):
+class Euler(GeneralRK):
     def __init__(self, model, logger, coeffs, terms='all'):
         A = np.array([[0.0,],])
         b = np.array([1.0,])
         c = np.array([0.0,])
-        ExplicitRK.__init__(self, model, logger, coeffs, A, b, c, 1, terms=terms)
+        GeneralRK.__init__(self, model, logger, coeffs, A, b, c, 1, terms=terms)
 
-class RK4(ExplicitRK):
+class RK4(GeneralRK):
     def __init__(self, model, logger, coeffs, terms='all'):
         A = np.array([[0.0, 0.0, 0.0, 0.0,], [0.5, 0.0, 0.0, 0.0], [0.0, 0.5, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]])
         b = np.array([1./6., 1./3., 1./3., 1./6.])
         c = np.array([0.0, 0.5, 0.5, 1.0])
-        ExplicitRK.__init__(self, model, logger, coeffs, A, b, c, 4, terms=terms)
+        GeneralRK.__init__(self, model, logger, coeffs, A, b, c, 4, terms=terms)
 
-class SSPRK3(ExplicitRK):
+class SSPRK3(GeneralRK):
     def __init__(self, model, logger, coeffs, terms='all'):
         A = np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.25, 0.25, 0.0]])
         b = np.array([1./6., 1./6., 2./3.])
         c = np.array([0.0, 1.0, 0.5])
-        ExplicitRK.__init__(self, model, logger, coeffs, A, b, c, 3, terms=terms)
+        GeneralRK.__init__(self, model, logger, coeffs, A, b, c, 3, terms=terms)
 
 
-class SSPRK43(ExplicitRK):
+class SSPRK43(GeneralRK):
     def __init__(self, model, logger, coeffs, terms='all'):
         A = np.array([[0.0, 0.0, 0.0, 0.0,], [0.5, 0.0, 0.0, 0.0], [0.5, 0.5, 0.0, 0.0], [1.0/6.0, 1.0/6.0, 1.0/6.0, 0.0]])
         b = np.array([1./6., 1./6., 1./6., 3./6.])
         c = np.array([0.0, 0.5, 1.0, 0.5])
-        ExplicitRK.__init__(self, model, logger, coeffs, A, b, c, 4, terms=terms)
-
-#ONLY SIGNIFICANT DIFFERENCE HERE IS THAT YI PROBLEMS BECOME NONLINEAR BUT STILL SEPARATED, AND MUI BECOMES A TRUE LINEAR SYSTEM BUT SEPARATED!
-class DIRK(TimeStepper):
-    def __init__(self,):
-        pass
-    def take_forward_step(dt):
-        pass
-    def take_adjoint_step(dt):
-        pass
-
-#ONLY SIGNIFICANT DIFFERENCE HERE IS THAT YI PROBLEMS BECOME NONLINEAR AND FULLY COUPLED, AND MUI BECOMES A TRUE LINEAR SYSTEM AND COUPLED!
-class ImplicitRK(TimeStepper):
-    def __init__(self,):
-        pass
-    def take_forward_step(dt):
-        pass
-    def take_adjoint_step(dt):
-        pass
+        GeneralRK.__init__(self, model, logger, coeffs, A, b, c, 4, terms=terms)
 
 
-
-class KGRK2(ExplicitRK):
+#ADD THESE!!!
+class KGRK2(GeneralRK):
     def __init__(self, model, logger, coeffs, terms='all'):
         A = SOMETHING
         b = SOMETHING
         c = SOMETHING
         nstages = SOMETHING
-        ExplicitRK.__init__(self, model, logger, coeffs, A, b, c, nstages, terms=terms)
+        GeneralRK.__init__(self, model, logger, coeffs, A, b, c, nstages, terms=terms)
 
 
-class KGRK3(ExplicitRK):
+class KGRK3(GeneralRK):
     def __init__(self, model, logger, coeffs, terms='all'):
         A = SOMETHING
         b = SOMETHING
         c = SOMETHING
         nstages = SOMETHING
-        ExplicitRK.__init__(self, model, logger, coeffs, A, b, c, nstages, terms=terms)
+        GeneralRK.__init__(self, model, logger, coeffs, A, b, c, nstages, terms=terms)
 
-class SOMEDIRK(DIRK):
+class SOMEDIRK(GeneralRK):
     def __init__(self, model, logger, coeffs, terms='all'):
         A = SOMETHING
         b = SOMETHING
         c = SOMETHING
         nstages = SOMETHING
-        DIRK.__init__(self, model, logger, coeffs, A, b, c, nstages, terms=terms)
-#ADD SOME DIRK CLASSES HERE ALSO
+        GeneralRK.__init__(self, model, logger, coeffs, A, b, c, nstages, terms=terms)
 
 
-class SOMEIMPLICITRK(ImplicitRK):
+class SOMEIMPLICITRK(GeneralRK):
     def __init__(self, model, logger, coeffs, terms='all'):
         A = SOMETHING
         b = SOMETHING
         c = SOMETHING
         nstages = SOMETHING
-        DIRK.__init__(self, model, logger, coeffs,  A, b, c, nstages, terms=terms)
-#ADD SOME DIRK CLASSES HERE ALSO
+        GeneralRK.__init__(self, model, logger, coeffs,  A, b, c, nstages, terms=terms)
+
+
+
 
 class LieSplittingIntegrator():
     def __init__(self, model, logger, coeffs, timestepper_list, termlist, subcycle_list):
@@ -312,18 +393,19 @@ class LieSplittingIntegrator():
             time_integrator = get_time_integrator(time_integrator_name, None)
             self.time_integrators.append(time_integrator(model, logger, coeffs, terms=termlist[i]))
 
-        self.xk, self.xk_sub, self.xk_split = model.get_x_var('xk')
+#HOW DO WE HANDLE THIS IN THE GENERAL CASE?
+        self.xk, self.xk_sub, self.xk_split = model.get_full_var('xk', split_x_and_aux=True)
         self.lambda_k, self.lambda_sub, self.lambda_split = model.get_x_var('lambda_k')
 
 
     def take_forward_step(self, xnp1, xnp1_sub, xn, tn, dt):
-        self.xk.assign(xn)
+        self.xk[0].assign(xn[0])
         for i,time_integrator in enumerate(self.time_integrators):
             sub_dt = dt / self.subcycle_list[i]
 #PROBABLY NEED TO STORE INTERMEDIATE VALUES HERE
             for k in range(self.subcycle_list[i]):
                 time_integrator.take_forward_step(self.xk, self.xk_sub, self.xk, tn + k * sub_dt, sub_dt)
-        xnp1.assign(self.xk)
+        xnp1[0].assign(self.xk[0])
 
 
 #THERE IS A STORAGE CHOICE THAT NEEDS TO BE MADE HERE

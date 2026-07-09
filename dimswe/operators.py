@@ -6,7 +6,7 @@ class OperatorBase():
     def get_aux_vars_list(self):
         return []
 
-    def compute_aux_expressions(self, x, aux, t, coeff, xhats, expressions):
+    def compute_aux_expressions(self, x, t, coeff, xhats, expressions):
         pass
 
     def post_step(self, statevars):
@@ -27,7 +27,7 @@ class OperatorBase():
     def get_spacelist(self):
         return []
 
-    def rhs(self, xvars, auxvars, xhats):
+    def rhs(self, xvars, xhats):
         return 0.0
 
 #POSSIBLY FIX UP LINEAR RHS CALLING FORMAT?

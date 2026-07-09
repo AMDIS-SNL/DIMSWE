@@ -146,10 +146,13 @@ class AdvDensVariables_CF_Base(VariablesBase):
             self.dhdx_var_list.append('B_' + dens)
 
     def initialize(self, varexpr, vars):
-        if not varexpr['v']==0:
-            vars.sub(0).project(varexpr['v'])
-        for i,dens in enumerate(self.density_names):
-            vars.sub(i+1).interpolate(varexpr[dens])
+        for var in self.varlist:
+            if not varexpr[var] == 0:
+                vars[var].project(varexpr[var])
+        #if not varexpr['v']==0:
+        #    vars.sub(0).project(varexpr['v'])
+        #for i,dens in enumerate(self.density_names):
+        #    vars.sub(i+1).interpolate(varexpr[dens])
 
 
 class AdvDensVariables_CF_H1(AdvDensVariables_CF_Base):

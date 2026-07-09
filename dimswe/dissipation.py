@@ -41,16 +41,17 @@ class Hyperviscosity(ForcingBase):
             auxlist.append('Q_' + varname)
         return auxlist
 
-    def compute_aux_expressions(self, xvars, auxvars, t, coeff, xhats, expressions):
+    def compute_aux_expressions(self, xvars, t, coeff, xhats, expressions):
         for varname, varspace in zip(self.varlist, self.spacelist):
             varhat = xhats['Q_' + varname]
             var = xvars[varname]
-            expressions['Q_' + varname] = [inner(varhat, auxvars['Q_' + varname])*self.dx, -inner(grad(varhat), grad(var))*self.dx]
+            expressions['Q_' + varname] = [inner(varhat, xvars['Q_' + varname])*self.dx, -inner(grad(varhat), grad(var))*self.dx]
+            #expressions['Q_' + varname] = inner(varhat, xvars['Q_' + varname])*self.dx + inner(grad(varhat), grad(var))*self.dx
 
-    def rhs(self, xvars, auxvars, t, coeff, xhats):
+    def rhs(self, xvars, t, coeff, xhats):
         expr = 0
         for varname in self.varlist:
-            qvar = auxvars['Q_' + varname]
+            qvar = xvars['Q_' + varname]
             varhat = xhats[varname]
             expr = expr + inner(-coeff['mu'] * grad(varhat), grad(qvar))*self.dx
         return expr

@@ -31,6 +31,38 @@ class Dynamics():
         else:
             return None, {}, {}
 
+    def get_full_var(self, varname, split_x_and_aux=False):
+
+        if not (self.fullspace is None):
+            if split_x_and_aux:
+                x = Function(self.xspace, name=varname)
+                x_sub = {}
+                x_split = {}
+                splitx = split(x)
+                for i,var in enumerate(self.xvarlist):
+                    x_sub[var] = x.sub(i)
+                    x_split[var] = splitx[i]
+                aux = Function(self.auxspace, name=varname)
+                aux_sub = {}
+                aux_split = {}
+                splitaux = split(aux)
+                for i,var in enumerate(self.auxvarlist):
+                    aux_sub[var] = aux.sub(i)
+                    aux_split[var] = splitaux[i]
+                return [x,aux], x_sub | aux_sub, x_split | aux_split
+            else:
+                full = Function(self.fullspace, name=varname)
+                full_sub = {}
+                full_split = {}
+                splitfull = split(full)
+                for i,var in enumerate(self.fullvarlist):
+                    full_sub[var] = full.sub(i)
+                    full_split[var] = splitfull[i]
+                return [full,], full_sub, full_split
+
+        else:
+            return None, {}, {}
+
     def get_aux_var(self, varname):
         if not (self.auxspace is None):
             aux = Function(self.auxspace, name=varname)
@@ -61,13 +93,31 @@ class Dynamics():
                 coeff_sub[var] = coeff.sub(i)
                 coeff_split[var] = splitcoeff[i]
 
-            return coeff, coeff_sub, coeff_split, coeff_trial
+            return coeff, coeff_sub, coeff_split
 
         else:
             return None, {}, {}, None
 
+    def get_coeff_test_trial_vars(self):
+        if not (self.coeffspace is None):
+            coeff_trial = TrialFunction(self.coeffspace)
+            coeff_trials = TrialFunctions(self.coeffspace)
+            coeff_test = TestFunction(self.coeffspace)
+            coeff_tests = TestFunctions(self.coeffspace)
+            coeff_trial_subs = {}
+            coeff_test_subs = {}
+            for i,var in enumerate(self.coefflist):
+                coeff_trial_subs[var] = coeff_trials[i]
+                coeff_test_subs[var] = coeff_tests[i]
+            return coeff_test, coeff_test_subs, coeff_trial, coeff_trial_subs
+        else:
+            return None, {}, None, {}
+
     def get_x_spaces(self,):
         return self.xspacelist
+
+    def get_full_spaces(self,):
+        return self.fullspacelist
 
     def get_aux_spaces(self):
         return self.auxspacelist
@@ -78,25 +128,28 @@ class Dynamics():
     def get_x_var_list(self):
         return self.xvarlist
 
+    def get_full_var_list(self):
+        return self.fullvarlist
+
     def get_coeff_list(self):
         return self.coefflist
 
     def get_dfdx_aux_var_list(self, terms='all'):
         return []
 
-    def compute_dfdx_expressions(self, x, aux, t, coeff, xhats, terms='all'):
+    def compute_dfdx_expressions(self, x, t, coeff, xhats, terms='all'):
         return {}
 
     def get_q_aux_var_list(self, terms='all'):
         return []
 
-    def compute_q_expressions(self, x, aux, t, coeff, xhats, terms='all'):
+    def compute_q_expressions(self, x, t, coeff, xhats, terms='all'):
         return {}
 
     def get_aux_var_list(self, terms='all'):
         return []
 
-    def compute_aux_expressions(self, x, aux, t, coeff, xhats, terms='all'):
+    def compute_aux_expressions(self, x, t, coeff, xhats, terms='all'):
         return {}
 
     def get_x_test_vars(self):
@@ -114,6 +167,48 @@ class Dynamics():
         for i,var in enumerate(self.xvarlist):
             xtrial_subs[var] = xtrials[i]
         return xtrial, xtrial_subs
+
+    def get_full_test_vars(self, split_x_and_aux=False):
+        if split_x_and_aux:
+            xhat = TestFunction(self.xspace)
+            xhats = TestFunctions(self.xspace)
+            xhat_subs = {}
+            for i,var in enumerate(self.xvarlist):
+                xhat_subs[var] = xhats[i]
+            auxhat = TestFunction(self.auxspace)
+            auxhats = TestFunctions(self.auxspace)
+            auxhat_subs = {}
+            for i,var in enumerate(self.auxvarlist):
+                auxhat_subs[var] = auxhats[i]
+            return [xhat, auxhat], xhat_subs | auxhat_subs
+        else:
+            xhat = TestFunction(self.fullspace)
+            xhats = TestFunctions(self.fullspace)
+            xhat_subs = {}
+            for i,var in enumerate(self.fullvarlist):
+                xhat_subs[var] = xhats[i]
+            return [xhat,], xhat_subs
+
+    def get_full_trial_vars(self, split_x_and_aux=False):
+        if split_x_and_aux:
+            xtrial = TrialFunction(self.xspace)
+            xtrials = TrialFunctions(self.xspace)
+            xtrial_subs = {}
+            for i,var in enumerate(self.xvarlist):
+                xtrial_subs[var] = xtrials[i]
+            auxtrial = TrialFunction(self.auxspace)
+            auxtrials = TrialFunctions(self.auxspace)
+            auxtrial_subs = {}
+            for i,var in enumerate(self.auxvarlist):
+                auxtrial_subs[var] = auxtrials[i]
+            return [xtrial,auxtrial], xtrial_subs | auxtrial_subs
+        else:
+            xtrial = TrialFunction(self.fullspace)
+            xtrials = TrialFunctions(self.fullspace)
+            xtrial_subs = {}
+            for i,var in enumerate(self.fullvarlist):
+                xtrial_subs[var] = xtrials[i]
+            return [xtrial,], xtrial_subs
 
     def get_aux_test_vars(self):
         if self.has_aux:
@@ -136,6 +231,7 @@ class Dynamics():
             return auxtrial, auxtrial_subs
         else:
             return None, {}
+
 #THIS IGNORES THAT THERE MIGHT BE PARAMETERS IN DYNAMICS (ex. through the Hamiltonian, etc.)
 #THIS IS AN EASY EXTENSION AS NEEDED..
     def set_default_coeffs(self, coeff):
@@ -270,6 +366,9 @@ class AdvDensCF_H1_Dynamics(Dynamics):
             self.auxvarlist += term.get_aux_vars_list()
             self.auxspacelist += term.get_spacelist()
 
+        self.fullspacelist = self.xspacelist + self.auxspacelist
+        self.fullvarlist = self.xvarlist + self.auxvarlist
+
         self.has_aux = not (len(self.auxspacelist) == 0)
         self.has_coeff = not (len(self.coeffspacelist) == 0)
 
@@ -289,6 +388,7 @@ class AdvDensCF_H1_Dynamics(Dynamics):
                 self.auxspace = MixedFunctionSpace(self.auxspacelist)
             else:
                 self.auxspace = None
+            self.fullspace = MixedFunctionSpace(self.fullspacelist)
 
     def initialize(self, x, varexpr):
         self.variableset.initialize(varexpr, x)
@@ -304,17 +404,17 @@ class AdvDensCF_H1_Dynamics(Dynamics):
                 aux_var_list = aux_var_list + term.get_aux_vars_list()
         return aux_var_list
 
-    def compute_aux_expressions(self, x, aux, t, coeff, xhats, terms='all'):
+    def compute_aux_expressions(self, x, t, coeff, xhats, terms='all'):
         expressions = {}
         for term in self.forcing_terms:
             if terms == 'all' or term.name in terms:
-                term.compute_aux_expressions(x, aux, t, coeff, xhats, expressions)
+                term.compute_aux_expressions(x, t, coeff, xhats, expressions)
         return expressions
 
 
 
 
-    def _rhs(self, xvars, auxvars, t, coeff, xhats):
+    def _rhs(self, xvars, t, coeff, xhats):
 
         v = xvars['v']
         total_dens = self.total_density_func(xvars)
@@ -345,14 +445,14 @@ class AdvDensCF_H1_Dynamics(Dynamics):
 
         return rhs_expr
 
-    def rhs(self, xvars, auxvars, t, coeff, xhats, terms='all'):
+    def rhs(self, xvars, t, coeff, xhats, terms='all'):
         self.logger.output('computing rhs', 1)
         rhs = 0
         if terms == 'all' or 'model' in terms:
-            rhs = rhs + self._rhs(xvars, auxvars, t, coeff, xhats)
+            rhs = rhs + self._rhs(xvars, t, coeff, xhats)
         for term in self.forcing_terms:
             if terms == 'all' or term.name in terms:
-                rhs = rhs + term.rhs(xvars, auxvars, t, coeff, xhats)
+                rhs = rhs + term.rhs(xvars, t, coeff, xhats)
         return rhs
         self.logger.output('computing rhs', 1)
 

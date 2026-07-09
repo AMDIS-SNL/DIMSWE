@@ -134,7 +134,7 @@ class DG1LimiterTransport(ForcingBase):
             self.limiter.apply(field)
 
 
-    def rhs(self, xvars, auxvars, t, coeff, xhats):
+    def rhs(self, xvars, t, coeff, xhats):
         v = xvars['v']
         n = self.spaces.n
 

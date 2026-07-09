@@ -51,11 +51,11 @@ def plot_adv_dens(parameters):
                         vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
                         plot_variable(vardat, var + '.' + str(n),  parameters['mesh']['dim'], var in vector_list)
 
-                    #if parameters['output']['output_aux_vars']:
+                    if parameters['output']['output_aux_vars']:
 
-                    #    for var in dynamics.get_aux_var_list():
-                    #        vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
-                    #        plot_variable(vardat, var + '.'+  str(n), parameters['mesh']['dim'], var in vector_list)
+                        for var in model.get_aux_var_list():
+                            vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
+                            plot_variable(vardat, var + '.'+  str(n), parameters['mesh']['dim'], var in vector_list)
 
                     for var in model.get_diagnostics_list():
                         vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
