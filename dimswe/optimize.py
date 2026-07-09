@@ -1,16 +1,53 @@
 from firedrake import assemble
 import numpy as np
 
+def create_states(model, nsteps):
+    xns = []
+    xn_subs = []
+    tns = []
+    for i in range(nsteps+1):
+        t = model.get_t_var()
+        xn, xn_sub, x_split = model.get_full_var('x'+str(i), split_x_and_aux=True)
+        xns.append(xn)
+        xn_subs.append(xn_sub)
+        tns.append(t)
+    return xns, xn_subs, tns
+
+def compute_states(xns, xn_subs, tns, model, timestepper, nsteps, dt, x0, t0):
+    model.restart(xns[0], x0, tns[0], t0)
+    for n in range(nsteps):
+        timestepper.take_forward_step(xns[n+1], xn_subs[n], xns[n], tns[n], dt)
+        tns[n+1].assign(tns[n] + dt)
+
+def compute_state_block(model, timestepper, nblocks, nsteps, dt, x0, t0):
+    xns = []
+    xn_subs = []
+    tns = []
+    steps = []
+    for k in range(nblocks):
+        xn, xn_sub, tn = create_states(model, nsteps)
+        if (k==0):
+            compute_states(xn, xn_sub, tn, model, timestepper, nsteps, dt, x0, t0)
+        else:
+            compute_states(xn, xn_sub, tn, model, timestepper, nsteps, dt, xns[k-1][-1], tns[k-1][-1])
+        xns.append(xn[::nsteps])
+        xn_subs.append(xn_sub[::nsteps])
+        tns.append(tn[::nsteps])
+        steps.append(nsteps)
+    return xns, xn_subs, steps, tns
+
+
 class _Objective:
     pass
 
 #EVENTUALLY ADD REGULARIZED OBJECTIVE ALSO
 class L2Objective(_Objective):
-    def __init__(self, data_blocks, t_blocks, coeff):
+    def __init__(self, data_blocks, t_blocks, coeff, nsteps):
         self.data_blocks = data_blocks
         self.coeff = coeff
         self.t_blocks = t_blocks
         self.num_data_blocks = len(self.data_blocks)
+        self.nsteps = nsteps
 
 #THIS IS A LITTLE WRONG, AND SHOULD REALLY BE PART OF ContrainedOptimizer...
 ####
@@ -34,24 +71,21 @@ class L2Objective(_Objective):
 
 
 class _ODEConstrainedOptimization():
-    def __init__(self, timestepper, objective, dt):
+    def __init__(self, model, timestepper, objective, dt):
+        self.model = model
         self.timestepper = timestepper
         self.objective = objective
-        self.states = []
-        self.ts = []
 #THIS IS A CHECKPOINTING/STORAGE CHOICE
-        for i in range(self.objective.num_steps+1):
-            self.states.append(self.timestepper.dynamics.get_full_var('x'+str(i))[0])
-        self.ts = np.zeros(self.objective.num_steps+1)
+        self.states, self.states_sub, self.tns = create_states(model, self.objective.nsteps)
         self.dt = dt
-        self.lambda_n = self.timestepper.dynamics.get_x_var('lambda')
-        self.grad = np.zeros(self.objective.nparams)
+        self.lambda_n = self.model.get_x_var('lambda')
+        self.grad = self.model.get_coeff_var('grad')
 
 #HOW DO PARAMETER BOUNDS WORK FOR LARGE SCALE PROBLEMS LIKE THIS?
 #CLEARLY THE LIST/ARRAY IS A PROBABLY A BAD IDEA?
     def optimize(self, params, method='L-BFGS-B',): #cg, bfgs
         res = sp.optimize.minimize(self.obj, params,
-            method=method, bounds=self.timestepper.dynamics.get_param_bounds(), options={'disp': True, 'maxiter': 200}, jac=self.jac, hessp=self.hessp)
+            method=method, bounds=self.model.get_param_bounds(), options={'disp': True, 'maxiter': 200}, jac=self.jac, hessp=self.hessp)
         print('optimizer success', res.success, res.status, res.message)
         print('optimizer nits', res.nit)
         print('optimizer num func evals', res.nfev)
@@ -59,23 +93,24 @@ class _ODEConstrainedOptimization():
         return res.x
 
     def obj(self, params):
-        self.dynamics.set_coeff(params)
+        self.model.set_coeff(params)
         l2loss = 0.0
+
         for i in range(self.objective.num_data_blocks):
-            self.timestepper.compute_states(self.states, self.objective.num_steps, params, self.objective.t_blocks[i][0], self.objective.data_blocks[i][0], self.dt)
-            l2loss += self.objective.evaluate(i, self.states[-1], params)
+            xns, xn_subs, tns = compute_states(self.states, self.states_sub, self.tns, self.model, self.timestepper, self.objective.nsteps, self.dt, self.objective.data_blocks[i][0], self.objective.t_blocks[i][0])
+            l2loss += self.objective.evaluate(i, xns[-1], tns[-1], params)
         return l2loss
 
 #EVENTUALLY ADD A CLASS WITH REGULARIZATION FOR CONSTRAINTS IE AUGMENTED LAGRANGIAN?
 class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
     def jac(self, params):
-        grad.zero()
-        self.timestepper.set_coeff(params)
+        self.grad.assign(0)
+        self.model.set_coeff(params)
 
         for i in range(self.objective.num_data_blocks):
             #forward pass with params to populate states
             #THIS IS A CHOICE/TYPE OF CHECKPOINT + RECOMPUTE
-            self.timestepper.compute_states(self.states, self.objective.num_steps, params, self.objective.t_blocks[i][0], self.objective.data_blocks[i][0], self.dt)
+            compute_states(self.states, self.states_sub, self.tns, self.model, self.timestepper, self.objective.nsteps, self.dt, self.objective.data_blocks[i][0], self.objective.t_blocks[i][0])
 
 
             #adjoint pass with params
@@ -86,16 +121,16 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
             for n in range(self.objective.num_steps,0,-1):
                 #take a forward step to populate stage values within timestepper
                 #THIS IS A CHOICE/TYPE OF CHECKPOINT + RECOMPUTE
-                self.timestepper.take_forward_step(self.states[n], self.states_sub[n], self.states[n-1], self.ts[n-1], self.dt)
+                self.timestepper.take_forward_step(self.states[n], self.states_sub[n], self.states[n-1], self.tns[n-1], self.dt)
 
                 #take an adjoint step
-                self.timestepper.take_adjoint_step(self.grad, self.lambda_n, self.lambda_n, self.ts[n], self.dt)
+                self.timestepper.take_adjoint_step(self.grad, self.lambda_n, self.lambda_n, self.tns[n], self.dt)
 
 #ADD DELTA CALCULATION AT THE END
 #THIS IS ACTUALLY NEEDED FOR IC OPTIMIZATION
             #grad[:] = grad[:] + self.timesteppher
 
-        self.grad[:] = self.grad[:] + self.objective.jac_params(self.states[-1], params)
+        self.grad = self.grad + self.objective.jac_params(self.states[-1], params)
         return self.grad
 
     def hessp(self, x, params):
