@@ -117,8 +117,8 @@ class Model():
     def get_aux_var_list(self, terms='all'):
         return self.dynamics.get_aux_var_list(terms=terms)
 
-    def set_default_coeffs(self, coeff_sub):
-        self.dynamics.set_default_coeffs(coeff_sub)
+    def set_coeffs(self, parameters, coeff_sub):
+        self.dynamics.set_coeffs(parameters, coeff_sub)
 
     def create_diagnostics(self, xn_sub, t, coeff):
         self.diagnostics.create_diagnostics(xn_sub, t, coeff)

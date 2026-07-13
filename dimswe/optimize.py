@@ -1,4 +1,4 @@
-from firedrake import assemble
+from firedrake import assemble, inner
 import numpy as np
 
 def create_states(model, nsteps):
@@ -18,6 +18,7 @@ def compute_states(xns, xn_subs, tns, model, timestepper, nsteps, dt, x0, t0):
     for n in range(nsteps):
         timestepper.take_forward_step(xns[n+1], xn_subs[n], xns[n], tns[n], dt)
         tns[n+1].assign(tns[n] + dt)
+    #print(xns[-1][0].dat.data[0])
 
 def compute_state_block(model, timestepper, nblocks, nsteps, dt, x0, t0):
     xns = []
@@ -42,12 +43,13 @@ class _Objective:
 
 #EVENTUALLY ADD REGULARIZED OBJECTIVE ALSO
 class L2Objective(_Objective):
-    def __init__(self, data_blocks, t_blocks, coeff, nsteps):
+    def __init__(self, data_blocks, t_blocks, coeff, nsteps, dx):
         self.data_blocks = data_blocks
         self.coeff = coeff
         self.t_blocks = t_blocks
         self.num_data_blocks = len(self.data_blocks)
         self.nsteps = nsteps
+        self.dx = dx
 
 #THIS IS A LITTLE WRONG, AND SHOULD REALLY BE PART OF ContrainedOptimizer...
 ####
@@ -65,9 +67,10 @@ class L2Objective(_Objective):
     def jacT_params(self, x, params):
         return 0
 
-    def evaluate(self, block_id, soln, params):
-        residual = soln - self.data_blocks[block_id][1]
-        return assemble(0.5*residual*residual*self.dx)
+    def evaluate(self, block_id, soln, tns, params):
+        residual = soln[0] - self.data_blocks[block_id][1][0]
+        #print(assemble(0.5*inner(residual,residual)*self.dx))
+        return assemble(0.5*inner(residual,residual)*self.dx)
 
 
 class _ODEConstrainedOptimization():
@@ -78,8 +81,8 @@ class _ODEConstrainedOptimization():
 #THIS IS A CHECKPOINTING/STORAGE CHOICE
         self.states, self.states_sub, self.tns = create_states(model, self.objective.nsteps)
         self.dt = dt
-        self.lambda_n = self.model.get_x_var('lambda')
-        self.grad = self.model.get_coeff_var('grad')
+        self.lambda_n, _, _ = self.model.get_x_var('lambda')
+        self.grad, _, _ = self.model.get_coeff_var('grad')
 
 #HOW DO PARAMETER BOUNDS WORK FOR LARGE SCALE PROBLEMS LIKE THIS?
 #CLEARLY THE LIST/ARRAY IS A PROBABLY A BAD IDEA?
@@ -93,19 +96,27 @@ class _ODEConstrainedOptimization():
         return res.x
 
     def obj(self, params):
-        self.model.set_coeff(params)
+        self.timestepper.set_coeff(params)
         l2loss = 0.0
-
         for i in range(self.objective.num_data_blocks):
-            xns, xn_subs, tns = compute_states(self.states, self.states_sub, self.tns, self.model, self.timestepper, self.objective.nsteps, self.dt, self.objective.data_blocks[i][0], self.objective.t_blocks[i][0])
-            l2loss += self.objective.evaluate(i, xns[-1], tns[-1], params)
+            self.timestepper.reset_internal_vars()
+            #self.states[0][0].assign(0)
+            #self.states[0][1].assign(0)
+            #self.states[1][0].assign(0)
+            #self.states[1][1].assign(0)
+            #print(len(self.states))
+            compute_states(self.states, self.states_sub, self.tns, self.model, self.timestepper, self.objective.nsteps, self.dt, self.objective.data_blocks[i][0], self.objective.t_blocks[i][0])
+            #print(self.objective.data_blocks[i][1][0].dat.data[0] - self.states[-1][0].dat.data[0])
+            #print(self.objective.data_blocks[i][1][0].dat.data[1] - self.states[-1][0].dat.data[1])
+            #print(self.objective.data_blocks[i][1][0].dat.data[2] - self.states[-1][0].dat.data[2])
+            l2loss += self.objective.evaluate(i, self.states[-1], self.tns[-1], params)
         return l2loss
 
 #EVENTUALLY ADD A CLASS WITH REGULARIZATION FOR CONSTRAINTS IE AUGMENTED LAGRANGIAN?
 class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
     def jac(self, params):
         self.grad.assign(0)
-        self.model.set_coeff(params)
+        self.timestepper.set_coeff(params)
 
         for i in range(self.objective.num_data_blocks):
             #forward pass with params to populate states
@@ -116,9 +127,9 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
             #adjoint pass with params
 #THIS REALLY SHOULD COME FROM DERIVATIVE OF OBJECTIVE!
 #NOT ACTUALLY SURE THIS IS CORRECT FOR CHOSEN OBJECTIVE?
-            self.lambda_n.assign(self.objective.data_blocks[i][1] - self.states[-1])
+            self.lambda_n.assign(self.objective.data_blocks[i][1][0] - self.states[-1][0])
 
-            for n in range(self.objective.num_steps,0,-1):
+            for n in range(self.objective.nsteps,0,-1):
                 #take a forward step to populate stage values within timestepper
                 #THIS IS A CHOICE/TYPE OF CHECKPOINT + RECOMPUTE
                 self.timestepper.take_forward_step(self.states[n], self.states_sub[n], self.states[n-1], self.tns[n-1], self.dt)
@@ -130,8 +141,9 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
 #THIS IS ACTUALLY NEEDED FOR IC OPTIMIZATION
             #grad[:] = grad[:] + self.timesteppher
 
-        self.grad = self.grad + self.objective.jac_params(self.states[-1], params)
-        return self.grad
+#ADD THIS ALSO!
+        #self.grad = self.grad + self.objective.jac_params(self.states[-1], params)
+        return self.grad.dat.data[0]
 
     def hessp(self, x, params):
         pass

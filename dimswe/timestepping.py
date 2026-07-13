@@ -264,6 +264,19 @@ class GeneralRK(TimeStepper):
     def split_x_and_aux(self):
         return self.is_explicit
 
+    def reset_internal_vars(self):
+        self.xk[0].assign(0)
+#THIS IS SPECIFIC TO SPLIT X and AUX...
+        self.xk[1].assign(0)
+        self.delta_lambda_var.assign(0)
+        self.grad.assign(0)
+        for i in range(self.nstages):
+            self.Fi[i][0][0].assign(0)
+            self.mui[i][0][0].assign(0)
+#THIS IS SPECIFIC TO SPLIT X and AUX...
+            self.mui[i][0][1].assign(0)
+            self.Fi[i][0][1].assign(0)
+
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF
     def take_forward_step(self, xnp1, xnp1_sub, xn, tn, dt):
         self.t.assign(tn)
@@ -293,7 +306,6 @@ class GeneralRK(TimeStepper):
     def take_adjoint_step(self, grad, lambda_n, lambda_np1, tnp1, dt):
 
         self.dt.assign(dt)
-        self.lambda_var.assign(lambda_np1)
         self.t.assign(tnp1 - dt)
 
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF

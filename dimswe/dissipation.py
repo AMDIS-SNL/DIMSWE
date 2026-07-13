@@ -10,8 +10,6 @@ class Hyperviscosity(ForcingBase):
         self.varlist = ['v',] + vars.active_density_names
 
         self.spaces = spaces
-        self.c0 = parameters['hyperviscosity']['c0']
-        self.s = parameters['hyperviscosity']['s']
 
         self.name = 'hyperviscosity'
         self.mu_space = None
@@ -26,8 +24,10 @@ class Hyperviscosity(ForcingBase):
     def has_coeff(self):
         return True
 
-    def set_default_coeffs(self, coeff):
-        coeff['mu'].assign(self.c0 * pow(max(self.spaces.mesh.dx/self.spaces.order, self.spaces.mesh.dy/self.spaces.order), self.s))
+    def set_coeffs(self, parameters, coeff):
+        c0 = parameters['c0']
+        s = parameters['s']
+        coeff['mu'].assign(c0 * pow(max(self.spaces.mesh.dx/self.spaces.order, self.spaces.mesh.dy/self.spaces.order), s))
 
     def get_coeff(self):
         return ['mu', self.mu_space]

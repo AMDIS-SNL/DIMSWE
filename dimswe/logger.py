@@ -13,6 +13,13 @@ class Logger():
         if (rank == 0) and self.loglevel >= loglevel:
             print(message)
 
+class EmptyLogger():
+    def __init__(self):
+        pass
+
+    def output(self, message, loglevel):
+        pass
+
 
 #PETSc.Sys.Print('setting up mesh across %d processes' % COMM_WORLD.size)
 #PETSc.Sys.Print('  rank %d owns %d elements and can access %d vertices' \

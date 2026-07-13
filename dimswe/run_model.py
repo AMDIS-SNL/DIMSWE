@@ -45,7 +45,7 @@ def run_model(parameters):
     output = Output(xn, xn_sub, coeff_sub, parameters, model, logger)
 
     model.initialize(xn_sub, t)
-    model.set_default_coeffs(coeff_sub)
+    model.set_coeffs(parameters, coeff_sub)
 
     model.create_diagnostics(xn_sub, t, coeff_sub)
     model.create_statistics(xn_sub, t, coeff_sub)

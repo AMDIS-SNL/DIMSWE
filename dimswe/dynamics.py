@@ -234,11 +234,9 @@ class Dynamics():
 
 #THIS IGNORES THAT THERE MIGHT BE PARAMETERS IN DYNAMICS (ex. through the Hamiltonian, etc.)
 #THIS IS AN EASY EXTENSION AS NEEDED..
-    def set_default_coeffs(self, coeff):
+    def set_coeffs(self, parameters, coeff):
         for term in self.forcing_terms:
-            term.set_default_coeffs(coeff)
-
-
+            term.set_coeffs(parameters[term.name], coeff)
 
 #This is basically going to be LP brackets (or CF, etc.) with prescribed u or F
 #instead of diagnostic

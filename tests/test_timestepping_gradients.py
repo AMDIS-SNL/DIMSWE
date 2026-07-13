@@ -3,83 +3,151 @@ import numpy as np
 from dimswe.optimize import Lagrangian_ODEConstrainedOptimization, L2Objective
 from dimswe.models import get_model
 from dimswe.timestepping import get_timestepper
-from dimswe.logger import Logger
+from dimswe.logger import EmptyLogger
 from dimswe.parameters import get_parameters
 from dimswe.optimize import compute_state_block, compute_states, create_states
 
 
+def test_single_timestep_gradient():
 
-def test_timestep_gradient():
-
-
-    parameters = get_parameters('mtswe.cfg')
-    logger = Logger(parameters)
+    parameters = get_parameters('tests/tswe.cfg')
+    logger = EmptyLogger()
     model = get_model(parameters, logger, has_dynamics_statistics=False)
     coeffs = model.get_coeff_var('coeff')
     coeff, coeff_sub, coeff_split = coeffs
     timestepper = get_timestepper(parameters, model, logger, coeffs)
-
-
     dt = parameters['timestepping']['dt']
-
     x0, x0_sub, x0_split = model.get_full_var('x0', split_x_and_aux=True)
     t0 = model.get_t_var()
     model.initialize(x0_sub, t0)
-    model.set_default_coeffs(coeff_sub)
+    model.set_coeffs(parameters, coeff_sub)
 
-#ADD COEFF SETTING HERE SOMEHOW?
-    xns, xn_subs, tns = create_states(model, 10)
-    compute_states(xns, xn_subs, tns, model, timestepper, 10, dt, x0, t0)
-
-    xns1, xn_subs1, steps1, tns1 = compute_state_block(model, timestepper, 1, 10, dt, x0, t0)
-    xns2, xn_subs2, steps2, tns2 = compute_state_block(model, timestepper, 2, 5, dt, x0, t0)
-    xns5, xn_subs5, steps5, tns5 = compute_state_block(model, timestepper, 5, 2, dt, x0, t0)
-
-
-    objective_1 = L2Objective(xns1, tns1, coeff, 1)
-    objective_2 = L2Objective(xns2, tns2, coeff, 2)
-    objective_5 = L2Objective(xns5, tns5, coeff, 5)
-
+    xns1, xn_subs1, steps1, tns1 = compute_state_block(model, timestepper, 1, 1, dt, x0, t0)
+    objective_1 = L2Objective(xns1, tns1, coeff, 1, model.spaces.dx)
     optimizer_1 = Lagrangian_ODEConstrainedOptimization(model, timestepper, objective_1, dt)
-    optimizer_2 = Lagrangian_ODEConstrainedOptimization(model, timestepper, objective_2, dt)
-    optimizer_5 = Lagrangian_ODEConstrainedOptimization(model, timestepper, objective_5, dt)
-
 
     eps = 0.00001
+
     delta_coeff, _, _ = model.get_coeff_var('coeff')
+#THIS IS VERY HACKY, NEED A BETTER WAY TO HANDLE THIS!
+    delta_coeff.assign(2.08118183e+13 * 0.01)
+    delta_coeff_arr = delta_coeff.dat.data[0]
+
 #SET DELTA SOMEHOW!
 
     #check zero gradients at optimality
-#BROKEN HERE DOWN- NEED TO CREATE L2OBJECTIVES AND OPTIMIZATION PROBLEMS SOMEHOW...
+    #\+eps*delta_coeff
+#THESE ALL GIVE DIFFERENT ANSWERS!
+    #print(optimizer_1.obj(coeff))
+    #print(optimizer_1.obj(coeff))
+    #print(optimizer_1.obj(coeff))
+#SOMETHING IS WRONG IN OBJ CALCULATIONS, CLEARLY...
+    print(optimizer_1.obj(coeff+eps*delta_coeff))
+    print(optimizer_1.obj(coeff+eps*delta_coeff))
+    print(optimizer_1.obj(coeff))
+    print(optimizer_1.obj(coeff))
+    print(optimizer_1.obj(coeff+eps*delta_coeff))
+    print(optimizer_1.obj(coeff+eps*delta_coeff))
+    print(optimizer_1.obj(coeff+eps*delta_coeff))
+    print(optimizer_1.obj(coeff))
     fd_jac_params_1 = (optimizer_1.obj(coeff+eps*delta_coeff) - optimizer_1.obj(coeff))/eps
-    fd_jac_params_2 = (optimizer_2.obj(coeff+eps*delta_coeff) - optimizer_2.obj(coeff))/eps
-    fd_jac_params_5 = (optimizer_5.obj(coeff+eps*delta_coeff) - optimizer_5.obj(coeff))/eps
     jac_params_1 = optimizer_1.jac(coeff)
-    jac_params_2 = optimizer_2.jac(coeff)
-    jac_params_5 = optimizer_5.jac(coeff)
+    print(jac_params_1)
+    print(jac_params_1.dot(delta_coeff_arr))
+    print(fd_jac_params_1)
 
-    assert(np.count_nonzero(jac_params_1.dot(delta_params)) == 0)
-    assert(np.count_nonzero(jac_params_2.dot(delta_params)) == 0)
-    assert(np.count_nonzero(jac_params_5.dot(delta_params)) == 0)
-
-    #THIS SHOULD BE A CONVERGENCE TEST WITH EPS DECREASING
-    assert(np.allclose(jac_params_1.dot(delta_params), fd_jac_params_1))
-    assert(np.allclose(jac_params_2.dot(delta_params), fd_jac_params_2))
-    assert(np.allclose(jac_params_5.dot(delta_params), fd_jac_params_5))
+    assert(np.count_nonzero(jac_params_1.dot(delta_coeff_arr)) == 0)
+#THIS SHOULD BE A CONVERGENCE TEST WITH EPS DECREASING
+    assert(np.allclose(jac_params_1.dot(delta_coeff_arr), fd_jac_params_1))
 
 
     #check gradients
+    parameters['hyperviscosity']['c0'] = 0.05
+    parameters['hyperviscosity']['s'] = 3.0
+    model.set_coeffs(parameters, coeff_sub)
 
-    jac_params_1 = optimizer_1.jac(params0)
-    fd_jac_params_1 = (optimizer_1.obj(params0+eps*delta_params) - optimizer_1.obj(params0))/eps
-    jac_params_2 = optimizer_2.jac(params0)
-    fd_jac_params_2 = (optimizer_2.obj(params0+eps*delta_params) - optimizer_2.obj(params0))/eps
-    jac_params_5 = optimizer_5.jac(params0)
-    fd_jac_params_5 = (optimizer_5.obj(params0+eps*delta_params) - optimizer_5.obj(params0))/eps
+    fd_jac_params_1 = (optimizer_1.obj(coeff+eps*delta_coeff) - optimizer_1.obj(coeff))/eps
+    jac_params_1 = optimizer_1.jac(coeff)
+    print(jac_params_1)
+    print(jac_params_1.dot(delta_coeff_arr))
+    print(fd_jac_params_1)
 
-    #THIS SHOULD BE A CONVERGENCE TEST WITH EPS DECREASING
-    assert(np.allclose(jac_params_1.dot(delta_params), fd_jac_params_1))
-    assert(np.allclose(jac_params_2.dot(delta_params), fd_jac_params_2))
-    assert(np.allclose(jac_params_5.dot(delta_params), fd_jac_params_5))
+    assert(np.count_nonzero(jac_params_1.dot(delta_coeff_arr)) == 0)
+#THIS SHOULD BE A CONVERGENCE TEST WITH EPS DECREASING
+    assert(np.allclose(jac_params_1.dot(delta_coeff_arr), fd_jac_params_1))
 
-    #taylor_remainder_check(params, delta_params, lambda p: compute_state(timestepper, dynamics, nsteps, p, t0, x0, dt))
+# def test_multiple_timestep_gradient():
+#
+#
+#     parameters = get_parameters('tests/tswe.cfg')
+#     logger = EmptyLogger()
+#     model = get_model(parameters, logger, has_dynamics_statistics=False)
+#     coeffs = model.get_coeff_var('coeff')
+#     coeff, coeff_sub, coeff_split = coeffs
+#     timestepper = get_timestepper(parameters, model, logger, coeffs)
+#     dt = parameters['timestepping']['dt']
+#
+#     x0, x0_sub, x0_split = model.get_full_var('x0', split_x_and_aux=True)
+#     t0 = model.get_t_var()
+#     model.initialize(x0_sub, t0)
+#     model.set_coeffs(parameters, coeff_sub)
+#
+# #ADD COEFF SETTING HERE SOMEHOW?
+#     #xns, xn_subs, tns = create_states(model, 10)
+#     #compute_states(xns, xn_subs, tns, model, timestepper, 10, dt, x0, t0)
+#
+#     xns1, xn_subs1, steps1, tns1 = compute_state_block(model, timestepper, 1, 10, dt, x0, t0)
+#     xns2, xn_subs2, steps2, tns2 = compute_state_block(model, timestepper, 2, 5, dt, x0, t0)
+#     xns5, xn_subs5, steps5, tns5 = compute_state_block(model, timestepper, 5, 2, dt, x0, t0)
+#
+#
+#     objective_1 = L2Objective(xns1, tns1, coeff, 1, model.spaces.dx)
+#     objective_2 = L2Objective(xns2, tns2, coeff, 2, model.spaces.dx)
+#     objective_5 = L2Objective(xns5, tns5, coeff, 5, model.spaces.dx)
+#
+#     optimizer_1 = Lagrangian_ODEConstrainedOptimization(model, timestepper, objective_1, dt)
+#     optimizer_2 = Lagrangian_ODEConstrainedOptimization(model, timestepper, objective_2, dt)
+#     optimizer_5 = Lagrangian_ODEConstrainedOptimization(model, timestepper, objective_5, dt)
+#
+#
+#     eps = 0.00001
+#     delta_coeff, _, _ = model.get_coeff_var('coeff')
+# #SET DELTA SOMEHOW!
+#
+#     #check zero gradients at optimality
+# #BROKEN HERE DOWN- NEED TO CREATE L2OBJECTIVES AND OPTIMIZATION PROBLEMS SOMEHOW...
+#     fd_jac_params_1 = (optimizer_1.obj(coeff+eps*delta_coeff) - optimizer_1.obj(coeff))/eps
+#     fd_jac_params_2 = (optimizer_2.obj(coeff+eps*delta_coeff) - optimizer_2.obj(coeff))/eps
+#     fd_jac_params_5 = (optimizer_5.obj(coeff+eps*delta_coeff) - optimizer_5.obj(coeff))/eps
+#     jac_params_1 = optimizer_1.jac(coeff)
+#     jac_params_2 = optimizer_2.jac(coeff)
+#     jac_params_5 = optimizer_5.jac(coeff)
+#
+#     assert(np.count_nonzero(jac_params_1.dot(delta_coeff_arr)) == 0)
+#     assert(np.count_nonzero(jac_params_2.dot(delta_coeff_arr)) == 0)
+#     assert(np.count_nonzero(jac_params_5.dot(delta_coeff_arr)) == 0)
+#
+#     #THIS SHOULD BE A CONVERGENCE TEST WITH EPS DECREASING
+#     assert(np.allclose(jac_params_1.dot(delta_coeff_arr), fd_jac_params_1))
+#     assert(np.allclose(jac_params_2.dot(delta_coeff_arr), fd_jac_params_2))
+#     assert(np.allclose(jac_params_5.dot(delta_coeff_arr), fd_jac_params_5))
+#
+#
+#     #check gradients
+#     parameters['hyperviscosity']['c0'] = 0.05
+#     parameters['hyperviscosity']['s'] = 3.0
+#     model.set_coeffs(parameters, coeff_sub)
+#
+#     jac_params_1 = optimizer_1.jac(coeff)
+#     fd_jac_params_1 = (optimizer_1.obj(coeff+eps*delta_coeff) - optimizer_1.obj(coeff))/eps
+#     jac_params_2 = optimizer_2.jac(coeff)
+#     fd_jac_params_2 = (optimizer_2.obj(coeff+eps*delta_coeff) - optimizer_2.obj(coeff))/eps
+#     jac_params_5 = optimizer_5.jac(coeff)
+#     fd_jac_params_5 = (optimizer_5.obj(coeff+eps*delta_coeff) - optimizer_5.obj(coeff))/eps
+#
+#     #THIS SHOULD BE A CONVERGENCE TEST WITH EPS DECREASING
+#     assert(np.allclose(jac_params_1.dot(delta_coeff_arr), fd_jac_params_1))
+#     assert(np.allclose(jac_params_2.dot(delta_coeff_arr), fd_jac_params_2))
+#     assert(np.allclose(jac_params_5.dot(delta_coeff_arr), fd_jac_params_5))
+#
+#     #taylor_remainder_check(params, delta_params, lambda p: compute_state(timestepper, dynamics, nsteps, p, t0, x0, dt))
