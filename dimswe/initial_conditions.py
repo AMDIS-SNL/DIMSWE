@@ -425,6 +425,10 @@ class DensityWave(IC2D):
         return initcond
 
 class DoubleVortex(IC2D):
+    def set_params(self, params):
+        self.ox = params['initial-conditions']['ox'] #0.1 #0.1
+        self.oy = params['initial-conditions']['oy'] #0.1 #0.1
+        
     def __init__(self, params):
         IC2D.__init__(self, params)
 
@@ -434,8 +438,8 @@ class DoubleVortex(IC2D):
         self.yc = 0.5 * self.Ly
         self.g = 9.80616
         self.H0 =  750.0
-        self.ox = 0.1 #0.1
-        self.oy = 0.1 #0.1
+        self.ox = params['initial-conditions']['ox'] #0.1 #0.1
+        self.oy = params['initial-conditions']['oy'] #0.1 #0.1
         self.sigmax = 3./40.*self.Lx #3.
         self.sigmay = 3./40.*self.Lx #3.
         self.dh = 75.0

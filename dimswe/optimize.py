@@ -95,7 +95,7 @@ class _ODEConstrainedOptimization():
         print('optimizer num jac evals', res.njev)
         return res.x
 
-    def obj(self, params):
+    def obj(self, params, ic=None):
         self.timestepper.set_coeff(params)
         l2loss = 0.0
         for i in range(self.objective.num_data_blocks):
@@ -105,6 +105,7 @@ class _ODEConstrainedOptimization():
             #self.states[1][0].assign(0)
             #self.states[1][1].assign(0)
             #print(len(self.states))
+#ADD CORRECT IC BEHAVIOUR HERE!
             compute_states(self.states, self.states_sub, self.tns, self.model, self.timestepper, self.objective.nsteps, self.dt, self.objective.data_blocks[i][0], self.objective.t_blocks[i][0])
             #print(self.objective.data_blocks[i][1][0].dat.data[0] - self.states[-1][0].dat.data[0])
             #print(self.objective.data_blocks[i][1][0].dat.data[1] - self.states[-1][0].dat.data[1])
@@ -114,12 +115,13 @@ class _ODEConstrainedOptimization():
 
 #EVENTUALLY ADD A CLASS WITH REGULARIZATION FOR CONSTRAINTS IE AUGMENTED LAGRANGIAN?
 class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
-    def jac(self, params):
+    def jac(self, params, ic=None):
         self.grad.assign(0)
         self.timestepper.set_coeff(params)
 
         for i in range(self.objective.num_data_blocks):
             #forward pass with params to populate states
+#ADD CORRECT IC BEHAVIOUR HERE!
             #THIS IS A CHOICE/TYPE OF CHECKPOINT + RECOMPUTE
             compute_states(self.states, self.states_sub, self.tns, self.model, self.timestepper, self.objective.nsteps, self.dt, self.objective.data_blocks[i][0], self.objective.t_blocks[i][0])
 
@@ -128,7 +130,7 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
 #THIS REALLY SHOULD COME FROM DERIVATIVE OF OBJECTIVE!
 #NOT ACTUALLY SURE THIS IS CORRECT FOR CHOSEN OBJECTIVE?
             self.lambda_n.assign(self.objective.data_blocks[i][1][0] - self.states[-1][0])
-            print('lambda_n before', self.lambda_n.dat.data[0])
+            #print('lambda_n before', self.lambda_n.dat.data[0])
             for n in range(self.objective.nsteps,0,-1):
                 #take a forward step to populate stage values within timestepper
                 #THIS IS A CHOICE/TYPE OF CHECKPOINT + RECOMPUTE
@@ -136,12 +138,17 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
 
                 #take an adjoint step
                 self.timestepper.take_adjoint_step(self.grad, self.lambda_n, self.lambda_n, self.tns[n], self.dt)
-            print('lambda_n after', self.lambda_n.dat.data[0])
-            print('grad', self.grad.dat.data[0])
+            #print('lambda_n after', self.lambda_n.dat.data[0])
+            #print('grad', self.grad.dat.data[0])
 
 #ADD DELTA CALCULATION AT THE END
-#THIS IS ACTUALLY NEEDED FOR IC OPTIMIZATION
+#THIS IS ACTUALLY NEEDED FOR IC OPTIMIZATION!
             #grad[:] = grad[:] + self.timesteppher
+
+#MAYBE THIS FUNCTION RETURNS A JACOBIAN WRT PARAMS, AND A JACOBIAN WRT ICS?
+#YES THIS IS THE WAY
+
+#THEN SOME OTHER FUNCTION CAN COMBINE THEM AS NEEDED, DEPENDING ON WHAT WE ARE OPTIMIZING WRT TO!
 
 #ADD THIS ALSO!
         #self.grad = self.grad + self.objective.jac_params(self.states[-1], params)

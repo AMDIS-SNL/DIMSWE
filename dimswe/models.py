@@ -144,7 +144,9 @@ class Model():
     def get_diagnostics(self):
         return self.diagnostics.get_diagnostics()
 
-    def initialize(self, xn, t):
+    def initialize(self, xn, t, new_params=None):
+        if not(new_params is None):
+            self.initcond.set_params(params)
         t.assign(self.initcond.get_t0())
         varexpr = self.initcond.get_value(self.mesh, t)
         self.dynamics.initialize(xn, varexpr)
@@ -155,8 +157,8 @@ class Model():
     def restart(self, xn, x0, t, t0):
         t.assign(t0)
         xn[0].assign(x0[0])
-        if len(xn) > 1:
-            xn[1].assign(x0[1])
+        #if len(xn) > 1:
+        #    xn[1].assign(x0[1])
 #DIAGNOSTICS AND STATISTICS NEED TO BE RESET ALSO
 #ALONG WITH ANY MODEL CONSTANTS/COEFFICIENTS...
 
