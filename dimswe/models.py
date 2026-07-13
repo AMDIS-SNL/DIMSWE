@@ -155,6 +155,8 @@ class Model():
     def restart(self, xn, x0, t, t0):
         t.assign(t0)
         xn[0].assign(x0[0])
+        if len(xn) > 1:
+            xn[1].assign(x0[1])
 #DIAGNOSTICS AND STATISTICS NEED TO BE RESET ALSO
 #ALONG WITH ANY MODEL CONSTANTS/COEFFICIENTS...
 

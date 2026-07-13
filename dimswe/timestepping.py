@@ -44,7 +44,6 @@ class TimeStepper():
         self.terms = terms
         self.dx = model.spaces.dx
 
-
         self.delta_lambda_var, self.delta_lambda_sub, self.delta_lambda_split = self.model.get_x_var('delta_lambda')
 
         self.coeff, self.coeff_sub, self.coeff_split = coeffs
@@ -135,8 +134,8 @@ class GeneralRK(TimeStepper):
             for var in self.model.get_aux_var_list(terms=terms):
                 rhs_W = rhs_W + aux_expressions[var][1]
                 lhs_W = lhs_W + aux_expressions[var][0]
-        #THIS IS A BIT OF A MESS FOR DIRK AND IRK- need to take derivatives wrt x and w independently, if that is possible?
-        #MIGHT BE ABLE TO JUST TAKE A JOINT DERIVATIVE? UNCLEAR....
+#THIS IS A BIT OF A MESS FOR DIRK AND IRK- need to take derivatives wrt x and w independently, if that is possible?
+#MIGHT BE ABLE TO JUST TAKE A JOINT DERIVATIVE? UNCLEAR....
         derivT_F_F = adjoint(derivative(rhs_F, self.xk[0], xtrial[0]))
         if model.has_coeff():
             derivT_F_theta = adjoint(derivative(rhs_F, self.coeff, self.grad_trial))
@@ -163,10 +162,11 @@ class GeneralRK(TimeStepper):
         residuals_aux = []
         residuals_mu = []
         residuals_muaux = []
+#THIS MIGHT NEED TO MODIFIED FOR DIRK/IRK?
         residual_xk = inner(self.delta_lambda_var, xhat[0])*self.dx
         residual_grad = inner(self.grad, self.grad_test)*self.dx
         for i in range(nstages):
-            #MIGHT HAVE TO MODIFY THIS INNER PRODUCT A LITTLE FOR IRK GENERALITY
+#MIGHT HAVE TO MODIFY THIS INNER PRODUCT A LITTLE FOR IRK GENERALITY
             residual_F = inner(xhat[0], self.Fi[i][0][0])*self.dx - replace(rhs_F, xi_splits[i])
 #ALL THESE RESIDUAL MU/MUAUX SUMS RELY ON SPLITTING AND TAKING DERIVATIVES WRT SPLITS
 #THIS IS A MESS WITH DIRK AND IRK!
@@ -266,27 +266,25 @@ class GeneralRK(TimeStepper):
 
     def reset_internal_vars(self):
         self.xk[0].assign(0)
-#THIS IS SPECIFIC TO SPLIT X and AUX...
-        self.xk[1].assign(0)
         self.delta_lambda_var.assign(0)
         self.grad.assign(0)
+        if len(self.xk) > 1:
+            self.xk[1].assign(0)
         for i in range(self.nstages):
             self.Fi[i][0][0].assign(0)
             self.mui[i][0][0].assign(0)
-#THIS IS SPECIFIC TO SPLIT X and AUX...
-            self.mui[i][0][1].assign(0)
-            self.Fi[i][0][1].assign(0)
+            if len(self.mui[i][0]) > 1:
+                self.mui[i][0][1].assign(0)
+                self.Fi[i][0][1].assign(0)
 
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF
     def take_forward_step(self, xnp1, xnp1_sub, xn, tn, dt):
         self.t.assign(tn)
         self.dt.assign(dt)
-#THE BIG ISSUE HERE IS WHEN XK AND XN ARE NOT THE SAME TYPE!
-#HOW DO WE RESOLVE THIS?
-        #don't time step aux variables!
         self.xk[0].assign(xn[0])
-#THIS BREAKS A LITTLE FOR FULL SPACE VERSION
-#REALLY WHAT WE NEED TO BE ABLE TO DO IS SPLIT A MIXED SPACE INTO TWO SUBSPACES...
+#NEED SOME WAY OF DOING THIS FOR FULL SPACE, SINCE AUX INITIAL GUESS SHOULD GO IN FI...
+        if len(self.xk) > 1:
+            self.Fi[0][0][1].assign(xn[1])
 
         if self.is_explicit:
             for i in range(self.nstages):
@@ -299,9 +297,12 @@ class GeneralRK(TimeStepper):
             self.Fauxsolver.solve()
 
 #THIS BREAKS A LITTLE FOR FULL SPACE VERSION
-        #don't timestep aux variables!
+#IE WE SHOULD JUST BE ASSIGNING THE X VARIABLES HERE
+#AND THEN DOING SOMETHING FOR THE AUX VARS
         xnp1[0].assign(xn[0] + self.dt * sum(float(self.b[i]) * self.Fi[i][0][0] for i in range(self.nstages)))
-#COULD SET AUX STUFF HERE FOR DIAGNOSTIC PURPOSES?
+        if len(xnp1) > 1:
+#IDEALLY THIS IS AUX VARS EVALUATED AT XNP1- provides a good initial guess at least?
+            xnp1[1].assign(self.Fi[-1][0][1])
 
     def take_adjoint_step(self, grad, lambda_n, lambda_np1, tnp1, dt):
 

@@ -99,7 +99,7 @@ class _ODEConstrainedOptimization():
         self.timestepper.set_coeff(params)
         l2loss = 0.0
         for i in range(self.objective.num_data_blocks):
-            self.timestepper.reset_internal_vars()
+            #self.timestepper.reset_internal_vars()
             #self.states[0][0].assign(0)
             #self.states[0][1].assign(0)
             #self.states[1][0].assign(0)
@@ -128,7 +128,7 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
 #THIS REALLY SHOULD COME FROM DERIVATIVE OF OBJECTIVE!
 #NOT ACTUALLY SURE THIS IS CORRECT FOR CHOSEN OBJECTIVE?
             self.lambda_n.assign(self.objective.data_blocks[i][1][0] - self.states[-1][0])
-
+            print('lambda_n before', self.lambda_n.dat.data[0])
             for n in range(self.objective.nsteps,0,-1):
                 #take a forward step to populate stage values within timestepper
                 #THIS IS A CHOICE/TYPE OF CHECKPOINT + RECOMPUTE
@@ -136,6 +136,8 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
 
                 #take an adjoint step
                 self.timestepper.take_adjoint_step(self.grad, self.lambda_n, self.lambda_n, self.tns[n], self.dt)
+            print('lambda_n after', self.lambda_n.dat.data[0])
+            print('grad', self.grad.dat.data[0])
 
 #ADD DELTA CALCULATION AT THE END
 #THIS IS ACTUALLY NEEDED FOR IC OPTIMIZATION
