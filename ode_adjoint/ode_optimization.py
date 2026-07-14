@@ -1,5 +1,8 @@
 
-from adjoint_timesteppers import LotkaVolterra, RK4, Lagrangian_ODEConstrainedOptimization, L2Objective, Euler, LogisticEquation
+from adjoint_timesteppers import RK4, Euler
+from ode_optimize import Lagrangian_ODEConstrainedOptimization, L2Objective
+from dynamics import LotkaVolterra, LogisticEquation
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -40,3 +43,7 @@ plt.figure()
 for k in range(dynamics.get_x_size()):
     plt.plot(t,xn[:,k])
 plt.savefig('learned.png')
+
+##########################
+
+#ADD SOME IC OPTIMIZATION HERE ALSO!
