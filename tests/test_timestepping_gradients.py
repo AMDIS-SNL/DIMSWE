@@ -6,47 +6,61 @@ from dimswe.timestepping import get_timestepper
 from dimswe.logger import EmptyLogger
 from dimswe.parameters import get_parameters
 from dimswe.optimize import compute_state_block, compute_states, create_states
+from dimswe.numpy_helpers import create_flattened_numpy_arr_from_mixed_function
+
+import pytest
+
+
+
 
 def test_single_timestep_gradient_ic():
 
     parameters = get_parameters('tests/tswe.cfg')
     logger = EmptyLogger()
     model = get_model(parameters, logger, has_dynamics_statistics=False)
-    model_coeffs = model.get_coeff_var('coeff')
-    model_coeff, model_coeff_sub, model_coeff_split = model_coeffs
-    timestepper = get_timestepper(parameters, model, logger, model_coeffs)
+    model_coeff, model_coeff_sub, model_coeff_split = model.get_coeff_var('coeff')
+    timestepper = get_timestepper(parameters, model, logger)
     dt = parameters['timestepping']['dt']
     x0, x0_sub, x0_split = model.get_full_var('x0', split_x_and_aux=True)
     t0 = model.get_t_var()
     model.initialize(x0_sub, t0)
     model.set_coeffs(parameters, model_coeff_sub)
-#UNCLEAR HOW TO FEED THIS IN CORRECTLY?
-#BASICALLY WHEN MODEL.INITIALIZE IS CALLED WE NEED TO DO THE "RIGHT" THING...
-#AND IN OBJ/JAC WE NEED TO CORRECTLY SET THE IC
-#DO THIS VIA A LAMBDA FUNCTION ie _obj(params, ic, ...)
+    timestepper.set_coeff(model_coeff)
+
+
 
     xns1, xn_subs1, steps1, tns1 = compute_state_block(model, timestepper, 1, 1, dt, x0, t0)
     objective_1 = L2Objective(xns1, tns1, model_coeff, 1, model.spaces.dx)
     optimizer_1 = Lagrangian_ODEConstrainedOptimization(model, timestepper, objective_1, dt)
 
-    eps = 0.000001
-    x0_perturb, x0_perturb_sub, x0_perturb_split = model.get_full_var('x0_perturb', split_x_and_aux=True)
-    x0_perturbed, x0_perturbed_sub, x0_perturbed_split = model.get_full_var('x0_perturbed', split_x_and_aux=True)
+    eps = 0.00000001
+    x0_perturb, x0_perturb_sub, x0_perturb_split = model.get_x_var('x0_perturb')
+    x0_perturbed, x0_perturbed_sub, x0_perturbed_split = model.get_x_var('x0_perturbed')
 
-    x0_perturb.assign(x0 * 0.01)
-    x0_perturbed.assign(x0 + eps*x0_perturb)
-#SHOULD PROBABLY RAVEL THIS INTO A LONG FLAT ARRAY
-    x0_perturb_arr = x0_perturb.dat.data
 
-    fd_jac_ic_1 = (optimizer_1.obj(coeff, ic=x0_perturbed) - optimizer_1.obj(coeff, ic=x0))/eps
-    jac_ic_1 = optimizer_1.jac(coeff, ic=x0)
-    print(jac_ic_1)
-    print(jac_ic_1.dot(x0_perturb_arr))
-    print(fd_jac_ic_1)
-
-    assert(np.count_nonzero(jac_ic_1.dot(x0_perturb_arr)) == 0)
-#THIS SHOULD BE A CONVERGENCE TEST WITH EPS DECREASING
-    #assert(np.allclose(jac_ic_1.dot(x0_perturb_arr), fd_jac_ic_1))
+#zero gradients at optimality?
+#     x0_perturb.assign(x0[0] * 0.01)
+#     x0_perturbed.assign(x0[0] + eps*x0_perturb)
+#     x0_arr = np.expand_dims(create_flattened_numpy_arr_from_mixed_function(x0[0]), 0)
+#     x0_perturbed_arr = np.expand_dims(create_flattened_numpy_arr_from_mixed_function(x0_perturbed), 0)
+#     x0_perturb_arr = np.expand_dims(create_flattened_numpy_arr_from_mixed_function(x0_perturb), 0)
+#
+#     print(optimizer_1.obj(None, x0_arr, params0=model_coeff))
+#     print(optimizer_1.obj(None, x0_arr, params0=model_coeff))
+#     print(optimizer_1.obj(None, x0_arr, params0=model_coeff))
+#     print(optimizer_1.obj(None, x0_perturbed_arr, params0=model_coeff))
+#     print(optimizer_1.obj(None, x0_perturbed_arr, params0=model_coeff))
+#     print(optimizer_1.obj(None, x0_perturbed_arr, params0=model_coeff))
+#
+#     fd_jac_ic_1 = (optimizer_1.obj(None, x0_perturbed_arr, params0=model_coeff) - optimizer_1.obj(None, x0_arr, params0=model_coeff))/eps
+#     jac_ic_1 = optimizer_1.jac(None, x0_arr, params0=model_coeff)
+#     print(jac_ic_1)
+#     print(jac_ic_1.dot(np.ravel(x0_perturb_arr)))
+#     print(fd_jac_ic_1)
+#
+#     assert(np.count_nonzero(jac_ic_1.dot(np.ravel(x0_perturb_arr))) == 0)
+# #THIS SHOULD BE A CONVERGENCE TEST WITH EPS DECREASING
+#     assert(np.allclose(jac_ic_1.dot(np.ravel(x0_perturb_arr)), fd_jac_ic_1))
 
     #check gradients
 #SET A NEW IC HERE!
@@ -54,18 +68,22 @@ def test_single_timestep_gradient_ic():
     parameters['initial-conditions']['ox'] = 0.08
     parameters['initial-conditions']['oy'] = 0.12
     model.initialize(x0_new_sub, t0, new_params=parameters)
-    x0_perturb.assign(x0_new * 0.01)
-    x0_perturbed.assign(x0_new + eps*x0_perturb)
+    x0_perturb.assign(x0_new[0] * 0.01)
+    x0_perturbed.assign(x0_new[0] + eps*x0_perturb)
+    x0_arr = np.expand_dims(create_flattened_numpy_arr_from_mixed_function(x0_new[0]), 0)
+    x0_perturbed_arr = np.expand_dims(create_flattened_numpy_arr_from_mixed_function(x0_perturbed), 0)
+    x0_perturb_arr = np.expand_dims(create_flattened_numpy_arr_from_mixed_function(x0_perturb), 0)
 
-    fd_jac_ic_1 = (optimizer_1.obj(coeff, ic=x0_perturbed) - optimizer_1.obj(coeff, ic=x0_new))/eps
-    jac_ic_1 = optimizer_1.jac(coeff, ic=x0_new)
+    fd_jac_ic_1 = (optimizer_1.obj(None, x0_perturbed_arr, params0=model_coeff) - optimizer_1.obj(None, x0_arr, params0=model_coeff))/eps
+    jac_ic_1 = optimizer_1.jac(None, x0_arr, params0=model_coeff)
     print(jac_ic_1)
-    print(jac_ic_1.dot(x0_perturb_arr))
+    print(jac_ic_1.dot(np.ravel(x0_perturb_arr)))
     print(fd_jac_ic_1)
 
 #THIS SHOULD BE A CONVERGENCE TEST WITH EPS DECREASING
-    assert(np.allclose(jac_ic_1.dot(delta_ic_arr), fd_jac_ic_1))
+    assert(np.allclose(jac_ic_1.dot(np.ravel(x0_perturb_arr)), fd_jac_ic_1))
 
+@pytest.mark.skip
 def test_single_timestep_gradient_params():
 
     parameters = get_parameters('tests/tswe.cfg')

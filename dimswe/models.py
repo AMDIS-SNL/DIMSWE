@@ -146,7 +146,7 @@ class Model():
 
     def initialize(self, xn, t, new_params=None):
         if not(new_params is None):
-            self.initcond.set_params(params)
+            self.initcond.set_params(new_params)
         t.assign(self.initcond.get_t0())
         varexpr = self.initcond.get_value(self.mesh, t)
         self.dynamics.initialize(xn, varexpr)
@@ -161,6 +161,12 @@ class Model():
         #    xn[1].assign(x0[1])
 #DIAGNOSTICS AND STATISTICS NEED TO BE RESET ALSO
 #ALONG WITH ANY MODEL CONSTANTS/COEFFICIENTS...
+
+    def get_x_size(self):
+        return self.dynamics.get_x_size()
+
+    def get_coeff_size(self):
+        return self.dynamics.get_coeff_size()
 
 class AdvDensH1Model(Model):
     def __init__(self, parameters, logger, has_dynamics_statistics=True):

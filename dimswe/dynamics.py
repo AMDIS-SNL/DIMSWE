@@ -31,6 +31,8 @@ class Dynamics():
         else:
             return None, {}, {}
 
+
+
     def get_full_var(self, varname, split_x_and_aux=False):
 
         if not (self.fullspace is None):
@@ -238,6 +240,12 @@ class Dynamics():
         for term in self.forcing_terms:
             term.set_coeffs(parameters[term.name], coeff)
 
+    def get_x_size(self):
+        return self.x_size
+
+    def get_coeff_size(self):
+        return self.coeff_size
+
 #This is basically going to be LP brackets (or CF, etc.) with prescribed u or F
 #instead of diagnostic
 #can basically do it as a modified Hamiltonian, actually!!!
@@ -378,15 +386,19 @@ class AdvDensCF_H1_Dynamics(Dynamics):
             self.dx = spaces.dx
 
             self.xspace = MixedFunctionSpace(self.xspacelist)
+            self.x_size = self.xspace.dim()
             if self.has_coeff:
                 self.coeffspace = MixedFunctionSpace(self.coeffspacelist)
+                self.coeff_size = self.coeffspace.dim()
             else:
                 self.coeffspace = None
             if self.has_aux:
                 self.auxspace = MixedFunctionSpace(self.auxspacelist)
+                self.aux_size = self.coeffspace.dim()
             else:
                 self.auxspace = None
             self.fullspace = MixedFunctionSpace(self.fullspacelist)
+            self.fullsize = self.fullspace.dim()
 
     def initialize(self, x, varexpr):
         self.variableset.initialize(varexpr, x)

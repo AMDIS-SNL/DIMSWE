@@ -2,6 +2,7 @@ from firedrake import NonlinearVariationalProblem, NonlinearVariationalSolver, L
 from .parameters import overall_solver_parameters
 import numpy as np
 from firedrake import Constant, inner, TestFunction, derivative, norm, assemble, Function, TestFunctions, split, TrialFunction, adjoint, action, replace
+from .numpy_helpers import set_mixed_function_from_flattened_array
 
 class DummySolver():
     def solve(self):
@@ -21,18 +22,18 @@ def get_time_integrator(name, parameters):
         termlist = parameters['timestepping']['termlist']
         subcycle_list = parameters['timestepping']['subcycle_list']
 
-        return lambda model, logger, coeffs: LieSplittingIntegrator(model, logger, coeffs, timestepper_list, termlist, subcycle_list)
+        return lambda model, logger, coeffs: LieSplittingIntegrator(model, logger, timestepper_list, termlist, subcycle_list)
     else:
         raise ValueError("time step method " + name + " is unknown")
 
-def get_timestepper(parameters, model, logger, coeffs):
-    return get_time_integrator(parameters['timestepping']['method'], parameters)(model, logger, coeffs)
+def get_timestepper(parameters, model, logger):
+    return get_time_integrator(parameters['timestepping']['method'], parameters)(model, logger)
 
 
 class TimeStepper():
 
 
-    def __init__(self, model, logger, coeffs, terms='all'):
+    def __init__(self, model, logger, terms='all'):
         self.model = model
         self.logger = logger
         self.terms = terms
@@ -41,7 +42,7 @@ class TimeStepper():
         self.delta_lambda_var, self.delta_lambda_sub, self.delta_lambda_split = self.model.get_x_var('delta_lambda')
         self.lambda_var, self.lambda_sub, self.lambda_split = self.model.get_x_var('lambda')
 
-        self.coeff, self.coeff_sub, self.coeff_split = coeffs
+        self.coeff, self.coeff_sub, self.coeff_split = self.model.get_coeff_var('coeff')
         self.grad, self.grad_sub, self.grad_split = self.model.get_coeff_var('grad')
         self.grad_test, self.grad_test_subs, self.grad_trial, self.grad_trial_subs = self.model.get_coeff_test_trial_vars()
 
@@ -51,9 +52,12 @@ class TimeStepper():
     def set_coeff(self, coeff_val):
         self.coeff.assign(coeff_val)
 
+    def set_numpy_coeff(self, coeff_val_arr):
+        set_mixed_function_from_flattened_array(self.coeff, coeff_val_arr)
+
 class AdditiveGeneralRK(TimeStepper):
-    def __init__(self, model, logger, coeffs, A1, A2, b1, b2, c1, c2, nstages, terms='all'):
-        TimeStepper.__init__(self, model, logger, coeffs, terms=terms)
+    def __init__(self, model, logger, A1, A2, b1, b2, c1, c2, nstages, terms='all'):
+        TimeStepper.__init__(self, model, logger, terms=terms)
         self.A1 = A1
         self.b1 = b1
         self.c1 = c1
@@ -81,8 +85,8 @@ def create_linear_solver_from_residual(residual, var, trialvar, constant_jacobia
     return solver
 
 class GeneralRK(TimeStepper):
-    def __init__(self, model, logger, coeffs, A, b, c, nstages, terms='all'):
-        TimeStepper.__init__(self, model, logger, coeffs, terms=terms)
+    def __init__(self, model, logger, A, b, c, nstages, terms='all'):
+        TimeStepper.__init__(self, model, logger, terms=terms)
         self.A = A
         self.b = b
         self.c = c
@@ -331,7 +335,7 @@ class GeneralRK(TimeStepper):
         #print(self.Fi[2][0][1].dat.data)
         #print(self.Fi[3][0][1].dat.data)
         self.gradsolver.solve()
-        print('grad', self.grad.dat.data[0])
+        #print('grad', self.grad.dat.data[0])
         grad.assign(grad + self.grad)
 
         #compute lambda_n
@@ -340,75 +344,75 @@ class GeneralRK(TimeStepper):
         lambda_n.assign(lambda_np1 + self.delta_lambda_var)
 
 class Euler(GeneralRK):
-    def __init__(self, model, logger, coeffs, terms='all'):
+    def __init__(self, model, logger, terms='all'):
         A = np.array([[0.0,],])
         b = np.array([1.0,])
         c = np.array([0.0,])
-        GeneralRK.__init__(self, model, logger, coeffs, A, b, c, 1, terms=terms)
+        GeneralRK.__init__(self, model, logger, A, b, c, 1, terms=terms)
 
 class RK4(GeneralRK):
-    def __init__(self, model, logger, coeffs, terms='all'):
+    def __init__(self, model, logger, terms='all'):
         A = np.array([[0.0, 0.0, 0.0, 0.0,], [0.5, 0.0, 0.0, 0.0], [0.0, 0.5, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]])
         b = np.array([1./6., 1./3., 1./3., 1./6.])
         c = np.array([0.0, 0.5, 0.5, 1.0])
-        GeneralRK.__init__(self, model, logger, coeffs, A, b, c, 4, terms=terms)
+        GeneralRK.__init__(self, model, logger, A, b, c, 4, terms=terms)
 
 class SSPRK3(GeneralRK):
-    def __init__(self, model, logger, coeffs, terms='all'):
+    def __init__(self, model, logger, terms='all'):
         A = np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.25, 0.25, 0.0]])
         b = np.array([1./6., 1./6., 2./3.])
         c = np.array([0.0, 1.0, 0.5])
-        GeneralRK.__init__(self, model, logger, coeffs, A, b, c, 3, terms=terms)
+        GeneralRK.__init__(self, model, logger, A, b, c, 3, terms=terms)
 
 
 class SSPRK43(GeneralRK):
-    def __init__(self, model, logger, coeffs, terms='all'):
+    def __init__(self, model, logger, terms='all'):
         A = np.array([[0.0, 0.0, 0.0, 0.0,], [0.5, 0.0, 0.0, 0.0], [0.5, 0.5, 0.0, 0.0], [1.0/6.0, 1.0/6.0, 1.0/6.0, 0.0]])
         b = np.array([1./6., 1./6., 1./6., 3./6.])
         c = np.array([0.0, 0.5, 1.0, 0.5])
-        GeneralRK.__init__(self, model, logger, coeffs, A, b, c, 4, terms=terms)
+        GeneralRK.__init__(self, model, logger, A, b, c, 4, terms=terms)
 
 
 #ADD THESE!!!
 class KGRK2(GeneralRK):
-    def __init__(self, model, logger, coeffs, terms='all'):
+    def __init__(self, model, logger, terms='all'):
         A = SOMETHING
         b = SOMETHING
         c = SOMETHING
         nstages = SOMETHING
-        GeneralRK.__init__(self, model, logger, coeffs, A, b, c, nstages, terms=terms)
+        GeneralRK.__init__(self, model, logger, A, b, c, nstages, terms=terms)
 
 
 class KGRK3(GeneralRK):
-    def __init__(self, model, logger, coeffs, terms='all'):
+    def __init__(self, model, logger, terms='all'):
         A = SOMETHING
         b = SOMETHING
         c = SOMETHING
         nstages = SOMETHING
-        GeneralRK.__init__(self, model, logger, coeffs, A, b, c, nstages, terms=terms)
+        GeneralRK.__init__(self, model, logger, A, b, c, nstages, terms=terms)
 
 class SOMEDIRK(GeneralRK):
-    def __init__(self, model, logger, coeffs, terms='all'):
+    def __init__(self, model, logger, terms='all'):
         A = SOMETHING
         b = SOMETHING
         c = SOMETHING
         nstages = SOMETHING
-        GeneralRK.__init__(self, model, logger, coeffs, A, b, c, nstages, terms=terms)
+        GeneralRK.__init__(self, model, logger, A, b, c, nstages, terms=terms)
 
 
 class SOMEIMPLICITRK(GeneralRK):
-    def __init__(self, model, logger, coeffs, terms='all'):
+    def __init__(self, model, logger, terms='all'):
         A = SOMETHING
         b = SOMETHING
         c = SOMETHING
         nstages = SOMETHING
-        GeneralRK.__init__(self, model, logger, coeffs,  A, b, c, nstages, terms=terms)
+        GeneralRK.__init__(self, model, logger,  A, b, c, nstages, terms=terms)
 
 
 
 
 class LieSplittingIntegrator():
-    def __init__(self, model, logger, coeffs, timestepper_list, termlist, subcycle_list):
+    def __init__(self, model, logger, timestepper_list, termlist, subcycle_list):
 
         self.subcycle_list = subcycle_list
         self.timestepper_list = timestepper_list
@@ -417,7 +421,7 @@ class LieSplittingIntegrator():
         self.time_integrators = []
         for i,time_integrator_name in enumerate(timestepper_list):
             time_integrator = get_time_integrator(time_integrator_name, None)
-            self.time_integrators.append(time_integrator(model, logger, coeffs, terms=termlist[i]))
+            self.time_integrators.append(time_integrator(model, logger, terms=termlist[i]))
 
 #HOW DO WE HANDLE THIS IN THE GENERAL CASE?
         self.xk, self.xk_sub, self.xk_split = model.get_full_var('xk', split_x_and_aux=True)
@@ -448,7 +452,9 @@ class LieSplittingIntegrator():
         lambda_n.assign(self.lambda_k)
 #HOW DO WE ADD SUPPORT FOR INITIAL CONDITION SENSITIVITY?
 
-
+    def set_coeff(self, coeff_val):
+        for time_integrator in self.time_integrators:
+            time_integrator.set_coeff(coeff_val)
 
 
 

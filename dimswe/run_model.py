@@ -25,11 +25,10 @@ def run_model(parameters):
         parameters['timestepping']['dt'] = calculate_timestep(parameters['timestepping']['cfl_const'], min_dx, wavespeed)
         logger.output('calculated cfl-based dt as ' + str(parameters['timestepping']['dt']), 0)
 
-    coeffs = model.get_coeff_var('coeff')
-    coeff, coeff_sub, coeff_split = coeffs
+    coeff, coeff_sub, coeff_split = model.get_coeff_var('coeff')
     t = model.get_t_var()
 
-    timestepper = get_timestepper(parameters, model, logger, coeffs)
+    timestepper = get_timestepper(parameters, model, logger)
 
 #HOW DO WE HANDLE THIS IN THE GENERAL CASE FOR LIE SPLIT INTEGRATOR?
 #THE ISSUE IS A MIX OF EXPLICIT AND IMPLICIT
@@ -46,6 +45,7 @@ def run_model(parameters):
 
     model.initialize(xn_sub, t)
     model.set_coeffs(parameters, coeff_sub)
+    timestepper.set_coeff(coeff)
 
     model.create_diagnostics(xn_sub, t, coeff_sub)
     model.create_statistics(xn_sub, t, coeff_sub)

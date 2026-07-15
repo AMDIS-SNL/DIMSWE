@@ -1,5 +1,6 @@
 from firedrake import assemble, inner
 import numpy as np
+from .numpy_helpers import set_mixed_function_from_flattened_array, create_flattened_numpy_arr_from_mixed_function
 
 def create_states(model, nsteps):
     xns = []
@@ -51,7 +52,7 @@ class L2Objective(_Objective):
         self.nsteps = nsteps
         self.dx = dx
 
-#THIS IS A LITTLE WRONG, AND SHOULD REALLY BE PART OF ContrainedOptimizer...
+#THIS IS A LITTLE WRONG, AND SHOULD REALLY BE PART OF ConstrainedOptimizer...
 ####
     def jac_x(self, x, params):
         return x
@@ -67,11 +68,23 @@ class L2Objective(_Objective):
     def jacT_params(self, x, params):
         return 0
 
-    def evaluate(self, block_id, soln, tns, params):
+#THIS IS A MASS MATRIX WEIGHTED INNER PRODUCT!
+#SO BE VERY CAREFUL WHEN WE SET LAMBDA I THINK?
+    def evaluate(self, block_id, soln, tns):
+#THIS INCLUDES AUX VARIABLES FOR DIRK AND IRK CASES- PROBABLY TRY TO AVOID THOSE IF POSSIBLE?
         residual = soln[0] - self.data_blocks[block_id][1][0]
-        #print(assemble(0.5*inner(residual,residual)*self.dx))
-        return assemble(0.5*inner(residual,residual)*self.dx)
+        res0 = soln[0].dat.data[0] - self.data_blocks[block_id][1][0].dat.data[0]
+        res1 = soln[0].dat.data[1] - self.data_blocks[block_id][1][0].dat.data[1]
+        res2 = soln[0].dat.data[2] - self.data_blocks[block_id][1][0].dat.data[2]
+        full_res = np.sum(res0**2) + np.sum(res1**2) + np.sum(res2**2)
+        print(0.5 * full_res)
+        #print(soln[0].dat.data[0] - self.data_blocks[block_id][1][0].dat.data[0])
+        #print(soln[0].dat.data[1] - self.data_blocks[block_id][1][0].dat.data[1])
+        #print(soln[0].dat.data[2] - self.data_blocks[block_id][1][0].dat.data[2])
+        print(assemble(0.5*inner(residual,residual)*self.dx))
 
+        #return assemble(0.5*inner(residual,residual)*self.dx)
+        return 0.5*full_res
 
 class _ODEConstrainedOptimization():
     def __init__(self, model, timestepper, objective, dt):
@@ -82,21 +95,45 @@ class _ODEConstrainedOptimization():
         self.states, self.states_sub, self.tns = create_states(model, self.objective.nsteps)
         self.dt = dt
         self.lambda_n, _, _ = self.model.get_x_var('lambda')
-        self.grad, _, _ = self.model.get_coeff_var('grad')
+        self.grad_coeff, _, _ = self.model.get_coeff_var('grad_coeff')
+        self.grad_ic, _, _ = self.model.get_x_var('grad_ic')
+        self.ic, _, _ = self.model.get_x_var('ic')
+
+        self.grad_params = np.zeros(self.model.get_coeff_size())
+        self.grad_ics = np.zeros((self.objective.num_data_blocks, self.model.get_x_size()))
+
+
+
+    def optimize(self, initial_guess, method='L-BFGS-B', opt_type='params', params0=None): #cg, bfgs
+
+        if opt_type == 'params':
+            obj = lambda params: self.obj(params, None)
+            jac = lambda params: self.jac(params, None)
+            bounds = self.timestepper.dynamics.get_param_bounds()
+        elif opt_type == 'ics':
+            obj = lambda ics: self.obj(None, np.reshape(ics, (self.objective.num_data_blocks, self.model.get_x_size())), params0=params0)
+            jac = lambda ics: self.jac(None, np.reshape(ics, (self.objective.num_data_blocks, self.model.get_x_size())), params0=params0)
+            bounds = self.timestepper.dynamics.get_ic_bounds() * self.objective.num_data_blocks
+        elif opt_type == 'params+ics':
+            obj = lambda params_plus_ic: self.obj(params_plus_ic[:self.objective.nparams], np.reshape(params_plus_ic[self.objective.nparams:], (self.objective.num_data_blocks, self.timestepper.dynamics.get_x_size())))
+            jac = lambda params_plus_ic: self.jac(params_plus_ic[:self.objective.nparams], np.reshape(params_plus_ic[self.objective.nparams:], (self.objective.num_data_blocks, self.timestepper.dynamics.get_x_size())))
+            bounds = self.timestepper.dynamics.get_param_bounds() + self.timestepper.dynamics.get_ic_bounds() * self.objective.num_data_blocks
 
 #HOW DO PARAMETER BOUNDS WORK FOR LARGE SCALE PROBLEMS LIKE THIS?
 #CLEARLY THE LIST/ARRAY IS A PROBABLY A BAD IDEA?
-    def optimize(self, params, method='L-BFGS-B',): #cg, bfgs
-        res = sp.optimize.minimize(self.obj, params,
-            method=method, bounds=self.model.get_param_bounds(), options={'disp': True, 'maxiter': 200}, jac=self.jac, hessp=self.hessp)
+        res = sp.optimize.minimize(obj, initial_guess, method=method, bounds=None, options={'disp': True, 'maxiter': 200}, jac=jac, hessp=self.hessp)
         print('optimizer success', res.success, res.status, res.message)
         print('optimizer nits', res.nit)
         print('optimizer num func evals', res.nfev)
         print('optimizer num jac evals', res.njev)
         return res.x
 
-    def obj(self, params, ic=None):
-        self.timestepper.set_coeff(params)
+    def obj(self, params_arr, ics_arr, params0=None):
+        if params_arr is None:
+            self.timestepper.set_coeff(params0)
+        else:
+            self.timestepper.set_numpy_coeff(params_arr)
+
         l2loss = 0.0
         for i in range(self.objective.num_data_blocks):
             #self.timestepper.reset_internal_vars()
@@ -105,31 +142,45 @@ class _ODEConstrainedOptimization():
             #self.states[1][0].assign(0)
             #self.states[1][1].assign(0)
             #print(len(self.states))
-#ADD CORRECT IC BEHAVIOUR HERE!
-            compute_states(self.states, self.states_sub, self.tns, self.model, self.timestepper, self.objective.nsteps, self.dt, self.objective.data_blocks[i][0], self.objective.t_blocks[i][0])
+            if ics_arr is None:
+                compute_states(self.states, self.states_sub, self.tns, self.model, self.timestepper, self.objective.nsteps, self.dt, self.objective.data_blocks[i][0], self.objective.t_blocks[i][0])
+            else:
+                set_mixed_function_from_flattened_array(self.ic, ics_arr[i,:])
+                compute_states(self.states, self.states_sub, self.tns, self.model, self.timestepper, self.objective.nsteps, self.dt, self.ic, self.objective.t_blocks[i][0])
             #print(self.objective.data_blocks[i][1][0].dat.data[0] - self.states[-1][0].dat.data[0])
             #print(self.objective.data_blocks[i][1][0].dat.data[1] - self.states[-1][0].dat.data[1])
             #print(self.objective.data_blocks[i][1][0].dat.data[2] - self.states[-1][0].dat.data[2])
-            l2loss += self.objective.evaluate(i, self.states[-1], self.tns[-1], params)
+            l2loss += self.objective.evaluate(i, self.states[-1], self.tns[-1])
         return l2loss
 
 #EVENTUALLY ADD A CLASS WITH REGULARIZATION FOR CONSTRAINTS IE AUGMENTED LAGRANGIAN?
 class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
-    def jac(self, params, ic=None):
-        self.grad.assign(0)
-        self.timestepper.set_coeff(params)
+    def jac(self, params_arr, ics_arr, params0=None):
+        self.grad_coeff.assign(0)
+        self.grad_params[:] = 0.0
+        self.grad_ics[:] = 0.0
+
+        if params_arr is None:
+            self.timestepper.set_coeff(params0)
+        else:
+            self.timestepper.set_numpy_coeff(paramsarr)
 
         for i in range(self.objective.num_data_blocks):
             #forward pass with params to populate states
 #ADD CORRECT IC BEHAVIOUR HERE!
             #THIS IS A CHOICE/TYPE OF CHECKPOINT + RECOMPUTE
-            compute_states(self.states, self.states_sub, self.tns, self.model, self.timestepper, self.objective.nsteps, self.dt, self.objective.data_blocks[i][0], self.objective.t_blocks[i][0])
+            if ics_arr is None:
+                compute_states(self.states, self.states_sub, self.tns, self.model, self.timestepper, self.objective.nsteps, self.dt, self.objective.data_blocks[i][0], self.objective.t_blocks[i][0])
+            else:
+                set_mixed_function_from_flattened_array(self.ic, ics_arr[i,:])
+                compute_states(self.states, self.states_sub, self.tns, self.model, self.timestepper, self.objective.nsteps, self.dt, self.ic, self.objective.t_blocks[i][0])
 
 
             #adjoint pass with params
 #THIS REALLY SHOULD COME FROM DERIVATIVE OF OBJECTIVE!
 #NOT ACTUALLY SURE THIS IS CORRECT FOR CHOSEN OBJECTIVE?
             self.lambda_n.assign(self.objective.data_blocks[i][1][0] - self.states[-1][0])
+            #self.lambda_n.project(self.objective.data_blocks[i][1][0] - self.states[-1][0])
             #print('lambda_n before', self.lambda_n.dat.data[0])
             for n in range(self.objective.nsteps,0,-1):
                 #take a forward step to populate stage values within timestepper
@@ -137,12 +188,16 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
                 self.timestepper.take_forward_step(self.states[n], self.states_sub[n], self.states[n-1], self.tns[n-1], self.dt)
 
                 #take an adjoint step
-                self.timestepper.take_adjoint_step(self.grad, self.lambda_n, self.lambda_n, self.tns[n], self.dt)
+                self.timestepper.take_adjoint_step(self.grad_coeff, self.lambda_n, self.lambda_n, self.tns[n], self.dt)
             #print('lambda_n after', self.lambda_n.dat.data[0])
             #print('grad', self.grad.dat.data[0])
 
-#ADD DELTA CALCULATION AT THE END
-#THIS IS ACTUALLY NEEDED FOR IC OPTIMIZATION!
+            self.grad_ics[i,:] = -create_flattened_numpy_arr_from_mixed_function(self.lambda_n)
+
+        self.grad_params[:] = self.grad_params[:] + create_flattened_numpy_arr_from_mixed_function(self.grad_coeff)
+
+#SET GRAD IC!!!
+
             #grad[:] = grad[:] + self.timesteppher
 
 #MAYBE THIS FUNCTION RETURNS A JACOBIAN WRT PARAMS, AND A JACOBIAN WRT ICS?
@@ -152,7 +207,12 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
 
 #ADD THIS ALSO!
         #self.grad = self.grad + self.objective.jac_params(self.states[-1], params)
-        return self.grad.dat.data[0]
+        if ics_arr is None:
+            return self.grad_params
+        elif params_arr is None:
+            return np.ravel(self.grad_ics)
+        else:
+            return np.hstack([self.grad_params, np.ravel(self.grad_ics)])
 
     def hessp(self, x, params):
         pass
