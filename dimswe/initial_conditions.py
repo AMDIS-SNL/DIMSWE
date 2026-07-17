@@ -428,6 +428,10 @@ class DoubleVortex(IC2D):
     def set_params(self, params):
         self.ox = params['initial-conditions']['ox'] #0.1 #0.1
         self.oy = params['initial-conditions']['oy'] #0.1 #0.1
+        self.xc1 = (0.5-self.ox) * self.Lx
+        self.yc1 = (0.5-self.oy) * self.Ly
+        self.xc2 = (0.5+self.ox) * self.Lx
+        self.yc2 = (0.5+self.oy) * self.Ly
         
     def __init__(self, params):
         IC2D.__init__(self, params)

@@ -44,13 +44,18 @@ class Dynamics():
                 for i,var in enumerate(self.xvarlist):
                     x_sub[var] = x.sub(i)
                     x_split[var] = splitx[i]
-                aux = Function(self.auxspace, name=varname)
-                aux_sub = {}
-                aux_split = {}
-                splitaux = split(aux)
-                for i,var in enumerate(self.auxvarlist):
-                    aux_sub[var] = aux.sub(i)
-                    aux_split[var] = splitaux[i]
+                if self.has_aux:
+                    aux = Function(self.auxspace, name=varname)
+                    aux_sub = {}
+                    aux_split = {}
+                    splitaux = split(aux)
+                    for i,var in enumerate(self.auxvarlist):
+                        aux_sub[var] = aux.sub(i)
+                        aux_split[var] = splitaux[i]
+                else:
+                    aux = None
+                    aux_sub = {}
+                    aux_split = {}
                 return [x,aux], x_sub | aux_sub, x_split | aux_split
             else:
                 full = Function(self.fullspace, name=varname)
@@ -98,7 +103,7 @@ class Dynamics():
             return coeff, coeff_sub, coeff_split
 
         else:
-            return None, {}, {}, None
+            return None, {}, {}
 
     def get_coeff_test_trial_vars(self):
         if not (self.coeffspace is None):
@@ -177,11 +182,15 @@ class Dynamics():
             xhat_subs = {}
             for i,var in enumerate(self.xvarlist):
                 xhat_subs[var] = xhats[i]
-            auxhat = TestFunction(self.auxspace)
-            auxhats = TestFunctions(self.auxspace)
-            auxhat_subs = {}
-            for i,var in enumerate(self.auxvarlist):
-                auxhat_subs[var] = auxhats[i]
+            if self.has_aux:
+                auxhat = TestFunction(self.auxspace)
+                auxhats = TestFunctions(self.auxspace)
+                auxhat_subs = {}
+                for i,var in enumerate(self.auxvarlist):
+                    auxhat_subs[var] = auxhats[i]
+            else:
+                auxhat = None
+                auxhat_subs = {}
             return [xhat, auxhat], xhat_subs | auxhat_subs
         else:
             xhat = TestFunction(self.fullspace)
@@ -198,11 +207,15 @@ class Dynamics():
             xtrial_subs = {}
             for i,var in enumerate(self.xvarlist):
                 xtrial_subs[var] = xtrials[i]
-            auxtrial = TrialFunction(self.auxspace)
-            auxtrials = TrialFunctions(self.auxspace)
-            auxtrial_subs = {}
-            for i,var in enumerate(self.auxvarlist):
-                auxtrial_subs[var] = auxtrials[i]
+            if self.has_aux:
+                auxtrial = TrialFunction(self.auxspace)
+                auxtrials = TrialFunctions(self.auxspace)
+                auxtrial_subs = {}
+                for i,var in enumerate(self.auxvarlist):
+                    auxtrial_subs[var] = auxtrials[i]
+            else:
+                auxtrial = None
+                auxtrial_subs = {}
             return [xtrial,auxtrial], xtrial_subs | auxtrial_subs
         else:
             xtrial = TrialFunction(self.fullspace)
@@ -237,8 +250,9 @@ class Dynamics():
 #THIS IGNORES THAT THERE MIGHT BE PARAMETERS IN DYNAMICS (ex. through the Hamiltonian, etc.)
 #THIS IS AN EASY EXTENSION AS NEEDED..
     def set_coeffs(self, parameters, coeff):
-        for term in self.forcing_terms:
-            term.set_coeffs(parameters[term.name], coeff)
+        if self.has_coeff:
+            for term in self.forcing_terms:
+                term.set_coeffs(parameters[term.name], coeff)
 
     def get_x_size(self):
         return self.x_size
@@ -392,11 +406,13 @@ class AdvDensCF_H1_Dynamics(Dynamics):
                 self.coeff_size = self.coeffspace.dim()
             else:
                 self.coeffspace = None
+                self.coeff_size = 0
             if self.has_aux:
                 self.auxspace = MixedFunctionSpace(self.auxspacelist)
                 self.aux_size = self.coeffspace.dim()
             else:
                 self.auxspace = None
+                self.aux_size = 0
             self.fullspace = MixedFunctionSpace(self.fullspacelist)
             self.fullsize = self.fullspace.dim()
 

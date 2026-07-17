@@ -50,7 +50,8 @@ class TimeStepper():
         self.dt = Constant(1.)
 
     def set_coeff(self, coeff_val):
-        self.coeff.assign(coeff_val)
+        if self.model.has_coeff():
+            self.coeff.assign(coeff_val)
 
     def set_numpy_coeff(self, coeff_val_arr):
         set_mixed_function_from_flattened_array(self.coeff, coeff_val_arr)
@@ -82,7 +83,7 @@ def create_linear_solver_from_residual(residual, var, trialvar, constant_jacobia
     L = action(a, var) - residual
     problem = LinearVariationalProblem(a, L, var, constant_jacobian=constant_jacobian)
     solver = LinearVariationalSolver(problem, solver_parameters=solver_parameters, options_prefix=options_prefix)
-    return solver
+    return solver, a, L
 
 class GeneralRK(TimeStepper):
     def __init__(self, model, logger, A, b, c, nstages, terms='all'):
@@ -163,7 +164,8 @@ class GeneralRK(TimeStepper):
         residuals_muaux = []
 #THIS MIGHT NEED TO MODIFIED FOR DIRK/IRK?
         residual_xk = inner(self.delta_lambda_var, xhat[0])*self.dx
-        residual_grad = inner(self.grad, self.grad_test)*self.dx
+        if model.has_coeff():
+            residual_grad = inner(self.grad, self.grad_test)*self.dx
         for i in range(nstages):
 #MIGHT HAVE TO MODIFY THIS INNER PRODUCT A LITTLE FOR IRK GENERALITY
             residual_F = inner(xhat[0], self.Fi[i][0][0])*self.dx - replace(rhs_F, xi_splits[i])
@@ -202,20 +204,20 @@ class GeneralRK(TimeStepper):
 
             residual_aux = 0
             residual_muaux = 0
-            if self.model.has_aux():
-                if not (lhs_W == 0):
-                    residual_aux = replace(lhs_W, xi_splits[i]) - replace(rhs_W, xi_splits[i])
-                    residual_muaux = inner(self.mui[i][0][1], xhat[1])*self.dx
-                    for j in range(self.nstages):
-                        if not derivT_F_w.empty():
+            if self.model.has_aux() and not (lhs_W == 0):
+                residual_aux = replace(lhs_W, xi_splits[i]) - replace(rhs_W, xi_splits[i])
+                residual_muaux = inner(self.mui[i][0][1], xhat[1])*self.dx
+                for j in range(self.nstages):
+                    if not derivT_W_F.empty():
+                        #print('adding derivT_W_F action for mu',i,j,self.A[j,i])
+                        term = self.dt*float(self.A[j,i])*action(derivT_W_F, self.mui[j][0][1])
+                        residual_mu = residual_mu - replace(term, xi_splits[j])
+                if not derivT_F_w.empty():
                             #print('adding derivT_F_w action for muaux',i,j,self.A[j,i])
-                            term = self.dt*float(self.A[j,i])*action(derivT_F_w, self.mui[j][0][0])
-                            residual_muaux = residual_muaux - replace(term, xi_splits[j])
-                        if not derivT_W_F.empty():
-                            #print('adding derivT_W_F action for mu',i,j,self.A[j,i])
-                            term = self.dt*float(self.A[j,i])*action(derivT_W_F, self.mui[j][0][1])
-                            residual_mu = residual_mu - replace(term, xi_splits[j])
-
+                    term = action(derivT_F_w, self.mui[i][0][0]) #self.dt*float(self.A[j,i])*action(derivT_F_w, self.mui[j][0][0])
+                    residual_muaux = residual_muaux - replace(term, xi_splits[i]) #residual_muaux - replace(term, xi_splits[j])
+#THESE MUAUX RESIDUALS ARE ONLY CORRECT WHEN LHS IS JUST MASS MATRIX!
+#IF THERE IS STATE DEPENDENCE THEN IT MUST BE CHANGED!!!
             residuals_aux.append(residual_aux)
             residuals_F.append(residual_F)
             residuals_mu.append(residual_mu)
@@ -237,13 +239,14 @@ class GeneralRK(TimeStepper):
 #THIS IS GOING TO FAIL WHEN AUXILIARY VARIABLES HAVE NON-CONSTANT JACOBIANS
 #CAN/SHOULD MAYBE SPLIT THESE INTO SEPARATE SOLVERS FOR EACH AUX VAR?
 #THIS WILL BE A MESS FOR COMPUTING ADJOINT STUFF, BUT MANAGEABLE!
-                    self.auxsolvers.append(create_linear_solver_from_residual(residuals_aux[i], self.Fi[i][0][1], xtrial[1], constant_jacobian=True, solver_parameters=overall_solver_parameters['erkstage-aux'], options_prefix = 'erk-aux'))
-                    self.muauxsolvers.append(create_linear_solver_from_residual(residuals_muaux[i], self.mui[i][0][1], xtrial[1], constant_jacobian=True, solver_parameters=overall_solver_parameters['erkstage-muaux'], options_prefix = 'erk-muaux'))
+                    self.auxsolvers.append(create_linear_solver_from_residual(residuals_aux[i], self.Fi[i][0][1], xtrial[1], constant_jacobian=True, solver_parameters=overall_solver_parameters['erkstage-aux'], options_prefix = 'erk-aux')[0])
+                    self.muauxsolvers.append(create_linear_solver_from_residual(residuals_muaux[i], self.mui[i][0][1], xtrial[1], constant_jacobian=True, solver_parameters=overall_solver_parameters['erkstage-muaux'], options_prefix = 'erk-muaux')[0])
 
-                self.Fsolvers.append(create_linear_solver_from_residual(residuals_F[i], self.Fi[i][0][0], xtrial[0], constant_jacobian=True, solver_parameters=overall_solver_parameters['erkstage-f'], options_prefix = 'erk-f'))
-                self.musolvers.append(create_linear_solver_from_residual(residuals_mu[i], self.mui[i][0][0], xtrial[0], constant_jacobian=True, solver_parameters=overall_solver_parameters['erkstage-mu'], options_prefix = 'erk-mu'))
-            self.deltalambdasolver = create_linear_solver_from_residual(residual_xk, self.delta_lambda_var, xtrial[0], constant_jacobian=True, solver_parameters=overall_solver_parameters['erk-dlambda'], options_prefix = 'erk-lambda')
-            self.gradsolver = create_linear_solver_from_residual(residual_grad, self.grad, self.grad_trial, constant_jacobian=True, solver_parameters=overall_solver_parameters['erk-grad'], options_prefix = 'erk-grad')
+                self.Fsolvers.append(create_linear_solver_from_residual(residuals_F[i], self.Fi[i][0][0], xtrial[0], constant_jacobian=True, solver_parameters=overall_solver_parameters['erkstage-f'], options_prefix = 'erk-f')[0])
+                self.musolvers.append(create_linear_solver_from_residual(residuals_mu[i], self.mui[i][0][0], xtrial[0], constant_jacobian=True, solver_parameters=overall_solver_parameters['erkstage-mu'], options_prefix = 'erk-mu')[0])
+            self.deltalambdasolver, _, self.L_delta_lambda = create_linear_solver_from_residual(residual_xk, self.delta_lambda_var, xtrial[0], constant_jacobian=True, solver_parameters=overall_solver_parameters['erk-dlambda'], options_prefix = 'erk-lambda')
+            if model.has_coeff():
+                self.gradsolver, _, self.L_grad = create_linear_solver_from_residual(residual_grad, self.grad, self.grad_trial, constant_jacobian=True, solver_parameters=overall_solver_parameters['erk-grad'], options_prefix = 'erk-grad')
         elif self.is_dirk:
             raise NotImplementedError('dirk not done yet')
             #self.Fauxsolvers = []
@@ -271,19 +274,19 @@ class GeneralRK(TimeStepper):
 
     def split_x_and_aux(self):
         return self.is_explicit
-
-    def reset_internal_vars(self):
-        self.xk[0].assign(0)
-        self.delta_lambda_var.assign(0)
-        self.grad.assign(0)
-        if len(self.xk) > 1:
-            self.xk[1].assign(0)
-        for i in range(self.nstages):
-            self.Fi[i][0][0].assign(0)
-            self.mui[i][0][0].assign(0)
-            if len(self.mui[i][0]) > 1:
-                self.mui[i][0][1].assign(0)
-                self.Fi[i][0][1].assign(0)
+    #
+    # def reset_internal_vars(self):
+    #     self.xk[0].assign(0)
+    #     self.delta_lambda_var.assign(0)
+    #     self.grad.assign(0)
+    #     if len(self.xk) > 1:
+    #         self.xk[1].assign(0)
+    #     for i in range(self.nstages):
+    #         self.Fi[i][0][0].assign(0)
+    #         self.mui[i][0][0].assign(0)
+    #         if len(self.mui[i][0]) > 1:
+    #             self.mui[i][0][1].assign(0)
+    #             self.Fi[i][0][1].assign(0)
 
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF
     def take_forward_step(self, xnp1, xnp1_sub, xn, tn, dt):
@@ -312,13 +315,15 @@ class GeneralRK(TimeStepper):
 #IDEALLY THIS IS AUX VARS EVALUATED AT XNP1- provides a good initial guess at least?
         #    xnp1[1].assign(self.Fi[-1][0][1])
 
-    def take_adjoint_step(self, grad, lambda_n, lambda_np1, tnp1, dt):
+    def take_adjoint_step(self, grad, delta_lambda, lambda_np1, tnp1, dt):
 
         self.dt.assign(dt)
         self.t.assign(tnp1 - dt)
         self.lambda_var.assign(lambda_np1)
 
-#EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF
+        #print("lambda var norm", norm(self.lambda_var))
+
+#EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF?
         if self.is_explicit:
             for i in range(self.nstages-1,-1,-1):
                 self.musolvers[i].solve()
@@ -330,18 +335,24 @@ class GeneralRK(TimeStepper):
             self.mufullsolver.solve()
 
         #compute grad
-        #print(self.Fi[0][0][1].dat.data)
-        #print(self.Fi[1][0][1].dat.data)
-        #print(self.Fi[2][0][1].dat.data)
-        #print(self.Fi[3][0][1].dat.data)
-        self.gradsolver.solve()
-        #print('grad', self.grad.dat.data[0])
-        grad.assign(grad + self.grad)
+        if self.model.has_coeff():
+            self.gradsolver.solve()
+            grad.assign(grad + self.grad)
+#THIS IS VERY SLOW, LIKELY DUE TO SET UP COSTS
+#CAN WE MAKE IT FASTER SOMEHOW?
+            gradrhs = assemble(self.L_grad)
 
         #compute lambda_n
-#SIGNS HERE?
         self.deltalambdasolver.solve()
-        lambda_n.assign(lambda_np1 + self.delta_lambda_var)
+        delta_lambda.assign(self.delta_lambda_var)
+#THIS IS VERY SLOW, LIKELY DUE TO SET UP COSTS
+#CAN WE MAKE IT FASTER SOMEHOW?
+        delta_lambda_rhs = assemble(self.L_delta_lambda)
+        if self.model.has_coeff():
+            return delta_lambda_rhs, gradrhs
+        else:
+            return delta_lambda_rhs, None
+
 
 class Euler(GeneralRK):
     def __init__(self, model, logger, terms='all'):

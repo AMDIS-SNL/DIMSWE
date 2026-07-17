@@ -1,6 +1,7 @@
-from firedrake import assemble, inner
+from firedrake import assemble, inner, norm
 import numpy as np
 from .numpy_helpers import set_mixed_function_from_flattened_array, create_flattened_numpy_arr_from_mixed_function
+import scipy as sp
 
 def create_states(model, nsteps):
     xns = []
@@ -17,7 +18,7 @@ def create_states(model, nsteps):
 def compute_states(xns, xn_subs, tns, model, timestepper, nsteps, dt, x0, t0):
     model.restart(xns[0], x0, tns[0], t0)
     for n in range(nsteps):
-        timestepper.take_forward_step(xns[n+1], xn_subs[n], xns[n], tns[n], dt)
+        timestepper.take_forward_step(xns[n+1], xn_subs[n+1], xns[n], tns[n], dt)
         tns[n+1].assign(tns[n] + dt)
     #print(xns[-1][0].dat.data[0])
 
@@ -73,18 +74,18 @@ class L2Objective(_Objective):
     def evaluate(self, block_id, soln, tns):
 #THIS INCLUDES AUX VARIABLES FOR DIRK AND IRK CASES- PROBABLY TRY TO AVOID THOSE IF POSSIBLE?
         residual = soln[0] - self.data_blocks[block_id][1][0]
-        res0 = soln[0].dat.data[0] - self.data_blocks[block_id][1][0].dat.data[0]
-        res1 = soln[0].dat.data[1] - self.data_blocks[block_id][1][0].dat.data[1]
-        res2 = soln[0].dat.data[2] - self.data_blocks[block_id][1][0].dat.data[2]
-        full_res = np.sum(res0**2) + np.sum(res1**2) + np.sum(res2**2)
-        print(0.5 * full_res)
+        #res0 = soln[0].dat.data[0] - self.data_blocks[block_id][1][0].dat.data[0]
+        #res1 = soln[0].dat.data[1] - self.data_blocks[block_id][1][0].dat.data[1]
+        #res2 = soln[0].dat.data[2] - self.data_blocks[block_id][1][0].dat.data[2]
+        #full_res = np.sum(res0**2) + np.sum(res1**2) + np.sum(res2**2)
+        #print(0.5 * full_res)
         #print(soln[0].dat.data[0] - self.data_blocks[block_id][1][0].dat.data[0])
         #print(soln[0].dat.data[1] - self.data_blocks[block_id][1][0].dat.data[1])
         #print(soln[0].dat.data[2] - self.data_blocks[block_id][1][0].dat.data[2])
-        print(assemble(0.5*inner(residual,residual)*self.dx))
+        #print(assemble(0.5*inner(residual,residual)*self.dx))
 
-        #return assemble(0.5*inner(residual,residual)*self.dx)
-        return 0.5*full_res
+        return assemble(0.5*inner(residual,residual)*self.dx)
+        #return 0.5*full_res
 
 class _ODEConstrainedOptimization():
     def __init__(self, model, timestepper, objective, dt):
@@ -94,10 +95,13 @@ class _ODEConstrainedOptimization():
 #THIS IS A CHECKPOINTING/STORAGE CHOICE
         self.states, self.states_sub, self.tns = create_states(model, self.objective.nsteps)
         self.dt = dt
-        self.lambda_n, _, _ = self.model.get_x_var('lambda')
+        self.lambda_np1, _, _ = self.model.get_x_var('lambda_np1')
+        self.delta_lambda, _, _ = self.model.get_x_var('delta_lambda')
         self.grad_coeff, _, _ = self.model.get_coeff_var('grad_coeff')
         self.grad_ic, _, _ = self.model.get_x_var('grad_ic')
         self.ic, _, _ = self.model.get_x_var('ic')
+
+        self.xtest, _ = self.model.get_x_test_vars()
 
         self.grad_params = np.zeros(self.model.get_coeff_size())
         self.grad_ics = np.zeros((self.objective.num_data_blocks, self.model.get_x_size()))
@@ -106,18 +110,19 @@ class _ODEConstrainedOptimization():
 
     def optimize(self, initial_guess, method='L-BFGS-B', opt_type='params', params0=None): #cg, bfgs
 
+#HOW DO WE CORRECTLY HANDLE BOUNDS HERE?
         if opt_type == 'params':
             obj = lambda params: self.obj(params, None)
             jac = lambda params: self.jac(params, None)
-            bounds = self.timestepper.dynamics.get_param_bounds()
+            #bounds = self.model.get_param_bounds()
         elif opt_type == 'ics':
             obj = lambda ics: self.obj(None, np.reshape(ics, (self.objective.num_data_blocks, self.model.get_x_size())), params0=params0)
             jac = lambda ics: self.jac(None, np.reshape(ics, (self.objective.num_data_blocks, self.model.get_x_size())), params0=params0)
-            bounds = self.timestepper.dynamics.get_ic_bounds() * self.objective.num_data_blocks
+            #bounds = self.model.get_ic_bounds() * self.objective.num_data_blocks
         elif opt_type == 'params+ics':
-            obj = lambda params_plus_ic: self.obj(params_plus_ic[:self.objective.nparams], np.reshape(params_plus_ic[self.objective.nparams:], (self.objective.num_data_blocks, self.timestepper.dynamics.get_x_size())))
-            jac = lambda params_plus_ic: self.jac(params_plus_ic[:self.objective.nparams], np.reshape(params_plus_ic[self.objective.nparams:], (self.objective.num_data_blocks, self.timestepper.dynamics.get_x_size())))
-            bounds = self.timestepper.dynamics.get_param_bounds() + self.timestepper.dynamics.get_ic_bounds() * self.objective.num_data_blocks
+            obj = lambda params_plus_ic: self.obj(params_plus_ic[:self.model.get_coeff_size()], np.reshape(params_plus_ic[self.model.get_coeff_size():], (self.objective.num_data_blocks, self.timestepper.dynamics.get_x_size())))
+            jac = lambda params_plus_ic: self.jac(params_plus_ic[:self.model.get_coeff_size()], np.reshape(params_plus_ic[self.model.get_coeff_size():], (self.objective.num_data_blocks, self.timestepper.dynamics.get_x_size())))
+            #bounds = self.model.get_param_bounds() + self.model.get_ic_bounds() * self.objective.num_data_blocks
 
 #HOW DO PARAMETER BOUNDS WORK FOR LARGE SCALE PROBLEMS LIKE THIS?
 #CLEARLY THE LIST/ARRAY IS A PROBABLY A BAD IDEA?
@@ -156,14 +161,15 @@ class _ODEConstrainedOptimization():
 #EVENTUALLY ADD A CLASS WITH REGULARIZATION FOR CONSTRAINTS IE AUGMENTED LAGRANGIAN?
 class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
     def jac(self, params_arr, ics_arr, params0=None):
-        self.grad_coeff.assign(0)
+        if self.model.has_coeff():
+            self.grad_coeff.assign(0)
         self.grad_params[:] = 0.0
         self.grad_ics[:] = 0.0
 
         if params_arr is None:
             self.timestepper.set_coeff(params0)
         else:
-            self.timestepper.set_numpy_coeff(paramsarr)
+            self.timestepper.set_numpy_coeff(params_arr)
 
         for i in range(self.objective.num_data_blocks):
             #forward pass with params to populate states
@@ -177,10 +183,12 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
 
 
             #adjoint pass with params
-#THIS REALLY SHOULD COME FROM DERIVATIVE OF OBJECTIVE!
-#NOT ACTUALLY SURE THIS IS CORRECT FOR CHOSEN OBJECTIVE?
-            self.lambda_n.assign(self.objective.data_blocks[i][1][0] - self.states[-1][0])
+            #self.lambda_n.assign(self.objective.data_blocks[i][1][0] - self.states[-1][0])
+#WHAT IS THE CORRECT SIGN HERE?
             #self.lambda_n.project(self.objective.data_blocks[i][1][0] - self.states[-1][0])
+            self.lambda_np1.project(self.states[-1][0] - self.objective.data_blocks[i][1][0])
+            #self.grad_ics[i, :] = create_flattened_numpy_arr_from_mixed_function(self.lambda_np1)
+            self.grad_ics[i, :] = create_flattened_numpy_arr_from_mixed_function(assemble(inner(self.xtest, self.states[-1][0] - self.objective.data_blocks[i][1][0])*self.model.spaces.dx))
             #print('lambda_n before', self.lambda_n.dat.data[0])
             for n in range(self.objective.nsteps,0,-1):
                 #take a forward step to populate stage values within timestepper
@@ -188,25 +196,22 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
                 self.timestepper.take_forward_step(self.states[n], self.states_sub[n], self.states[n-1], self.tns[n-1], self.dt)
 
                 #take an adjoint step
-                self.timestepper.take_adjoint_step(self.grad_coeff, self.lambda_n, self.lambda_n, self.tns[n], self.dt)
+                #print("terminal adjoint norm", norm(self.lambda_np1))
+
+                delta_lambda_rhs, gradrhs = self.timestepper.take_adjoint_step(self.grad_coeff, self.delta_lambda, self.lambda_np1, self.tns[n], self.dt)
+                self.lambda_np1.assign(self.lambda_np1 + self.delta_lambda)
+
             #print('lambda_n after', self.lambda_n.dat.data[0])
             #print('grad', self.grad.dat.data[0])
 
-            self.grad_ics[i,:] = -create_flattened_numpy_arr_from_mixed_function(self.lambda_n)
+#            self.grad_ics[i,:] = create_flattened_numpy_arr_from_mixed_function(self.lambda_np1)
+            self.grad_ics[i, :] = self.grad_ics[i, :] + create_flattened_numpy_arr_from_mixed_function(delta_lambda_rhs)
 
-        self.grad_params[:] = self.grad_params[:] + create_flattened_numpy_arr_from_mixed_function(self.grad_coeff)
+        if self.model.has_coeff():
+            #self.grad_params[:] = self.grad_params[:] + create_flattened_numpy_arr_from_mixed_function(self.grad_coeff)
+            self.grad_params[:] = self.grad_params[:] + create_flattened_numpy_arr_from_mixed_function(gradrhs)
 
-#SET GRAD IC!!!
 
-            #grad[:] = grad[:] + self.timesteppher
-
-#MAYBE THIS FUNCTION RETURNS A JACOBIAN WRT PARAMS, AND A JACOBIAN WRT ICS?
-#YES THIS IS THE WAY
-
-#THEN SOME OTHER FUNCTION CAN COMBINE THEM AS NEEDED, DEPENDING ON WHAT WE ARE OPTIMIZING WRT TO!
-
-#ADD THIS ALSO!
-        #self.grad = self.grad + self.objective.jac_params(self.states[-1], params)
         if ics_arr is None:
             return self.grad_params
         elif params_arr is None:
