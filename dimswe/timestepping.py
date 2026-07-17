@@ -146,6 +146,7 @@ class GeneralRK(TimeStepper):
                 derivT_W_theta = adjoint(derivative(rhs_W, self.coeff, self.grad_trial))
 
 
+
         xi_splits = []
         for i in range(nstages):
             xi_split = {}
@@ -157,6 +158,8 @@ class GeneralRK(TimeStepper):
                 xi_split[self.xk_split[var]] = self.Fi[i][2][var]
             xi_split[self.t] = self.t + float(self.c[i])*self.dt
             xi_splits.append(xi_split)
+
+
 
         residuals_F = []
         residuals_aux = []
@@ -222,6 +225,28 @@ class GeneralRK(TimeStepper):
             residuals_F.append(residual_F)
             residuals_mu.append(residual_mu)
             residuals_muaux.append(residual_muaux)
+
+#THIS WORKS BUT IT GIVES ESSENTIALLY THE SAME ANSWER AND ISSUES AS THE ABOVE...
+        # for i in range(nstages):
+        #     residual_mu = inner(self.mui[i][0][0], xhat[0])*self.dx
+        #     residual_mu = residual_mu - self.dt * float(self.b[i])*inner(self.lambda_var, xhat[0])*self.dx
+        #
+        #     for j in range(nstages):
+        #         rhs_Fj = -model.rhs(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
+        #         rhs_Fj = replace(rhs_Fj, xi_splits[j])
+        #         deriv_Fj_Fi = adjoint(derivative(rhs_Fj, self.Fi[i][0][0], xtrial[0]))
+        #         if not deriv_Fj_Fi.empty():
+        #             residual_mu = residual_mu - action(deriv_Fj_Fi, self.mui[j][0][0])
+        #     residuals_mu.append(residual_mu)
+#THIS IS MISSING ALL THE AUX TERMS!!!!
+
+            # if self.model.has_aux():
+            #     aux_expressions = self.model.compute_aux_expressions(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
+            #     rhs_W = 0
+            #     lhs_W = 0
+            #     for var in self.model.get_aux_var_list(terms=terms):
+            #         rhs_W = rhs_W + aux_expressions[var][1]
+            #         lhs_W = lhs_W + aux_expressions[var][0]
 
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF
         #construct solvers

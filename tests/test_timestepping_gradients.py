@@ -10,7 +10,7 @@ from dimswe.numpy_helpers import create_flattened_numpy_arr_from_mixed_function
 
 import pytest
 
-from firedrake import assemble, inner
+from firedrake import assemble, inner, norm
 
 def taylor_remainder_check(jac_func, fd_func, x_func, x0, x0_perturb, x0_perturbed):
     remainders = []
@@ -67,11 +67,17 @@ def test_single_timestep_gradient_ic():
         x0_perturbed.assign(x0 + float(eps)*x0_perturb)
         return np.expand_dims(create_flattened_numpy_arr_from_mixed_function(x0_perturbed), 0)
 
+    #print('x0', norm(x0[0]))
+    #print('x0_perturb', norm(x0_perturb))
+
     #zero gradients at optimality
     x0_perturb.assign(x0[0] * 0.05)
 #THIS IS CONVERGING AT ORDER 3- great!
     taylor_remainder_check(jac_func, fd_func, x_func, x0[0], x0_perturb, x0_perturbed)
 #ADD A CHECK THAT THIS GRADIENT IS FUNCTIONALLY ZERO?
+
+    #print('x0', norm(x0[0]))
+    #print('x0_perturb', norm(x0_perturb))
 
     #check gradients
     x0_perturb, x0_perturb_sub, x0_perturb_split = model.get_x_var('x0_perturb')
@@ -82,11 +88,14 @@ def test_single_timestep_gradient_ic():
     model.initialize(x0_new_sub, t0, new_params=parameters)
     x0_perturb.assign(x0_new[0] * 0.05)
 
+    #print('x0_new', norm(x0_new[0]))
+    #print('x0_perturb', norm(x0_perturb))
 #THIS IS CONVERGING AT ORDER 1
 #NOT GOOD :(
     taylor_remainder_check(jac_func, fd_func, x_func, x0_new[0], x0_perturb, x0_perturbed)
 
-
+    #print('x0_perturb', norm(x0_perturb))
+    #print('x0_new', norm(x0_new[0]))
 
 
 
