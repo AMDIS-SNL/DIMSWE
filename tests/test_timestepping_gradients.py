@@ -15,7 +15,7 @@ from firedrake import assemble, inner, norm
 def taylor_remainder_check(jac_func, fd_func, x_func, x0, x0_perturb, x0_perturbed):
     remainders = []
     factors = 0.5 ** np.arange(0, 8)
-    eps_list = list(1e-3 * factors)
+    eps_list = list(1e-2 * factors)
     for eps in eps_list:
         taylor_remainder = fd_func(x_func(eps, x0, x0_perturb, x0_perturbed)) - fd_func(x_func(-eps, x0, x0_perturb, x0_perturbed)) - 2.*eps*jac_func(x0, x0_perturb)
         print(eps, taylor_remainder)

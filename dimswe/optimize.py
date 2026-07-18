@@ -126,7 +126,10 @@ class _ODEConstrainedOptimization():
 
 #HOW DO PARAMETER BOUNDS WORK FOR LARGE SCALE PROBLEMS LIKE THIS?
 #CLEARLY THE LIST/ARRAY IS A PROBABLY A BAD IDEA?
-        res = sp.optimize.minimize(obj, initial_guess, method=method, bounds=None, options={'disp': True, 'maxiter': 200}, jac=jac, hessp=self.hessp)
+        res = sp.optimize.minimize(obj, initial_guess,
+            method=method, bounds=None,
+            options={'disp': True, 'maxiter': 200},
+            hessp=self.hessp) #jac=jac,
         print('optimizer success', res.success, res.status, res.message)
         print('optimizer nits', res.nit)
         print('optimizer num func evals', res.nfev)

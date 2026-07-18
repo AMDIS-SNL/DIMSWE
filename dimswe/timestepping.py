@@ -126,24 +126,17 @@ class GeneralRK(TimeStepper):
 
         #construct residuals for F and aux
         #this sign is due to writing things as dxdt + F(x) = 0
-        rhs_F = -model.rhs(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
-        if self.model.has_aux():
-            aux_expressions = self.model.compute_aux_expressions(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
-            rhs_W = 0
-            lhs_W = 0
-            for var in self.model.get_aux_var_list(terms=terms):
-                rhs_W = rhs_W + aux_expressions[var][1]
-                lhs_W = lhs_W + aux_expressions[var][0]
+
 #THIS IS A BIT OF A MESS FOR DIRK AND IRK- need to take derivatives wrt x and w independently, if that is possible?
 #MIGHT BE ABLE TO JUST TAKE A JOINT DERIVATIVE? UNCLEAR....
-        derivT_F_F = adjoint(derivative(rhs_F, self.xk[0], xtrial[0]))
-        if model.has_coeff():
-            derivT_F_theta = adjoint(derivative(rhs_F, self.coeff, self.grad_trial))
-        if self.model.has_aux() and not (lhs_W == 0):
-            derivT_F_w = adjoint(derivative(rhs_F, self.xk[1], xtrial[1]))
-            derivT_W_F = adjoint(derivative(rhs_W, self.xk[0], xtrial[0]))
-            if model.has_coeff():
-                derivT_W_theta = adjoint(derivative(rhs_W, self.coeff, self.grad_trial))
+        # derivT_F_F = adjoint(derivative(rhs_F, self.xk[0], xtrial[0]))
+        # if model.has_coeff():
+        #     derivT_F_theta = adjoint(derivative(rhs_F, self.coeff, self.grad_trial))
+        # if self.model.has_aux() and not (lhs_W == 0):
+        #     derivT_F_w = adjoint(derivative(rhs_F, self.xk[1], xtrial[1]))
+        #     derivT_W_F = adjoint(derivative(rhs_W, self.xk[0], xtrial[0]))
+        #     if model.has_coeff():
+        #         derivT_W_theta = adjoint(derivative(rhs_W, self.coeff, self.grad_trial))
 
 
 
@@ -160,93 +153,135 @@ class GeneralRK(TimeStepper):
             xi_splits.append(xi_split)
 
 
-
         residuals_F = []
         residuals_aux = []
-        residuals_mu = []
-        residuals_muaux = []
-#THIS MIGHT NEED TO MODIFIED FOR DIRK/IRK?
-        residual_xk = inner(self.delta_lambda_var, xhat[0])*self.dx
-        if model.has_coeff():
-            residual_grad = inner(self.grad, self.grad_test)*self.dx
         for i in range(nstages):
 #MIGHT HAVE TO MODIFY THIS INNER PRODUCT A LITTLE FOR IRK GENERALITY
-            residual_F = inner(xhat[0], self.Fi[i][0][0])*self.dx - replace(rhs_F, xi_splits[i])
+            rhs_Fi = -model.rhs(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
+
+            residual_F = inner(xhat[0], self.Fi[i][0][0])*self.dx - replace(rhs_Fi, xi_splits[i])
 #ALL THESE RESIDUAL MU/MUAUX SUMS RELY ON SPLITTING AND TAKING DERIVATIVES WRT SPLITS
 #THIS IS A MESS WITH DIRK AND IRK!
-            residual_mu = inner(self.mui[i][0][0], xhat[0])*self.dx
-            if not derivT_F_F.empty():
-                for j in range(self.nstages):
-                    #print('adding derivT_F_F action for mu',i,j,self.A[j,i])
-                    term = self.dt*float(self.A[j,i])*action(derivT_F_F, self.mui[j][0][0])
-                    residual_mu = residual_mu - replace(term, xi_splits[j])
-            residual_mu = residual_mu - self.dt * float(self.b[i])*inner(self.lambda_var, xhat[0])*self.dx
+            #residual_mu = inner(self.mui[i][0][0], xhat[0])*self.dx
+            #if not derivT_F_F.empty():
+            #    for j in range(self.nstages):
+            #        #print('adding derivT_F_F action for mu',i,j,self.A[j,i])
+            #        term = self.dt*float(self.A[j,i])*action(derivT_F_F, self.mui[j][0][0])
+            #        residual_mu = residual_mu - replace(term, xi_splits[j])
+            #residual_mu = residual_mu - self.dt * float(self.b[i])*inner(self.lambda_var, xhat[0])*self.dx
 
-            if not derivT_F_F.empty():
-                term = action(derivT_F_F, self.mui[i][0][0])
-                residual_xk = residual_xk - replace(term, xi_splits[i])
-            if model.has_aux() and (not lhs_W == 0) and not derivT_W_F.empty():
-                term = action(derivT_W_F, self.mui[i][0][1])
-                residual_xk = residual_xk - replace(term, xi_splits[i])
+            #if not derivT_F_F.empty():
+            #    term = action(derivT_F_F, self.mui[i][0][0])
+            #    residual_xk = residual_xk - replace(term, xi_splits[i])
+#            if model.has_aux() and (not lhs_W == 0) and not derivT_W_F.empty():
+#                term = action(derivT_W_F, self.mui[i][0][1])
+#                residual_xk = residual_xk - replace(term, xi_splits[i])
 
-            if model.has_coeff():
-                #print('has coeff')
-                if not derivT_F_theta.empty():
-                    #print('non-empty deriv F_theta, adding grad stuff')
-                    #for j in range(self.nstages):
-                    #term = self.dt*float(self.A[j,i])*action(derivT_F_theta, self.mui[j][0][0])
-                    term = action(derivT_F_theta, self.mui[i][0][0])
-                    #residual_grad = residual_grad - replace(term, xi_splits[j])
-                    #print('grad F_theta', i, term)
-                    residual_grad = residual_grad - replace(term, xi_splits[i])
-                    #print('grad F_theta', i, residual_grad)
-                if model.has_aux() and (not lhs_W == 0) and not derivT_W_theta.empty():
-                    #print('non-empty deriv W_theta, adding grad stuff')
-                    term = action(derivT_W_theta, self.mui[i][0][1])
-                    residual_grad = residual_grad - replace(term, xi_splits[i])
+            # if model.has_coeff():
+            #     #print('has coeff')
+            #     if not derivT_F_theta.empty():
+            #         #print('non-empty deriv F_theta, adding grad stuff')
+            #         #for j in range(self.nstages):
+            #         #term = self.dt*float(self.A[j,i])*action(derivT_F_theta, self.mui[j][0][0])
+            #         term = action(derivT_F_theta, self.mui[i][0][0])
+            #         #residual_grad = residual_grad - replace(term, xi_splits[j])
+            #         #print('grad F_theta', i, term)
+            #         residual_grad = residual_grad - replace(term, xi_splits[i])
+            #         #print('grad F_theta', i, residual_grad)
+            #     if model.has_aux() and (not lhs_W == 0) and not derivT_W_theta.empty():
+            #         #print('non-empty deriv W_theta, adding grad stuff')
+            #         term = action(derivT_W_theta, self.mui[i][0][1])
+            #         residual_grad = residual_grad - replace(term, xi_splits[i])
 
             residual_aux = 0
-            residual_muaux = 0
-            if self.model.has_aux() and not (lhs_W == 0):
-                residual_aux = replace(lhs_W, xi_splits[i]) - replace(rhs_W, xi_splits[i])
-                residual_muaux = inner(self.mui[i][0][1], xhat[1])*self.dx
-                for j in range(self.nstages):
-                    if not derivT_W_F.empty():
-                        #print('adding derivT_W_F action for mu',i,j,self.A[j,i])
-                        term = self.dt*float(self.A[j,i])*action(derivT_W_F, self.mui[j][0][1])
-                        residual_mu = residual_mu - replace(term, xi_splits[j])
-                if not derivT_F_w.empty():
+#            residual_muaux = 0
+            if self.model.has_aux():
+                aux_expressions = self.model.compute_aux_expressions(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
+                rhs_W = 0
+                lhs_W = 0
+                for var in self.model.get_aux_var_list(terms=terms):
+                    rhs_W = rhs_W + aux_expressions[var][1]
+                    lhs_W = lhs_W + aux_expressions[var][0]
+                if not (lhs_W == 0):
+                    residual_aux = replace(lhs_W - rhs_W, xi_splits[i])
+#                residual_muaux = inner(self.mui[i][0][1], xhat[1])*self.dx
+#                for j in range(self.nstages):
+#                    if not derivT_W_F.empty():
+#                        #print('adding derivT_W_F action for mu',i,j,self.A[j,i])
+#                        term = self.dt*float(self.A[j,i])*action(derivT_W_F, self.mui[j][0][1])
+#                        residual_mu = residual_mu - replace(term, xi_splits[j])
+#                if not derivT_F_w.empty():
                             #print('adding derivT_F_w action for muaux',i,j,self.A[j,i])
-                    term = action(derivT_F_w, self.mui[i][0][0]) #self.dt*float(self.A[j,i])*action(derivT_F_w, self.mui[j][0][0])
-                    residual_muaux = residual_muaux - replace(term, xi_splits[i]) #residual_muaux - replace(term, xi_splits[j])
+#                    term = action(derivT_F_w, self.mui[i][0][0]) #self.dt*float(self.A[j,i])*action(derivT_F_w, self.mui[j][0][0])
+#                    residual_muaux = residual_muaux - replace(term, xi_splits[i]) #residual_muaux - replace(term, xi_splits[j])
 #THESE MUAUX RESIDUALS ARE ONLY CORRECT WHEN LHS IS JUST MASS MATRIX!
 #IF THERE IS STATE DEPENDENCE THEN IT MUST BE CHANGED!!!
             residuals_aux.append(residual_aux)
             residuals_F.append(residual_F)
+            #residuals_mu.append(residual_mu)
+            #residuals_muaux.append(residual_muaux)
+
+        residuals_mu = []
+        residuals_muaux = []
+        residual_xk = inner(self.delta_lambda_var, xhat[0])*self.dx
+#THIS MIGHT NEED TO MODIFIED FOR DIRK/IRK?
+        if model.has_coeff():
+            residual_grad = inner(self.grad, self.grad_test)*self.dx
+        for i in range(nstages):
+            residual_mu = inner(self.mui[i][0][0], xhat[0])*self.dx
+            residual_mu = residual_mu - self.dt * float(self.b[i])*inner(self.lambda_var, xhat[0])*self.dx
+            residual_muaux = 0
+
+            for j in range(nstages):
+                rhs_Fj = -model.rhs(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
+                rhs_Fj = replace(rhs_Fj, xi_splits[j])
+                derivT_Fj_Fi = adjoint(derivative(rhs_Fj, self.Fi[i][0][0], xtrial[0]))
+                if not derivT_Fj_Fi.empty():
+                    residual_mu = residual_mu - action(derivT_Fj_Fi, self.mui[j][0][0])
+                if model.has_aux():
+                    aux_expressions = self.model.compute_aux_expressions(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
+                    rhs_Wj = 0
+                    for var in self.model.get_aux_var_list(terms=terms):
+                        rhs_Wj = rhs_Wj + aux_expressions[var][1]
+                    if not (rhs_Wj == 0):
+                        rhs_Wj = replace(rhs_Wj, xi_splits[j])
+                        derivT_Wj_Fi = adjoint(derivative(rhs_Wj, self.Fi[i][0][0], xtrial[0]))
+                        if not derivT_Wj_Fi.empty():
+                            residual_mu = residual_mu - action(derivT_Wj_Fi, self.mui[j][0][1])
+
+            rhs_Fi = -model.rhs(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
+            rhs_Fi = replace(rhs_Fi, xi_splits[i])
+            derivT_Fi_xk = adjoint(derivative(rhs_Fi, self.xk[0], xtrial[0]))
+            if not derivT_Fi_xk.empty():
+                residual_xk = residual_xk -  action(derivT_Fi_xk, self.mui[i][0][0])
+            if model.has_aux():
+                aux_expressions = self.model.compute_aux_expressions(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
+                rhs_Wi = 0
+                for var in self.model.get_aux_var_list(terms=terms):
+                    rhs_Wi = rhs_Wi + aux_expressions[var][1]
+                if not (rhs_Wi == 0):
+                    rhs_Wi = replace(rhs_Wi, xi_splits[i])
+                    derivT_Wi_xk = adjoint(derivative(rhs_Wi, self.xk[0], xtrial[0]))
+                    if not derivT_Wi_xk.empty():
+                        residual_xk = residual_xk -  action(derivT_Wi_xk, self.mui[i][0][1])
+    #THIS IS ASSUMING THAT LHS W IS LINEAR IN W
+                    residual_muaux = inner(self.mui[i][0][1], xhat[1])*self.dx
+                    derivT_Fi_wi = adjoint(derivative(rhs_Fi, self.Fi[i][0][1], xtrial[1]))
+                    if not derivT_Fi_wi.empty():
+                        residual_muaux = residual_muaux - action(derivT_Fi_wi, self.mui[i][0][0])
+                    if model.has_coeff():
+                        derivT_Wi_theta = adjoint(derivative(rhs_Wi, self.coeff, self.grad_trial))
+                        if not derivT_Wi_theta.empty():
+                            residual_grad = residual_grad - action(derivT_Wi_theta, self.mui[i][0][1])
+
+            if model.has_coeff():
+                derivT_Fi_theta = adjoint(derivative(rhs_Fi, self.coeff, self.grad_trial))
+                if not derivT_Fi_theta.empty():
+                    residual_grad = residual_grad - action(derivT_Fi_theta, self.mui[i][0][0])
+
             residuals_mu.append(residual_mu)
             residuals_muaux.append(residual_muaux)
 
-#THIS WORKS BUT IT GIVES ESSENTIALLY THE SAME ANSWER AND ISSUES AS THE ABOVE...
-        # for i in range(nstages):
-        #     residual_mu = inner(self.mui[i][0][0], xhat[0])*self.dx
-        #     residual_mu = residual_mu - self.dt * float(self.b[i])*inner(self.lambda_var, xhat[0])*self.dx
-        #
-        #     for j in range(nstages):
-        #         rhs_Fj = -model.rhs(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
-        #         rhs_Fj = replace(rhs_Fj, xi_splits[j])
-        #         deriv_Fj_Fi = adjoint(derivative(rhs_Fj, self.Fi[i][0][0], xtrial[0]))
-        #         if not deriv_Fj_Fi.empty():
-        #             residual_mu = residual_mu - action(deriv_Fj_Fi, self.mui[j][0][0])
-        #     residuals_mu.append(residual_mu)
-#THIS IS MISSING ALL THE AUX TERMS!!!!
-
-            # if self.model.has_aux():
-            #     aux_expressions = self.model.compute_aux_expressions(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
-            #     rhs_W = 0
-            #     lhs_W = 0
-            #     for var in self.model.get_aux_var_list(terms=terms):
-            #         rhs_W = rhs_W + aux_expressions[var][1]
-            #         lhs_W = lhs_W + aux_expressions[var][0]
 
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF
         #construct solvers

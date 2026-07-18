@@ -30,8 +30,8 @@ optimizer = Lagrangian_ODEConstrainedOptimization(model, timestepper, objective,
 
 
 x0_new, x0_new_sub, x0_new_split = model.get_full_var('x0_new', split_x_and_aux=True)
-parameters['initial-conditions']['ox'] = 0.15
-parameters['initial-conditions']['oy'] = 0.15
+parameters['initial-conditions']['ox'] = 0.11
+parameters['initial-conditions']['oy'] = 0.11
 model.initialize(x0_new_sub, t0, new_params=parameters)
 plot_variable(x0_new[0].sub(0), 'v-start',  2, True)
 plot_variable(x0_new[0].sub(1), 'h-start',  2, False)
