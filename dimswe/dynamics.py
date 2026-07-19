@@ -393,8 +393,8 @@ class AdvDensCF_H1_Dynamics(Dynamics):
         self.has_coeff = not (len(self.coeffspacelist) == 0)
 
         if not spaces is None:
-            self.coriolis = Function(spaces.CG)
-            self.bottom_topography = Function(spaces.CG)
+            self.coriolis = Function(spaces.CG, name='coriolis')
+            self.bottom_topography = Function(spaces.CG, name='topo')
             #dimension = self.spaces.CG.V.mesh().geometric_dimension()
 
             self.dx = spaces.dx

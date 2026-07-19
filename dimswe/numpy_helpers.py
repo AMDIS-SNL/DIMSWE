@@ -10,5 +10,6 @@ def create_flattened_numpy_arr_from_mixed_function(func):
 def set_mixed_function_from_flattened_array(func, arr):
     off = 0
     for data in func.dat.data:
+        #print(off, data, data.size, arr.shape)
         data[:] = np.reshape(arr[off:off+data.size], data.shape)
         off = off + data.size

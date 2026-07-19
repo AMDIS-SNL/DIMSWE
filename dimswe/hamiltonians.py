@@ -88,7 +88,7 @@ class ThermalShallowWater_Hamiltonian_Base(Hamiltonian_Base):
     def __init__(self, vars):
         Hamiltonian_Base.__init__(self, vars)
         if not vars.spaces is None:
-            self.bottom_topography = Function(vars.spaces.CG)
+            self.bottom_topography = Function(vars.spaces.CG, name='topo')
 
     def initialize(self, varexpr):
         self.bottom_topography.interpolate(varexpr['bottom_topography'])

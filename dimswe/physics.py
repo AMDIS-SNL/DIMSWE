@@ -26,7 +26,7 @@ class ThreeWayPhysics(ForcingBase):
 
         if not self.spaces is None:
             self.dx = spaces.dx
-            self.B = Function(FunctionSpace(self.spaces.mesh, 'CG', self.spaces.order, variant="spectral"))
+            self.B = Function(FunctionSpace(self.spaces.mesh, 'CG', self.spaces.order, variant="spectral"), name='topo')
 
     def initialize(self, varexpr):
         self.B.interpolate(varexpr['bottom_topography'])

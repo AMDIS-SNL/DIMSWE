@@ -1,7 +1,7 @@
 
 from math import pow
 from .operators import ForcingBase
-from firedrake import Function, inner, grad, TestFunction, TrialFunction, FunctionSpace, Constant
+from firedrake import inner, grad, TestFunction, TrialFunction, FunctionSpace, Constant
 
 #THIS IS PRETTY SPECIFIC TO CG METHODS
 #ALSO 2ND ORDER HYPERVISCOSITY ONLY

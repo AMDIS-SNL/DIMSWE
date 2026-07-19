@@ -145,6 +145,8 @@ class AdvDensVariables_CF_Base(VariablesBase):
         for dens in self.active_density_names:
             self.dhdx_var_list.append('B_' + dens)
 
+#THIS SHOULD BE DONE VIA A LINEAR SYSTEM I THINK!
+#SAME WITH 
     def initialize(self, varexpr, vars):
         for var in self.varlist:
             if not varexpr[var] == 0:

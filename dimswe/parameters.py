@@ -13,13 +13,14 @@ def get_parameters(cfgfile):
 
 preonly_linear_system = { 'ksp_type': 'preonly', 'pc_type' : 'lu', 'ksp_converged_reason': None,} #'ksp_monitor_true_residual': None}
 basic_linear_system = { 'ksp_type': 'cg', 'pc_type' : 'jacobi', 'ksp_converged_reason': None} #'ksp_monitor_true_residual': None}
-
-overall_solver_parameters = {}
-overall_solver_parameters['qn'] = {'snes_monitor': None, 'snes_converged_reason': None,
+quasi_newton_system = {'snes_monitor': None, 'snes_converged_reason': None,
     'snes_stol': 1e-12, 'snes_rtol': 1e-12, 'snes_atol': 1e-12,
     'snes_lag_jacobian': 100, 'snes_lag_preconditioner': 100, 'ksp_converged_reason': None,
     'ksp_type': 'gmres', 'pc_type' : 'ilu', 'snes_max_it': 50,
     'ksp_stol': 1e-25, 'ksp_rtol': 1e-25, 'ksp_atol': 1e-25}
+
+overall_solver_parameters = {}
+overall_solver_parameters['qn'] = quasi_newton_system
 overall_solver_parameters['fixedpoint'] = basic_linear_system
 #overall_solver_parameters['q'] = basic_linear_system
 #overall_solver_parameters['u'] = basic_linear_system

@@ -11,7 +11,7 @@ from .dissipation import Hyperviscosity
 from .physics import ThreeWayPhysics
 from .transport_operators import DG1LimiterTransport
 
-from firedrake import Constant
+from firedrake import Constant, inner, assemble
 
 def get_forcing_terms(parameters, vars, spaces, initcond):
     forcing_terms = []
@@ -153,6 +153,10 @@ class Model():
         if self.has_dynamics_statistics:
             self.diagnostics.initialize(varexpr)
             self.statistics.initialize(varexpr)
+
+    def norm(self, v):
+        expr = inner(v,v)*self.spaces.dx
+        return assemble(expr)**(1./2.)
 
     def restart(self, xn, x0, t, t0):
         t.assign(t0)

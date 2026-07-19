@@ -29,11 +29,11 @@ class AdvDensDiagnostics():
         self.initcond = initcond
 
         if not spaces is None:
-            self.bottom_topography = Function(spaces.CG)
+            self.bottom_topography = Function(spaces.CG, name='topo')
             if self.dim == 2:
-                self.coriolis = Function(spaces.CG)
+                self.coriolis = Function(spaces.CG, name='coriolis')
             elif self.dim == 3:
-                self.coriolis = Function(spaces.CGV) #PRETTY UNCLEAR ACTUALLY- MAYBE H(curl) or even H(div)?
+                self.coriolis = Function(spaces.CGV, name='coriolis') #PRETTY UNCLEAR ACTUALLY- MAYBE H(curl) or even H(div)?
 
         self.testvars = {}
         self.trialvars = {}
@@ -57,28 +57,28 @@ class AdvDensDiagnostics():
 
             self.vars = {}
             if self.dim ==2:
-                self.vars['q'] = Function(self.spaces.CG)
-                self.vars['eta'] = Function(self.spaces.CG)
-                self.vars['zeta'] = Function(self.spaces.CG)
+                self.vars['q'] = Function(self.spaces.CG, name='q')
+                self.vars['eta'] = Function(self.spaces.CG, name='eta')
+                self.vars['zeta'] = Function(self.spaces.CG, name='zeta')
                 self.testvars['q'] = TestFunction(self.spaces.CG)
                 self.trialvars['q'] = TrialFunction(self.spaces.CG)
 #THIS MIGHT BE bracket-specific, unclear...
             if self.dim ==3:
-                self.vars['q'] = Function(self.spaces.Hcurl)
-                self.vars['eta'] = Function(self.spaces.Hcurl)
-                self.vars['zeta'] = Function(self.spaces.Hcurl)
+                self.vars['q'] = Function(self.spaces.Hcurl, name='q')
+                self.vars['eta'] = Function(self.spaces.Hcurl, name='eta')
+                self.vars['zeta'] = Function(self.spaces.Hcurl, name='zeta')
                 self.testvars['q'] = TestFunction(self.spaces.Hcurl)
                 self.trialvars['q'] = TrialFunction(self.spaces.Hcurl)
             for dens in self.density_names:
                 varspace = self.variableset.spacelist[self.variableset.varlist.index(dens)]
-                self.vars[dens + '_l'] = Function(varspace)
+                self.vars[dens + '_l'] = Function(varspace, name=dens + '_l')
             self.vars['coriolis'] = self.coriolis
             self.vars['bottom_topography'] = self.bottom_topography
             if 'Qv' in variableset.varlist:
-                self.vars['rh'] = Function(self.spaces.CG)
+                self.vars['rh'] = Function(self.spaces.CG, name='rh')
                 self.testvars['rh'] = TestFunction(self.spaces.CG)
                 self.trialvars['rh'] = TrialFunction(self.spaces.CG)
-                self.vars['qsat'] = Function(self.spaces.CG)
+                self.vars['qsat'] = Function(self.spaces.CG, name='qsat')
                 self.testvars['qsat'] = TestFunction(self.spaces.CG)
                 self.trialvars['qsat'] = TrialFunction(self.spaces.CG)
 

@@ -3,6 +3,7 @@ from .parameters import overall_solver_parameters
 import numpy as np
 from firedrake import Constant, inner, TestFunction, derivative, norm, assemble, Function, TestFunctions, split, TrialFunction, adjoint, action, replace
 from .numpy_helpers import set_mixed_function_from_flattened_array
+from ufl.algorithms import extract_coefficients
 
 class DummySolver():
     def solve(self):
@@ -22,12 +23,12 @@ def get_time_integrator(name, parameters):
         termlist = parameters['timestepping']['termlist']
         subcycle_list = parameters['timestepping']['subcycle_list']
 
-        return lambda model, logger, coeffs: LieSplittingIntegrator(model, logger, timestepper_list, termlist, subcycle_list)
+        return lambda model, logger, coeffs: LieSplittingIntegrator(model, logger, timestepper_list, termlist, subcycle_list, solver_parameters=solver_parameters)
     else:
         raise ValueError("time step method " + name + " is unknown")
 
-def get_timestepper(parameters, model, logger):
-    return get_time_integrator(parameters['timestepping']['method'], parameters)(model, logger)
+def get_timestepper(parameters, model, logger, solver_parameters=None):
+    return get_time_integrator(parameters['timestepping']['method'], parameters)(model, logger, solver_parameters=solver_parameters)
 
 
 class TimeStepper():
@@ -43,7 +44,7 @@ class TimeStepper():
         self.lambda_var, self.lambda_sub, self.lambda_split = self.model.get_x_var('lambda')
 
         self.coeff, self.coeff_sub, self.coeff_split = self.model.get_coeff_var('coeff')
-        self.grad, self.grad_sub, self.grad_split = self.model.get_coeff_var('grad')
+        self.delta_grad, self.delta_grad_sub, self.delta_grad_split = self.model.get_coeff_var('delta_grad')
         self.grad_test, self.grad_test_subs, self.grad_trial, self.grad_trial_subs = self.model.get_coeff_test_trial_vars()
 
         self.t = Constant(1.)
@@ -86,12 +87,16 @@ def create_linear_solver_from_residual(residual, var, trialvar, constant_jacobia
     return solver, a, L
 
 class GeneralRK(TimeStepper):
-    def __init__(self, model, logger, A, b, c, nstages, terms='all'):
+    def __init__(self, model, logger, A, b, c, nstages, terms='all', solver_parameters=None):
         TimeStepper.__init__(self, model, logger, terms=terms)
         self.A = A
         self.b = b
         self.c = c
         self.nstages = nstages
+        if solver_parameters is None:
+            self.solver_parameters = overall_solver_parameters
+        else:
+            self.solver_parameters = solver_parameters
 
         zero_diag = not np.any(np.diagonal(self.A))
         triangular = np.allclose(self.A, np.tril(self.A))
@@ -158,8 +163,13 @@ class GeneralRK(TimeStepper):
         for i in range(nstages):
 #MIGHT HAVE TO MODIFY THIS INNER PRODUCT A LITTLE FOR IRK GENERALITY
             rhs_Fi = -model.rhs(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
+            rhs_Fi = replace(rhs_Fi, xi_splits[i])
+            residual_F = inner(xhat[0], self.Fi[i][0][0])*self.dx - rhs_Fi
 
-            residual_F = inner(xhat[0], self.Fi[i][0][0])*self.dx - replace(rhs_Fi, xi_splits[i])
+            #rhs_Fi_coeffs = extract_coefficients(rhs_Fi)
+            #for rhs_Fi_coeff in rhs_Fi_coeffs:
+            #    print('rhs_Fi coeff', i, rhs_Fi_coeff, rhs_Fi_coeff.name())
+
 #ALL THESE RESIDUAL MU/MUAUX SUMS RELY ON SPLITTING AND TAKING DERIVATIVES WRT SPLITS
 #THIS IS A MESS WITH DIRK AND IRK!
             #residual_mu = inner(self.mui[i][0][0], xhat[0])*self.dx
@@ -223,10 +233,19 @@ class GeneralRK(TimeStepper):
 
         residuals_mu = []
         residuals_muaux = []
+
+        #print('xk0', self.xk[0])
+        #print('xk1', self.xk[1])
+        #print('lambda_var', self.lambda_var)
+        #for i in range(self.nstages):
+        #    print('mu0_' + str(i), self.mui[i][0][0])
+            #print('mu1_' + str(i), self.mui[i][0][1])
+        #    print('F0_' + str(i), self.Fi[i][0][0])
+            #print('F1_' + str(i), self.Fi[i][0][1])
         residual_xk = inner(self.delta_lambda_var, xhat[0])*self.dx
 #THIS MIGHT NEED TO MODIFIED FOR DIRK/IRK?
         if model.has_coeff():
-            residual_grad = inner(self.grad, self.grad_test)*self.dx
+            residual_grad = inner(self.delta_grad, self.grad_test)*self.dx
         for i in range(nstages):
             residual_mu = inner(self.mui[i][0][0], xhat[0])*self.dx
             residual_mu = residual_mu - self.dt * float(self.b[i])*inner(self.lambda_var, xhat[0])*self.dx
@@ -278,7 +297,13 @@ class GeneralRK(TimeStepper):
                 derivT_Fi_theta = adjoint(derivative(rhs_Fi, self.coeff, self.grad_trial))
                 if not derivT_Fi_theta.empty():
                     residual_grad = residual_grad - action(derivT_Fi_theta, self.mui[i][0][0])
-
+            #mu_coeffs = extract_coefficients(residual_mu)
+            #rhs_Fi_coeffs = extract_coefficients(rhs_Fi)
+            #for mu_coeff in mu_coeffs:
+            #    print('mu coeff', i, mu_coeff, mu_coeff.name())
+            #for rhs_Fi_coeff in rhs_Fi_coeffs:
+            #    print('rhs_Fi coeff', i, rhs_Fi_coeff, rhs_Fi_coeff.name())
+#CHECK GRAD COEFFICIENTS?
             residuals_mu.append(residual_mu)
             residuals_muaux.append(residual_muaux)
 
@@ -299,14 +324,14 @@ class GeneralRK(TimeStepper):
 #THIS IS GOING TO FAIL WHEN AUXILIARY VARIABLES HAVE NON-CONSTANT JACOBIANS
 #CAN/SHOULD MAYBE SPLIT THESE INTO SEPARATE SOLVERS FOR EACH AUX VAR?
 #THIS WILL BE A MESS FOR COMPUTING ADJOINT STUFF, BUT MANAGEABLE!
-                    self.auxsolvers.append(create_linear_solver_from_residual(residuals_aux[i], self.Fi[i][0][1], xtrial[1], constant_jacobian=True, solver_parameters=overall_solver_parameters['erkstage-aux'], options_prefix = 'erk-aux')[0])
-                    self.muauxsolvers.append(create_linear_solver_from_residual(residuals_muaux[i], self.mui[i][0][1], xtrial[1], constant_jacobian=True, solver_parameters=overall_solver_parameters['erkstage-muaux'], options_prefix = 'erk-muaux')[0])
+                    self.auxsolvers.append(create_linear_solver_from_residual(residuals_aux[i], self.Fi[i][0][1], xtrial[1], constant_jacobian=True, solver_parameters=self.solver_parameters['erkstage-aux'], options_prefix = 'erk-aux')[0])
+                    self.muauxsolvers.append(create_linear_solver_from_residual(residuals_muaux[i], self.mui[i][0][1], xtrial[1], constant_jacobian=True, solver_parameters=self.solver_parameters['erkstage-muaux'], options_prefix = 'erk-muaux')[0])
 
-                self.Fsolvers.append(create_linear_solver_from_residual(residuals_F[i], self.Fi[i][0][0], xtrial[0], constant_jacobian=True, solver_parameters=overall_solver_parameters['erkstage-f'], options_prefix = 'erk-f')[0])
-                self.musolvers.append(create_linear_solver_from_residual(residuals_mu[i], self.mui[i][0][0], xtrial[0], constant_jacobian=True, solver_parameters=overall_solver_parameters['erkstage-mu'], options_prefix = 'erk-mu')[0])
-            self.deltalambdasolver, _, self.L_delta_lambda = create_linear_solver_from_residual(residual_xk, self.delta_lambda_var, xtrial[0], constant_jacobian=True, solver_parameters=overall_solver_parameters['erk-dlambda'], options_prefix = 'erk-lambda')
+                self.Fsolvers.append(create_linear_solver_from_residual(residuals_F[i], self.Fi[i][0][0], xtrial[0], constant_jacobian=True, solver_parameters=self.solver_parameters['erkstage-f'], options_prefix = 'erk-f')[0])
+                self.musolvers.append(create_linear_solver_from_residual(residuals_mu[i], self.mui[i][0][0], xtrial[0], constant_jacobian=True, solver_parameters=self.solver_parameters['erkstage-mu'], options_prefix = 'erk-mu')[0])
+            self.deltalambdasolver, _, self.L_delta_lambda = create_linear_solver_from_residual(residual_xk, self.delta_lambda_var, xtrial[0], constant_jacobian=True, solver_parameters=self.solver_parameters['erk-dlambda'], options_prefix = 'erk-lambda')
             if model.has_coeff():
-                self.gradsolver, _, self.L_grad = create_linear_solver_from_residual(residual_grad, self.grad, self.grad_trial, constant_jacobian=True, solver_parameters=overall_solver_parameters['erk-grad'], options_prefix = 'erk-grad')
+                self.deltagradsolver, _, self.L_delta_grad = create_linear_solver_from_residual(residual_grad, self.delta_grad, self.grad_trial, constant_jacobian=True, solver_parameters=self.solver_parameters['erk-grad'], options_prefix = 'erk-grad')
         elif self.is_dirk:
             raise NotImplementedError('dirk not done yet')
             #self.Fauxsolvers = []
@@ -335,18 +360,25 @@ class GeneralRK(TimeStepper):
     def split_x_and_aux(self):
         return self.is_explicit
     #
-    # def reset_internal_vars(self):
-    #     self.xk[0].assign(0)
-    #     self.delta_lambda_var.assign(0)
-    #     self.grad.assign(0)
-    #     if len(self.xk) > 1:
-    #         self.xk[1].assign(0)
-    #     for i in range(self.nstages):
-    #         self.Fi[i][0][0].assign(0)
-    #         self.mui[i][0][0].assign(0)
-    #         if len(self.mui[i][0]) > 1:
-    #             self.mui[i][0][1].assign(0)
-    #             self.Fi[i][0][1].assign(0)
+
+    def internal_var_norms(self):
+        for i in range(self.nstages):
+            print('F' + str(i), self.model.norm(self.Fi[i][0][0]))
+
+    def reset_internal_vars(self):
+        self.xk[0].assign(0)
+        self.delta_lambda_var.assign(0)
+        self.lambda_var.assign(0)
+        if self.model.has_coeff():
+            self.delta_grad.assign(0)
+        if self.model.has_aux():
+            self.xk[1].assign(0)
+        for i in range(self.nstages):
+            self.Fi[i][0][0].assign(0)
+            self.mui[i][0][0].assign(0)
+            if self.model.has_aux():
+                self.mui[i][0][1].assign(0)
+                self.Fi[i][0][1].assign(0)
 
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF
     def take_forward_step(self, xnp1, xnp1_sub, xn, tn, dt):
@@ -366,16 +398,19 @@ class GeneralRK(TimeStepper):
                 self.Fauxsolvers[i].solve()
         else:
             self.Fauxsolver.solve()
+        #print('dt', self.dt)
+        #print('xn', self.model.norm(xn[0]))
 
 #THIS BREAKS A LITTLE FOR FULL SPACE VERSION
 #IE WE SHOULD JUST BE ASSIGNING THE X VARIABLES HERE
 #AND THEN DOING SOMETHING FOR THE AUX VARS
         xnp1[0].assign(xn[0] + self.dt * sum(float(self.b[i]) * self.Fi[i][0][0] for i in range(self.nstages)))
+        #print('xnp1', self.model.norm(xnp1[0]))
         #if len(xnp1) > 1:
 #IDEALLY THIS IS AUX VARS EVALUATED AT XNP1- provides a good initial guess at least?
         #    xnp1[1].assign(self.Fi[-1][0][1])
 
-    def take_adjoint_step(self, grad, delta_lambda, lambda_np1, tnp1, dt):
+    def take_adjoint_step(self, delta_grad, delta_lambda, lambda_np1, tnp1, dt):
 
         self.dt.assign(dt)
         self.t.assign(tnp1 - dt)
@@ -396,11 +431,11 @@ class GeneralRK(TimeStepper):
 
         #compute grad
         if self.model.has_coeff():
-            self.gradsolver.solve()
-            grad.assign(grad + self.grad)
+            self.deltagradsolver.solve()
+            delta_grad.assign(self.delta_grad)
 #THIS IS VERY SLOW, LIKELY DUE TO SET UP COSTS
 #CAN WE MAKE IT FASTER SOMEHOW?
-            gradrhs = assemble(self.L_grad)
+            delta_grad_rhs = assemble(self.L_delta_grad)
 
         #compute lambda_n
         self.deltalambdasolver.solve()
@@ -409,81 +444,81 @@ class GeneralRK(TimeStepper):
 #CAN WE MAKE IT FASTER SOMEHOW?
         delta_lambda_rhs = assemble(self.L_delta_lambda)
         if self.model.has_coeff():
-            return delta_lambda_rhs, gradrhs
+            return delta_lambda_rhs, delta_grad_rhs
         else:
             return delta_lambda_rhs, None
 
 
 class Euler(GeneralRK):
-    def __init__(self, model, logger, terms='all'):
+    def __init__(self, model, logger, terms='all', solver_parameters=None):
         A = np.array([[0.0,],])
         b = np.array([1.0,])
         c = np.array([0.0,])
-        GeneralRK.__init__(self, model, logger, A, b, c, 1, terms=terms)
+        GeneralRK.__init__(self, model, logger, A, b, c, 1, terms=terms, solver_parameters=solver_parameters)
 
 class RK4(GeneralRK):
-    def __init__(self, model, logger, terms='all'):
+    def __init__(self, model, logger, terms='all', solver_parameters=None):
         A = np.array([[0.0, 0.0, 0.0, 0.0,], [0.5, 0.0, 0.0, 0.0], [0.0, 0.5, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]])
         b = np.array([1./6., 1./3., 1./3., 1./6.])
         c = np.array([0.0, 0.5, 0.5, 1.0])
-        GeneralRK.__init__(self, model, logger, A, b, c, 4, terms=terms)
+        GeneralRK.__init__(self, model, logger, A, b, c, 4, terms=terms, solver_parameters=solver_parameters)
 
 class SSPRK3(GeneralRK):
-    def __init__(self, model, logger, terms='all'):
+    def __init__(self, model, logger, terms='all', solver_parameters=None):
         A = np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.25, 0.25, 0.0]])
         b = np.array([1./6., 1./6., 2./3.])
         c = np.array([0.0, 1.0, 0.5])
-        GeneralRK.__init__(self, model, logger, A, b, c, 3, terms=terms)
+        GeneralRK.__init__(self, model, logger, A, b, c, 3, terms=terms, solver_parameters=solver_parameters)
 
 
 class SSPRK43(GeneralRK):
-    def __init__(self, model, logger, terms='all'):
+    def __init__(self, model, logger, terms='all', solver_parameters=None):
         A = np.array([[0.0, 0.0, 0.0, 0.0,], [0.5, 0.0, 0.0, 0.0], [0.5, 0.5, 0.0, 0.0], [1.0/6.0, 1.0/6.0, 1.0/6.0, 0.0]])
         b = np.array([1./6., 1./6., 1./6., 3./6.])
         c = np.array([0.0, 0.5, 1.0, 0.5])
-        GeneralRK.__init__(self, model, logger, A, b, c, 4, terms=terms)
+        GeneralRK.__init__(self, model, logger, A, b, c, 4, terms=terms, solver_parameters=solver_parameters)
 
 
 #ADD THESE!!!
 class KGRK2(GeneralRK):
-    def __init__(self, model, logger, terms='all'):
+    def __init__(self, model, logger, terms='all', solver_parameters=None):
         A = SOMETHING
         b = SOMETHING
         c = SOMETHING
         nstages = SOMETHING
-        GeneralRK.__init__(self, model, logger, A, b, c, nstages, terms=terms)
+        GeneralRK.__init__(self, model, logger, A, b, c, nstages, terms=terms, solver_parameters=solver_parameters)
 
 
 class KGRK3(GeneralRK):
-    def __init__(self, model, logger, terms='all'):
+    def __init__(self, model, logger, terms='all', solver_parameters=None):
         A = SOMETHING
         b = SOMETHING
         c = SOMETHING
         nstages = SOMETHING
-        GeneralRK.__init__(self, model, logger, A, b, c, nstages, terms=terms)
+        GeneralRK.__init__(self, model, logger, A, b, c, nstages, terms=terms, solver_parameters=solver_parameters)
 
 class SOMEDIRK(GeneralRK):
-    def __init__(self, model, logger, terms='all'):
+    def __init__(self, model, logger, terms='all', solver_parameters=None):
         A = SOMETHING
         b = SOMETHING
         c = SOMETHING
         nstages = SOMETHING
-        GeneralRK.__init__(self, model, logger, A, b, c, nstages, terms=terms)
+        GeneralRK.__init__(self, model, logger, A, b, c, nstages, terms=terms, solver_parameters=solver_parameters)
 
 
 class SOMEIMPLICITRK(GeneralRK):
-    def __init__(self, model, logger, terms='all'):
+    def __init__(self, model, logger, terms='all', solver_parameters=None):
         A = SOMETHING
         b = SOMETHING
         c = SOMETHING
         nstages = SOMETHING
-        GeneralRK.__init__(self, model, logger,  A, b, c, nstages, terms=terms)
+        GeneralRK.__init__(self, model, logger,  A, b, c, nstages, terms=terms, solver_parameters=solver_parameters)
 
 
 
 
 class LieSplittingIntegrator():
-    def __init__(self, model, logger, timestepper_list, termlist, subcycle_list):
+    def __init__(self, model, logger, timestepper_list, termlist, subcycle_list, solver_parameters=None):
 
         self.subcycle_list = subcycle_list
         self.timestepper_list = timestepper_list
@@ -492,7 +527,7 @@ class LieSplittingIntegrator():
         self.time_integrators = []
         for i,time_integrator_name in enumerate(timestepper_list):
             time_integrator = get_time_integrator(time_integrator_name, None)
-            self.time_integrators.append(time_integrator(model, logger, terms=termlist[i]))
+            self.time_integrators.append(time_integrator(model, logger, terms=termlist[i], solver_parameters=solver_parameters))
 
 #HOW DO WE HANDLE THIS IN THE GENERAL CASE?
         self.xk, self.xk_sub, self.xk_split = model.get_full_var('xk', split_x_and_aux=True)

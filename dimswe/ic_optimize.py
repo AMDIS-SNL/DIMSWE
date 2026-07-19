@@ -22,7 +22,7 @@ model.initialize(x0_sub, t0)
 model.set_coeffs(parameters, model_coeff_sub)
 timestepper.set_coeff(model_coeff)
 
-nsteps = 10
+nsteps = 5
 
 xns, xn_subs, steps, tns = compute_state_block(model, timestepper, 1, nsteps, dt, x0, t0)
 objective = L2Objective(xns, tns, model_coeff, nsteps, model.spaces.dx)
@@ -30,6 +30,10 @@ optimizer = Lagrangian_ODEConstrainedOptimization(model, timestepper, objective,
 
 
 x0_new, x0_new_sub, x0_new_split = model.get_full_var('x0_new', split_x_and_aux=True)
+x0_diff, _, _ = model.get_x_var('x0_diff')
+x0_opt, _, _ = model.get_x_var('x0_opt')
+opt_diff, _, _ = model.get_x_var('x0_diff')
+
 parameters['initial-conditions']['ox'] = 0.11
 parameters['initial-conditions']['oy'] = 0.11
 model.initialize(x0_new_sub, t0, new_params=parameters)
@@ -40,24 +44,23 @@ plot_variable(x0[0].sub(0), 'v-orig',  2, True)
 plot_variable(x0[0].sub(1), 'h-orig',  2, False)
 plot_variable(x0[0].sub(2), 'S-orig',  2, False)
 
-x0_new_arr = create_flattened_numpy_arr_from_mixed_function(x0_new[0]).copy()
-
-opt_ic_arr = optimizer.optimize(x0_new_arr, opt_type='ics', params0=model_coeff)
-
-x0_opt, _, _ = model.get_x_var('x0_opt')
-x0_diff, _, _ = model.get_x_var('x0_diff')
-
-set_mixed_function_from_flattened_array(x0_opt, x0_new_arr)
-
-print(norm(x0_opt - x0[0]))
-x0_diff.assign(x0_opt - x0[0])
-
-plot_variable(x0_opt.sub(0), 'v-opt',  2, True)
-plot_variable(x0_opt.sub(1), 'h-opt',  2, False)
-plot_variable(x0_opt.sub(2), 'S-opt',  2, False)
+x0_diff.assign(x0_new[0] - x0[0])
 plot_variable(x0_diff.sub(0), 'v-diff',  2, True)
 plot_variable(x0_diff.sub(1), 'h-diff',  2, False)
 plot_variable(x0_diff.sub(2), 'S-diff',  2, False)
+
+x0_new_arr = create_flattened_numpy_arr_from_mixed_function(x0_new[0]).copy()
+opt_ic_arr = optimizer.optimize(x0_new_arr, opt_type='ics', coeffs0=model_coeff)
+set_mixed_function_from_flattened_array(x0_opt, opt_ic_arr)
+opt_diff.assign(x0_opt - x0[0])
+
+print(model.norm(opt_diff))
+plot_variable(x0_opt.sub(0), 'v-opt',  2, True)
+plot_variable(x0_opt.sub(1), 'h-opt',  2, False)
+plot_variable(x0_opt.sub(2), 'S-opt',  2, False)
+plot_variable(opt_diff.sub(0), 'v-opt-diff',  2, True)
+plot_variable(opt_diff.sub(1), 'h-opt-diff',  2, False)
+plot_variable(opt_diff.sub(2), 'S-opt-diff',  2, False)
 
 
 #all in some big multiplot...
