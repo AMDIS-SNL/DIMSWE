@@ -22,7 +22,7 @@ model.initialize(x0_sub, t0)
 model.set_coeffs(parameters, model_coeff_sub)
 timestepper.set_coeff(model_coeff)
 
-nsteps = 5
+nsteps = 3
 
 xns, xn_subs, steps, tns = compute_state_block(model, timestepper, 1, nsteps, dt, x0, t0)
 objective = L2Objective(xns, tns, model_coeff, nsteps, model.spaces.dx)

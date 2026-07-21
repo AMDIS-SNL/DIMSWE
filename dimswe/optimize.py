@@ -144,7 +144,7 @@ class _ODEConstrainedOptimization():
 #CLEARLY THE LIST/ARRAY IS A PROBABLY A BAD IDEA?
         res = sp.optimize.minimize(obj, initial_guess,
             method=method, bounds=None,
-            options={'disp': True, 'maxiter': 200},
+            options={'disp': True, 'maxiter': 50000, 'maxfun': 50000},
             jac=jac, hessp=self.hessp)
         print('optimizer success', res.success, res.status, res.message)
         print('optimizer nits', res.nit)
@@ -184,6 +184,7 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
         else:
             self.timestepper.set_numpy_coeff(coeffs_arr)
 
+        #print('ts coeff norm', self.model.norm(self.timestepper.coeff))
         for i in range(self.objective.num_data_blocks):
 
 #THIS IS REQUIRED TO GET REPEATABILITY FOR JAC

@@ -356,6 +356,50 @@ class GeneralRK(TimeStepper):
             #self.mufullsolver = create_linear_solver_from_residual(total_mu_residual, self.mui[0], xtrial[0], solver_parameters=overall_solver_parameters['irk-mu'], options_prefix = 'irk-mu')
 
 
+    def get_rhs_expr():
+
+        xhat, xhat_subs = self.model.get_full_test_vars(split_x_and_aux=self.is_explicit)
+
+        xi_splits = []
+        for i in range(nstages):
+            xi_split = {}
+            for var in self.model.get_x_var_list():
+                xi_split[self.xk_split[var]] = self.xk_split[var]
+                for j in range(nstages):
+                    if not (self.A[i,j] == 0): xi_split[self.xk_split[var]] = xi_split[self.xk_split[var]] + self.dt*float(self.A[i,j]) * self.Fi[j][2][var]
+            for var in self.model.get_aux_var_list():
+                xi_split[self.xk_split[var]] = self.Fi[i][2][var]
+            xi_split[self.t] = self.t + float(self.c[i])*self.dt
+            xi_splits.append(xi_split)
+
+        rhs_F = -model.rhs(self.xk_split, self.t, self.coeff_split, xhat_subs)
+        if self.model.has_aux():
+            aux_expressions = self.model.compute_aux_expressions(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
+            rhs_W = 0
+            lhs_W = 0
+            for var in self.model.get_aux_var_list(terms=terms):
+                rhs_W = rhs_W + aux_expressions[var][1]
+                lhs_W = lhs_W + aux_expressions[var][0]
+            residual_W = lhs_W - rhs_W
+
+        rhs_Fis = []
+        residual_Ws = []
+        for i in range(self.nstages):
+            rhs_Fi = -model.rhs(self.xk_split, self.t, self.coeff_split, xhat_subs)
+            rhs_Fi = replace(rhs_Fi, xi_splits[i])
+            rhs_Fis.append(rhs_Fi)
+            if self.model.has_aux():
+                aux_expressions = self.model.compute_aux_expressions(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
+                rhs_W = 0
+                lhs_W = 0
+                for var in self.model.get_aux_var_list(terms=terms):
+                    rhs_W = rhs_W + aux_expressions[var][1]
+                    lhs_W = lhs_W + aux_expressions[var][0]
+                if not (lhs_W == 0):
+                    residual_aux = replace(lhs_W - rhs_W, xi_splits[i])
+                residual_Ws.append(residual_aux)
+
+        return rhs_F, residual_W, rhs_Fis, residual_Ws
 
     def split_x_and_aux(self):
         return self.is_explicit

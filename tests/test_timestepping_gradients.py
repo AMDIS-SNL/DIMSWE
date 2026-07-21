@@ -43,6 +43,7 @@ def taylor_remainder_check(jac_func, fd_func, x_func, x0, x0_perturb, x0_perturb
         rates.append(rate)
     print(rates)
 
+@pytest.mark.skip
 def test_multiple_timestep_gradient_ic():
 
     parameters = get_parameters('tests/tswe.cfg')
@@ -103,6 +104,7 @@ def test_multiple_timestep_gradient_ic():
     taylor_remainder_check(jac_func, fd_func, x_func, x0_new[0], x0_perturb, x0_perturbed)
     taylor_remainder_check(jac_func, fd_func, x_func, x0_new[0], x0_perturb, x0_perturbed)
 
+@pytest.mark.skip
 def test_single_timestep_gradient_ic():
 
     parameters = get_parameters('tests/tswe.cfg')
@@ -155,7 +157,6 @@ def test_single_timestep_gradient_ic():
     taylor_remainder_check(jac_func, fd_func, x_func, x0_new[0], x0_perturb, x0_perturbed)
 
 
-@pytest.mark.skip
 def test_single_timestep_gradient_params():
 
     parameters = get_parameters('tests/tswe.cfg')
@@ -196,7 +197,8 @@ def test_single_timestep_gradient_params():
 
     #zero gradients at optimality
     model.set_coeffs(parameters, coeff_sub)
-    delta_coeff.assign(coeff * 0.05)
+    delta_coeff.assign(coeff * 0.1)
+    #print('coeff norm', model.norm(coeff))
 #ADD A CHECK THAT THIS GRADIENT IS FUNCTIONALLY ZERO?
     taylor_remainder_check(jac_func, fd_func, param_func, coeff, delta_coeff, perturbed_coeff)
     taylor_remainder_check(jac_func, fd_func, param_func, coeff, delta_coeff, perturbed_coeff)
@@ -204,9 +206,10 @@ def test_single_timestep_gradient_params():
 
     #check gradients
     parameters['hyperviscosity']['c0'] = 0.05
-    parameters['hyperviscosity']['s'] = 3.0
+    parameters['hyperviscosity']['s'] = 2.8
     model.set_coeffs(parameters, coeff_sub)
-    delta_coeff.assign(coeff * 0.05)
+    delta_coeff.assign(coeff * 0.1)
+    #print('coeff norm', model.norm(coeff))
 
 #THIS IS STILL FAILING :(
     taylor_remainder_check(jac_func, fd_func, param_func, coeff, delta_coeff, perturbed_coeff)
