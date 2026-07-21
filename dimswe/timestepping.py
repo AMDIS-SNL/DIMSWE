@@ -373,33 +373,28 @@ class GeneralRK(TimeStepper):
             xi_splits.append(xi_split)
 
         rhs_F = -model.rhs(self.xk_split, self.t, self.coeff_split, xhat_subs)
+        rhs_W = 0
         if self.model.has_aux():
             aux_expressions = self.model.compute_aux_expressions(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
-            rhs_W = 0
-            lhs_W = 0
             for var in self.model.get_aux_var_list(terms=terms):
                 rhs_W = rhs_W + aux_expressions[var][1]
-                lhs_W = lhs_W + aux_expressions[var][0]
-            residual_W = lhs_W - rhs_W
 
         rhs_Fis = []
-        residual_Ws = []
+        rhs_Ws = []
         for i in range(self.nstages):
             rhs_Fi = -model.rhs(self.xk_split, self.t, self.coeff_split, xhat_subs)
             rhs_Fi = replace(rhs_Fi, xi_splits[i])
             rhs_Fis.append(rhs_Fi)
+            rhs_W = 0
             if self.model.has_aux():
                 aux_expressions = self.model.compute_aux_expressions(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
-                rhs_W = 0
-                lhs_W = 0
                 for var in self.model.get_aux_var_list(terms=terms):
                     rhs_W = rhs_W + aux_expressions[var][1]
-                    lhs_W = lhs_W + aux_expressions[var][0]
-                if not (lhs_W == 0):
-                    residual_aux = replace(lhs_W - rhs_W, xi_splits[i])
-                residual_Ws.append(residual_aux)
+                if not (lhrhs_Ws_W == 0):
+                    rhs_W = replace(rhs_W, xi_splits[i])
+                rhs_Ws.append(rhs_W)
 
-        return rhs_F, residual_W, rhs_Fis, residual_Ws
+        return rhs_F, rhs_W, rhs_Fis, rhs_Ws
 
     def split_x_and_aux(self):
         return self.is_explicit

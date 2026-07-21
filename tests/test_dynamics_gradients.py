@@ -29,22 +29,29 @@ timestepper.set_coeff(model_coeff)
 
 rhs_F, rhs_Fis, rhs_W, rhs_Wis = timestepper.get_rhs_expr()
 
-#COEFFVAR
-#XVAR
-#WVAR
 
+coeff_pertubation = model.get_coeff_var('coeff_perturbation')
+x_pertubation = model.get_x_var('x_perturbation')
+aux_pertubation = model.get_aux_var('aux_perturbation')
+#NEED TO SET THESE SOMEHOW
 
-def taylor_remainder_check():
-    pass
+def taylor_remainder_check(func, jac, x0, xperturb, set_vals):
+    set_vals(x0)
+    jac = assemble(action(jac, xperturb))
+    diffs = []
+    for eps in eps_list:
+        set_vals(x0 + eps*xperturb)
+        fp = assemble(func)
+        set_vals(x0 - eps*xperturb)
+        fm = assemble(func)
+        diff = fp - fm - 2.*eps*jac
+        diffs.append([eps, diff])
+    #CHECK CONVERGENCE
 
 #IS THERE A VERSION OF THIS THAT IS CONSISTENT WITH VARIATIONAL JACOBIAN?
 #PROBABLY SOME SORT OF MASS MATRICIZED VERSION?
 #UNCLEAR...
-def compute_func():
-    pass
 
-def compute_jacobian():
-    pass
 
 timestepper.xk[0].assign(SOMETHING)
 timestepper.xk[1].assign(SOMETHING)
@@ -53,26 +60,26 @@ timestepper.xk[1].assign(SOMETHING)
 if model.has_coeff():
     derivF_coeff = derivative(rhs_F, timestepper.coeff, timestepper.coeff_trial)
 #THIS IS THE COORDINATE VERSION
-    derivF_coeff_rhs = assemble(action(derivF_coeff, COEFFVAR))
+    derivF_coeff_rhs = assemble(action(derivF_coeff, coeff_pertubation))
 #THE VARIATIONAL VERSION WOULD SOLVE A MASS MATRIX EQUATION
 
 derivF_F = derivative(rhs_F, timestepper.xk[0], timestepper.xk_trial[0])
-derivF_F_rhs = assemble(action(derivF_F, XVAR))
+derivF_F_rhs = assemble(action(derivF_F, x_pertubation))
 
 if model.has_aux():
     derivF_W = derivative(rhs_F, timestepper.xk[1], timestepper.xk_trial[1])
-    derivF_W_rhs = assemble(action(derivF_W, WVAR))
+    derivF_W_rhs = assemble(action(derivF_W, aux_pertubation))
 
     if model.has_coeff():
 
         derivW_coeff = derivative(rhs_W, timestepper.coeff, timestepper.coeff_trial)
-        derivW_coeff_rhs = assemble(action(derivW_coeff, COEFFVAR))
+        derivW_coeff_rhs = assemble(action(derivW_coeff, coeff_pertubation))
 
     derivW_F = derivative(rhs_W, timestepper.xk[0], timestepper.xk_trial[0])
-    derivW_F_rhs = assemble(action(derivW_F, XVAR))
+    derivW_F_rhs = assemble(action(derivW_F, x_pertubation))
 
     derivW_W = derivative(rhs_W, timestepper.xk[1], timestepper.xk_trial[1])
-    derivW_W_rhs = assemble(action(derivW_W, WVAR))
+    derivW_W_rhs = assemble(action(derivW_W, aux_pertubation))
 
 #MAYBE DONT NEED TO DO THIS? UNCLEAR...
 for i in range(timestepper.nstages):
@@ -80,21 +87,21 @@ for i in range(timestepper.nstages):
     if model.has_coeff():
 
         derivF_coeff = derivative(rhs_Fis[i], timestepper.coeff, timestepper.coeff_trial)
-        derivF_coeff_rhs = assemble(action(derivF_coeff, COEFFVAR))
+        derivF_coeff_rhs = assemble(action(derivF_coeff, coeff_pertubation))
 
     derivF_F = derivative(rhs_Fis[i], timestepper.xk[0], timestepper.xk_trial[0])
-    derivF_F_rhs = assemble(action(derivF_F, XVAR))
+    derivF_F_rhs = assemble(action(derivF_F, x_pertubation))
 
     if model.has_aux():
 
         derivF_W = derivative(rhs_Fis[i], timestepper.xk[1], timestepper.xk_trial[1])
-        derivF_W_rhs = assemble(action(derivF_W, WVAR))
+        derivF_W_rhs = assemble(action(derivF_W, aux_pertubation))
         if model.has_coeff():
             derivW_coeff = derivative(rhs_Wis[i], timestepper.coeff, timestepper.coeff_trial)
-            derivW_coeff_rhs = assemble(action(derivW_coeff, COEFFVAR))
+            derivW_coeff_rhs = assemble(action(derivW_coeff, coeff_pertubation))
 
         derivW_F = derivative(rhs_Wis[i], timestepper.xk[0], timestepper.xk_trial[0])
-        derivW_F_rhs = assemble(action(derivW_F, XVAR))
+        derivW_F_rhs = assemble(action(derivW_F, x_pertubation))
 
         derivW_W = derivative(rhs_Wis[i], timestepper.xk[1], timestepper.xk_trial[1])
-        derivW_W_rhs = assemble(action(derivW_W, WVAR))
+        derivW_W_rhs = assemble(action(derivW_W, aux_pertubation))

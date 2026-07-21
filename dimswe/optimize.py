@@ -124,7 +124,7 @@ class _ODEConstrainedOptimization():
                 options_prefix='opt-proj')
 
 
-    def optimize(self, initial_guess, method='L-BFGS-B', opt_type='params', coeffs0=None): #cg, bfgs
+    def optimize(self, initial_guess, method='L-BFGS-B', opt_type='coeffs', coeffs0=None): #cg, bfgs
 
 #HOW DO WE CORRECTLY HANDLE BOUNDS HERE?
         if opt_type == 'coeffs':

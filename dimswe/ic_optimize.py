@@ -32,7 +32,7 @@ optimizer = Lagrangian_ODEConstrainedOptimization(model, timestepper, objective,
 x0_new, x0_new_sub, x0_new_split = model.get_full_var('x0_new', split_x_and_aux=True)
 x0_diff, _, _ = model.get_x_var('x0_diff')
 x0_opt, _, _ = model.get_x_var('x0_opt')
-opt_diff, _, _ = model.get_x_var('x0_diff')
+opt_diff, _, _ = model.get_x_var('opt_diff')
 
 parameters['initial-conditions']['ox'] = 0.11
 parameters['initial-conditions']['oy'] = 0.11
