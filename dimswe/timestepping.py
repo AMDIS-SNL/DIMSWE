@@ -1,7 +1,7 @@
 from firedrake import NonlinearVariationalProblem, NonlinearVariationalSolver, LinearVariationalProblem, LinearVariationalSolver
 from .parameters import overall_solver_parameters
 import numpy as np
-from firedrake import Constant, inner, TestFunction, derivative, norm, assemble, Function, TestFunctions, split, TrialFunction, adjoint, action, replace
+from firedrake import Constant, inner, grad, TestFunction, derivative, norm, assemble, Function, TestFunctions, split, TrialFunction, adjoint, action, replace
 from .numpy_helpers import set_mixed_function_from_flattened_array
 from ufl.algorithms import extract_coefficients
 
@@ -292,11 +292,15 @@ class GeneralRK(TimeStepper):
                         derivT_Wi_theta = adjoint(derivative(rhs_Wi, self.coeff, self.grad_trial))
                         if not derivT_Wi_theta.empty():
                             residual_grad = residual_grad - action(derivT_Wi_theta, self.mui[i][0][1])
-
             if model.has_coeff():
                 derivT_Fi_theta = adjoint(derivative(rhs_Fi, self.coeff, self.grad_trial))
                 if not derivT_Fi_theta.empty():
                     residual_grad = residual_grad - action(derivT_Fi_theta, self.mui[i][0][0])
+#UGLY HACK OF A GRADIENT COMPUTED BY HAND
+#NOT COMPILING- WHY?
+                #for varname in self.model.get_x_var_list():
+                #    residual_grad = residual_grad - inner(-self.grad_test * grad(self.mui[i][2][varname]), grad(xi_splits[i][self.xk_split['Q_'+varname]]))*self.dx
+
             #mu_coeffs = extract_coefficients(residual_mu)
             #rhs_Fi_coeffs = extract_coefficients(rhs_Fi)
             #for mu_coeff in mu_coeffs:
@@ -473,7 +477,7 @@ class GeneralRK(TimeStepper):
             self.deltagradsolver.solve()
             delta_grad.assign(self.delta_grad)
 #THIS IS VERY SLOW, LIKELY DUE TO SET UP COSTS
-#CAN WE MAKE IT FASTER SOMEHOW?
+#CAN WE MAKE IT FASTER SOMEHOW?\
             delta_grad_rhs = assemble(self.L_delta_grad)
 
         #compute lambda_n
