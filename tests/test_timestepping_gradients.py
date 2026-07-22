@@ -26,12 +26,12 @@ def taylor_remainder_check(jac_func, fd_func, x_func, x0, x0_perturb, x0_perturb
     remainders = []
     factors = 0.5 ** np.arange(0, 8)
     eps_list = list(1e-2 * factors)
+    jac = jac_func(x0, x0_perturb)
     for eps in eps_list:
         fdp = fd_func(x_func(eps, x0, x0_perturb, x0_perturbed))
         fdm = fd_func(x_func(-eps, x0, x0_perturb, x0_perturbed))
-        jac = jac_func(x0, x0_perturb)
         taylor_remainder =  fdp - fdm - 2.*eps*jac
-        print(eps, taylor_remainder, fdp, fdm, 2.*eps*jac, fdp - fdm)
+        print(eps, taylor_remainder, fdp, fdm, 2.*eps*jac, fdp - fdm, jac)
         remainders.append([eps,taylor_remainder])
     rates = []
     for i in range(len(remainders)-1):
@@ -42,6 +42,7 @@ def taylor_remainder_check(jac_func, fd_func, x_func, x0, x0_perturb, x0_perturb
         rate = np.log(r1 / r2) / np.log(h1 / h2)
         rates.append(rate)
     print(rates)
+    return jac, np.array(remainders), np.array(rates)
 
 @pytest.mark.skip
 def test_multiple_timestep_gradient_ic():
@@ -61,7 +62,7 @@ def test_multiple_timestep_gradient_ic():
     nsteps = 5
     xns1, xn_subs1, steps1, tns1 = compute_state_block(model, timestepper, 1, nsteps, dt, x0, t0)
     #xns2, xn_subs2, steps2, tns2 = compute_state_block(model, timestepper, 2, nsteps//2, dt, x0, t0)
-    objective_1 = L2Objective(xns1, tns1, model_coeff, nsteps, model.spaces.dx)
+    objective_1 = L2Objective(xns1, tns1, nsteps, model.spaces.dx)
     #objective_2 = L2Objective(xns2, tns2, model_coeff, nsteps//2, model.spaces.dx)
     optimizer_1 = Lagrangian_ODEConstrainedOptimization(model, timestepper, objective_1, dt)
     #optimizer_2 = Lagrangian_ODEConstrainedOptimization(model, timestepper, objective_2, dt)
@@ -90,8 +91,13 @@ def test_multiple_timestep_gradient_ic():
 #CREATE SET OF ICs!
     x0_perturb.assign(x0[0] * 0.05)
 #SHOULD EAT A SET OF ICs!
-    taylor_remainder_check(jac_func, fd_func, x_func, x0[0], x0_perturb, x0_perturbed)
-    taylor_remainder_check(jac_func, fd_func, x_func, x0[0], x0_perturb, x0_perturbed)
+    jac1, remainders1, rates1 = taylor_remainder_check(jac_func, fd_func, x_func, x0[0], x0_perturb, x0_perturbed)
+    jac2, remainders2, rates2 = taylor_remainder_check(jac_func, fd_func, x_func, x0[0], x0_perturb, x0_perturbed)
+    assert(jac1==0)
+    assert(jac2==0)
+    assert(np.allclose(rates1, rates2, equal_nan=True))
+    assert(np.allclose(remainders1, remainders2))
+#ADD ACTUAL CHECK OF RATES!
 
     x0_new, x0_new_sub, x0_new_split = model.get_full_var('x0_new', split_x_and_aux=True)
     parameters['initial-conditions']['ox'] = 0.11
@@ -101,8 +107,11 @@ def test_multiple_timestep_gradient_ic():
 #CREATE SET OF ICs!
 
 #SHOULD EAT A SET OF ICs!
-    taylor_remainder_check(jac_func, fd_func, x_func, x0_new[0], x0_perturb, x0_perturbed)
-    taylor_remainder_check(jac_func, fd_func, x_func, x0_new[0], x0_perturb, x0_perturbed)
+    jac1, remainders1, rates1 = taylor_remainder_check(jac_func, fd_func, x_func, x0_new[0], x0_perturb, x0_perturbed)
+    jac2, remainders2, rates2 = taylor_remainder_check(jac_func, fd_func, x_func, x0_new[0], x0_perturb, x0_perturbed)
+#ADD ACTUAL CHECK OF RATES!
+    assert(np.allclose(rates1, rates2, equal_nan=True))
+    assert(np.allclose(remainders1, remainders2))
 
 @pytest.mark.skip
 def test_single_timestep_gradient_ic():
@@ -120,7 +129,7 @@ def test_single_timestep_gradient_ic():
     timestepper.set_coeff(model_coeff)
 
     xns1, xn_subs1, steps1, tns1 = compute_state_block(model, timestepper, 1, 1, dt, x0, t0)
-    objective_1 = L2Objective(xns1, tns1, model_coeff, 1, model.spaces.dx)
+    objective_1 = L2Objective(xns1, tns1, 1, model.spaces.dx)
     optimizer_1 = Lagrangian_ODEConstrainedOptimization(model, timestepper, objective_1, dt)
     x0_perturbed, x0_perturbed_sub, x0_perturbed_split = model.get_x_var('x0_perturbed')
     x0_perturb, x0_perturb_sub, x0_perturb_split = model.get_x_var('x0_perturb')
@@ -141,11 +150,13 @@ def test_single_timestep_gradient_ic():
     #zero gradients at optimality
     x0_perturb.assign(x0[0] * 0.05)
 
-    taylor_remainder_check(jac_func, fd_func, x_func, x0[0], x0_perturb, x0_perturbed)
-    taylor_remainder_check(jac_func, fd_func, x_func, x0[0], x0_perturb, x0_perturbed)
-#ADD A CHECK THAT THIS GRADIENT IS FUNCTIONALLY ZERO?
-
-    #check gradients
+    jac1, remainders1, rates1 = taylor_remainder_check(jac_func, fd_func, x_func, x0[0], x0_perturb, x0_perturbed)
+    jac2, remainders2, rates2 = taylor_remainder_check(jac_func, fd_func, x_func, x0[0], x0_perturb, x0_perturbed)
+    assert(jac1==0)
+    assert(jac2==0)
+    assert(np.allclose(rates1, rates2, equal_nan=True))
+    assert(np.allclose(remainders1, remainders2))
+#ADD ACTUAL CHECK OF RATES!
 
     x0_new, x0_new_sub, x0_new_split = model.get_full_var('x0_new', split_x_and_aux=True)
     parameters['initial-conditions']['ox'] = 0.11
@@ -153,11 +164,13 @@ def test_single_timestep_gradient_ic():
     model.initialize(x0_new_sub, t0, new_params=parameters)
     x0_perturb.assign(x0_new[0] * 0.05)
 
-    taylor_remainder_check(jac_func, fd_func, x_func, x0_new[0], x0_perturb, x0_perturbed)
-    taylor_remainder_check(jac_func, fd_func, x_func, x0_new[0], x0_perturb, x0_perturbed)
+    jac1, remainders1, rates1 = taylor_remainder_check(jac_func, fd_func, x_func, x0_new[0], x0_perturb, x0_perturbed)
+    jac2, remainders2, rates2 = taylor_remainder_check(jac_func, fd_func, x_func, x0_new[0], x0_perturb, x0_perturbed)
+    assert(np.allclose(rates1, rates2, equal_nan=True))
+    assert(np.allclose(remainders1, remainders2))
+#ADD ACTUAL CHECK OF RATES!
 
-
-def test_single_timestep_gradient_params():
+def test_single_timestep_gradient_coeffs():
 
     parameters = get_parameters('tests/tswe.cfg')
     logger = EmptyLogger()
@@ -173,44 +186,51 @@ def test_single_timestep_gradient_params():
     timestepper.set_coeff(model_coeff)
 
     coeff, coeff_sub, coeff_split = model.get_coeff_var('coeff')
+    new_coeff, new_coeff_sub, new_coeff_split = model.get_coeff_var('new_coeff')
     delta_coeff, _, _ = model.get_coeff_var('delta_coeff')
     perturbed_coeff, _, _ = model.get_coeff_var('perturbed_coeff')
 
     xns1, xn_subs1, steps1, tns1 = compute_state_block(model, timestepper, 1, 1, dt, x0, t0)
-    objective_1 = L2Objective(xns1, tns1, coeff, 1, model.spaces.dx)
+    objective_1 = L2Objective(xns1, tns1, 1, model.spaces.dx)
     optimizer_1 = Lagrangian_ODEConstrainedOptimization(model, timestepper, objective_1, dt)
 
 
 
-    def jac_func(param, param_perturb):
-        param_arr = create_flattened_numpy_arr_from_mixed_function(param)
-        param_perturb_arr = create_flattened_numpy_arr_from_mixed_function(param_perturb)
-        jac_param_1 = optimizer_1.jac(param_arr, None)
-        return jac_param_1.dot(param_perturb_arr)
+    def jac_func(coeff, coeff_perturb):
+        coeff_arr = create_flattened_numpy_arr_from_mixed_function(coeff)
+        coeff_perturb_arr = create_flattened_numpy_arr_from_mixed_function(coeff_perturb)
+        jac_coeff_1 = optimizer_1.jac(coeff_arr, None)
+        return jac_coeff_1.dot(coeff_perturb_arr)
 
-    def fd_func(param_arr):
-        return optimizer_1.obj(param_arr, None)
+    def fd_func(coeff_arr):
+        return optimizer_1.obj(coeff_arr, None)
 
-    def param_func(eps, param, param_perturb, param_perturbed):
-        param_perturbed.assign(param + float(eps)*param_perturb)
-        return create_flattened_numpy_arr_from_mixed_function(param_perturbed)
+    def coeff_func(eps, coeff, coeff_perturb, coeff_perturbed):
+        coeff_perturbed.assign(coeff + float(eps)*coeff_perturb)
+        return create_flattened_numpy_arr_from_mixed_function(coeff_perturbed)
 
     #zero gradients at optimality
     model.set_coeffs(parameters, coeff_sub)
     delta_coeff.assign(coeff * 0.1)
     #print('coeff norm', model.norm(coeff))
-#ADD A CHECK THAT THIS GRADIENT IS FUNCTIONALLY ZERO?
-    taylor_remainder_check(jac_func, fd_func, param_func, coeff, delta_coeff, perturbed_coeff)
-    taylor_remainder_check(jac_func, fd_func, param_func, coeff, delta_coeff, perturbed_coeff)
-
+    #jac1, remainders1, rates1 = taylor_remainder_check(jac_func, fd_func, coeff_func, coeff, delta_coeff, perturbed_coeff)
+    #jac2, remainders2, rates2 = taylor_remainder_check(jac_func, fd_func, coeff_func, coeff, delta_coeff, perturbed_coeff)
+    #assert(jac1==0)
+    #assert(jac2==0)
+    #assert(np.allclose(rates1, rates2, equal_nan=True))
+    #assert(np.allclose(remainders1, remainders2))
+#ADD ACTUAL CHECK OF RATES!
 
     #check gradients
     parameters['hyperviscosity']['c0'] = 0.05
     parameters['hyperviscosity']['s'] = 2.8
-    model.set_coeffs(parameters, coeff_sub)
-    delta_coeff.assign(coeff * 0.1)
+    model.set_coeffs(parameters, new_coeff_sub)
+    delta_coeff.assign(new_coeff * 0.1)
     #print('coeff norm', model.norm(coeff))
 
 #THIS IS STILL FAILING :(
-    taylor_remainder_check(jac_func, fd_func, param_func, coeff, delta_coeff, perturbed_coeff)
-    taylor_remainder_check(jac_func, fd_func, param_func, coeff, delta_coeff, perturbed_coeff)
+    jac1, remainders1, rates1 = taylor_remainder_check(jac_func, fd_func, coeff_func, new_coeff, delta_coeff, perturbed_coeff)
+    jac2, remainders2, rates2 = taylor_remainder_check(jac_func, fd_func, coeff_func, new_coeff, delta_coeff, perturbed_coeff)
+    assert(np.allclose(rates1, rates2, equal_nan=True))
+    assert(np.allclose(remainders1, remainders2))
+#ADD ACTUAL CHECK OF RATES!

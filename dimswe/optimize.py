@@ -48,9 +48,8 @@ class _Objective:
 
 #EVENTUALLY ADD REGULARIZED OBJECTIVE ALSO
 class L2Objective(_Objective):
-    def __init__(self, data_blocks, t_blocks, coeff, nsteps, dx):
+    def __init__(self, data_blocks, t_blocks, nsteps, dx):
         self.data_blocks = data_blocks
-        self.coeff = coeff
         self.t_blocks = t_blocks
         self.num_data_blocks = len(self.data_blocks)
         self.nsteps = nsteps
@@ -58,18 +57,18 @@ class L2Objective(_Objective):
 
 #THIS IS A LITTLE WRONG, AND SHOULD REALLY BE PART OF ConstrainedOptimizer...
 ####
-    def jac_x(self, x, params):
+    def jac_x(self, x, coeffs):
         return x
 
-    def jacT_x(self, x, params):
+    def jacT_x(self, x, coeffs):
         return x
 ###
 
-    def jac_params(self, x, params):
+    def jac_coeffs(self, x, coeffs):
         return 0
 
 
-    def jacT_params(self, x, params):
+    def jacT_coeffs(self, x, coeffs):
         return 0
 
 #THIS IS A MASS MATRIX WEIGHTED INNER PRODUCT!
@@ -124,7 +123,7 @@ class _ODEConstrainedOptimization():
                 options_prefix='opt-proj')
 
 
-    def optimize(self, initial_guess, method='L-BFGS-B', opt_type='coeffs', coeffs0=None): #cg, bfgs
+    def optimize(self, initial_guess, method='L-BFGS-B', opt_type='coeffs', use_jacobian=True, coeffs0=None): #cg, bfgs
 
 #HOW DO WE CORRECTLY HANDLE BOUNDS HERE?
         if opt_type == 'coeffs':
@@ -142,14 +141,20 @@ class _ODEConstrainedOptimization():
 
 #HOW DO PARAMETER BOUNDS WORK FOR LARGE SCALE PROBLEMS LIKE THIS?
 #CLEARLY THE LIST/ARRAY IS A PROBABLY A BAD IDEA?
-        res = sp.optimize.minimize(obj, initial_guess,
-            method=method, bounds=None,
-            options={'disp': True, 'maxiter': 50000, 'maxfun': 50000},
-            jac=jac, hessp=self.hessp)
+        if use_jacobian:
+            res = sp.optimize.minimize(obj, initial_guess,
+                method=method, bounds=None,
+                options={'disp': True, 'maxiter': 50000, 'maxfun': 50000},
+                jac=jac, hessp=self.hessp)
+        else:
+            res = sp.optimize.minimize(obj, initial_guess,
+                method=method, bounds=None,
+                options={'disp': True, 'maxiter': 50000, 'maxfun': 50000},)
         print('optimizer success', res.success, res.status, res.message)
         print('optimizer nits', res.nit)
         print('optimizer num func evals', res.nfev)
-        print('optimizer num jac evals', res.njev)
+        if use_jacobian:
+            print('optimizer num jac evals', res.njev)
         return res.x
 
     def obj(self, coeffs_arr, ics_arr, coeffs0=None):
@@ -159,6 +164,7 @@ class _ODEConstrainedOptimization():
             self.timestepper.set_numpy_coeff(coeffs_arr)
 
         l2loss = 0.0
+        #print('calling obj with coeff norm', self.model.norm(self.timestepper.coeff))
         for i in range(self.objective.num_data_blocks):
 #THIS IS REQUIRED TO GET REPEATABILITY FOR OPT
 #WHY?????
@@ -183,6 +189,8 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
             self.timestepper.set_coeff(coeffs0)
         else:
             self.timestepper.set_numpy_coeff(coeffs_arr)
+
+        #print('calling jac with coeff norm', self.model.norm(self.timestepper.coeff))
 
         #print('ts coeff norm', self.model.norm(self.timestepper.coeff))
         for i in range(self.objective.num_data_blocks):
@@ -227,6 +235,7 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
                 #print('state diff ' + str(n), self.model.norm(self.old_state - self.states[n][0]))
 
                 if self.model.has_coeff():
+                    #print(delta_grad_rhs.dat.data)
                     self.grad_coeffs[:] = self.grad_coeffs[:] + create_flattened_numpy_arr_from_mixed_function(delta_grad_rhs)
             #print('state data end diff', self.model.norm(self.states[-1][0] - self.objective.data_blocks[i][1][0]))
 

@@ -92,7 +92,6 @@ class Dynamics():
 
         if not (self.coeffspace is None):
             coeff = Function(self.coeffspace, name=varname)
-            coeff_trial = TrialFunction(self.coeffspace)
             coeff_sub = {}
             coeff_split = {}
             splitcoeff = split(coeff)

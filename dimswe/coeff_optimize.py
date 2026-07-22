@@ -25,7 +25,7 @@ timestepper.set_coeff(model_coeff)
 nsteps = 3
 
 xns, xn_subs, steps, tns = compute_state_block(model, timestepper, 1, nsteps, dt, x0, t0)
-objective = L2Objective(xns, tns, model_coeff, nsteps, model.spaces.dx)
+objective = L2Objective(xns, tns, nsteps, model.spaces.dx)
 optimizer = Lagrangian_ODEConstrainedOptimization(model, timestepper, objective, dt)
 
 coeff_new, coeff_new_sub, _ = model.get_coeff_var('coeff_new')
@@ -43,7 +43,7 @@ plot_variable(coeff_new, 'mu-start',  2, False)
 plot_variable(coeff_diff, 'mu-diff',  2, False)
 
 coeff_new_arr = create_flattened_numpy_arr_from_mixed_function(coeff_new)
-coeff_opt_arr = optimizer.optimize(coeff_new_arr, opt_type='coeffs')
+coeff_opt_arr = optimizer.optimize(coeff_new_arr, opt_type='coeffs', use_jacobian=False)
 set_mixed_function_from_flattened_array(coeff_opt, coeff_opt_arr)
 coeff_opt_diff.assign(coeff_opt - model_coeff)
 

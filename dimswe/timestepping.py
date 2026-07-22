@@ -356,43 +356,43 @@ class GeneralRK(TimeStepper):
             #self.mufullsolver = create_linear_solver_from_residual(total_mu_residual, self.mui[0], xtrial[0], solver_parameters=overall_solver_parameters['irk-mu'], options_prefix = 'irk-mu')
 
 
-    def get_rhs_expr():
+    def get_rhs_expr(self):
 
         xhat, xhat_subs = self.model.get_full_test_vars(split_x_and_aux=self.is_explicit)
 
         xi_splits = []
-        for i in range(nstages):
+        for i in range(self.nstages):
             xi_split = {}
             for var in self.model.get_x_var_list():
                 xi_split[self.xk_split[var]] = self.xk_split[var]
-                for j in range(nstages):
+                for j in range(self.nstages):
                     if not (self.A[i,j] == 0): xi_split[self.xk_split[var]] = xi_split[self.xk_split[var]] + self.dt*float(self.A[i,j]) * self.Fi[j][2][var]
             for var in self.model.get_aux_var_list():
                 xi_split[self.xk_split[var]] = self.Fi[i][2][var]
             xi_split[self.t] = self.t + float(self.c[i])*self.dt
             xi_splits.append(xi_split)
 
-        rhs_F = -model.rhs(self.xk_split, self.t, self.coeff_split, xhat_subs)
+        rhs_F = -self.model.rhs(self.xk_split, self.t, self.coeff_split, xhat_subs)
         rhs_W = 0
         if self.model.has_aux():
-            aux_expressions = self.model.compute_aux_expressions(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
-            for var in self.model.get_aux_var_list(terms=terms):
+            aux_expressions = self.model.compute_aux_expressions(self.xk_split, self.t, self.coeff_split, xhat_subs)
+            for var in self.model.get_aux_var_list():
                 rhs_W = rhs_W + aux_expressions[var][1]
 
         rhs_Fis = []
         rhs_Ws = []
         for i in range(self.nstages):
-            rhs_Fi = -model.rhs(self.xk_split, self.t, self.coeff_split, xhat_subs)
+            rhs_Fi = -self.model.rhs(self.xk_split, self.t, self.coeff_split, xhat_subs)
             rhs_Fi = replace(rhs_Fi, xi_splits[i])
             rhs_Fis.append(rhs_Fi)
-            rhs_W = 0
+            rhs_Wi = 0
             if self.model.has_aux():
-                aux_expressions = self.model.compute_aux_expressions(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
-                for var in self.model.get_aux_var_list(terms=terms):
-                    rhs_W = rhs_W + aux_expressions[var][1]
-                if not (lhrhs_Ws_W == 0):
-                    rhs_W = replace(rhs_W, xi_splits[i])
-                rhs_Ws.append(rhs_W)
+                aux_expressions = self.model.compute_aux_expressions(self.xk_split, self.t, self.coeff_split, xhat_subs)
+                for var in self.model.get_aux_var_list():
+                    rhs_Wi = rhs_Wi + aux_expressions[var][1]
+                if not (rhs_Wi == 0):
+                    rhs_Wi = replace(rhs_Wi, xi_splits[i])
+                rhs_Ws.append(rhs_Wi)
 
         return rhs_F, rhs_W, rhs_Fis, rhs_Ws
 
