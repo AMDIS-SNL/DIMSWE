@@ -370,9 +370,10 @@ class AdvDensCF_H1_Dynamics(Dynamics):
         self.coefflist = []
         for term in self.forcing_terms:
             if term.has_coeff():
-                name, space = term.get_coeff()
-                self.coeffspacelist.append(space)
-                self.coefflist.append(name)
+                term_coeffs = term.get_coeff()
+                for name,space in term_coeffs:
+                    self.coeffspacelist.append(space)
+                    self.coefflist.append(name)
 
         self.xspacelist = []
         self.xvarlist = []

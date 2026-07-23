@@ -158,9 +158,9 @@ class Model():
         expr = inner(v,v)*self.spaces.dx
         return assemble(expr)**(1./2.)
 
-    def restart(self, xn, x0, t, t0):
-        t.assign(t0)
-        xn[0].assign(x0[0])
+    #def restart(self, xn, x0, t, t0):
+    #    t.assign(t0)
+    #    xn[0].assign(x0[0])
         #if len(xn) > 1:
         #    xn[1].assign(x0[1])
 #DIAGNOSTICS AND STATISTICS NEED TO BE RESET ALSO

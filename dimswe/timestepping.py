@@ -31,6 +31,19 @@ def get_timestepper(parameters, model, logger, solver_parameters=None):
     return get_time_integrator(parameters['timestepping']['method'], parameters)(model, logger, solver_parameters=solver_parameters)
 
 
+def create_linear_solver_from_residual(residual, var, trialvar, constant_jacobian=False, solver_parameters={}, options_prefix=''):
+    a = derivative(residual, var, trialvar)
+    L = action(a, var) - residual
+    problem = LinearVariationalProblem(a, L, var, constant_jacobian=constant_jacobian)
+    solver = LinearVariationalSolver(problem, solver_parameters=solver_parameters, options_prefix=options_prefix)
+    return solver, a, L
+
+def extract_a_L_from_residual(residual, var, trialvar):
+    a = derivative(residual, var, trialvar)
+    L = action(a, var) - residual
+    return a, L
+
+
 class TimeStepper():
 
 
@@ -78,14 +91,6 @@ class AdditiveGeneralRK(TimeStepper):
         self.is_explicit2 = triangular2 and zero_diag2
         self.is_dirk2 = triangular2 and (not zero_diag2)
 
-
-def create_linear_solver_from_residual(residual, var, trialvar, constant_jacobian=False, solver_parameters={}, options_prefix=''):
-    a = derivative(residual, var, trialvar)
-    L = action(a, var) - residual
-    problem = LinearVariationalProblem(a, L, var, constant_jacobian=constant_jacobian)
-    solver = LinearVariationalSolver(problem, solver_parameters=solver_parameters, options_prefix=options_prefix)
-    return solver, a, L
-
 class GeneralRK(TimeStepper):
     def __init__(self, model, logger, A, b, c, nstages, terms='all', solver_parameters=None):
         TimeStepper.__init__(self, model, logger, terms=terms)
@@ -129,22 +134,8 @@ class GeneralRK(TimeStepper):
 #and also an arugment about whether to split the copies as well
 #then the code below (with xhat_subs[i] replacement, etc.) should seamlessly generalize!
 
-        #construct residuals for F and aux
-        #this sign is due to writing things as dxdt + F(x) = 0
 
-#THIS IS A BIT OF A MESS FOR DIRK AND IRK- need to take derivatives wrt x and w independently, if that is possible?
-#MIGHT BE ABLE TO JUST TAKE A JOINT DERIVATIVE? UNCLEAR....
-        # derivT_F_F = adjoint(derivative(rhs_F, self.xk[0], xtrial[0]))
-        # if model.has_coeff():
-        #     derivT_F_theta = adjoint(derivative(rhs_F, self.coeff, self.grad_trial))
-        # if self.model.has_aux() and not (lhs_W == 0):
-        #     derivT_F_w = adjoint(derivative(rhs_F, self.xk[1], xtrial[1]))
-        #     derivT_W_F = adjoint(derivative(rhs_W, self.xk[0], xtrial[0]))
-        #     if model.has_coeff():
-        #         derivT_W_theta = adjoint(derivative(rhs_W, self.coeff, self.grad_trial))
-
-
-
+        #construct xi variables
         xi_splits = []
         for i in range(nstages):
             xi_split = {}
@@ -157,54 +148,17 @@ class GeneralRK(TimeStepper):
             xi_split[self.t] = self.t + float(self.c[i])*self.dt
             xi_splits.append(xi_split)
 
-
+        #construct residuals for F and aux
         residuals_F = []
         residuals_aux = []
         for i in range(nstages):
-#MIGHT HAVE TO MODIFY THIS INNER PRODUCT A LITTLE FOR IRK GENERALITY
+        #this sign is due to writing things as dxdt + F(x) = 0
             rhs_Fi = -model.rhs(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
             rhs_Fi = replace(rhs_Fi, xi_splits[i])
             residual_F = inner(xhat[0], self.Fi[i][0][0])*self.dx - rhs_Fi
-
-            #rhs_Fi_coeffs = extract_coefficients(rhs_Fi)
-            #for rhs_Fi_coeff in rhs_Fi_coeffs:
-            #    print('rhs_Fi coeff', i, rhs_Fi_coeff, rhs_Fi_coeff.name())
-
-#ALL THESE RESIDUAL MU/MUAUX SUMS RELY ON SPLITTING AND TAKING DERIVATIVES WRT SPLITS
-#THIS IS A MESS WITH DIRK AND IRK!
-            #residual_mu = inner(self.mui[i][0][0], xhat[0])*self.dx
-            #if not derivT_F_F.empty():
-            #    for j in range(self.nstages):
-            #        #print('adding derivT_F_F action for mu',i,j,self.A[j,i])
-            #        term = self.dt*float(self.A[j,i])*action(derivT_F_F, self.mui[j][0][0])
-            #        residual_mu = residual_mu - replace(term, xi_splits[j])
-            #residual_mu = residual_mu - self.dt * float(self.b[i])*inner(self.lambda_var, xhat[0])*self.dx
-
-            #if not derivT_F_F.empty():
-            #    term = action(derivT_F_F, self.mui[i][0][0])
-            #    residual_xk = residual_xk - replace(term, xi_splits[i])
-#            if model.has_aux() and (not lhs_W == 0) and not derivT_W_F.empty():
-#                term = action(derivT_W_F, self.mui[i][0][1])
-#                residual_xk = residual_xk - replace(term, xi_splits[i])
-
-            # if model.has_coeff():
-            #     #print('has coeff')
-            #     if not derivT_F_theta.empty():
-            #         #print('non-empty deriv F_theta, adding grad stuff')
-            #         #for j in range(self.nstages):
-            #         #term = self.dt*float(self.A[j,i])*action(derivT_F_theta, self.mui[j][0][0])
-            #         term = action(derivT_F_theta, self.mui[i][0][0])
-            #         #residual_grad = residual_grad - replace(term, xi_splits[j])
-            #         #print('grad F_theta', i, term)
-            #         residual_grad = residual_grad - replace(term, xi_splits[i])
-            #         #print('grad F_theta', i, residual_grad)
-            #     if model.has_aux() and (not lhs_W == 0) and not derivT_W_theta.empty():
-            #         #print('non-empty deriv W_theta, adding grad stuff')
-            #         term = action(derivT_W_theta, self.mui[i][0][1])
-            #         residual_grad = residual_grad - replace(term, xi_splits[i])
+#MIGHT HAVE TO MODIFY THIS INNER PRODUCT A LITTLE FOR IRK GENERALITY
 
             residual_aux = 0
-#            residual_muaux = 0
             if self.model.has_aux():
                 aux_expressions = self.model.compute_aux_expressions(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
                 rhs_W = 0
@@ -214,34 +168,15 @@ class GeneralRK(TimeStepper):
                     lhs_W = lhs_W + aux_expressions[var][0]
                 if not (lhs_W == 0):
                     residual_aux = replace(lhs_W - rhs_W, xi_splits[i])
-#                residual_muaux = inner(self.mui[i][0][1], xhat[1])*self.dx
-#                for j in range(self.nstages):
-#                    if not derivT_W_F.empty():
-#                        #print('adding derivT_W_F action for mu',i,j,self.A[j,i])
-#                        term = self.dt*float(self.A[j,i])*action(derivT_W_F, self.mui[j][0][1])
-#                        residual_mu = residual_mu - replace(term, xi_splits[j])
-#                if not derivT_F_w.empty():
-                            #print('adding derivT_F_w action for muaux',i,j,self.A[j,i])
-#                    term = action(derivT_F_w, self.mui[i][0][0]) #self.dt*float(self.A[j,i])*action(derivT_F_w, self.mui[j][0][0])
-#                    residual_muaux = residual_muaux - replace(term, xi_splits[i]) #residual_muaux - replace(term, xi_splits[j])
-#THESE MUAUX RESIDUALS ARE ONLY CORRECT WHEN LHS IS JUST MASS MATRIX!
-#IF THERE IS STATE DEPENDENCE THEN IT MUST BE CHANGED!!!
+
+
             residuals_aux.append(residual_aux)
             residuals_F.append(residual_F)
-            #residuals_mu.append(residual_mu)
-            #residuals_muaux.append(residual_muaux)
 
+        #construct residuals for mu and muaux
         residuals_mu = []
         residuals_muaux = []
 
-        #print('xk0', self.xk[0])
-        #print('xk1', self.xk[1])
-        #print('lambda_var', self.lambda_var)
-        #for i in range(self.nstages):
-        #    print('mu0_' + str(i), self.mui[i][0][0])
-            #print('mu1_' + str(i), self.mui[i][0][1])
-        #    print('F0_' + str(i), self.Fi[i][0][0])
-            #print('F1_' + str(i), self.Fi[i][0][1])
         residual_xk = inner(self.delta_lambda_var, xhat[0])*self.dx
 #THIS MIGHT NEED TO MODIFIED FOR DIRK/IRK?
         if model.has_coeff():
@@ -284,6 +219,7 @@ class GeneralRK(TimeStepper):
                     if not derivT_Wi_xk.empty():
                         residual_xk = residual_xk -  action(derivT_Wi_xk, self.mui[i][0][1])
     #THIS IS ASSUMING THAT LHS W IS LINEAR IN W
+#IF THERE IS STATE DEPENDENCE THEN IT MUST BE CHANGED!!!
                     residual_muaux = inner(self.mui[i][0][1], xhat[1])*self.dx
                     derivT_Fi_wi = adjoint(derivative(rhs_Fi, self.Fi[i][0][1], xtrial[1]))
                     if not derivT_Fi_wi.empty():
@@ -291,23 +227,30 @@ class GeneralRK(TimeStepper):
                     if model.has_coeff():
                         derivT_Wi_theta = adjoint(derivative(rhs_Wi, self.coeff, self.grad_trial))
                         if not derivT_Wi_theta.empty():
+                            #print('adding derivT_Wi_theta terms to grad')
                             residual_grad = residual_grad - action(derivT_Wi_theta, self.mui[i][0][1])
             if model.has_coeff():
                 derivT_Fi_theta = adjoint(derivative(rhs_Fi, self.coeff, self.grad_trial))
                 if not derivT_Fi_theta.empty():
+                    #print('adding derivT_Fi_theta terms to grad')
                     residual_grad = residual_grad - action(derivT_Fi_theta, self.mui[i][0][0])
 #UGLY HACK OF A GRADIENT COMPUTED BY HAND
-#NOT COMPILING- WHY?
+#THIS GIVES IDENTICAL RESULTS TO THE COMPUTATION ABOVE!
+#WHICH DOES NOT CONVERGE, SO THERE IS SOMETHING WRONG HERE...
                 #for varname in self.model.get_x_var_list():
-                #    residual_grad = residual_grad - inner(-self.grad_test * grad(self.mui[i][2][varname]), grad(xi_splits[i][self.xk_split['Q_'+varname]]))*self.dx
+                #    print(varname)
+                #    print(self.grad_test)
+                #    print(self.mui[i][2][varname]) #self.mui[i][2][varname].name()
+                #    print(self.mui[i][2]['Q_'+varname]) #self.mui[i][2][varname].name()
+                #    #self.grad_test
+                #    residual_grad = residual_grad - inner(self.grad_test_subs['mu']*grad(self.mui[i][2][varname]), grad(self.Fi[i][2]['Q_'+varname]))*self.dx
 
-            #mu_coeffs = extract_coefficients(residual_mu)
+                #grad_coeffs = extract_coefficients(action(derivT_Fi_theta, self.mui[i][0][0]))
             #rhs_Fi_coeffs = extract_coefficients(rhs_Fi)
-            #for mu_coeff in mu_coeffs:
-            #    print('mu coeff', i, mu_coeff, mu_coeff.name())
+                #for grad_coeff in grad_coeffs:
+                #    print('grad coeff', i, grad_coeff, grad_coeff.name())
             #for rhs_Fi_coeff in rhs_Fi_coeffs:
             #    print('rhs_Fi coeff', i, rhs_Fi_coeff, rhs_Fi_coeff.name())
-#CHECK GRAD COEFFICIENTS?
             residuals_mu.append(residual_mu)
             residuals_muaux.append(residual_muaux)
 
@@ -335,7 +278,8 @@ class GeneralRK(TimeStepper):
                 self.musolvers.append(create_linear_solver_from_residual(residuals_mu[i], self.mui[i][0][0], xtrial[0], constant_jacobian=True, solver_parameters=self.solver_parameters['erkstage-mu'], options_prefix = 'erk-mu')[0])
             self.deltalambdasolver, _, self.L_delta_lambda = create_linear_solver_from_residual(residual_xk, self.delta_lambda_var, xtrial[0], constant_jacobian=True, solver_parameters=self.solver_parameters['erk-dlambda'], options_prefix = 'erk-lambda')
             if model.has_coeff():
-                self.deltagradsolver, _, self.L_delta_grad = create_linear_solver_from_residual(residual_grad, self.delta_grad, self.grad_trial, constant_jacobian=True, solver_parameters=self.solver_parameters['erk-grad'], options_prefix = 'erk-grad')
+                _, self.L_delta_grad = extract_a_L_from_residual(residual_grad, self.delta_grad, self.grad_trial)
+                #self.deltagradsolver, _, self.L_delta_grad = create_linear_solver_from_residual(residual_grad, self.delta_grad, self.grad_trial, constant_jacobian=True, solver_parameters=self.solver_parameters['erk-grad'], options_prefix = 'erk-grad')
         elif self.is_dirk:
             raise NotImplementedError('dirk not done yet')
             #self.Fauxsolvers = []
@@ -474,8 +418,8 @@ class GeneralRK(TimeStepper):
 
         #compute grad
         if self.model.has_coeff():
-            self.deltagradsolver.solve()
-            delta_grad.assign(self.delta_grad)
+            #self.deltagradsolver.solve()
+            #delta_grad.assign(self.delta_grad)
 #THIS IS VERY SLOW, LIKELY DUE TO SET UP COSTS
 #CAN WE MAKE IT FASTER SOMEHOW?\
             delta_grad_rhs = assemble(self.L_delta_grad)

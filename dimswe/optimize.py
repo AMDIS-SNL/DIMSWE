@@ -16,14 +16,16 @@ def create_states(model, nsteps):
     return xns, xn_subs, tns
 
 def compute_states(xns, xn_subs, tns, model, timestepper, nsteps, dt, x0, t0):
-    model.restart(xns[0], x0, tns[0], t0)
+    xns[0][0].assign(x0[0])
+#DO WE NEED TO DO SOMETHING LIKE THIS?
+#    xns[0][1].assign(x0[1])
+    tns[0].assign(t0)
     for n in range(nsteps):
 #WHY DO WE NEED TO DO?
 #THERE IS SOME SORT OF DATA BEING CARRIED BETWEEN STEPS...
         timestepper.reset_internal_vars()
         timestepper.take_forward_step(xns[n+1], xn_subs[n+1], xns[n], tns[n], dt)
         tns[n+1].assign(tns[n] + dt)
-    #print(xns[-1][0].dat.data[0])
 
 def compute_state_block(model, timestepper, nblocks, nsteps, dt, x0, t0):
     xns = []
@@ -71,23 +73,10 @@ class L2Objective(_Objective):
     def jacT_coeffs(self, x, coeffs):
         return 0
 
-#THIS IS A MASS MATRIX WEIGHTED INNER PRODUCT!
-#SO BE VERY CAREFUL WHEN WE SET LAMBDA I THINK?
     def evaluate(self, block_id, soln, tns):
 #THIS INCLUDES AUX VARIABLES FOR DIRK AND IRK CASES- PROBABLY TRY TO AVOID THOSE IF POSSIBLE?
         residual = soln[0] - self.data_blocks[block_id][1][0]
-        #res0 = soln[0].dat.data[0] - self.data_blocks[block_id][1][0].dat.data[0]
-        #res1 = soln[0].dat.data[1] - self.data_blocks[block_id][1][0].dat.data[1]
-        #res2 = soln[0].dat.data[2] - self.data_blocks[block_id][1][0].dat.data[2]
-        #full_res = np.sum(res0**2) + np.sum(res1**2) + np.sum(res2**2)
-        #print(0.5 * full_res)
-        #print(soln[0].dat.data[0] - self.data_blocks[block_id][1][0].dat.data[0])
-        #print(soln[0].dat.data[1] - self.data_blocks[block_id][1][0].dat.data[1])
-        #print(soln[0].dat.data[2] - self.data_blocks[block_id][1][0].dat.data[2])
-        #print(assemble(0.5*inner(residual,residual)*self.dx))
-
         return assemble(0.5*inner(residual,residual)*self.dx)
-        #return 0.5*full_res
 
 class _ODEConstrainedOptimization():
     def __init__(self, model, timestepper, objective, dt):
@@ -99,31 +88,26 @@ class _ODEConstrainedOptimization():
         self.dt = dt
         self.lambda_np1, _, _ = self.model.get_x_var('lambda_np1')
         self.delta_lambda, _, _ = self.model.get_x_var('delta_lambda')
-        #self.grad_coeff, _, _ = self.model.get_coeff_var('grad_coeff')
         self.delta_grad_coeff, _, _ = self.model.get_coeff_var('delta_grad_coeff')
         self.grad_ic, _, _ = self.model.get_x_var('grad_ic')
         self.ic, _, _ = self.model.get_x_var('ic')
-
-        self.old_state, self.old_state_sub, _ = self.model.get_x_var('old_state')
-
-
-        self.xtest, _ = self.model.get_x_test_vars()
 
         self.grad_coeffs = np.zeros(self.model.get_coeff_size())
         self.grad_ics = np.zeros((self.objective.num_data_blocks, self.model.get_x_size()))
 
         self.initial_mismatch, _, _ = self.model.get_x_var('initial_mismatch')
-        xtest, _ = self.model.get_x_test_vars()
+        self.xtest, _ = self.model.get_x_test_vars()
         xtrial, _ = self.model.get_x_trial_vars()
-        a = inner(xtest, xtrial)* self.model.spaces.dx
-        L = inner(xtest, self.initial_mismatch)*self.model.spaces.dx
+        a = inner(self.xtest, xtrial)* self.model.spaces.dx
+        L = inner(self.xtest, self.initial_mismatch)*self.model.spaces.dx
         lambda_np1_projector_problem = LinearVariationalProblem(a, L, self.lambda_np1, constant_jacobian=True)
         self.lambda_np1_projector = LinearVariationalSolver(lambda_np1_projector_problem,
             solver_parameters={ 'ksp_type': 'preonly', 'pc_type' : 'lu'}, #{ 'ksp_type': 'cg', 'pc_type' : 'jacobi',},
                 options_prefix='opt-proj')
 
 
-    def optimize(self, initial_guess, method='L-BFGS-B', opt_type='coeffs', use_jacobian=True, coeffs0=None): #cg, bfgs
+
+    def optimize(self, initial_guess, method='L-BFGS-B', opt_type='coeffs', use_jacobian=True, coeffs0=None, gtol=1e-5, ftol=1e-5): #cg, bfgs
 
 #HOW DO WE CORRECTLY HANDLE BOUNDS HERE?
         if opt_type == 'coeffs':
@@ -144,12 +128,12 @@ class _ODEConstrainedOptimization():
         if use_jacobian:
             res = sp.optimize.minimize(obj, initial_guess,
                 method=method, bounds=None,
-                options={'disp': True, 'maxiter': 50000, 'maxfun': 50000},
+                options={'disp': True, 'maxiter': 200000, 'maxfun': 200000, 'gtol':gtol, 'ftol':ftol},
                 jac=jac, hessp=self.hessp)
         else:
             res = sp.optimize.minimize(obj, initial_guess,
                 method=method, bounds=None,
-                options={'disp': True, 'maxiter': 50000, 'maxfun': 50000},)
+                options={'disp': True, 'maxiter': 200000, 'maxfun': 200000, 'gtol':gtol, 'ftol':ftol},)
         print('optimizer success', res.success, res.status, res.message)
         print('optimizer nits', res.nit)
         print('optimizer num func evals', res.nfev)
@@ -164,7 +148,6 @@ class _ODEConstrainedOptimization():
             self.timestepper.set_numpy_coeff(coeffs_arr)
 
         l2loss = 0.0
-        #print('calling obj with coeff norm', self.model.norm(self.timestepper.coeff))
         for i in range(self.objective.num_data_blocks):
 #THIS IS REQUIRED TO GET REPEATABILITY FOR OPT
 #WHY?????
@@ -174,7 +157,7 @@ class _ODEConstrainedOptimization():
                 compute_states(self.states, self.states_sub, self.tns, self.model, self.timestepper, self.objective.nsteps, self.dt, self.objective.data_blocks[i][0], self.objective.t_blocks[i][0])
             else:
                 set_mixed_function_from_flattened_array(self.ic, ics_arr[i,:])
-                compute_states(self.states, self.states_sub, self.tns, self.model, self.timestepper, self.objective.nsteps, self.dt, self.ic, self.objective.t_blocks[i][0])
+                compute_states(self.states, self.states_sub, self.tns, self.model, self.timestepper, self.objective.nsteps, self.dt, [self.ic,], self.objective.t_blocks[i][0])
             l2loss += self.objective.evaluate(i, self.states[-1], self.tns[-1])
         return l2loss
 
@@ -183,17 +166,20 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
     def jac(self, coeffs_arr, ics_arr, coeffs0=None):
         if self.model.has_coeff():
             self.grad_coeffs[:] = 0.0
+            self.delta_grad_coeff.assign(0)
         self.grad_ics[:] = 0.0
+        self.grad_ic.assign(0)
+        self.delta_lambda.assign(0)
 
         if coeffs_arr is None:
             self.timestepper.set_coeff(coeffs0)
         else:
             self.timestepper.set_numpy_coeff(coeffs_arr)
 
-        #print('calling jac with coeff norm', self.model.norm(self.timestepper.coeff))
 
-        #print('ts coeff norm', self.model.norm(self.timestepper.coeff))
         for i in range(self.objective.num_data_blocks):
+            self.lambda_np1.assign(0)
+            self.ic.assign(0)
 
 #THIS IS REQUIRED TO GET REPEATABILITY FOR JAC
 #WHY?????
@@ -204,15 +190,10 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
                 compute_states(self.states, self.states_sub, self.tns, self.model, self.timestepper, self.objective.nsteps, self.dt, self.objective.data_blocks[i][0], self.objective.t_blocks[i][0])
             else:
                 set_mixed_function_from_flattened_array(self.ic, ics_arr[i,:])
-                compute_states(self.states, self.states_sub, self.tns, self.model, self.timestepper, self.objective.nsteps, self.dt, self.ic, self.objective.t_blocks[i][0])
+                compute_states(self.states, self.states_sub, self.tns, self.model, self.timestepper, self.objective.nsteps, self.dt, [self.ic,], self.objective.t_blocks[i][0])
 
             self.initial_mismatch.assign(self.states[-1][0] - self.objective.data_blocks[i][1][0])
             self.lambda_np1_projector.solve()
-            #print('initial mismatch norm', self.model.norm(self.initial_mismatch))
-            #print('lambda_np1 norm', self.model.norm(self.lambda_np1))
-            #print('state data end diff', self.model.norm(self.states[-1][0] - self.objective.data_blocks[i][1][0]))
-
-            #self.timestepper.reset_internal_vars()
 
             self.grad_ics[i, :] = create_flattened_numpy_arr_from_mixed_function(assemble(inner(self.xtest, self.states[-1][0] - self.objective.data_blocks[i][1][0])*self.model.spaces.dx))
             for n in range(self.objective.nsteps,0,-1):
@@ -222,30 +203,30 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
                 #BUT THIS ONLY FIXES THE LAST ONE, THE OTHERS ARE STILL BROKEN
                 self.timestepper.reset_internal_vars()
 
-                #self.old_state.assign(self.states[n][0])
-
                 #take a forward step to populate internal variables within timestepper
                 #THIS IS A CHOICE/TYPE OF CHECKPOINT + RECOMPUTE\
                 self.timestepper.take_forward_step(self.states[n], self.states_sub[n], self.states[n-1], self.tns[n-1], self.dt)
-                #self.timestepper.take_forward_step([self.old_state,], self.old_state_sub, self.states[n-1], self.tns[n-1], self.dt)
 
                 delta_lambda_rhs, delta_grad_rhs = self.timestepper.take_adjoint_step(self.delta_grad_coeff, self.delta_lambda, self.lambda_np1, self.tns[n], self.dt)
                 self.lambda_np1.assign(self.lambda_np1 + self.delta_lambda)
 
-                #print('state diff ' + str(n), self.model.norm(self.old_state - self.states[n][0]))
-
                 if self.model.has_coeff():
-                    #print(delta_grad_rhs.dat.data)
                     self.grad_coeffs[:] = self.grad_coeffs[:] + create_flattened_numpy_arr_from_mixed_function(delta_grad_rhs)
-            #print('state data end diff', self.model.norm(self.states[-1][0] - self.objective.data_blocks[i][1][0]))
 
                 self.grad_ics[i, :] = self.grad_ics[i, :] + create_flattened_numpy_arr_from_mixed_function(delta_lambda_rhs)
+        #print(self.grad_coeffs)
+        #print(delta_grad_rhs.dat.data)
+        #print(delta_grad_rhs.dat.data)
 
         if ics_arr is None:
+            factor = float(max(self.model.spaces.mesh.dx/self.model.spaces.order, self.model.spaces.mesh.dy/self.model.spaces.order))
+            print('jac norm', np.linalg.norm(self.grad_coeffs), coeffs_arr, coeffs_arr[1] * factor**coeffs_arr[0]/(1e13))
             return self.grad_coeffs
         elif coeffs_arr is None:
+            print('jac norm', np.linalg.norm(self.grad_ics))
             return np.ravel(self.grad_ics)
         else:
+            print('jac norm', np.linalg.norm(np.hstack([self.grad_coeffs, np.ravel(self.grad_ics)])))
             return np.hstack([self.grad_coeffs, np.ravel(self.grad_ics)])
 
     def hessp(self, x, params):

@@ -1,7 +1,7 @@
 
 from math import pow
 from .operators import ForcingBase
-from firedrake import inner, grad, TestFunction, TrialFunction, FunctionSpace, Constant
+from firedrake import inner, grad, TestFunction, TrialFunction, FunctionSpace, Constant, VectorFunctionSpace, as_vector
 
 #THIS IS PRETTY SPECIFIC TO CG METHODS
 #ALSO 2ND ORDER HYPERVISCOSITY ONLY
@@ -18,8 +18,12 @@ class Hyperviscosity(ForcingBase):
 #IDEALLY HERE WE USE TENSOR HV- THEN WE CAN AVOID THE VERY HACKY SPACES.DX STUFF
 #CAN PROBABLY TIE TO CFL CONDITION STUFF ALSO
             self.dx = spaces.dx
-            self.mu_space = FunctionSpace(self.spaces.mesh, 'CG', self.spaces.order, variant="spectral")
+            #self.param_space = VectorFunctionSpace(self.spaces.mesh, 'R', 0, dim=2)
+            self.c0_space = FunctionSpace(self.spaces.mesh, 'R', 0)
+            self.s_space = FunctionSpace(self.spaces.mesh, 'R', 0)
+            #self.mu_space = FunctionSpace(self.spaces.mesh, 'CG', self.spaces.order, variant="spectral")
             self.spacelist = vars.get_spacelist()[:len(self.varlist)]
+            self.factor = float(max(self.spaces.mesh.dx/self.spaces.order, self.spaces.mesh.dy/self.spaces.order))
 
     def has_coeff(self):
         return True
@@ -27,10 +31,15 @@ class Hyperviscosity(ForcingBase):
     def set_coeffs(self, parameters, coeff):
         c0 = parameters['c0']
         s = parameters['s']
-        coeff['mu'].assign(c0 * pow(max(self.spaces.mesh.dx/self.spaces.order, self.spaces.mesh.dy/self.spaces.order), s))
+        #coeff['mu'].assign(c0 * pow(max(self.spaces.mesh.dx/self.spaces.order, self.spaces.mesh.dy/self.spaces.order), s))
+        coeff['c0'].assign(c0)
+        coeff['s'].assign(s)
+        #coeff['param'].assign(as_vector([c0,s]))
 
     def get_coeff(self):
-        return ['mu', self.mu_space]
+        #return [['mu', self.mu_space],]
+        return [['s', self.s_space], ['c0', self.c0_space]]
+        #return [['param', self.param_space],]
 
     def get_spacelist(self):
         return self.spacelist
@@ -46,14 +55,16 @@ class Hyperviscosity(ForcingBase):
             varhat = xhats['Q_' + varname]
             var = xvars[varname]
             expressions['Q_' + varname] = [inner(varhat, xvars['Q_' + varname])*self.dx, -inner(grad(varhat), grad(var))*self.dx]
-            #expressions['Q_' + varname] = inner(varhat, xvars['Q_' + varname])*self.dx + inner(grad(varhat), grad(var))*self.dx
 
     def rhs(self, xvars, t, coeff, xhats):
         expr = 0
         for varname in self.varlist:
             qvar = xvars['Q_' + varname]
             varhat = xhats[varname]
-            expr = expr + inner(-coeff['mu'] * grad(varhat), grad(qvar))*self.dx
+            #expr = expr + inner(-coeff['mu'] * grad(varhat), grad(qvar))*self.dx
+            #print(coeff['param'])
+            expr = expr + inner(-coeff['c0'] * self.factor**coeff['s'] * grad(varhat), grad(qvar))*self.dx
+            #expr = expr + inner(-coeff['param'][0] * self.factor**coeff['param'][1] * grad(varhat), grad(qvar))*self.dx
         return expr
 
 #THIS IS BROKEN!
