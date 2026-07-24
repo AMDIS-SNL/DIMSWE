@@ -9,7 +9,7 @@ class DummySolver():
     def solve(self):
         pass
 
-def get_time_integrator(name, parameters):
+def get_time_integrator(name, parameters, solver_parameters):
     if name == 'RK4':
         return RK4
     elif name == 'Euler':
@@ -23,12 +23,12 @@ def get_time_integrator(name, parameters):
         termlist = parameters['timestepping']['termlist']
         subcycle_list = parameters['timestepping']['subcycle_list']
 
-        return lambda model, logger, coeffs: LieSplittingIntegrator(model, logger, timestepper_list, termlist, subcycle_list, solver_parameters=solver_parameters)
+        return lambda model, logger, coeffs: LieSplittingIntegrator(model, logger, timestepper_list, termlist, subcycle_list, solver_parameters)
     else:
         raise ValueError("time step method " + name + " is unknown")
 
-def get_timestepper(parameters, model, logger, solver_parameters=None):
-    return get_time_integrator(parameters['timestepping']['method'], parameters)(model, logger, solver_parameters=solver_parameters)
+def get_timestepper(parameters, model, logger, solver_parameters):
+    return get_time_integrator(parameters['timestepping']['method'], parameters, solver_parameters)(model, logger, solver_parameters)
 
 
 def create_linear_solver_from_residual(residual, var, trialvar, constant_jacobian=False, solver_parameters={}, options_prefix=''):
@@ -47,11 +47,12 @@ def extract_a_L_from_residual(residual, var, trialvar):
 class TimeStepper():
 
 
-    def __init__(self, model, logger, terms='all'):
+    def __init__(self, model, logger, solver_parameters, terms='all'):
         self.model = model
         self.logger = logger
         self.terms = terms
         self.dx = model.spaces.dx
+        self.solver_parameters = solver_parameters
 
         self.delta_lambda_var, self.delta_lambda_sub, self.delta_lambda_split = self.model.get_x_var('delta_lambda')
         self.lambda_var, self.lambda_sub, self.lambda_split = self.model.get_x_var('lambda')
@@ -71,8 +72,8 @@ class TimeStepper():
         set_mixed_function_from_flattened_array(self.coeff, coeff_val_arr)
 
 class AdditiveGeneralRK(TimeStepper):
-    def __init__(self, model, logger, A1, A2, b1, b2, c1, c2, nstages, terms='all'):
-        TimeStepper.__init__(self, model, logger, terms=terms)
+    def __init__(self, model, logger, A1, A2, b1, b2, c1, c2, nstages, solver_parameters, terms='all'):
+        TimeStepper.__init__(self, model, logger, solver_parameters, terms=terms)
         self.A1 = A1
         self.b1 = b1
         self.c1 = c1
@@ -80,6 +81,7 @@ class AdditiveGeneralRK(TimeStepper):
         self.b2 = b2
         self.c2 = c2
         self.nstages = nstages
+        self.solver_parameters = solver_parameters
 
         zero_diag1 = not np.any(np.diagonal(self.A1))
         triangular1 = np.allclose(self.A1, np.tril(self.A1))
@@ -92,16 +94,12 @@ class AdditiveGeneralRK(TimeStepper):
         self.is_dirk2 = triangular2 and (not zero_diag2)
 
 class GeneralRK(TimeStepper):
-    def __init__(self, model, logger, A, b, c, nstages, terms='all', solver_parameters=None):
-        TimeStepper.__init__(self, model, logger, terms=terms)
+    def __init__(self, model, logger, A, b, c, nstages, solver_parameters, terms='all'):
+        TimeStepper.__init__(self, model, logger, solver_parameters, terms=terms)
         self.A = A
         self.b = b
         self.c = c
         self.nstages = nstages
-        if solver_parameters is None:
-            self.solver_parameters = overall_solver_parameters
-        else:
-            self.solver_parameters = solver_parameters
 
         zero_diag = not np.any(np.diagonal(self.A))
         triangular = np.allclose(self.A, np.tril(self.A))
@@ -426,84 +424,85 @@ class GeneralRK(TimeStepper):
 
 
 class Euler(GeneralRK):
-    def __init__(self, model, logger, terms='all', solver_parameters=None):
+    def __init__(self, model, logger, solver_parameters, terms='all'):
         A = np.array([[0.0,],])
         b = np.array([1.0,])
         c = np.array([0.0,])
-        GeneralRK.__init__(self, model, logger, A, b, c, 1, terms=terms, solver_parameters=solver_parameters)
+        GeneralRK.__init__(self, model, logger, A, b, c, 1, solver_parameters, terms=terms)
 
 class RK4(GeneralRK):
-    def __init__(self, model, logger, terms='all', solver_parameters=None):
+    def __init__(self, model, logger, solver_parameters, terms='all'):
         A = np.array([[0.0, 0.0, 0.0, 0.0,], [0.5, 0.0, 0.0, 0.0], [0.0, 0.5, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]])
         b = np.array([1./6., 1./3., 1./3., 1./6.])
         c = np.array([0.0, 0.5, 0.5, 1.0])
-        GeneralRK.__init__(self, model, logger, A, b, c, 4, terms=terms, solver_parameters=solver_parameters)
+        GeneralRK.__init__(self, model, logger, A, b, c, 4, solver_parameters, terms=terms)
 
 class SSPRK3(GeneralRK):
-    def __init__(self, model, logger, terms='all', solver_parameters=None):
+    def __init__(self, model, logger, solver_parameters, terms='all'):
         A = np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.25, 0.25, 0.0]])
         b = np.array([1./6., 1./6., 2./3.])
         c = np.array([0.0, 1.0, 0.5])
-        GeneralRK.__init__(self, model, logger, A, b, c, 3, terms=terms, solver_parameters=solver_parameters)
+        GeneralRK.__init__(self, model, logger, A, b, c, 3, solver_parameters, terms=terms)
 
 
 class SSPRK43(GeneralRK):
-    def __init__(self, model, logger, terms='all', solver_parameters=None):
+    def __init__(self, model, logger, solver_parameters, terms='all'):
         A = np.array([[0.0, 0.0, 0.0, 0.0,], [0.5, 0.0, 0.0, 0.0], [0.5, 0.5, 0.0, 0.0], [1.0/6.0, 1.0/6.0, 1.0/6.0, 0.0]])
         b = np.array([1./6., 1./6., 1./6., 3./6.])
         c = np.array([0.0, 0.5, 1.0, 0.5])
-        GeneralRK.__init__(self, model, logger, A, b, c, 4, terms=terms, solver_parameters=solver_parameters)
+        GeneralRK.__init__(self, model, logger, A, b, c, 4, solver_parameters, terms=terms)
 
 
 #ADD THESE!!!
 class KGRK2(GeneralRK):
-    def __init__(self, model, logger, terms='all', solver_parameters=None):
+    def __init__(self, model, logger, solver_parameters, terms='all'):
         A = SOMETHING
         b = SOMETHING
         c = SOMETHING
         nstages = SOMETHING
-        GeneralRK.__init__(self, model, logger, A, b, c, nstages, terms=terms, solver_parameters=solver_parameters)
+        GeneralRK.__init__(self, model, logger, A, b, c, nstages, solver_parameters, terms=terms)
 
 
 class KGRK3(GeneralRK):
-    def __init__(self, model, logger, terms='all', solver_parameters=None):
+    def __init__(self, model, logger, solver_parameters, terms='all'):
         A = SOMETHING
         b = SOMETHING
         c = SOMETHING
         nstages = SOMETHING
-        GeneralRK.__init__(self, model, logger, A, b, c, nstages, terms=terms, solver_parameters=solver_parameters)
+        GeneralRK.__init__(self, model, logger, A, b, c, nstages, solver_parameters, terms=terms)
 
 class SOMEDIRK(GeneralRK):
-    def __init__(self, model, logger, terms='all', solver_parameters=None):
+    def __init__(self, model, logger, solver_parameters, terms='all'):
         A = SOMETHING
         b = SOMETHING
         c = SOMETHING
         nstages = SOMETHING
-        GeneralRK.__init__(self, model, logger, A, b, c, nstages, terms=terms, solver_parameters=solver_parameters)
+        GeneralRK.__init__(self, model, logger, A, b, c, nstages, solver_parameters, terms=terms)
 
 
 class SOMEIMPLICITRK(GeneralRK):
-    def __init__(self, model, logger, terms='all', solver_parameters=None):
+    def __init__(self, model, logger, solver_parameters, terms='all'):
         A = SOMETHING
         b = SOMETHING
         c = SOMETHING
         nstages = SOMETHING
-        GeneralRK.__init__(self, model, logger,  A, b, c, nstages, terms=terms, solver_parameters=solver_parameters)
+        GeneralRK.__init__(self, model, logger,  A, b, c, nstages, solver_parameters, terms=terms)
 
 
 
 
 class LieSplittingIntegrator():
-    def __init__(self, model, logger, timestepper_list, termlist, subcycle_list, solver_parameters=None):
+    def __init__(self, model, logger, timestepper_list, termlist, subcycle_list, solver_parameters):
 
         self.subcycle_list = subcycle_list
         self.timestepper_list = timestepper_list
         self.termlist = termlist
+        self.solver_parameters = solver_parameters
 
         self.time_integrators = []
         for i,time_integrator_name in enumerate(timestepper_list):
-            time_integrator = get_time_integrator(time_integrator_name, None)
-            self.time_integrators.append(time_integrator(model, logger, terms=termlist[i], solver_parameters=solver_parameters))
+            time_integrator = get_time_integrator(time_integrator_name, None, solver_parameters)
+            self.time_integrators.append(time_integrator(model, logger, solver_parameters, terms=termlist[i]))
 
         self.lambda_k, self.lambda_sub, self.lambda_split = model.get_x_var('lambda_k')
         self.delta_lambda, _, _ = model.get_x_var('delta_lambda')

@@ -51,7 +51,7 @@ def test_multiple_timestep_gradient_ic():
     logger = EmptyLogger()
     model = get_model(parameters, logger, has_dynamics_statistics=False)
     model_coeff, model_coeff_sub, model_coeff_split = model.get_coeff_var('coeff')
-    timestepper = get_timestepper(parameters, model, logger, solver_parameters=solver_parameters)
+    timestepper = get_timestepper(parameters, model, logger, solver_parameters)
     dt = parameters['timestepping']['dt']
     x0, x0_sub, x0_split = model.get_full_var('x0', split_x_and_aux=True)
     t0 = model.get_t_var()

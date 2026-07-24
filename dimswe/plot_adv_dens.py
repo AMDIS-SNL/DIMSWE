@@ -32,8 +32,9 @@ def plot_adv_dens(parameters):
         noutput = (parameters['timestepping']['num_steps'] // parameters['output']['output_freq']) + 1
         for var in model.get_x_var_list():
             animate_scalar2D(chkpoint_file, mesh, var, noutput, var + '-mov')
-        for var in model.get_coeff_list():
-            animate_scalar2D(chkpoint_file, mesh, var, noutput, var + '-mov')
+#NEED A WAY TO HANDLE REAL-SPACE COEFFICIENTS HERE IE SKIP THEM!
+        #for var in model.get_coeff_list():
+        #    animate_scalar2D(chkpoint_file, mesh, var, noutput, var + '-mov')
         for var in model.get_diagnostics_list():
             animate_scalar2D(chkpoint_file, mesh, var, noutput, var + '-mov')
 
@@ -46,10 +47,10 @@ def plot_adv_dens(parameters):
                     for var in model.get_x_var_list():
                         vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
                         plot_variable(vardat, var + '.' + str(n),  parameters['mesh']['dim'], var in vector_list)
-
-                    for var in model.get_coeff_list():
-                        vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
-                        plot_variable(vardat, var + '.' + str(n),  parameters['mesh']['dim'], var in vector_list)
+#NEED A WAY TO HANDLE REAL-SPACE COEFFICIENTS HERE IE SKIP THEM!
+                    #for var in model.get_coeff_list():
+                    #    vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
+                    #    plot_variable(vardat, var + '.' + str(n),  parameters['mesh']['dim'], var in vector_list)
 
                     if parameters['output']['output_aux_vars']:
 

@@ -44,6 +44,10 @@ class ThreeWayPhysics(ForcingBase):
         coeff['qprecip'].assign(qprecip)
         coeff['L'].assign(L)
 
+#WHAT ARE SOME REASONABLE BOUNDS HERE?
+    def get_coeff_bounds(self):
+        return np.array([1e-6, 1e-6, 1e-6]), np.array([np.inf, np.inf, np.inf])
+
     def get_coeff(self):
         return [['gamma_r', self.gamma_r_space], ['qprecip', self.qprecip_space], ['L', self.L_space]]
 

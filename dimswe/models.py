@@ -172,6 +172,12 @@ class Model():
     def get_coeff_size(self):
         return self.dynamics.get_coeff_size()
 
+    def get_coeff_bounds(self):
+        return self.dynamics.get_coeff_bounds()
+
+    def get_ic_bounds(self):
+        return self.dynamics.get_ic_bounds()
+
 class AdvDensH1Model(Model):
     def __init__(self, parameters, logger, has_dynamics_statistics=True):
         self.initcond = get_advdens_initcond(parameters)

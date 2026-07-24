@@ -1,7 +1,7 @@
 from .models import get_model
 from .output import Output
 from .timestepping import get_timestepper
-from .parameters import get_parameters
+from .parameters import get_parameters, overall_solver_parameters
 from .logger import Logger
 import sys
 from firedrake.petsc import PETSc
@@ -28,7 +28,7 @@ def run_model(parameters):
     coeff, coeff_sub, coeff_split = model.get_coeff_var('coeff')
     t = model.get_t_var()
 
-    timestepper = get_timestepper(parameters, model, logger)
+    timestepper = get_timestepper(parameters, model, logger, solver_parameters=overall_solver_parameters)
 
 #HOW DO WE HANDLE THIS IN THE GENERAL CASE FOR LIE SPLIT INTEGRATOR?
 #THE ISSUE IS A MIX OF EXPLICIT AND IMPLICIT

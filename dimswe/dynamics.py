@@ -11,6 +11,7 @@ from .hamiltonians import ThermalShallowWater_Hamiltonian_CF
 from firedrake import Function, inner, div, grad, dot, Constant, split, TrialFunction, TrialFunctions, TestFunction, TestFunctions, MixedFunctionSpace
 from .ufl_helpers import skewgrad, curl2D, rot2D
 
+import numpy as np
 import scipy as sp
 
 class Dynamics():
@@ -251,13 +252,29 @@ class Dynamics():
     def set_coeffs(self, parameters, coeff):
         if self.has_coeff:
             for term in self.forcing_terms:
-                term.set_coeffs(parameters[term.name], coeff)
+                if term.has_coeff():
+                    term.set_coeffs(parameters[term.name], coeff)
 
     def get_x_size(self):
         return self.x_size
 
     def get_coeff_size(self):
         return self.coeff_size
+
+    def get_coeff_bounds(self):
+        lbs = []
+        ubs = []
+        for term in self.forcing_terms:
+            lb, ub = term.get_coeff_bounds()
+            lbs.append(lb)
+            ubs.append(ub)
+        return np.hstack(lbs), np.hstack(ubs)
+
+#FIGURE OUT SOMETHING BETTER HERE...
+    def get_ic_bounds(self):
+        return None
+        #SOMETHING LIKE THIS, WITH LB/RB AS DENSE ARRAYS!
+        #sp.optimize.Bounds(lb=-inf,rb=inf,keep_feasible=True)
 
 #This is basically going to be LP brackets (or CF, etc.) with prescribed u or F
 #instead of diagnostic

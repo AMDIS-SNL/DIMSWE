@@ -41,10 +41,10 @@ class Output():
                 chkpoint_file.save_function(self.xn_sub[var], idx=output_step, name=var)
                 self.vtk_vars.append(self.xn_sub[var])
 
-            self.vtk_vars = []
             for i,var in enumerate(self.coeff_list):
                 chkpoint_file.save_function(self.coeff_sub[var], idx=output_step, name=var)
-                self.vtk_vars.append(self.coeff_sub[var])
+#NEED A GENERAL WAY TO SKIP REAL-SPACE COEFFICIENTS SINCE THEY CAN'T BE OUTPUT VIA VTK
+                #self.vtk_vars.append(self.coeff_sub[var])
 
             if self.output_aux_vars:
                 for var in self.aux_var_list:

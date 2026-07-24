@@ -109,35 +109,36 @@ class _ODEConstrainedOptimization():
 
     def optimize(self, initial_guess, method='L-BFGS-B', opt_type='coeffs', use_jacobian=True, coeffs0=None, gtol=1e-5, ftol=1e-5): #cg, bfgs
 
-#HOW DO WE CORRECTLY HANDLE BOUNDS HERE?
         if opt_type == 'coeffs':
             obj = lambda coeffs: self.obj(coeffs, None)
             jac = lambda coeffs: self.jac(coeffs, None)
-            #bounds = self.model.get_param_bounds()
+            lb, ub = self.model.get_coeff_bounds()
+            bounds = sp.optimize.Bounds(lb=lb,ub=ub,keep_feasible=True)
         elif opt_type == 'ics':
             obj = lambda ics: self.obj(None, np.reshape(ics, (self.objective.num_data_blocks, self.model.get_x_size())), coeffs0=coeffs0)
             jac = lambda ics: self.jac(None, np.reshape(ics, (self.objective.num_data_blocks, self.model.get_x_size())), coeffs0=coeffs0)
-            #bounds = self.model.get_ic_bounds() * self.objective.num_data_blocks
+#FIX THESE PROBABLY...
+            bounds = None #self.model.get_ic_bounds() * self.objective.num_data_blocks
         elif opt_type == 'coeffs+ics':
             obj = lambda coeffs_plus_ic: self.obj(coeffs_plus_ic[:self.model.get_coeff_size()], np.reshape(coeffs_plus_ic[self.model.get_coeff_size():], (self.objective.num_data_blocks, self.timestepper.dynamics.get_x_size())))
             jac = lambda coeffs_plus_ic: self.jac(coeffs_plus_ic[:self.model.get_coeff_size()], np.reshape(coeffs_plus_ic[self.model.get_coeff_size():], (self.objective.num_data_blocks, self.timestepper.dynamics.get_x_size())))
-            #bounds = self.model.get_param_bounds() + self.model.get_ic_bounds() * self.objective.num_data_blocks
+            bounds = None #self.model.get_coeff_bounds() + self.model.get_ic_bounds() * self.objective.num_data_blocks
 
 #HOW DO PARAMETER BOUNDS WORK FOR LARGE SCALE PROBLEMS LIKE THIS?
 #CLEARLY THE LIST/ARRAY IS A PROBABLY A BAD IDEA?
         if use_jacobian:
             res = sp.optimize.minimize(obj, initial_guess,
-                method=method, bounds=None,
+                method=method, bounds=bounds,
                 options={'disp': True, 'maxiter': 200000, 'maxfun': 200000, 'gtol':gtol, 'ftol':ftol},
                 jac=jac, hessp=self.hessp)
         else:
             res = sp.optimize.minimize(obj, initial_guess,
-                method=method, bounds=None,
+                method=method, bounds=bounds,
                 options={'disp': True, 'maxiter': 200000, 'maxfun': 200000, 'gtol':gtol, 'ftol':ftol},)
         print('optimizer success', res.success, res.status, res.message)
         print('optimizer nits', res.nit)
         print('optimizer num func evals', res.nfev)
-        if use_jacobian:
+        if use_jacobian and method == 'L-BFGS-B':
             print('optimizer num jac evals', res.njev)
         return res.x
 

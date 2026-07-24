@@ -2,6 +2,7 @@
 from math import pow
 from .operators import ForcingBase
 from firedrake import inner, grad, TestFunction, TrialFunction, FunctionSpace, Constant, VectorFunctionSpace, as_vector
+import numpy as np
 
 #THIS IS PRETTY SPECIFIC TO CG METHODS
 #ALSO 2ND ORDER HYPERVISCOSITY ONLY
@@ -42,6 +43,12 @@ class Hyperviscosity(ForcingBase):
         #return [['mu', self.mu_space],]
         return [['s', self.s_space], ['c0', self.c0_space]]
         #return [['param', self.param_space],]
+
+    def get_coeff_bounds(self):
+        #return np.array([2., 0.01]), np.array([4.,2.])
+        return np.array([1e-6, 1e-6]), np.array([np.inf, np.inf])
+
+        #return sp.optimize.Bounds(lb=,rb=,keep_feasible=True)
 
     def get_spacelist(self):
         return self.spacelist
