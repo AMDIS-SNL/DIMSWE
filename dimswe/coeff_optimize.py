@@ -20,7 +20,13 @@ solver_parameters['erkstage-muaux'] = basic_linear_system
 solver_parameters['erk-dlambda'] = basic_linear_system
 solver_parameters['erk-grad'] = basic_linear_system
 
-parameters = get_parameters('tests/tswe.cfg')
+equation_set = 'mtswe'
+
+if equation_set == 'tswe':
+    parameters = get_parameters('tests/tswe.cfg')
+elif equation_set == 'mtswe':
+    parameters = get_parameters('tests/mtswe.cfg')
+
 logger = EmptyLogger()
 model = get_model(parameters, logger, has_dynamics_statistics=False)
 model_coeff, model_coeff_sub, model_coeff_split = model.get_coeff_var('coeff')
@@ -43,8 +49,13 @@ coeff_opt, _, _ = model.get_coeff_var('coeff_opt')
 coeff_diff, _, _ = model.get_coeff_var('coeff_diff')
 coeff_opt_diff, _, _ = model.get_coeff_var('coeff_opt_diff')
 
-parameters['hyperviscosity']['c0'] = 0.05
-parameters['hyperviscosity']['s'] = 2.8
+if equation_set == 'tswe':
+    parameters['hyperviscosity']['c0'] = 0.05
+    parameters['hyperviscosity']['s'] = 2.8
+elif equation_set == 'mtswe':
+    parameters['threewayphysics']['gamma_r'] = 0.0015
+    parameters['threewayphysics']['qprecip'] = .00007
+    parameters['threewayphysics']['L'] = 8.
 model.set_coeffs(parameters, coeff_new_sub)
 coeff_diff.assign(coeff_new - model_coeff)
 
@@ -68,14 +79,16 @@ coeff_opt_diff.assign(coeff_opt - model_coeff)
 print('coeff_opt', coeff_opt.dat.data)
 print('coeff_opt_diff', coeff_opt_diff.dat.data)
 
-factor = float(max(model.spaces.mesh.dx/model.spaces.order, model.spaces.mesh.dy/model.spaces.order))
-c0 = coeff_opt.dat.data[1]
-s = coeff_opt.dat.data[0]
-mu_opt = c0 * factor**s
-c0 = model_coeff.dat.data[1]
-s = model_coeff.dat.data[0]
-mu_orig = c0 * factor**s
-print(mu_opt, mu_orig, mu_opt - mu_orig)
+if equation_set == 'tswe':
+
+    factor = float(max(model.spaces.mesh.dx/model.spaces.order, model.spaces.mesh.dy/model.spaces.order))
+    c0 = coeff_opt.dat.data[1]
+    s = coeff_opt.dat.data[0]
+    mu_opt = c0 * factor**s
+    c0 = model_coeff.dat.data[1]
+    s = model_coeff.dat.data[0]
+    mu_orig = c0 * factor**s
+    print(mu_opt, mu_orig, mu_opt - mu_orig)
 #all in some big multiplot...
 #PROBABLY PLOT THE DIFFERENCES?
 #PROBABLY PLOT X0 and X0_NEW ALSO!

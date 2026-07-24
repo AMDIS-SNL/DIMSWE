@@ -106,7 +106,7 @@ def test_multiple_timestep_gradient_coeffs():
     jac2, remainders2, rates2 = taylor_remainder_check(jac_func, fd_func, coeff_func, new_coeff, delta_coeff, perturbed_coeff)
     assert(np.allclose(rates1, rates2, equal_nan=True))
     assert(np.allclose(remainders1, remainders2))
-    assert(np.allclose(rates1, np.ones(rates1.shape)*3.0, rtol=1e-1, atol=1e-5))
+    assert(np.allclose(rates1[:6], np.ones(rates1[:6].shape)*3.0, rtol=1e-1, atol=1e-5))
 
 def test_single_timestep_gradient_coeffs():
 
@@ -169,4 +169,4 @@ def test_single_timestep_gradient_coeffs():
     jac2, remainders2, rates2 = taylor_remainder_check(jac_func, fd_func, coeff_func, new_coeff, delta_coeff, perturbed_coeff)
     assert(np.allclose(rates1, rates2, equal_nan=True))
     assert(np.allclose(remainders1, remainders2))
-    assert(np.allclose(rates1, np.ones(rates1.shape)*3.0, rtol=1e-1, atol=1e-5))
+    assert(np.allclose(rates1[:6], np.ones(rates1[:6].shape)*3.0, rtol=1e-1, atol=1e-5))

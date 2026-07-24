@@ -2,7 +2,7 @@ from firedrake import NonlinearVariationalProblem, NonlinearVariationalSolver, L
 from .parameters import overall_solver_parameters
 import numpy as np
 from firedrake import Constant, inner, grad, TestFunction, derivative, norm, assemble, Function, TestFunctions, split, TrialFunction, adjoint, action, replace
-from .numpy_helpers import set_mixed_function_from_flattened_array
+from .numpy_helpers import set_mixed_function_from_flattened_array, create_flattened_numpy_arr_from_mixed_function
 from ufl.algorithms import extract_coefficients
 
 class DummySolver():
@@ -409,14 +409,14 @@ class GeneralRK(TimeStepper):
             #delta_grad.assign(self.delta_grad)
 #THIS IS VERY SLOW, LIKELY DUE TO SET UP COSTS
 #CAN WE MAKE IT FASTER SOMEHOW?\
-            delta_grad_rhs = assemble(self.L_delta_grad)
+            delta_grad_rhs = create_flattened_numpy_arr_from_mixed_function(assemble(self.L_delta_grad))
 
         #compute lambda_n
         self.deltalambdasolver.solve()
         delta_lambda.assign(self.delta_lambda_var)
 #THIS IS VERY SLOW, LIKELY DUE TO SET UP COSTS
 #CAN WE MAKE IT FASTER SOMEHOW?
-        delta_lambda_rhs = assemble(self.L_delta_lambda)
+        delta_lambda_rhs = create_flattened_numpy_arr_from_mixed_function(assemble(self.L_delta_lambda))
         if self.model.has_coeff():
             return delta_lambda_rhs, delta_grad_rhs
         else:
@@ -506,6 +506,7 @@ class LieSplittingIntegrator():
 
         self.lambda_k, self.lambda_sub, self.lambda_split = model.get_x_var('lambda_k')
         self.delta_lambda, _, _ = model.get_x_var('delta_lambda')
+        self.delta_grad_coeff, _, _ = model.get_coeff_var('delta_grad_coeff')
 
 #HOW DO WE HANDLE SPLITTING X AND AUX IN THE GENERAL RK CASE?
         self.xks = []
@@ -517,9 +518,10 @@ class LieSplittingIntegrator():
     def reset_internal_vars(self):
         self.lambda_k.assign(0)
         self.delta_lambda.assign(0)
-        for xk in self.xks:
-            self.xk[0].assign(0)
-        for time_integrator in self.time_integrator:
+        self.delta_grad_coeff.assign(0)
+        for xk, _, _ in self.xks:
+            xk[0].assign(0)
+        for time_integrator in self.time_integrators:
             time_integrator.reset_internal_vars()
 
 #DOES THIS NEED TO RESET INTERNAL VARS TO ENSURE REPEATABILITY?
@@ -529,20 +531,16 @@ class LieSplittingIntegrator():
         for i,time_integrator in enumerate(self.time_integrators):
             sub_dt = dt / self.subcycle_list[i]
             for k in range(self.subcycle_list[i]):
+                time_integrator.reset_internal_vars()
                 time_integrator.take_forward_step(self.xks[l][0], self.xks[l][1], self.xks[l-1][0], tn + k * sub_dt, sub_dt)
                 l = l +1
         xnp1[0].assign(self.xks[-1][0][0])
 
-#RESET INTERNAL VARS
-#needs to reset self vars and also timestepper vars!
-
-
-#HOW DO WE HANDLE DELTA GRAD AND DELTA LAMBDA MORE GENERALLY?
-#THEY ARENT NEEDED FOR SCIPY VARIANT
-#UNCLEAR IF THEY WILL BE NEEDED FOR ROL VARIANT?
-#PROBABLY COMMENT OUT THEIR MACHINERY FOR NOW...
-    def take_adjoint_step(delta_grad, delta_lambda, lambda_np1, xn, tnp1, dt):
+    def take_adjoint_step(self, delta_grad_coeff, delta_lambda, lambda_np1, xn, tnp1, dt):
         self.lambda_k.assign(lambda_np1)
+        delta_grad_coeff.assign(0)
+        delta_lambda.assign(0)
+
         delta_lambda_rhs = 0
         delta_grad_rhs = 0
 
@@ -551,21 +549,27 @@ class LieSplittingIntegrator():
         for i,time_integrator in enumerate(self.time_integrators):
             sub_dt = dt / self.subcycle_list[i]
             for k in range(self.subcycle_list[i]):
-                time_integrator.take_forward_step(self.xks[l][0], self.xks[l][1], self.xks[l-1][0], tn + k * sub_dt, sub_dt)
+                time_integrator.reset_internal_vars()
+                time_integrator.take_forward_step(self.xks[l][0], self.xks[l][1], self.xks[l-1][0], tnp1 - dt + k * sub_dt, sub_dt)
                 l = l +1
 
         l = 0
         lt = len(self.xks)-1
         for i,time_integrator in enumerate(reversed(self.time_integrators)):
-            sub_dt = dt / self.subcycle_list[i]
-            for k in range(self.subcycle_list[i]):
-#DO WE NEED TO RESET INTERNAL VARS HERE?
-#ALSO UNCLEAR ABOUT DELTA_LAMBDA VS _DELTA_LAMBDA_RHS, ETC.
-                _delta_lambda_rhs, _delta_grad_rhs = time_integrator.take_adjoint_step(self.delta_lambda, self.lambda_k, self.xks[lt-l-1][0], tnp1 - k * sub_dt, sub_dt)
+            sub_dt = dt / self.subcycle_list[len(self.time_integrators)-i-1]
+            for k in reversed(range(self.subcycle_list[len(self.time_integrators)-i-1])):
+                #print(i,k,l,lt-l-1,lt)
+                time_integrator.reset_internal_vars()
+                self.delta_lambda.assign(0)
+                self.delta_grad_coeff.assign(0)
+                _delta_lambda_rhs, _delta_grad_rhs = time_integrator.take_adjoint_step(self.delta_grad_coeff, self.delta_lambda, self.lambda_k, self.xks[lt-l-1][0], tnp1 - dt + k * sub_dt, sub_dt)
                 self.lambda_k.assign(self.lambda_k + self.delta_lambda)
-                #self.grad.assign(self.grad + delta_grad)
+                delta_lambda.assign(delta_lambda + self.delta_lambda)
+                delta_grad_coeff.assign(delta_grad_coeff + self.delta_grad_coeff)
                 delta_grad_rhs = delta_grad_rhs + _delta_grad_rhs
                 delta_lambda_rhs = delta_lambda_rhs + _delta_lambda_rhs
+                #print(i,k,'grad coeff', _delta_grad_rhs)
+                #print(i,k,'delta lambda',_delta_lambda_rhs)
                 l = l + 1
         return delta_lambda_rhs, delta_grad_rhs
 

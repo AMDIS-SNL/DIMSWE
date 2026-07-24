@@ -265,11 +265,19 @@ class Dynamics():
         lbs = []
         ubs = []
         for term in self.forcing_terms:
-            lb, ub = term.get_coeff_bounds()
-            lbs.append(lb)
-            ubs.append(ub)
+            if term.has_coeff():
+                lb, ub = term.get_coeff_bounds()
+                lbs.append(lb)
+                ubs.append(ub)
         return np.hstack(lbs), np.hstack(ubs)
 
+    def get_coeff_scaling_factors(self):
+        scales = []
+        for term in self.forcing_terms:
+            if term.has_coeff():
+                scale = term.get_coeff_scaling_factors()
+                scales.append(scale)
+        return np.hstack(scales)
 #FIGURE OUT SOMETHING BETTER HERE...
     def get_ic_bounds(self):
         return None
@@ -426,7 +434,7 @@ class AdvDensCF_H1_Dynamics(Dynamics):
                 self.coeff_size = 0
             if self.has_aux:
                 self.auxspace = MixedFunctionSpace(self.auxspacelist)
-                self.aux_size = self.coeffspace.dim()
+                self.aux_size = self.auxspace.dim()
             else:
                 self.auxspace = None
                 self.aux_size = 0

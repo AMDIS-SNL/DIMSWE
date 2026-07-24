@@ -105,6 +105,7 @@ class _ODEConstrainedOptimization():
             solver_parameters={ 'ksp_type': 'preonly', 'pc_type' : 'lu'}, #{ 'ksp_type': 'cg', 'pc_type' : 'jacobi',},
                 options_prefix='opt-proj')
 
+        self.coeff_scaling_factors = self.model.get_coeff_scaling_factors()
 
 
     def optimize(self, initial_guess, method='L-BFGS-B', opt_type='coeffs', use_jacobian=True, coeffs0=None, gtol=1e-5, ftol=1e-5): #cg, bfgs
@@ -114,25 +115,27 @@ class _ODEConstrainedOptimization():
             jac = lambda coeffs: self.jac(coeffs, None)
             lb, ub = self.model.get_coeff_bounds()
             bounds = sp.optimize.Bounds(lb=lb,ub=ub,keep_feasible=True)
+            scaling_factors = self.coeff_scaling_factors
         elif opt_type == 'ics':
             obj = lambda ics: self.obj(None, np.reshape(ics, (self.objective.num_data_blocks, self.model.get_x_size())), coeffs0=coeffs0)
             jac = lambda ics: self.jac(None, np.reshape(ics, (self.objective.num_data_blocks, self.model.get_x_size())), coeffs0=coeffs0)
 #FIX THESE PROBABLY...
             bounds = None #self.model.get_ic_bounds() * self.objective.num_data_blocks
+            scaling_factors = 1
         elif opt_type == 'coeffs+ics':
             obj = lambda coeffs_plus_ic: self.obj(coeffs_plus_ic[:self.model.get_coeff_size()], np.reshape(coeffs_plus_ic[self.model.get_coeff_size():], (self.objective.num_data_blocks, self.timestepper.dynamics.get_x_size())))
             jac = lambda coeffs_plus_ic: self.jac(coeffs_plus_ic[:self.model.get_coeff_size()], np.reshape(coeffs_plus_ic[self.model.get_coeff_size():], (self.objective.num_data_blocks, self.timestepper.dynamics.get_x_size())))
             bounds = None #self.model.get_coeff_bounds() + self.model.get_ic_bounds() * self.objective.num_data_blocks
+            scaling_factors = 1
 
-#HOW DO PARAMETER BOUNDS WORK FOR LARGE SCALE PROBLEMS LIKE THIS?
-#CLEARLY THE LIST/ARRAY IS A PROBABLY A BAD IDEA?
+
         if use_jacobian:
-            res = sp.optimize.minimize(obj, initial_guess,
+            res = sp.optimize.minimize(obj, initial_guess / scaling_factors,
                 method=method, bounds=bounds,
                 options={'disp': True, 'maxiter': 200000, 'maxfun': 200000, 'gtol':gtol, 'ftol':ftol},
                 jac=jac, hessp=self.hessp)
         else:
-            res = sp.optimize.minimize(obj, initial_guess,
+            res = sp.optimize.minimize(obj, initial_guess / scaling_factors,
                 method=method, bounds=bounds,
                 options={'disp': True, 'maxiter': 200000, 'maxfun': 200000, 'gtol':gtol, 'ftol':ftol},)
         print('optimizer success', res.success, res.status, res.message)
@@ -140,13 +143,13 @@ class _ODEConstrainedOptimization():
         print('optimizer num func evals', res.nfev)
         if use_jacobian and method == 'L-BFGS-B':
             print('optimizer num jac evals', res.njev)
-        return res.x
+        return res.x * self.scaling_factors
 
     def obj(self, coeffs_arr, ics_arr, coeffs0=None):
         if coeffs_arr is None:
             self.timestepper.set_coeff(coeffs0)
         else:
-            self.timestepper.set_numpy_coeff(coeffs_arr)
+            self.timestepper.set_numpy_coeff(coeffs_arr * self.coeff_scaling_factors)
 
         l2loss = 0.0
         for i in range(self.objective.num_data_blocks):
@@ -175,7 +178,7 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
         if coeffs_arr is None:
             self.timestepper.set_coeff(coeffs0)
         else:
-            self.timestepper.set_numpy_coeff(coeffs_arr)
+            self.timestepper.set_numpy_coeff(coeffs_arr * self.coeff_scaling_factors)
 
 
         for i in range(self.objective.num_data_blocks):
@@ -212,16 +215,16 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
                 self.lambda_np1.assign(self.lambda_np1 + self.delta_lambda)
 
                 if self.model.has_coeff():
-                    self.grad_coeffs[:] = self.grad_coeffs[:] + create_flattened_numpy_arr_from_mixed_function(delta_grad_rhs)
+                    self.grad_coeffs[:] = self.grad_coeffs[:] + delta_grad_rhs * self.coeff_scaling_factors
 
-                self.grad_ics[i, :] = self.grad_ics[i, :] + create_flattened_numpy_arr_from_mixed_function(delta_lambda_rhs)
+                self.grad_ics[i, :] = self.grad_ics[i, :] + delta_lambda_rhs
         #print(self.grad_coeffs)
         #print(delta_grad_rhs.dat.data)
         #print(delta_grad_rhs.dat.data)
 
         if ics_arr is None:
             factor = float(max(self.model.spaces.mesh.dx/self.model.spaces.order, self.model.spaces.mesh.dy/self.model.spaces.order))
-            print('jac norm', np.linalg.norm(self.grad_coeffs), coeffs_arr, coeffs_arr[1] * factor**coeffs_arr[0]/(1e13))
+            print('jac norm', np.linalg.norm(self.grad_coeffs), coeffs_arr * self.coeff_scaling_factors)
             return self.grad_coeffs
         elif coeffs_arr is None:
             print('jac norm', np.linalg.norm(self.grad_ics))

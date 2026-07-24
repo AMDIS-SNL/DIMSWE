@@ -178,6 +178,9 @@ class Model():
     def get_ic_bounds(self):
         return self.dynamics.get_ic_bounds()
 
+    def get_coeff_scaling_factors(self):
+        return self.dynamics.get_coeff_scaling_factors()
+
 class AdvDensH1Model(Model):
     def __init__(self, parameters, logger, has_dynamics_statistics=True):
         self.initcond = get_advdens_initcond(parameters)

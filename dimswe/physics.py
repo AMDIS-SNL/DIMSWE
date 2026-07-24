@@ -2,6 +2,7 @@
 from .operators import ForcingBase
 from firedrake import exp, Function, FunctionSpace, inner
 import ufl
+import numpy as np
 
 def qsat(h, s, B, q0, H0, g):
     return q0 * H0 / (h + B) * exp(20.*(1.-s/g))
@@ -19,21 +20,28 @@ class ThreeWayPhysics(ForcingBase):
         #self.L = 10
         #self.beta2 = self.g * self.L
         #self.gamma_r = 10.**(-3.)
+        self.treat_as_coeffs = parameters['threewayphysics']['treat_as_coeffs']
+        if not self.treat_as_coeffs:
+            self.gamma_r = parameters['threewayphysics']['gamma_r']
+            self.qprecip = parameters['threewayphysics']['qprecip']
+            self.L = parameters['threewayphysics']['L']
 
         self.tau_v = self.dt
         self.tau_r = self.dt
         #self.qprecip = 10.**(-4.)
 
-        self.gamma_r_space = FunctionSpace(self.spaces.mesh, 'R', 0)
-        self.qprecip_space = FunctionSpace(self.spaces.mesh, 'R', 0)
-        self.L_space = FunctionSpace(self.spaces.mesh, 'R', 0)
+
 
         if not self.spaces is None:
             self.dx = spaces.dx
             self.B = Function(FunctionSpace(self.spaces.mesh, 'CG', self.spaces.order, variant="spectral"), name='topo')
+            if self.treat_as_coeffs:
+                self.gamma_r_space = FunctionSpace(self.spaces.mesh, 'R', 0)
+                self.qprecip_space = FunctionSpace(self.spaces.mesh, 'R', 0)
+                self.L_space = FunctionSpace(self.spaces.mesh, 'R', 0)
 
     def has_coeff(self):
-        return True
+        return self.treat_as_coeffs
 
     def set_coeffs(self, parameters, coeff):
         gamma_r = parameters['gamma_r']
@@ -47,6 +55,9 @@ class ThreeWayPhysics(ForcingBase):
 #WHAT ARE SOME REASONABLE BOUNDS HERE?
     def get_coeff_bounds(self):
         return np.array([1e-6, 1e-6, 1e-6]), np.array([np.inf, np.inf, np.inf])
+
+    def get_coeff_scaling_factors(self):
+        return np.array([.001, .0001, 10.])
 
     def get_coeff(self):
         return [['gamma_r', self.gamma_r_space], ['qprecip', self.qprecip_space], ['L', self.L_space]]
@@ -65,12 +76,18 @@ class ThreeWayPhysics(ForcingBase):
         qr = Qr / h
         s = S/h
 
-        beta2 = self.g * coeff['L']
+        if self.treat_as_coeffs:
+            beta2 = self.g * coeff['L']
+        else:
+            beta2 = self.g * self.L
         q_sat = qsat(h, s, self.B, self.q0, self.H0, self.g)
         gamma_v = 1./(1. + q_sat * 20. * beta2 / self.g)
         Dqv = ufl.max_value(0.0, gamma_v*(qv-q_sat)/self.tau_v)
         Dqc = ufl.min_value(qc/self.dt, ufl.max_value(0., gamma_v * (q_sat - qv)/self.tau_v))
-        Dqr = ufl.max_value(0.0, coeff['gamma_r'] * (qc-coeff['qprecip'])/self.tau_r)
+        if self.treat_as_coeffs:
+            Dqr = ufl.max_value(0.0, coeff['gamma_r'] * (qc-coeff['qprecip'])/self.tau_r)
+        else:
+            Dqr = ufl.max_value(0.0, self.gamma_r * (qc-self.qprecip)/self.tau_r)
         Sv = Dqc - Dqv
         Sr = Dqr
         Sc = Dqv - Dqc - Dqr

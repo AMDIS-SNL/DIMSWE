@@ -45,6 +45,7 @@ def taylor_remainder_check(jac_func, fd_func, x_func, x0, x0_perturb, x0_perturb
     print(rates)
     return jac, np.array(remainders), np.array(rates)
 
+
 def test_multiple_timestep_gradient_ic():
 
     parameters = get_parameters('tests/tswe.cfg')
