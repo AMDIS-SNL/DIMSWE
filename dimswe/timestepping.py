@@ -227,30 +227,12 @@ class GeneralRK(TimeStepper):
                     if model.has_coeff():
                         derivT_Wi_theta = adjoint(derivative(rhs_Wi, self.coeff, self.grad_trial))
                         if not derivT_Wi_theta.empty():
-                            #print('adding derivT_Wi_theta terms to grad')
                             residual_grad = residual_grad - action(derivT_Wi_theta, self.mui[i][0][1])
             if model.has_coeff():
                 derivT_Fi_theta = adjoint(derivative(rhs_Fi, self.coeff, self.grad_trial))
                 if not derivT_Fi_theta.empty():
-                    #print('adding derivT_Fi_theta terms to grad')
                     residual_grad = residual_grad - action(derivT_Fi_theta, self.mui[i][0][0])
-#UGLY HACK OF A GRADIENT COMPUTED BY HAND
-#THIS GIVES IDENTICAL RESULTS TO THE COMPUTATION ABOVE!
-#WHICH DOES NOT CONVERGE, SO THERE IS SOMETHING WRONG HERE...
-                #for varname in self.model.get_x_var_list():
-                #    print(varname)
-                #    print(self.grad_test)
-                #    print(self.mui[i][2][varname]) #self.mui[i][2][varname].name()
-                #    print(self.mui[i][2]['Q_'+varname]) #self.mui[i][2][varname].name()
-                #    #self.grad_test
-                #    residual_grad = residual_grad - inner(self.grad_test_subs['mu']*grad(self.mui[i][2][varname]), grad(self.Fi[i][2]['Q_'+varname]))*self.dx
 
-                #grad_coeffs = extract_coefficients(action(derivT_Fi_theta, self.mui[i][0][0]))
-            #rhs_Fi_coeffs = extract_coefficients(rhs_Fi)
-                #for grad_coeff in grad_coeffs:
-                #    print('grad coeff', i, grad_coeff, grad_coeff.name())
-            #for rhs_Fi_coeff in rhs_Fi_coeffs:
-            #    print('rhs_Fi coeff', i, rhs_Fi_coeff, rhs_Fi_coeff.name())
             residuals_mu.append(residual_mu)
             residuals_muaux.append(residual_muaux)
 
@@ -346,11 +328,6 @@ class GeneralRK(TimeStepper):
 
     def split_x_and_aux(self):
         return self.is_explicit
-    #
-
-    def internal_var_norms(self):
-        for i in range(self.nstages):
-            print('F' + str(i), self.model.norm(self.Fi[i][0][0]))
 
     def reset_internal_vars(self):
         self.xk[0].assign(0)
@@ -397,15 +374,27 @@ class GeneralRK(TimeStepper):
 #IDEALLY THIS IS AUX VARS EVALUATED AT XNP1- provides a good initial guess at least?
         #    xnp1[1].assign(self.Fi[-1][0][1])
 
-    def take_adjoint_step(self, delta_grad, delta_lambda, lambda_np1, tnp1, dt):
+    def take_adjoint_step(self, delta_grad, delta_lambda, lambda_np1, xn, tnp1, dt):
 
         self.dt.assign(dt)
         self.t.assign(tnp1 - dt)
         self.lambda_var.assign(lambda_np1)
 
+        #take a forward step from xn to populate Fi
+        self.xk[0].assign(xn[0])
+        if self.is_explicit:
+            for i in range(self.nstages):
+                self.auxsolvers[i].solve()
+                self.Fsolvers[i].solve()
+        elif self.is_dirk:
+            for i in range(self.nstages):
+                self.Fauxsolvers[i].solve()
+        else:
+            self.Fauxsolver.solve()
         #print("lambda var norm", norm(self.lambda_var))
 
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF?
+        #compute mu's
         if self.is_explicit:
             for i in range(self.nstages-1,-1,-1):
                 self.musolvers[i].solve()
@@ -516,41 +505,79 @@ class LieSplittingIntegrator():
             time_integrator = get_time_integrator(time_integrator_name, None)
             self.time_integrators.append(time_integrator(model, logger, terms=termlist[i], solver_parameters=solver_parameters))
 
-#HOW DO WE HANDLE THIS IN THE GENERAL CASE?
-        self.xk, self.xk_sub, self.xk_split = model.get_full_var('xk', split_x_and_aux=True)
         self.lambda_k, self.lambda_sub, self.lambda_split = model.get_x_var('lambda_k')
+        self.delta_lambda, _, _ = model.get_x_var('delta_lambda')
 
+#HOW DO WE HANDLE SPLITTING X AND AUX IN THE GENERAL RK CASE?
+        self.xks = []
+        self.xks.append(model.get_full_var('x0', split_x_and_aux=True))
+        for i in range(len(self.time_integrators)):
+            for k in range(self.subcycle_list[i]):
+                self.xks.append(model.get_full_var('x'+str(i)+'_'+str(k), split_x_and_aux=True))
 
+    def reset_internal_vars(self):
+        self.lambda_k.assign(0)
+        self.delta_lambda.assign(0)
+        for xk in self.xks:
+            self.xk[0].assign(0)
+        for time_integrator in self.time_integrator:
+            time_integrator.reset_internal_vars()
+
+#DOES THIS NEED TO RESET INTERNAL VARS TO ENSURE REPEATABILITY?
     def take_forward_step(self, xnp1, xnp1_sub, xn, tn, dt):
-        self.xk[0].assign(xn[0])
+        self.xks[0][0][0].assign(xn[0])
+        l = 1
         for i,time_integrator in enumerate(self.time_integrators):
             sub_dt = dt / self.subcycle_list[i]
-#PROBABLY NEED TO STORE INTERMEDIATE VALUES HERE
             for k in range(self.subcycle_list[i]):
-                time_integrator.take_forward_step(self.xk, self.xk_sub, self.xk, tn + k * sub_dt, sub_dt)
-        xnp1[0].assign(self.xk[0])
+                time_integrator.take_forward_step(self.xks[l][0], self.xks[l][1], self.xks[l-1][0], tn + k * sub_dt, sub_dt)
+                l = l +1
+        xnp1[0].assign(self.xks[-1][0][0])
+
+#RESET INTERNAL VARS
+#needs to reset self vars and also timestepper vars!
 
 
-#THERE IS A STORAGE CHOICE THAT NEEDS TO BE MADE HERE
-#BASICALLY, EACH TIMESTEPPER OBJECT ONLY KNOWS HOW TO STORA VALUES FOR A SINGLE ITERATION
-#SO THE SUBCYLCING ASPECT IS BROKEN!
-    def take_adjoint_step(grad, lambda_n, lambda_np1, tnp1, dt):
+#HOW DO WE HANDLE DELTA GRAD AND DELTA LAMBDA MORE GENERALLY?
+#THEY ARENT NEEDED FOR SCIPY VARIANT
+#UNCLEAR IF THEY WILL BE NEEDED FOR ROL VARIANT?
+#PROBABLY COMMENT OUT THEIR MACHINERY FOR NOW...
+    def take_adjoint_step(delta_grad, delta_lambda, lambda_np1, xn, tnp1, dt):
         self.lambda_k.assign(lambda_np1)
+        delta_lambda_rhs = 0
+        delta_grad_rhs = 0
+
+        self.xks[0][0][0].assign(xn[0])
+        l = 1
+        for i,time_integrator in enumerate(self.time_integrators):
+            sub_dt = dt / self.subcycle_list[i]
+            for k in range(self.subcycle_list[i]):
+                time_integrator.take_forward_step(self.xks[l][0], self.xks[l][1], self.xks[l-1][0], tn + k * sub_dt, sub_dt)
+                l = l +1
+
+        l = 0
+        lt = len(self.xks)-1
         for i,time_integrator in enumerate(reversed(self.time_integrators)):
             sub_dt = dt / self.subcycle_list[i]
-            #LIKELY NEED TO DO SOME RECOMPUTATION OF INTERMEDIATE VALUES HERE?
-#REVERSE THIS ALSO? MAYBE TNP1 IS ENOUGH TO REVERSE IT? #UNCLEAR...
             for k in range(self.subcycle_list[i]):
-                time_integrator.take_adjoint_step(grad, self.lambda_k, tnp1 - k * sub_dt, sub_dt)
-        lambda_n.assign(self.lambda_k)
-#HOW DO WE ADD SUPPORT FOR INITIAL CONDITION SENSITIVITY?
+#DO WE NEED TO RESET INTERNAL VARS HERE?
+#ALSO UNCLEAR ABOUT DELTA_LAMBDA VS _DELTA_LAMBDA_RHS, ETC.
+                _delta_lambda_rhs, _delta_grad_rhs = time_integrator.take_adjoint_step(self.delta_lambda, self.lambda_k, self.xks[lt-l-1][0], tnp1 - k * sub_dt, sub_dt)
+                self.lambda_k.assign(self.lambda_k + self.delta_lambda)
+                #self.grad.assign(self.grad + delta_grad)
+                delta_grad_rhs = delta_grad_rhs + _delta_grad_rhs
+                delta_lambda_rhs = delta_lambda_rhs + _delta_lambda_rhs
+                l = l + 1
+        return delta_lambda_rhs, delta_grad_rhs
 
     def set_coeff(self, coeff_val):
         for time_integrator in self.time_integrators:
             time_integrator.set_coeff(coeff_val)
 
 
-
+    def set_numpy_coeff(self, coeff_val_arr):
+        for time_integrator in self.time_integrators:
+            time_integrator.set_numpy_coeff(coeff_val_arr)
 
 
 

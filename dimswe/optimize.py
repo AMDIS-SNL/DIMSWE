@@ -205,9 +205,9 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
 
                 #take a forward step to populate internal variables within timestepper
                 #THIS IS A CHOICE/TYPE OF CHECKPOINT + RECOMPUTE\
-                self.timestepper.take_forward_step(self.states[n], self.states_sub[n], self.states[n-1], self.tns[n-1], self.dt)
+                #self.timestepper.take_forward_step(self.states[n], self.states_sub[n], self.states[n-1], self.tns[n-1], self.dt)
 
-                delta_lambda_rhs, delta_grad_rhs = self.timestepper.take_adjoint_step(self.delta_grad_coeff, self.delta_lambda, self.lambda_np1, self.tns[n], self.dt)
+                delta_lambda_rhs, delta_grad_rhs = self.timestepper.take_adjoint_step(self.delta_grad_coeff, self.delta_lambda, self.lambda_np1, self.states[n-1], self.tns[n], self.dt)
                 self.lambda_np1.assign(self.lambda_np1 + self.delta_lambda)
 
                 if self.model.has_coeff():
