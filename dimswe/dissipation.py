@@ -12,7 +12,9 @@ class Hyperviscosity(ForcingBase):
         self.spaces = spaces
 
         self.name = 'hyperviscosity'
-        self.mu_space = None
+        #self.mu_space = None
+        self.c0_space = None
+        self.s_space = None
 
         if not spaces is None:
 #IDEALLY HERE WE USE TENSOR HV- THEN WE CAN AVOID THE VERY HACKY SPACES.DX STUFF
