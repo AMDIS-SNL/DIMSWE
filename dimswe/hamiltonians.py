@@ -140,7 +140,7 @@ class ThermalShallowWater_Hamiltonian_CF(ThermalShallowWater_Hamiltonian_Base):
         v = state['v']
         h = state['h']
         S = state['S']
-        return h*inner(v,v)/2. + inner(h,S)/2. + inner(h,self.bottom_topography)
+        return h*inner(v,v)/2. + inner(h,S)/2. + inner(S,self.bottom_topography)
 
     def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
         v = xvars['v']
@@ -153,8 +153,8 @@ class ThermalShallowWater_Hamiltonian_CF(ThermalShallowWater_Hamiltonian_Base):
         htrial = self.trialvars['B_h']
         Strial = self.trialvars['B_S']
         expressions['F'] = [h*v, vtrial, vhat]
-        expressions['B_h'] = [inner(v,v)/2. + S/2. + self.bottom_topography, htrial, hhat]
-        expressions['B_S'] = [h/2., Strial, Shat]
+        expressions['B_h'] = [inner(v,v)/2. + S/2., htrial, hhat]
+        expressions['B_S'] = [h/2. + self.bottom_topography, Strial, Shat]
         #for tracer_name in self.vars.tracer_names:
         #    tracerhat = self.testvars['B_' + tracer_name]
         #    tracertrial = self.trialvars['B_' + tracer_name]
@@ -168,8 +168,8 @@ class ThermalShallowWater_Hamiltonian_CF(ThermalShallowWater_Hamiltonian_Base):
         S = xstar['S']
 
         dfdx_linear_vars['F'] = H0 * v
-        dfdx_linear_vars['B_h'] = (S0 + S)/2. + self.bottom_topography
-        dfdx_linear_vars['B_S'] = (H0 + h)/2.
+        dfdx_linear_vars['B_h'] = (S0 + S)/2.
+        dfdx_linear_vars['B_S'] = (H0 + h)/2. + self.bottom_topography
         #for tracer_name in self.vars.tracer_names:
         #    dfdx_linear_vars['B_' + tracer_name] = 0.0
 

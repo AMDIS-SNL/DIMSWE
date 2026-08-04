@@ -29,6 +29,12 @@ def set_dimension(parameters):
     elif parameters['mesh']['type'] == 'file':
         parameters['mesh']['dim'] = XXX #NEED TO READ SOMEHOW
 
+def mesh_size(msh):
+    DG0 = FunctionSpace(msh, "DG", 0)
+    h = Function(DG0).interpolate(CellDiameter(msh))
+    with h.dat.vec as hvec:
+        _, maxh = hvec.max()
+    return maxh
 
 
 def get_mesh_and_spaces(parameters, initcond):
