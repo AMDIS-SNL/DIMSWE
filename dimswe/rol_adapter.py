@@ -112,4 +112,3 @@ class ScalarC0Objective(Objective):
         g.array[0] = full_gradient[1]
         self.gradient_evaluations += 1
         self.gradient_history.append((float(z.array[0]), float(g.array[0])))
-
