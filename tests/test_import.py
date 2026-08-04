@@ -1,5 +1,6 @@
 import pytest
 
+
 def test_import_core_modules():
     """
     Sanity check: ensure the core module imports without error.
@@ -25,7 +26,13 @@ def test_import_core_modules():
       import dimswe.variables
       import dimswe.diagnostics
       import dimswe.statistics
-      import dimswe.plot_adv_dens
-
     except Exception as e:
         pytest.fail(f"Import failed: {e}")
+
+
+def test_import_optional_plotting_module():
+    pytest.importorskip(
+        "matplotlib",
+        reason="Matplotlib is optional and required only by DIMSWE plotting modules",
+    )
+    import dimswe.plot_adv_dens  # noqa: F401

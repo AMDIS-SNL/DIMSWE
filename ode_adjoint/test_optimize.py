@@ -2,7 +2,6 @@ from adjoint_timesteppers import RK4, Euler
 from ode_optimize import Lagrangian_ODEConstrainedOptimization, L2Objective
 from dynamics import LotkaVolterra, LogisticEquation
 import numpy as np
-import matplotlib.pyplot as plt
 
 import pytest
 
