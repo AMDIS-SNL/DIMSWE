@@ -68,12 +68,13 @@ def test_multiple_timestep_gradient_coeffs():
     xns1, xn_subs1, steps1, tns1 = compute_state_block(model, timestepper, 1, nsteps, dt, x0, t0)
     objective_1 = L2Objective(xns1, tns1, nsteps, model.spaces.dx)
     optimizer_1 = Lagrangian_ODEConstrainedOptimization(model, timestepper, objective_1, dt)
+    coefficient_scaling = model.get_coeff_scaling_factors()
 
 
 
     def jac_func(coeff, coeff_perturb):
-        coeff_arr = create_flattened_numpy_arr_from_mixed_function(coeff)
-        coeff_perturb_arr = create_flattened_numpy_arr_from_mixed_function(coeff_perturb)
+        coeff_arr = create_flattened_numpy_arr_from_mixed_function(coeff) / coefficient_scaling
+        coeff_perturb_arr = create_flattened_numpy_arr_from_mixed_function(coeff_perturb) / coefficient_scaling
         jac_coeff_1 = optimizer_1.jac(coeff_arr, None)
         return jac_coeff_1.dot(coeff_perturb_arr)
 
@@ -82,7 +83,7 @@ def test_multiple_timestep_gradient_coeffs():
 
     def coeff_func(eps, coeff, coeff_perturb, coeff_perturbed):
         coeff_perturbed.assign(coeff + float(eps)*coeff_perturb)
-        return create_flattened_numpy_arr_from_mixed_function(coeff_perturbed)
+        return create_flattened_numpy_arr_from_mixed_function(coeff_perturbed) / coefficient_scaling
 
     #zero gradients at optimality
     model.set_coeffs(parameters, coeff_sub)
@@ -131,12 +132,13 @@ def test_single_timestep_gradient_coeffs():
     xns1, xn_subs1, steps1, tns1 = compute_state_block(model, timestepper, 1, 1, dt, x0, t0)
     objective_1 = L2Objective(xns1, tns1, 1, model.spaces.dx)
     optimizer_1 = Lagrangian_ODEConstrainedOptimization(model, timestepper, objective_1, dt)
+    coefficient_scaling = model.get_coeff_scaling_factors()
 
 
 
     def jac_func(coeff, coeff_perturb):
-        coeff_arr = create_flattened_numpy_arr_from_mixed_function(coeff)
-        coeff_perturb_arr = create_flattened_numpy_arr_from_mixed_function(coeff_perturb)
+        coeff_arr = create_flattened_numpy_arr_from_mixed_function(coeff) / coefficient_scaling
+        coeff_perturb_arr = create_flattened_numpy_arr_from_mixed_function(coeff_perturb) / coefficient_scaling
         jac_coeff_1 = optimizer_1.jac(coeff_arr, None)
         return jac_coeff_1.dot(coeff_perturb_arr)
 
@@ -145,7 +147,7 @@ def test_single_timestep_gradient_coeffs():
 
     def coeff_func(eps, coeff, coeff_perturb, coeff_perturbed):
         coeff_perturbed.assign(coeff + float(eps)*coeff_perturb)
-        return create_flattened_numpy_arr_from_mixed_function(coeff_perturbed)
+        return create_flattened_numpy_arr_from_mixed_function(coeff_perturbed) / coefficient_scaling
 
     #zero gradients at optimality
     model.set_coeffs(parameters, coeff_sub)

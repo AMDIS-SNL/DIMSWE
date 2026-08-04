@@ -43,12 +43,12 @@ def taylor_remainder_check(func, jac, x, x0, xperturb):
         rates.append(rate)
     print(rates)
 
-def test_dynamics_gradients():
+def test_hyperviscosity_child_residual_derivatives():
     parameters = get_parameters('tests/tswe.cfg')
     logger = EmptyLogger()
     model = get_model(parameters, logger, has_dynamics_statistics=False)
     model_coeff, model_coeff_sub, model_coeff_split = model.get_coeff_var('coeff')
-    timestepper = get_timestepper(parameters, model, logger, solver_parameters=solver_parameters)
+    split_timestepper = get_timestepper(parameters, model, logger, solver_parameters=solver_parameters)
     dt = parameters['timestepping']['dt']
     x0, x0_sub, x0_split = model.get_full_var('x0', split_x_and_aux=True)
     x1, x1_sub, x1_split = model.get_full_var('x1', split_x_and_aux=True)
@@ -56,7 +56,20 @@ def test_dynamics_gradients():
     t0 = model.get_t_var()
     model.initialize(x0_sub, t0)
     model.set_coeffs(parameters, model_coeff_sub)
-    timestepper.set_coeff(model_coeff)
+    split_timestepper.set_coeff(model_coeff)
+
+    # get_rhs_expr and RK stage storage belong to the GeneralRK children, not
+    # the Lie-splitting wrapper.  Select the configured hyperviscosity child by
+    # its semantic term list so this residual-derivative probe is order-safe.
+    hyperviscosity_children = [
+        child
+        for child in split_timestepper.time_integrators
+        if child.terms == ["hyperviscosity"]
+    ]
+    assert len(hyperviscosity_children) == 1, [
+        child.terms for child in split_timestepper.time_integrators
+    ]
+    timestepper = hyperviscosity_children[0]
 
     rhs_F, rhs_W, rhs_Fis, rhs_Wis = timestepper.get_rhs_expr()
 
