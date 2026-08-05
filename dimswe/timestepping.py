@@ -342,6 +342,61 @@ class GeneralRK(TimeStepper):
                 self.mui[i][0][1].assign(0)
                 self.Fi[i][0][1].assign(0)
 
+    def _get_hyperviscosity_hvp_helper(self):
+        """Return the narrow cached-HVP helper after semantic validation.
+
+        Construction is lazy so every existing GeneralRK instance and legacy
+        method remains independent of the new certification path.
+        """
+        if not hasattr(self, '_hyperviscosity_hvp_helper'):
+            from .hyperviscosity_hvp import ProductionHyperviscosityEulerHVP
+            self._hyperviscosity_hvp_helper = ProductionHyperviscosityEulerHVP(self)
+        return self._hyperviscosity_hvp_helper
+
+    def take_forward_step_cached(self, xn, tn, dt):
+        """Cache one production Euler/hyperviscosity child step.
+
+        This API deliberately rejects every other tableau and term set.  It is
+        separate from, and does not alter, ``take_forward_step``.
+        """
+        return self._get_hyperviscosity_hvp_helper().take_forward_step_cached(
+            xn, tn, dt
+        )
+
+    def take_tangent_step(self, primal_cache, delta_xn, delta_c0):
+        """Apply the exact physical-c0 tangent of a cached child step."""
+        return self._get_hyperviscosity_hvp_helper().take_tangent_step(
+            primal_cache, delta_xn, delta_c0
+        )
+
+    def take_adjoint_step_cached(self, primal_cache, lambda_plus_star):
+        """Apply the dual-native ordinary reverse of a cached child step."""
+        return self._get_hyperviscosity_hvp_helper().take_adjoint_step_cached(
+            primal_cache, lambda_plus_star
+        )
+
+    def take_incremental_adjoint_step(
+        self, tangent_cache, lambda_plus_star, mu_plus_star
+    ):
+        """Apply the exact dual-native incremental reverse of one child."""
+        return self._get_hyperviscosity_hvp_helper().take_incremental_adjoint_step(
+            tangent_cache, lambda_plus_star, mu_plus_star
+        )
+
+    def hyperviscosity_state_mass_map(self, value):
+        """Apply the production mixed L2 mass map for dual-native tests/APIs."""
+        return self._get_hyperviscosity_hvp_helper().state_mass_map(value)
+
+    def hyperviscosity_state_riesz_representative(self, dual):
+        """Explicitly solve for a mixed primal L2 Riesz representative."""
+        return self._get_hyperviscosity_hvp_helper().state_riesz_representative(
+            dual
+        )
+
+    def hyperviscosity_dual_pairing(self, dual, primal):
+        """Evaluate the natural mixed dual/primal pairing."""
+        return self._get_hyperviscosity_hvp_helper().dual_pairing(dual, primal)
+
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF
     def take_forward_step(self, xnp1, xnp1_sub, xn, tn, dt):
         self.t.assign(tn)
