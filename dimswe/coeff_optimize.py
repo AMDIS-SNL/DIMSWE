@@ -38,9 +38,9 @@ model.initialize(x0_sub, t0)
 model.set_coeffs(parameters, model_coeff_sub)
 timestepper.set_coeff(model_coeff)
 
-nsteps = 3
+nsteps = 5
 
-xns, xn_subs, steps, tns = compute_state_block(model, timestepper, 1, nsteps, dt, x0, t0)
+xns, xn_subs, steps, tns = compute_state_block(model, timestepper, 20, nsteps, dt, x0, t0)
 objective = L2Objective(xns, tns, nsteps, model.spaces.dx)
 optimizer = Lagrangian_ODEConstrainedOptimization(model, timestepper, objective, dt)
 
