@@ -149,10 +149,12 @@ class GeneralRK(TimeStepper):
         #construct residuals for F and aux
         residuals_F = []
         residuals_aux = []
+        stage_rhs_forms = []
         for i in range(nstages):
         #this sign is due to writing things as dxdt + F(x) = 0
             rhs_Fi = -model.rhs(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
             rhs_Fi = replace(rhs_Fi, xi_splits[i])
+            stage_rhs_forms.append(rhs_Fi)
             residual_F = inner(xhat[0], self.Fi[i][0][0])*self.dx - rhs_Fi
 #MIGHT HAVE TO MODIFY THIS INNER PRODUCT A LITTLE FOR IRK GENERALITY
 
@@ -233,6 +235,17 @@ class GeneralRK(TimeStepper):
 
             residuals_mu.append(residual_mu)
             residuals_muaux.append(residual_muaux)
+
+        # Read-only references to the exact forms already built by the
+        # deployed GeneralRK constructor.  Retaining these objects does not
+        # alter the legacy solves.  The dry-HVP path differentiates these same
+        # stage graphs, and its audit compares their coefficient identities
+        # and integral/quadrature metadata with any reconstructed comparator.
+        self.production_stage_rhs_forms = tuple(stage_rhs_forms)
+        self.production_stage_residuals = tuple(residuals_F)
+        self.production_reverse_stage_residuals = tuple(residuals_mu)
+        self.production_stage_state_substitutions = tuple(xi_splits)
+        self.production_stage_base_state = self.xk[0]
 
 
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF
@@ -396,6 +409,103 @@ class GeneralRK(TimeStepper):
     def hyperviscosity_dual_pairing(self, dual, primal):
         """Evaluate the natural mixed dual/primal pairing."""
         return self._get_hyperviscosity_hvp_helper().dual_pairing(dual, primal)
+
+    def _get_dry_rk4_hvp_helper(self):
+        """Return the narrowly certified production dry-RK4 HVP helper."""
+        if not hasattr(self, '_dry_rk4_hvp_helper'):
+            from .dry_lie_hvp import ProductionDryRK4HVP
+            self._dry_rk4_hvp_helper = ProductionDryRK4HVP(self)
+        return self._dry_rk4_hvp_helper
+
+    def take_dry_forward_step_cached(self, xn, tn, dt):
+        """Cache one exact production dry RK4 child step."""
+        return self._get_dry_rk4_hvp_helper().take_forward_step_cached(
+            xn, tn, dt
+        )
+
+    def take_dry_tangent_step(self, primal_cache, delta_xn):
+        """Propagate an incoming state direction through cached dry RK4."""
+        return self._get_dry_rk4_hvp_helper().take_tangent_step(
+            primal_cache, delta_xn
+        )
+
+    def take_dry_adjoint_step_cached(self, primal_cache, lambda_plus_star):
+        """Apply the dual-native ordinary reverse of cached dry RK4."""
+        return self._get_dry_rk4_hvp_helper().take_adjoint_step_cached(
+            primal_cache, lambda_plus_star
+        )
+
+    def take_dry_incremental_adjoint_step(
+        self, tangent_cache, lambda_plus_star, mu_plus_star
+    ):
+        """Apply the exact state-curvature incremental dry RK4 reverse."""
+        return self._get_dry_rk4_hvp_helper().take_incremental_adjoint_step(
+            tangent_cache, lambda_plus_star, mu_plus_star
+        )
+
+    def dry_rk4_state_mass_map(self, value):
+        """Apply the certified dry mixed L2 mass map."""
+        return self._get_dry_rk4_hvp_helper().state_mass_map(value)
+
+    def dry_rk4_state_riesz_representative(self, dual):
+        """Solve explicitly for the dry mixed L2 Riesz representative."""
+        return self._get_dry_rk4_hvp_helper().state_riesz_representative(dual)
+
+    def dry_rk4_dual_pairing(self, dual, primal):
+        """Evaluate the natural dry mixed dual/primal pairing."""
+        return self._get_dry_rk4_hvp_helper().dual_pairing(dual, primal)
+
+    def dry_rk4_graph_diagnostics(self, primal_cache):
+        """Describe the cached/deployed RK4 graph without changing it."""
+        return self._get_dry_rk4_hvp_helper().graph_diagnostics(primal_cache)
+
+    def dry_rk4_stage_pairing_diagnostics(self, tangent_cache, reverse_result):
+        """Return isolated natural-pairing residuals for all RK4 stages."""
+        return self._get_dry_rk4_hvp_helper().stage_pairing_diagnostics(
+            tangent_cache, reverse_result
+        )
+
+    def dry_rk4_stage_form_identity_diagnostics(self):
+        """Expose exact UFL coefficient identities for both dry form graphs."""
+        return self._get_dry_rk4_hvp_helper().stage_form_identity_diagnostics()
+
+    def dry_rk4_production_stage_tendency(
+        self, primal_cache, stage_index, stage_state
+    ):
+        """Evaluate one exact deployed RK stage solve at an isolated state."""
+        return self._get_dry_rk4_hvp_helper().production_stage_tendency(
+            primal_cache, stage_index, stage_state
+        )
+
+    def dry_rk4_perturbed_production_stage_tendency(
+        self, primal_cache, stage_index, stage_direction, direction_scale
+    ):
+        """Run the exact stage solve after changing only xk by scale*W_i."""
+        return (
+            self._get_dry_rk4_hvp_helper()
+            .perturbed_production_stage_tendency(
+                primal_cache,
+                stage_index,
+                stage_direction,
+                direction_scale,
+            )
+        )
+
+    def dry_rk4_production_stage_tangent(
+        self, primal_cache, stage_index, stage_state, stage_direction
+    ):
+        """Differentiate the exact deployed RK stage form object."""
+        return self._get_dry_rk4_hvp_helper().production_stage_tangent(
+            primal_cache, stage_index, stage_state, stage_direction
+        )
+
+    def dry_rk4_reconstructed_stage_tangent(
+        self, primal_cache, stage_index, stage_state, stage_direction
+    ):
+        """Differentiate the former independently reconstructed stage form."""
+        return self._get_dry_rk4_hvp_helper().reconstructed_stage_tangent(
+            primal_cache, stage_index, stage_state, stage_direction
+        )
 
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF
     def take_forward_step(self, xnp1, xnp1_sub, xn, tn, dt):
@@ -578,6 +688,80 @@ class LieSplittingIntegrator():
             xk[0].assign(0)
         for time_integrator in self.time_integrators:
             time_integrator.reset_internal_vars()
+
+    def _get_dry_lie_hvp_helper(self):
+        """Return the narrowly certified two-child dry Lie HVP helper."""
+        if not hasattr(self, '_dry_lie_hvp_helper'):
+            from .dry_lie_hvp import ProductionDryLieHVP
+            self._dry_lie_hvp_helper = ProductionDryLieHVP(self)
+        return self._dry_lie_hvp_helper
+
+    def take_forward_step_cached(self, xn, tn, dt):
+        """Cache dry RK4 followed by production hyperviscosity Euler."""
+        return self._get_dry_lie_hvp_helper().take_forward_step_cached(
+            xn, tn, dt
+        )
+
+    def take_tangent_step(self, primal_cache, delta_x_in, delta_c0):
+        """Propagate a combined physical ``(delta_x_in, delta_c0)``."""
+        return self._get_dry_lie_hvp_helper().take_tangent_step(
+            primal_cache, delta_x_in, delta_c0
+        )
+
+    def take_adjoint_step_cached(self, primal_cache, lambda_plus_star):
+        """Reverse one cached dry Lie step in exact child order."""
+        return self._get_dry_lie_hvp_helper().take_adjoint_step_cached(
+            primal_cache, lambda_plus_star
+        )
+
+    def take_incremental_adjoint_step(
+        self, tangent_cache, lambda_plus_star, mu_plus_star
+    ):
+        """Apply the exact incremental reverse of one cached dry Lie step."""
+        return self._get_dry_lie_hvp_helper().take_incremental_adjoint_step(
+            tangent_cache, lambda_plus_star, mu_plus_star
+        )
+
+    def dry_lie_state_mass_map(self, value):
+        """Apply the production dry mixed L2 mass map."""
+        return self._get_dry_lie_hvp_helper().state_mass_map(value)
+
+    def dry_lie_state_riesz_representative(self, dual):
+        """Solve explicitly for a production dry L2 Riesz representative."""
+        return self._get_dry_lie_hvp_helper().state_riesz_representative(dual)
+
+    def dry_lie_dual_pairing(self, dual, primal):
+        """Evaluate the natural production dry mixed dual/primal pairing."""
+        return self._get_dry_lie_hvp_helper().dual_pairing(dual, primal)
+
+    def terminal_least_squares_gradient(
+        self, nsteps, state_initial, t0, dt, target
+    ):
+        """Return the physical-c0 and field-valued IC reduced gradient."""
+        return self._get_dry_lie_hvp_helper().terminal_least_squares_gradient(
+            nsteps, state_initial, t0, dt, target
+        )
+
+    def terminal_least_squares_hvp(
+        self,
+        nsteps,
+        state_initial,
+        t0,
+        dt,
+        target,
+        delta_x0,
+        delta_c0,
+    ):
+        """Return the exact physical-c0/IC reduced Hessian action."""
+        return self._get_dry_lie_hvp_helper().terminal_least_squares_hvp(
+            nsteps,
+            state_initial,
+            t0,
+            dt,
+            target,
+            delta_x0,
+            delta_c0,
+        )
 
 #DOES THIS NEED TO RESET INTERNAL VARS TO ENSURE REPEATABILITY?
     def take_forward_step(self, xnp1, xnp1_sub, xn, tn, dt):
