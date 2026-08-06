@@ -165,20 +165,201 @@ the log remained unchanged for more than four minutes before inspection.  It
 contained no failure or error section and ended with the exact successful
 summary above.  The `xfailed` case remains the preexisting
 `ode_adjoint/test_optimize.py::test_optimize_params_plus_ic`; the skip remains
-an existing optional-dependency characterization.  The scalar derivative
+the existing
+`tests/test_import.py::test_import_optional_plotting_module`
+optional-dependency characterization.  The scalar derivative
 utility test now certifies native `checkGradient`, `checkHessVec`, and
 `checkHessSym` execution and asserts that `hessVec` was invoked.
 
-## Required external validation
+## P2 COMPLETE: initial-condition interface
 
-Run in this order:
+P2 extends the optional adapter module with `MTSWEStateVector` and
+`ProductionMTSWEInitialConditionObjective`; it adds
+`tests/test_mtswe_rol_state_adapter.py`.  No accepted production file is
+modified.
+
+The installed PyROL `Vector` contract was inspected directly.  The new vector
+implements all required callbacks and follows the installed self-dual default:
+`dual()` returns the current object and `apply()` evaluates the vector dot
+pairing.  Constructor and clone ownership are deep and independent, all
+binary operations require the same cached production helper and mixed space,
+and `dimension()` reports the mixed-space dimension.
+
+The metric audit found no reconstructed form and no coefficient-vector dot
+product in the implementation.  The exact path is:
 
 ```text
-python -m pytest -q tests/test_mtswe_rol_adapter.py
-python -m pytest -q tests/test_rol_adapter.py
-python -m pytest -q tests/test_production_mtswe_split_hvp.py
-python -m pytest -q
+primal u -> certified state_mass_map(u) -> certified dual_pairing(...,v).
 ```
 
-The complete suite is last and should be run only after the three focused
-commands pass.
+The derivative boundary is likewise exact:
+
+```text
+production initial-condition Cofunction
+  -> certified state_riesz_representative
+  -> owned MTSWEStateVector output Function.
+```
+
+The conversion occurs only after the complete production reverse or
+incremental reverse.  The P2 HVP passes its owned field direction with
+physical `delta_c0=0`.  Point and point/direction caches retain only owned
+Function snapshots and one result each; exact PETSc vector equality detects
+changes.  Coefficient/scratch restoration and the P1 active-set policies are
+preserved.
+
+Ten focused tests pass and cover ownership, clone/algebra,
+space validation, exact metric and Riesz parity, rejection of a raw
+coefficient metric, one-/three-step production gradient/HVP oracles, IC-only
+directions, caches, mutation/restoration, injected active sets, native PyROL
+derivative utilities with an HVP-call assertion, and field bilinear symmetry.
+The P2 source audit found no unresolved metric, dual, Riesz, or PyROL vector
+question.
+
+## P3 COMPLETE: combined interface
+
+P3 adds `MTSWECombinedVector`, `ProductionMTSWECombinedObjective`, and
+`tests/test_mtswe_rol_combined_adapter.py`.  Field and normalized scalar
+children remain separate owned objects under every vector operation.  The
+product dot is exactly certified mixed L2 plus `z*r`; no state normalization
+or combined bound-constraint support is introduced.
+
+The mapping audit is:
+
+```text
+P(x0,z) = (x0,d_c0*z)
+P*(lambda_x*,a) = (lambda_x*,d_c0*a)
+H_y q = P* H_phys(q_x,d_c0*q_z).
+```
+
+The field output receives one final certified Riesz conversion.  The scalar
+output receives one `d_c0`; therefore scalar-scalar receives `d_c0**2`, while
+each mixed block receives one factor.  Tests provide direct production-oracle
+coverage for c0-only, IC-only, and combined directions at one and three
+timesteps, explicitly exercise both mixed blocks, and check combined
+bilinear symmetry in the product metric.  Cache, nonmutation, restoration,
+active-set, and native utility checks are also included.
+
+Fourteen focused P3 tests pass.  The P3 source audit found no
+unresolved mapping, ownership, metric, scaling, dual, or Riesz question.
+
+## P2/P3 native Hessian-utility failure and correction
+
+The authoritative external P2 run stopped with 7 passes and one failure in
+`test_native_pyrol_field_derivative_utilities_call_hessvec`.  The P3 run
+stopped with 12 passes and one failure in the corresponding combined test.
+In both cases, the final column of the last `checkHessVec` row was exactly
+`0.3998688789132763`.  The gradient checks decreased normally, and the
+failure involved only monkeypatched `_analytic_result` objects; no production
+MTSWE HVP regression failure was reported.
+
+Direct inspection of the installed `ROL_ObjectiveDef.hpp` establishes the
+row layout as `step`, `norm(Hv)`, `norm(FD)`, and `norm(FD-Hv)`.  The last
+value is absolute.  `ROL_Objective.hpp` confirms that the four-argument
+Python call selects the explicit-step overload.  The utility does not
+normalize `v`; it clones its `x.dual()` prototype for every gradient, HVP,
+and finite-difference work vector.  `checkGradient` uses `d.apply(g)`, and
+`checkHessSym` uses the analogous primal/dual applications.  The installed
+ROL vector contract explicitly allows a self-dual vector to return itself
+from `dual()`.  A local non-Firedrake custom-vector quadratic passed these
+native calls with `dual() is self`; that source and non-Firedrake evidence did
+not yet distinguish conditioning in the actual physical-scale state vector.
+
+The next authoritative two-test run failed before the adapter checks, in the
+minimal identity quadratics on the large MTSWE state.  Both P2 and P3 reported
+the identical minimum absolute field error
+`0.0015918440945659738`.  This corrects the previous audit statement: merely
+centering the fake production oracle was not the complete diagnosis.  Even
+`gradient(x)=x` requires native ROL to subtract large, nearly identical
+physical-state vectors when it finite-differences at that base.  The r2 log
+contains only the minimum error, not the complete three rows.
+
+The field native test now emits all physical-base rows together with
+`norm(x)`, `norm(v)`, per-field point/direction maxima, and a direct
+vector-API epsilon ladder.  Every native norm must match the corresponding
+directly formed finite difference, and the physical-base error must grow as
+epsilon decreases.  No strict contract conclusion is drawn from that
+ill-conditioned physical-base ladder.
+
+Strict vector-contract checks instead use an independently owned zero state
+and `(zero state, z=0)` product point.  They keep the original steps and
+absolute `1e-8` threshold and exercise all three native utilities, explicit
+`hessVec` call counters, nonmutation, and clone-mediated dual safety.  This
+separates a field-vector defect from a combined-product defect.
+
+The monkeypatched adapter checks now use a zero field and a zero field with a
+modest normalized scalar, respectively.  Their fake production results use
+the translated quadratic about those synthetic utility points:
+
+```text
+Q = 0.5 * ||x-x_ref||_M^2,
+g* = M * (x-x_ref),
+Hv* = M * v.
+```
+
+Translation leaves the identity Hessian unchanged and keeps the fake result faithful
+to the production contract: both derivatives are Cofunctions and the adapter
+performs one final certified Riesz conversion.  The correction does not
+alter steps, tolerances, the native utility calls, or the `hessVec` call
+assertion.  A new direct callback regression records the `1e-3`, `1e-4`, and
+`1e-5` forward/centered ladders, fieldwise differences, received point and
+direction snapshots, cache hits, and nonmutation.  Production-scale parity
+and natural-pairing tests remain separate and unchanged.
+
+The authoritative r3 serial result was `2 passed, 56 warnings in 31.92s`.
+The physical diagnostic recorded
+
+```text
+norm(x) = 3.785903703396193e10
+norm(v) = 7.273830663658165e6
+
+epsilon   native/direct norm(FD-Hv)
+1e-3      1.5918440945659738e-3
+1e-4      1.3902243035109323e-2
+1e-5      1.1918356529583173e-1
+```
+
+Native and direct rows agreed exactly.  Error grew by approximately 8.6--8.7
+per decade, and each `epsilon * error` stayed near `1e-6`.  This is the
+expected subtraction/cancellation pattern for gradients based at a state
+with norm about `3.8e10`.
+
+At zero base, the strict native field and combined HVP errors were
+`8.136640144695799e-10`, `2.467819228230368e-10`, and
+`7.150985271159583e-10`, with Hessian symmetry error `0.0`.  These results
+certify both the field vector `dual`/`apply` contract and the combined product
+contract.  Production HVP mathematics was not implicated.  Strict native
+finite-difference checks therefore use the conditioned synthetic point;
+physical-state certification remains the unchanged direct production parity
+and natural-pairing coverage.
+
+Files changed for this correction are
+`tests/test_mtswe_rol_state_adapter.py`,
+`tests/test_mtswe_rol_combined_adapter.py`,
+`docs/DIMSWE_PYROL_HESSVEC.md`, and this audit.  No adapter implementation,
+production MTSWE mathematics, state metric, Riesz interface, cache policy,
+or scalar normalization changed.
+
+## Final authoritative serial certification
+
+```text
+native field/combined utilities:  2 passed, 56 warnings in 31.92s
+P2 state adapter:                10 passed, 2046 warnings in 359.46s
+P3 combined adapter:             14 passed, 4326 warnings in 427.68s
+P1 scalar regression:            33 passed, 2312 warnings in 352.51s
+legacy PyROL regression:          6 passed, 594 warnings in 68.06s
+accepted production MTSWE HVP:   22 passed, 29690 warnings in 857.17s
+complete repository:            179 passed, 1 skipped, 1 xfailed,
+                                60449 warnings in 1659.94s
+```
+
+No `FAILED` or `ERROR` section occurred.  The skip and xfail remain the
+previously characterized repository cases.  Known warnings are the
+PyOP2/NumPy shape deprecation, FINAT quadrilateral DG-to-DQ warning, UFL
+quadrature-metadata warning, SciPy L-BFGS-B `hessp`/`disp` notices, and PETSc
+seeing pytest's `-q` option.
+
+The final audit found no unresolved vector, metric, dual, Riesz, scaling,
+cache, restoration, active-set, or ownership question.  The accepted
+`dimswe/mtswe_split_hvp.py` and `dimswe/timestepping.py` files were unchanged.
+Certification is serial only; no MPI, state normalization, combined bounds,
+JAX, neural-network, or checkpointing claim is made.
