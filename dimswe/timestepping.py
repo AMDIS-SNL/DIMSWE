@@ -507,6 +507,72 @@ class GeneralRK(TimeStepper):
             primal_cache, stage_index, stage_state, stage_direction
         )
 
+    def _get_mtswe_dg_hvp_helper(self):
+        """Return the exact-form DG SSPRK43 derivative helper lazily."""
+        if not hasattr(self, '_mtswe_dg_hvp_helper'):
+            from .mtswe_split_hvp import ProductionDGSSPRK43HVP
+            self._mtswe_dg_hvp_helper = ProductionDGSSPRK43HVP(self)
+        return self._mtswe_dg_hvp_helper
+
+    def take_dg_forward_step_cached(self, xn, tn, dt):
+        """Cache one deployed four-stage DG SSPRK43 child."""
+        return self._get_mtswe_dg_hvp_helper().take_forward_step_cached(
+            xn, tn, dt
+        )
+
+    def take_dg_tangent_step(self, primal_cache, delta_xn):
+        """Propagate a state direction through exact DG stage forms."""
+        return self._get_mtswe_dg_hvp_helper().take_tangent_step(
+            primal_cache, delta_xn
+        )
+
+    def take_dg_adjoint_step_cached(self, primal_cache, lambda_plus_star):
+        """Apply the genuine-dual reverse of cached DG SSPRK43."""
+        return self._get_mtswe_dg_hvp_helper().take_adjoint_step_cached(
+            primal_cache, lambda_plus_star
+        )
+
+    def take_dg_incremental_adjoint_step(
+        self, tangent_cache, lambda_plus_star, mu_plus_star
+    ):
+        """Apply the exact incremental DG reverse."""
+        return self._get_mtswe_dg_hvp_helper().take_incremental_adjoint_step(
+            tangent_cache, lambda_plus_star, mu_plus_star
+        )
+
+    def _get_mtswe_moist_hvp_helper(self):
+        """Return the exact production-form moist Euler helper lazily."""
+        if not hasattr(self, '_mtswe_moist_hvp_helper'):
+            from .mtswe_split_hvp import ProductionMoistEulerHVP
+            self._mtswe_moist_hvp_helper = ProductionMoistEulerHVP(self)
+        return self._mtswe_moist_hvp_helper
+
+    def take_moist_forward_step_cached(self, xn, tn, dt):
+        """Cache one deployed moist-physics Euler child."""
+        return self._get_mtswe_moist_hvp_helper().take_forward_step_cached(
+            xn, tn, dt
+        )
+
+    def take_moist_tangent_step(self, primal_cache, delta_xn):
+        """Propagate a direction on a fixed moist active set."""
+        return self._get_mtswe_moist_hvp_helper().take_tangent_step(
+            primal_cache, delta_xn
+        )
+
+    def take_moist_adjoint_step_cached(self, primal_cache, lambda_plus_star):
+        """Apply the genuine-dual reverse of moist Euler."""
+        return self._get_mtswe_moist_hvp_helper().take_adjoint_step_cached(
+            primal_cache, lambda_plus_star
+        )
+
+    def take_moist_incremental_adjoint_step(
+        self, tangent_cache, lambda_plus_star, mu_plus_star
+    ):
+        """Apply the exact fixed-active-set incremental moist reverse."""
+        return self._get_mtswe_moist_hvp_helper().take_incremental_adjoint_step(
+            tangent_cache, lambda_plus_star, mu_plus_star
+        )
+
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF
     def take_forward_step(self, xnp1, xnp1_sub, xn, tn, dt):
         self.t.assign(tn)
@@ -754,6 +820,87 @@ class LieSplittingIntegrator():
     ):
         """Return the exact physical-c0/IC reduced Hessian action."""
         return self._get_dry_lie_hvp_helper().terminal_least_squares_hvp(
+            nsteps,
+            state_initial,
+            t0,
+            dt,
+            target,
+            delta_x0,
+            delta_c0,
+        )
+
+    def _get_mtswe_split_hvp_helper(self):
+        """Return the certified six-child MTSWE split helper lazily."""
+        if not hasattr(self, '_mtswe_split_hvp_helper'):
+            from .mtswe_split_hvp import ProductionMTSWESplitHVP
+            self._mtswe_split_hvp_helper = ProductionMTSWESplitHVP(self)
+        return self._mtswe_split_hvp_helper
+
+    def take_mtswe_forward_step_cached(self, xn, tn, dt):
+        """Cache the exact expanded six-child production MTSWE step."""
+        return self._get_mtswe_split_hvp_helper().take_forward_step_cached(
+            xn, tn, dt
+        )
+
+    def take_mtswe_tangent_step(self, primal_cache, delta_x_in, delta_c0):
+        """Propagate physical-c0, IC, or combined MTSWE directions."""
+        return self._get_mtswe_split_hvp_helper().take_tangent_step(
+            primal_cache, delta_x_in, delta_c0
+        )
+
+    def take_mtswe_adjoint_step_cached(
+        self, primal_cache, lambda_plus_star
+    ):
+        """Reverse one complete MTSWE step in exact child order."""
+        return self._get_mtswe_split_hvp_helper().take_adjoint_step_cached(
+            primal_cache, lambda_plus_star
+        )
+
+    def take_mtswe_incremental_adjoint_step(
+        self, tangent_cache, lambda_plus_star, mu_plus_star
+    ):
+        """Apply the exact complete-step incremental reverse."""
+        return self._get_mtswe_split_hvp_helper().take_incremental_adjoint_step(
+            tangent_cache, lambda_plus_star, mu_plus_star
+        )
+
+    def mtswe_state_mass_map(self, value):
+        """Apply the full six-field mixed L2 mass map."""
+        return self._get_mtswe_split_hvp_helper().state_mass_map(value)
+
+    def mtswe_state_riesz_representative(self, dual):
+        """Return an explicit full-state L2 Riesz representative."""
+        return self._get_mtswe_split_hvp_helper().state_riesz_representative(
+            dual
+        )
+
+    def mtswe_dual_pairing(self, dual, primal):
+        """Evaluate the natural full-state dual/primal pairing."""
+        return self._get_mtswe_split_hvp_helper().dual_pairing(dual, primal)
+
+    def mtswe_terminal_least_squares_gradient(
+        self, nsteps, state_initial, t0, dt, target
+    ):
+        """Return physical-c0 and Cofunction IC reduced gradients."""
+        return (
+            self._get_mtswe_split_hvp_helper()
+            .terminal_least_squares_gradient(
+                nsteps, state_initial, t0, dt, target
+            )
+        )
+
+    def mtswe_terminal_least_squares_hvp(
+        self,
+        nsteps,
+        state_initial,
+        t0,
+        dt,
+        target,
+        delta_x0,
+        delta_c0,
+    ):
+        """Return the physical-c0/full-IC reduced Hessian action."""
+        return self._get_mtswe_split_hvp_helper().terminal_least_squares_hvp(
             nsteps,
             state_initial,
             t0,
