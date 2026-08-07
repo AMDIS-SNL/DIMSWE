@@ -9,6 +9,7 @@ dimswe/analyze_resolved_hidden_c0.py
 dimswe/resolved_hidden_c0_inference.py
 dimswe/hyperviscosity_stability.py
 dimswe/selected_test1b.py
+dimswe/test1b_gate4.py
 dimswe/configs/test1b_selected_plan.json
 docs/LEARNED_PHYSICS_EXPERIMENTS.md
 docs/RESOLVED_HIDDEN_C0.md
@@ -21,6 +22,7 @@ tests/test_resolved_hidden_c0_prep.py
 tests/test_hyperviscosity_stability.py
 tests/test_selected_test1b_plan.py
 tests/test_cached_accumulated_objective.py
+tests/test_test1b_gate4.py
 
 J4B-PREP records the selected Test 1B intent and supporting evidence, but
 contains no generated production truth, objective landscape, fitted parameter,
