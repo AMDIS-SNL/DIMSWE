@@ -152,6 +152,35 @@ def _normalize_tolerances(name, values):
     return result
 
 
+def _selected_moist_active_set(parent_cache, timestep):
+    """Use production GLL switches for JAX and legacy switches for UFL."""
+    matches = tuple(
+        child for child in parent_cache.children if child.name == "moist_euler"
+    )
+    if len(matches) != 1:
+        raise RuntimeError(
+            f"MTSWE timestep {timestep} does not contain one moist_euler cache"
+        )
+    cache = matches[0].cache
+    if hasattr(cache, "gll_active_set"):
+        return cache.gll_active_set
+    if hasattr(cache, "active_set"):
+        return cache.active_set
+    raise RuntimeError(
+        f"MTSWE timestep {timestep} moist cache has no active-set diagnostic"
+    )
+
+
+def _active_set_margin(diagnostic, switch):
+    attribute = _MARGIN_ATTRIBUTES[switch]
+    if hasattr(diagnostic, attribute):
+        return float(getattr(diagnostic, attribute))
+    margins = getattr(diagnostic, "margins", None)
+    if margins is not None and attribute in margins:
+        return float(margins[attribute])
+    raise RuntimeError(f"moist active-set diagnostic has no {attribute}")
+
+
 class ProductionMTSWEScalarC0Objective(Objective):
     """PyROL objective for normalized scalar ``c0`` on the certified MTSWE map.
 
@@ -399,16 +428,7 @@ class ProductionMTSWEScalarC0Objective(Objective):
 
     @staticmethod
     def _moist_active_set(parent_cache, timestep):
-        matches = tuple(
-            child
-            for child in parent_cache.children
-            if child.name == "moist_euler"
-        )
-        if len(matches) != 1:
-            raise RuntimeError(
-                f"MTSWE timestep {timestep} does not contain one moist_euler cache"
-            )
-        return matches[0].cache.active_set
+        return _selected_moist_active_set(parent_cache, timestep)
 
     def _active_set_report(self, result, purpose, tolerances):
         entries = []
@@ -420,7 +440,7 @@ class ProductionMTSWEScalarC0Objective(Objective):
                     f"MTSWE timestep {timestep} has an invalid active signature"
                 )
             for switch in MTSWE_ACTIVE_SET_SWITCHES:
-                margin = float(getattr(diagnostic, _MARGIN_ATTRIBUTES[switch]))
+                margin = _active_set_margin(diagnostic, switch)
                 threshold = float(tolerances[switch])
                 branch_signature = (
                     signature[_SIGNATURE_INDEX[switch]]
@@ -723,16 +743,7 @@ class _ProductionMTSWEStateObjectiveBase(Objective):
 
     @staticmethod
     def _moist_active_set(parent_cache, timestep):
-        matches = tuple(
-            child
-            for child in parent_cache.children
-            if child.name == "moist_euler"
-        )
-        if len(matches) != 1:
-            raise RuntimeError(
-                f"MTSWE timestep {timestep} does not contain one moist_euler cache"
-            )
-        return matches[0].cache.active_set
+        return _selected_moist_active_set(parent_cache, timestep)
 
     def _active_set_report(self, result, purpose, tolerances):
         entries = []
@@ -744,7 +755,7 @@ class _ProductionMTSWEStateObjectiveBase(Objective):
                     f"MTSWE timestep {timestep} has an invalid active signature"
                 )
             for switch in MTSWE_ACTIVE_SET_SWITCHES:
-                margin = float(getattr(diagnostic, _MARGIN_ATTRIBUTES[switch]))
+                margin = _active_set_margin(diagnostic, switch)
                 threshold = float(tolerances[switch])
                 branch_signature = (
                     signature[_SIGNATURE_INDEX[switch]]

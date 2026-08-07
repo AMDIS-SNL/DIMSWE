@@ -9,7 +9,9 @@ class DummySolver():
     def solve(self):
         pass
 
-def get_time_integrator(name, parameters, solver_parameters):
+def get_time_integrator(
+    name, parameters, solver_parameters, *, moist_backend="ufl"
+):
     if name == 'RK4':
         return RK4
     elif name == 'Euler':
@@ -23,12 +25,30 @@ def get_time_integrator(name, parameters, solver_parameters):
         termlist = parameters['timestepping']['termlist']
         subcycle_list = parameters['timestepping']['subcycle_list']
 
-        return lambda model, logger, coeffs: LieSplittingIntegrator(model, logger, timestepper_list, termlist, subcycle_list, solver_parameters)
+        return lambda model, logger, coeffs: LieSplittingIntegrator(
+            model,
+            logger,
+            timestepper_list,
+            termlist,
+            subcycle_list,
+            solver_parameters,
+            moist_backend=moist_backend,
+        )
     else:
         raise ValueError("time step method " + name + " is unknown")
 
-def get_timestepper(parameters, model, logger, solver_parameters):
-    return get_time_integrator(parameters['timestepping']['method'], parameters, solver_parameters)(model, logger, solver_parameters)
+def get_timestepper(
+    parameters, model, logger, solver_parameters, *, moist_backend="ufl"
+):
+    from .moist_backend import validate_moist_backend
+
+    backend = validate_moist_backend(moist_backend)
+    return get_time_integrator(
+        parameters['timestepping']['method'],
+        parameters,
+        solver_parameters,
+        moist_backend=backend,
+    )(model, logger, solver_parameters)
 
 
 def create_linear_solver_from_residual(residual, var, trialvar, constant_jacobian=False, solver_parameters={}, options_prefix=''):
@@ -723,7 +743,24 @@ class SOMEIMPLICITRK(GeneralRK):
 
 
 class LieSplittingIntegrator():
-    def __init__(self, model, logger, timestepper_list, termlist, subcycle_list, solver_parameters):
+    def __init__(
+        self,
+        model,
+        logger,
+        timestepper_list,
+        termlist,
+        subcycle_list,
+        solver_parameters,
+        *,
+        moist_backend="ufl",
+    ):
+
+        from .moist_backend import (
+            build_moist_integrator,
+            validate_moist_backend,
+        )
+
+        self.moist_backend = validate_moist_backend(moist_backend)
 
         self.subcycle_list = subcycle_list
         self.timestepper_list = timestepper_list
@@ -734,6 +771,27 @@ class LieSplittingIntegrator():
         for i,time_integrator_name in enumerate(timestepper_list):
             time_integrator = get_time_integrator(time_integrator_name, None, solver_parameters)
             self.time_integrators.append(time_integrator(model, logger, solver_parameters, terms=termlist[i]))
+
+        if self.moist_backend == "jax":
+            deployed_graph = (
+                list(timestepper_list) == ["RK4", "Euler", "SSPRK43", "Euler"]
+                and list(termlist) == [
+                    ["model"],
+                    ["hyperviscosity"],
+                    ["dg1limiter"],
+                    ["threewayphysics"],
+                ]
+                and list(subcycle_list) == [2, 1, 2, 1]
+            )
+            if not deployed_graph:
+                raise ValueError(
+                    "moist_backend='jax' is available only for the deployed "
+                    "[RK4,Euler,SSPRK43,Euler] MTSWE split with "
+                    "subcycles [2,1,2,1]"
+                )
+            self.time_integrators[-1] = build_moist_integrator(
+                self.time_integrators[-1], self.moist_backend
+            )
 
         self.lambda_k, self.lambda_sub, self.lambda_split = model.get_x_var('lambda_k')
         self.delta_lambda, _, _ = model.get_x_var('delta_lambda')

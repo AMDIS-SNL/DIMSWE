@@ -39,6 +39,7 @@ from .hyperviscosity_hvp import (
     _normalize_derivative_form,
 )
 from .physics import qsat
+from .moist_backend import validate_moist_backend
 
 
 _MTSWE_FIELDS = ("v", "h", "S", "Qv", "Qc", "Qr")
@@ -717,7 +718,17 @@ class ProductionMTSWESplitHVP:
         self.dry_helper = ProductionMTSWEDryRK4HVP(self.dry_child)
         self.hyper_helper = self.hyper_child._get_hyperviscosity_hvp_helper()
         self.dg_helper = ProductionDGSSPRK43HVP(self.dg_child)
-        self.moist_helper = ProductionMoistEulerHVP(self.moist_child)
+        self.moist_backend = validate_moist_backend(
+            getattr(timestepper, "moist_backend", "ufl")
+        )
+        if self.moist_backend == "ufl":
+            self.moist_helper = ProductionMoistEulerHVP(self.moist_child)
+        else:
+            from .jax_moist_hvp import JAXMoistEulerHVP
+
+            self.moist_helper = JAXMoistEulerHVP(
+                self.moist_child.ufl_oracle
+            )
         self.state_space = self.dry_helper.state_space
         self.state_dual_space = self.dry_helper.state_dual_space
 
@@ -741,6 +752,19 @@ class ProductionMTSWESplitHVP:
         children = getattr(self.timestepper, "time_integrators", ())
         if len(children) != 4:
             raise ValueError("MTSWE HVP requires four production integrator objects")
+        backend = validate_moist_backend(
+            getattr(self.timestepper, "moist_backend", "ufl")
+        )
+        moist_child = children[-1]
+        if backend == "ufl" and moist_child.__class__.__name__ != "Euler":
+            raise ValueError("UFL primal requires the production moist Euler")
+        if backend == "jax":
+            from .moist_backend import JAXMoistEulerIntegrator
+
+            if not isinstance(moist_child, JAXMoistEulerIntegrator):
+                raise ValueError(
+                    "JAX primal requires the matching JAX moist derivative"
+                )
         model = children[0].model
         if tuple(model.get_x_var_list()) != _MTSWE_FIELDS:
             raise ValueError("MTSWE HVP requires [v,h,S,Qv,Qc,Qr]")
@@ -938,9 +962,14 @@ class ProductionMTSWESplitHVP:
             return self.dg_helper.take_adjoint_step_cached(
                 child.cache, lambda_plus_star
             )
-        return self.moist_helper.take_adjoint_step_cached(
+        result = self.moist_helper.take_adjoint_step_cached(
             child.cache, lambda_plus_star
         )
+        if self.moist_backend == "jax":
+            from .moist_backend import wrap_jax_moist_reverse
+
+            return wrap_jax_moist_reverse(result)
+        return result
 
     def take_adjoint_step_cached(self, primal, lambda_plus_star):
         if not isinstance(primal, MTSWESplitPrimalCache):
@@ -983,9 +1012,14 @@ class ProductionMTSWESplitHVP:
             return self.dg_helper.take_incremental_adjoint_step(
                 child.cache, lambda_plus_star, mu_plus_star
             )
-        return self.moist_helper.take_incremental_adjoint_step(
+        result = self.moist_helper.take_incremental_adjoint_step(
             child.cache, lambda_plus_star, mu_plus_star
         )
+        if self.moist_backend == "jax":
+            from .moist_backend import wrap_jax_moist_hvp
+
+            return wrap_jax_moist_hvp(result)
+        return result
 
     def take_incremental_adjoint_step(
         self, tangent, lambda_plus_star, mu_plus_star
@@ -1040,7 +1074,22 @@ class ProductionMTSWESplitHVP:
         )
 
     def production_graph_diagnostics(self):
+        if self.moist_backend == "ufl":
+            moist_identity = self.moist_helper.form_identity_diagnostics()
+        else:
+            moist_identity = {
+                "backend": "jax",
+                "primal_helper": "JAXMoistEulerPrimal",
+                "derivative_helper": "JAXMoistEulerHVP",
+                "certified_chain": "I + dt M^-1 A J_f P",
+                "ufl_oracle_class": (
+                    self.moist_child.ufl_oracle.__class__.__name__
+                ),
+                "reverse_stage_order": (0,),
+                "direct_c0_dependency": False,
+            }
         return {
+            "moist_backend": self.moist_backend,
             "timestepper_list": tuple(self.timestepper.timestepper_list),
             "termlist": tuple(tuple(terms) for terms in self.timestepper.termlist),
             "subcycle_list": tuple(self.timestepper.subcycle_list),
@@ -1054,7 +1103,7 @@ class ProductionMTSWESplitHVP:
             "coefficient_order": tuple(self.model.get_coeff_list()),
             "dry_form_identities": self.dry_helper.stage_form_identity_diagnostics(),
             "dg_form_identities": self.dg_helper.stage_form_identity_diagnostics(),
-            "moist_form_identity": self.moist_helper.form_identity_diagnostics(),
+            "moist_form_identity": moist_identity,
         }
 
     def _forward_trajectory(self, nsteps, state_initial, t0, dt):
