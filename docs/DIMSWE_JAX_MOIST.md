@@ -1,6 +1,6 @@
-# DIMSWE exact JAX moist primal boundary
+# DIMSWE exact JAX moist primal and derivative boundary
 
-Status: **J1 COMPLETE — EXTERNALLY CERTIFIED, SERIAL CPU ONLY.**
+Status: **J1/J2 COMPLETE — EXTERNALLY CERTIFIED, SERIAL CPU ONLY.**
 
 This document describes the opt-in JAX replica of the deployed moist Euler
 child.  The existing UFL `ThreeWayPhysics` term remains unchanged, independent,
@@ -9,7 +9,7 @@ backend switch.
 
 ## Scope
 
-J1 implements only
+J1 implements
 
 ```text
 mixed Firedrake state
@@ -20,9 +20,10 @@ mixed Firedrake state
   -> explicit Euler state update
 ```
 
-It does not implement JAX JVPs, VJPs, differentiated VJPs, HVP integration,
-PyROL integration, a neural network, checkpointing, MPI certification, or
-accelerator certification.
+J2 adds an opt-in, independent derivative helper for this one moist Euler
+child.  It does not add the backend to the six-child split, PyROL integration,
+a neural network, checkpointing, MPI certification, or accelerator
+certification.
 
 The new modules are optional.  `dimswe.__init__` does not import them, so an
 ordinary `import dimswe` does not acquire a JAX dependency.
@@ -176,7 +177,183 @@ whereas the new diagnostic additionally records every actual source-evaluation
 GLL point.  Tests demonstrate that these grids have different cardinalities
 and margins.
 
-## Authoritative external certification
+## J2 exact derivative chain
+
+J2 differentiates the unchanged J1 map
+
+```text
+Y(x) = x + applied_dt * M^-1 A f(Px),
+```
+
+where `P` is the exact J1 broken-CG3/GLL interpolation and packing, `f` is the
+unchanged four-channel local source, `A` is the exact J1 weak assembly, and `M`
+is the complete mixed mass operator.  No nominal replacement for any of these
+operators is introduced.
+
+The certified forward chain is explicitly
+
+```text
+x
+  --P--> exact broken-GLL q
+  --JAX f--> source density
+  --A--> mixed source Cofunction
+  --M^-1--> tendency
+  --> applied Euler update.
+```
+
+`dimswe.jax_moist_derivatives` is Firedrake-free and exposes:
+
+- `moist_source_jvp` and `moist_source_jvp_jit`, implemented with `jax.jvp`;
+- `moist_source_vjp` and `moist_source_vjp_jit`, implemented with `jax.vjp`;
+- `moist_source_differentiated_vjp` and its jitted wrapper, implemented by
+  applying `jax.jvp` to a VJP map whose active arguments are both local state
+  and output covector.
+
+The differentiated VJP returns exactly
+
+```text
+J(q)^T dbar_source + D[J(q)^T bar_source][dq].
+```
+
+Production code forms no dense Jacobian or Hessian and defines no custom JVP
+or VJP.  Pullback closures are consumed inside a call and are not retained in
+public caches.
+
+## Exact transposes around JAX
+
+`P*` uses the adjoint-interpolation API in the installed Firedrake version:
+
+```python
+assemble(interpolate(TestFunction(source_space), carrier_cofunction))
+```
+
+The packed Euclidean covector is first placed in the algebraic dual of the
+same broken carrier with the copied J1 `cell_node_map`.  Firedrake then applies
+the transpose of its nodal interpolation into each original CG3 or DG1 state
+space.  The four results are installed in a genuine mixed `Cofunction`; the
+velocity and `Qr` input blocks are structural zeros.  Point assignment into a
+mixed primal space is not used as an approximation to `P*`.
+
+`A*` is assembled as four carrier-dual weak forms,
+
+```text
+integral(carrier_test * psi_channel) * production_dx,
+```
+
+using the same vanilla form-compiler mode required by J1.  Packing those
+carrier `Cofunction` coefficients with the same cell/GLL map includes the GLL
+weights, cell geometry, field test functions, carrier ordering, and all four
+source channels.  Independent multi-cell tests directly check both transpose
+pairings to near roundoff before any reverse-oracle comparison.
+
+The reverse remains dual-native.  An incoming mixed `Cofunction` is scaled by
+`applied_dt`, the same complete mixed mass system solves for the primal
+auxiliary `psi`, and `A*`, the JAX VJP, and `P*` are applied in that order.  No
+Riesz conversion occurs between the child boundary and source reverse.  The
+incremental reverse repeats the mass solve for the incoming incremental
+adjoint and uses the differentiated VJP for the ordinary-transpose plus local
+state-Hessian contributions.
+
+```text
+incoming mixed Cofunction
+  --M^-*--> primal reverse auxiliary
+  --A*--> packed source covector
+  --JAX VJP--> packed state covector
+  --P*--> mixed Cofunction.
+```
+
+For incremental reverse, the JAX differentiated VJP supplies
+
+```text
+delta_bar_q =
+    J(q)^T delta_bar_source
+    + D[J(q)^T bar_source][dq],
+
+mu_x = mu_plus + P* delta_bar_q.
+```
+
+## J2 helper ownership and scope
+
+`dimswe.jax_moist_hvp.JAXMoistEulerHVP` owns cache/result dataclasses for the
+primal, tangent, reverse, and incremental reverse.  Firedrake Functions and
+Cofunctions are deep-copied; packed JAX-facing arrays are copied, C-contiguous,
+and read-only.  Results do not alias helper scratch or inputs.  The J1 primal
+adapter and the UFL `ProductionMoistEulerHVP` remain available and independent.
+
+The full helper intentionally accepts only the existing fixed moist
+parameters.  At the pure local level, state, fields, and parameters remain
+separate pytrees; tiny dense tests demonstrate state-parameter,
+parameter-state, and parameter-parameter second-order blocks as **local
+capability only**.  These blocks are not in the production MTSWE HVP or PyROL
+contract.
+
+The strict J1 `jnp.where` algebra is unchanged.  Classical derivative and HVP
+claims apply only away from switches.  Every finite-difference certification
+requires unchanged legacy DG1 and actual GLL signatures plus scale-separated
+GLL margins.  Equality cases record JAX's selected AD result but do not claim a
+classical derivative, HVP, or Hessian symmetry.  A dedicated construction
+shows a GLL switch pattern that legacy DG1 sampling alone misses.
+
+J2 certification is serial CPU only.  J3 complete-split integration, neural
+closure, neural parameters in PyROL, MPI, accelerators, and checkpointing are
+explicitly excluded.
+
+## Authoritative J2 external certification
+
+The externally executed J2 sequence reported:
+
+```text
+P/P* and A/A* operator transpose tests:
+  2 passed, 38 warnings in 45.01s
+
+Tangent:
+  3 passed, 147 warnings in 57.07s
+
+Reverse:
+  2 passed, 56 warnings in 58.10s
+
+Incremental reverse / HVP:
+  3 passed, 83 warnings in 66.65s
+
+Complete J2 derivative file:
+  34 passed, 236 warnings in 88.08s
+
+J1 primal regression:
+  36 passed, 223 warnings in 50.60s
+
+Accepted production MTSWE HVP regression:
+  22 passed, 29690 warnings in 929.70s
+
+Complete repository:
+  249 passed, 1 skipped, 1 xfailed,
+  60885 warnings in 1808.49s
+```
+
+No `FAILED` or `ERROR` section occurred.  The independently reported operator
+pairings were:
+
+```text
+operator  left                    right                   abs error       rel error
+P/P*      1.3227015709416408      1.32270157094164        6.661338e-16   5.036162e-16
+A/A*      1.3846557112240454e12   1.3846557112240452e12   2.441406e-4    1.763186e-16
+```
+
+The nonzero absolute `A/A*` difference is at a `1.38e12` pairing scale; its
+relative error is approximately machine precision.  Representative tangent
+absolute/relative discrepancies were
+
+```text
+(1.936112702526155e-11,  7.024880901761053e-16)
+(7.4113962232369e-10,    1.7814008610261646e-16)
+(1.4439336762522103e-11, 7.484409421059483e-16)
+(5.686947199638788e-10,  1.9527326243649433e-16)
+```
+
+Representative reverse relative discrepancies were approximately `4.98e-16`;
+incremental-reverse/HVP relative discrepancies ranged from approximately
+`4.76e-16` to `6.01e-16`.
+
+## Authoritative J1 external certification
 
 The externally executed J1 sequence and complete repository suite reported:
 
@@ -245,6 +422,7 @@ chain while preserving its separate numerical layers: pure local JAX algebra,
 exact broken-CG3/GLL carrier, weak source assembly, complete mixed mass solve,
 and final Euler update.
 
-It does not imply MPI, GPU/TPU, JAX derivative, neural-closure, split runtime
-backend-integration, or checkpointing support.  No derivative or neural
-certification follows from the primal tests.
+J2 separately certifies the isolated child's JAX tangent, reverse, and
+incremental reverse on serial CPU.  It does not imply MPI, GPU/TPU,
+complete-split J3 backend integration, neural closure, neural parameters in
+PyROL, or checkpointing support.
