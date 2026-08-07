@@ -1,0 +1,30 @@
+J4B-PREP / Test 1B-0 and Test 1B preparation manifest
+=====================================================
+
+dimswe/configs/resolved_hidden_c0_pilot.cfg
+dimswe/cached_accumulated_objective.py
+dimswe/resolved_hidden_c0.py
+dimswe/resolved_hidden_c0_driver.py
+dimswe/analyze_resolved_hidden_c0.py
+dimswe/resolved_hidden_c0_inference.py
+dimswe/hyperviscosity_stability.py
+dimswe/selected_test1b.py
+dimswe/configs/test1b_selected_plan.json
+docs/LEARNED_PHYSICS_EXPERIMENTS.md
+docs/RESOLVED_HIDDEN_C0.md
+docs/TEST1B_SELECTED_EXECUTION.md
+docs/audits/2026-08-07-resolved-hidden-c0-preparation.md
+docs/audits/2026-08-07-hyperviscosity-euler-stability.md
+docs/audits/2026-08-07-test1b-selection.md
+docs/manifests/J4B_PREP_FILES.txt
+tests/test_resolved_hidden_c0_prep.py
+tests/test_hyperviscosity_stability.py
+tests/test_selected_test1b_plan.py
+tests/test_cached_accumulated_objective.py
+
+J4B-PREP records the selected Test 1B intent and supporting evidence, but
+contains no generated production truth, objective landscape, fitted parameter,
+held-out deployment, or new resolved-flow output.  Its canonical coverage
+contract is reset windows `0,5,...,75` of length/stride five versus an 80-step
+rollout; both use targets 1 through 80 exactly once.  This manifest contains
+no committed J4A/Test-1A file.
