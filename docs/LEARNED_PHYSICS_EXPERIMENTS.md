@@ -169,6 +169,15 @@ explicit objective-plus-gradient and objective-plus-gradient-plus-Hessian
 levels.  Gate 3 remains the actual parameter-learning stage and continues to
 use the exact cached gradient and HVP machinery.
 
+Gate 3 recovered c0=0.14 to reported precision under all four objectives.
+Post-fit Gate 4 is therefore a deterministic workflow certification: each
+successful fit supplies its own recovered c0, trusted state 80 is the sole
+held-out initializer, and the full six-field model evolves autonomously for 80
+steps before comparison with truth states 81 through 160.  The gate reports
+per-time mixed/fieldwise mass errors and energy/enstrophy mismatches with
+explicit zero-reference handling.  It is not framed as difficult
+extrapolation or machine-learning generalization.
+
 ## Test 1A: hidden-c0 plumbing/integration benchmark
 
 ### Exact production configuration and truth
@@ -313,13 +322,25 @@ moving the exact minimum.
 All modes use the same deterministic scalar optimizer in normalized z.
 Physical optimizer bounds are `[0.01,0.30]` (inside the production
 `[0.01,2.0]` bounds), the budget is eight Newton iterates and six line-search
-trials, gradient tolerance is `1e-9`, step tolerance `1e-11`, and minimum
-accepted positive curvature `1e-12`.  A positive exact HVP supplies the Newton
-step; otherwise a positive secant or deterministic bounded gradient fallback
-is used.  Proposals are clipped to the bounds and backtracking halves the step
-until the objective strictly decreases.  Success requires the gradient
-tolerance—not merely objective reduction.  Stagnation, line-search failure,
-nonfinite values, and iteration limit have distinct termination reasons.
+trials.  All stopping and safeguard tolerances are dimensionless: the gradient
+must decrease by `1e-9` relative to its initial nonzero magnitude, a parameter
+step is small at `1e-11` relative to `max(1,abs(z))`, and positive curvature is
+screened at `1e-12` relative to the first nonzero curvature magnitude.  An
+exactly zero initial gradient is handled separately.  A positive exact HVP
+supplies the Newton step; otherwise a positive secant or deterministic bounded
+gradient fallback is used.  Negative curvature is rejected by sign regardless
+of magnitude.  Proposals are clipped to the bounds and backtracking uses the
+scale-homogeneous Armijo condition with constant `1e-4`.  Success may follow
+relative gradient reduction, a small relative parameter step, or the scalar
+projected-gradient condition at a bound—not merely objective reduction.
+Line-search failure, nonfinite values, and iteration limit have distinct
+termination reasons.
+
+Multiplying any objective, gradient, and Hessian consistently by `alpha>0`
+therefore leaves Newton directions, safeguards, accepted iterates, stopping
+decisions, and termination reasons unchanged up to floating-point roundoff.
+Absolute objective and gradient histories remain useful reported quantities,
+but they do not control convergence.
 
 One local, cold-cache-aware three-step smoke run produced:
 

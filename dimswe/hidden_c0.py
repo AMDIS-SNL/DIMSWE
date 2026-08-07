@@ -824,7 +824,15 @@ def prepare_hidden_c0_objectives(
 
 @dataclass(frozen=True)
 class ScalarOptimizerConfiguration:
-    """Common deterministic bounded-Newton budget for every c0 mode."""
+    """Common scale-invariant bounded-Newton budget for every c0 mode.
+
+    The three tolerances are dimensionless.  ``gradient_tolerance`` bounds
+    reduction relative to the initial nonzero gradient,
+    ``minimum_curvature`` bounds positive curvature relative to the first
+    nonzero curvature seen, and ``step_tolerance`` bounds a parameter step
+    relative to ``max(1, abs(z))``.  Retaining the established field names
+    avoids changing serialized Test-1A/Test-1B optimizer configurations.
+    """
 
     physical_lower: float = 0.01
     physical_upper: float = 0.30
@@ -833,6 +841,7 @@ class ScalarOptimizerConfiguration:
     gradient_tolerance: float = 1.0e-9
     step_tolerance: float = 1.0e-11
     minimum_curvature: float = 1.0e-12
+    armijo_constant: float = 1.0e-4
     use_hvp: bool = True
 
     def __post_init__(self):
@@ -842,9 +851,20 @@ class ScalarOptimizerConfiguration:
             raise ValueError("physical optimizer bounds are empty")
         _positive_integer("max_iterations", self.max_iterations)
         _positive_integer("max_line_search_steps", self.max_line_search_steps)
-        _finite_float("gradient_tolerance", self.gradient_tolerance, positive=True)
-        _finite_float("step_tolerance", self.step_tolerance, positive=True)
-        _finite_float("minimum_curvature", self.minimum_curvature, positive=True)
+        dimensionless_tolerances = {
+            "gradient_tolerance": self.gradient_tolerance,
+            "step_tolerance": self.step_tolerance,
+            "minimum_curvature": self.minimum_curvature,
+        }
+        for name, value in dimensionless_tolerances.items():
+            tolerance = _finite_float(name, value, positive=True)
+            if tolerance >= 1.0:
+                raise ValueError(f"{name} must be less than one")
+        armijo = _finite_float(
+            "armijo_constant", self.armijo_constant, positive=True
+        )
+        if armijo >= 1.0:
+            raise ValueError("armijo_constant must be less than one")
 
 
 @dataclass(frozen=True)
@@ -861,7 +881,38 @@ class ScalarOptimizationResult:
     counts: ObjectiveCounts
     wall_time_seconds: float
     success: bool
+    termination_reason: str
     failure_reason: str | None
+
+
+def _relative_gradient_converged(gradient, reference, tolerance):
+    """Return a positive-objective-scale-invariant gradient decision."""
+    magnitude = abs(float(gradient))
+    if reference == 0.0:
+        return magnitude == 0.0
+    return magnitude / reference <= tolerance
+
+
+def _bound_stationary(z, gradient, lower, upper):
+    """Apply the scalar first-order bound condition without a scale."""
+    return bool(
+        (z <= lower and gradient > 0.0)
+        or (z >= upper and gradient < 0.0)
+    )
+
+
+def _positive_curvature(candidate, reference, relative_tolerance):
+    """Accept positive curvature by a homogeneous relative-magnitude test."""
+    if not np.isfinite(candidate):
+        return None, reference
+    value = float(candidate)
+    if reference is None and value != 0.0:
+        reference = abs(value)
+    if value <= 0.0 or reference is None:
+        return None, reference
+    if value / reference <= relative_tolerance:
+        return None, reference
+    return value, reference
 
 
 def optimize_hidden_c0(
@@ -869,7 +920,7 @@ def optimize_hidden_c0(
     initial_c0=DEFAULT_INITIAL_C0,
     configuration=ScalarOptimizerConfiguration(),
 ):
-    """Fit normalized c0 with exact gradients and safeguarded HVP steps."""
+    """Fit normalized c0 with scale-invariant safeguarded Newton steps."""
     if not isinstance(configuration, ScalarOptimizerConfiguration):
         raise TypeError("configuration must be ScalarOptimizerConfiguration")
     initial = _finite_float("initial_c0", initial_c0, positive=True)
@@ -882,6 +933,9 @@ def optimize_hidden_c0(
     iterates = []
     success = False
     failure_reason = None
+    termination_reason = None
+    initial_gradient_norm = None
+    curvature_reference = None
     started = perf_counter()
 
     previous_z = None
@@ -894,23 +948,43 @@ def optimize_hidden_c0(
         objective_history.append(float(value))
         gradient_norms.append(abs(float(gradient)))
         iterates.append(float(z))
-        if abs(gradient) <= configuration.gradient_tolerance:
+        if initial_gradient_norm is None:
+            initial_gradient_norm = abs(float(gradient))
+        if _relative_gradient_converged(
+            gradient,
+            initial_gradient_norm,
+            configuration.gradient_tolerance,
+        ):
             success = True
+            termination_reason = (
+                "initial gradient is exactly zero"
+                if initial_gradient_norm == 0.0
+                else "relative gradient tolerance satisfied"
+            )
+            break
+        if _bound_stationary(z, gradient, lower, upper):
+            success = True
+            termination_reason = "projected gradient satisfies bound constraint"
             break
 
         curvature = None
         if configuration.use_hvp:
             candidate_curvature = objective.hess_vec(z, 1.0)
-            if np.isfinite(candidate_curvature) and (
-                candidate_curvature > configuration.minimum_curvature
-            ):
-                curvature = float(candidate_curvature)
+            curvature, curvature_reference = _positive_curvature(
+                candidate_curvature,
+                curvature_reference,
+                configuration.minimum_curvature,
+            )
         if curvature is None and previous_z is not None:
             dz = z - previous_z
-            if abs(dz) > configuration.step_tolerance:
+            relative_dz = abs(dz) / max(1.0, abs(previous_z))
+            if relative_dz > configuration.step_tolerance:
                 secant = (gradient - previous_gradient) / dz
-                if np.isfinite(secant) and secant > configuration.minimum_curvature:
-                    curvature = float(secant)
+                curvature, curvature_reference = _positive_curvature(
+                    secant,
+                    curvature_reference,
+                    configuration.minimum_curvature,
+                )
         if curvature is None:
             # A bounded gradient step is deterministic and only a fallback for
             # a nonpositive local scalar curvature.
@@ -918,23 +992,34 @@ def optimize_hidden_c0(
         else:
             proposal = z - gradient / curvature
         proposal = float(np.clip(proposal, lower, upper))
-        if abs(proposal - z) <= configuration.step_tolerance:
-            failure_reason = "bounded step stagnated before gradient convergence"
+        relative_step = abs(proposal - z) / max(1.0, abs(z))
+        if relative_step <= configuration.step_tolerance:
+            success = True
+            termination_reason = "relative parameter step tolerance satisfied"
             break
 
         accepted = False
         trial = proposal
         for _ in range(configuration.max_line_search_steps):
             trial_value = objective.value(trial)
-            if np.isfinite(trial_value) and trial_value < value:
+            armijo_bound = value + (
+                configuration.armijo_constant * gradient * (trial - z)
+            )
+            if np.isfinite(trial_value) and trial_value <= armijo_bound:
                 accepted = True
                 break
             trial = 0.5 * (z + trial)
         if not accepted:
             failure_reason = "line search failed to reduce the objective"
+            termination_reason = failure_reason
             break
+        accepted_relative_step = abs(trial - z) / max(1.0, abs(z))
         previous_z, previous_gradient = z, gradient
         z = float(trial)
+        if accepted_relative_step <= configuration.step_tolerance:
+            success = True
+            termination_reason = "relative parameter step tolerance satisfied"
+            break
 
     if not success and failure_reason is None:
         # A last requested gradient makes the iteration-limit result explicit.
@@ -942,9 +1027,33 @@ def optimize_hidden_c0(
         objective_history.append(float(value))
         gradient_norms.append(abs(float(gradient)))
         iterates.append(float(z))
-        success = bool(abs(gradient) <= configuration.gradient_tolerance)
-        if not success:
+        if not np.isfinite(value) or not np.isfinite(gradient):
+            failure_reason = "nonfinite objective or gradient"
+            termination_reason = failure_reason
+        else:
+            if initial_gradient_norm is None:
+                initial_gradient_norm = abs(float(gradient))
+            success = _relative_gradient_converged(
+                gradient,
+                initial_gradient_norm,
+                configuration.gradient_tolerance,
+            )
+            if success:
+                termination_reason = (
+                    "initial gradient is exactly zero"
+                    if initial_gradient_norm == 0.0
+                    else "relative gradient tolerance satisfied"
+                )
+            elif _bound_stationary(z, gradient, lower, upper):
+                success = True
+                termination_reason = (
+                    "projected gradient satisfies bound constraint"
+                )
+        if not success and failure_reason is None:
             failure_reason = "iteration limit reached"
+            termination_reason = failure_reason
+    if termination_reason is None:
+        termination_reason = failure_reason or "optimizer terminated"
     elapsed = perf_counter() - started
     return ScalarOptimizationResult(
         starting_c0=initial,
@@ -957,6 +1066,7 @@ def optimize_hidden_c0(
         counts=objective.counts(),
         wall_time_seconds=float(elapsed),
         success=success,
+        termination_reason=termination_reason,
         failure_reason=failure_reason,
     )
 

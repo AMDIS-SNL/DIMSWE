@@ -518,7 +518,13 @@ removes artificial replay overhead; it does not assert equal optimization
 iterations, memory use, or wall time between modes.
 
 Every fit uses the same deterministic bounded normalized-scalar Newton method
-as Test 1A and retains exact gradient/HVP calls.  Landscape scans have an
+as Test 1A and retains exact gradient/HVP calls.  Its convergence and safeguard
+tests are homogeneous under `J -> alpha J`, `alpha>0`: relative initial-gradient
+reduction, relative normalized-parameter step, relative positive-curvature
+magnitude plus a strict curvature-sign check, scalar bound stationarity, and
+an Armijo line search.  The physical bounds, eight-iteration budget, six-trial
+line-search budget, and `c0=0.07z` map are shared by all four modes.  Landscape
+scans have an
 explicit derivative level: `objective_only`, `objective_gradient`, or
 `objective_gradient_hessian`.  The selected Gate-2 policy is objective-only at
 all nine prescribed c0 values; it records J, finite status, forward work, wall
@@ -539,6 +545,24 @@ one-step, training and held-out trajectory, final, accumulated, and fieldwise
 mass errors; kinetic-energy, high-wavenumber, and hyperviscosity-proxy
 mismatches; finite state; costs; and cross-evaluation under all four objective
 families.
+
+The accepted Gate-3 fits recovered physical c0 values `0.14`, `0.14`,
+`0.13999999999997986`, and `0.13999999999998547` for operator/apriori,
+deployed-discrete, truth-reset, and rollout respectively.  Their accepted
+Newton-step counts were 1, 1, 4, and 5; evaluation counts were `3/2/1`,
+`3/2/1`, `9/5/4`, and `11/6/5` for objective/gradient/HVP.  Truth-reset and
+rollout fit wall times were 1721.56 and 2372.70 seconds.  This was the custom
+DIMSWE safeguarded bounded scalar Newton optimizer, not SciPy and not ROL.
+
+Gate 4 validates each complete successful fit, reads its recovered parameter,
+and starts the held-out production split only from trusted state 80.  Predicted
+states are reused autonomously for 80 steps before comparison with truth
+targets 81 through 160.  It reports per-time mixed and fieldwise mass errors,
+absolute/relative kinetic-energy and projected-enstrophy mismatches, explicit
+zero-reference cases, finite/height/growth status, and numerical-precision
+certification.  Held-out truth was unavailable during fitting.  Passing this
+gate is deterministic end-to-end workflow certification, not an ML
+generalization result.
 
 ## Canonical external execution
 

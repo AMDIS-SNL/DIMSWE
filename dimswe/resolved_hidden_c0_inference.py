@@ -8,6 +8,7 @@ and output cadence.
 from __future__ import annotations
 
 import argparse
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 import json
 from pathlib import Path
@@ -30,7 +31,6 @@ from .hidden_c0 import (
     _advance,
     _baseline_normalizer,
     _copy_function,
-    _field_relative_errors,
     _flat_values,
     _state_relative_error,
     _state_squared_difference,
@@ -60,6 +60,10 @@ from .resolved_hidden_c0_driver import (
     build_resolved_hidden_c0_case,
 )
 from .selected_test1b import load_selected_test1b_plan
+
+
+GATE4_RELATIVE_ERROR_TOLERANCE = 1.0e-10
+GATE4_RELATIVE_C0_TOLERANCE = 1.0e-12
 
 
 @dataclass(frozen=True)
@@ -402,10 +406,41 @@ def prepare_resolved_hidden_c0_objectives(
     )
 
 
+def _relative_error_record(squared_error, squared_reference):
+    """Represent a relative norm without hiding a zero reference norm."""
+    numerator = float(squared_error)
+    denominator = float(squared_reference)
+    if not np.isfinite(numerator) or not np.isfinite(denominator):
+        raise FloatingPointError("relative-error norm inputs must be finite")
+    if numerator < 0.0 or denominator < 0.0:
+        raise ValueError("relative-error squared norms must be nonnegative")
+    absolute_error = float(np.sqrt(numerator))
+    reference_norm = float(np.sqrt(denominator))
+    reference_zero = denominator == 0.0
+    if reference_zero:
+        relative_error = 0.0 if numerator == 0.0 else None
+    else:
+        relative_error = float(np.sqrt(numerator / denominator))
+    return {
+        "absolute_error": absolute_error,
+        "reference_norm": reference_norm,
+        "relative_error": relative_error,
+        "reference_norm_zero": reference_zero,
+        "relative_error_defined": relative_error is not None,
+    }
+
+
+def _optional_maximum(values):
+    sequence = tuple(values)
+    if not sequence or any(value is None for value in sequence):
+        return None
+    return float(max(sequence))
+
+
 def _trajectory_metric(case, predicted, truth, steps, name):
     numerators = []
     denominators = []
-    per_step = []
+    records = []
     zero = case.new_state(f"{name}_zero")
     zero.assign(0)
     for step in steps:
@@ -419,18 +454,126 @@ def _trajectory_metric(case, predicted, truth, steps, name):
         )
         numerators.append(numerator)
         denominators.append(denominator)
-        per_step.append(
-            float(np.sqrt(numerator / max(denominator, np.finfo(float).tiny)))
-        )
+        records.append(_relative_error_record(numerator, denominator))
+    relative = tuple(record["relative_error"] for record in records)
+    accumulated = _relative_error_record(sum(numerators), sum(denominators))
+    step_tuple = tuple(int(step) for step in steps)
     return {
-        "per_observation": tuple(per_step),
-        "final": per_step[-1],
-        "accumulated": float(
-            np.sqrt(
-                sum(numerators)
-                / max(sum(denominators), np.finfo(float).tiny)
-            )
+        "steps": step_tuple,
+        "times": tuple(float(case.t0 + step * case.dt) for step in step_tuple),
+        "relative_mass_norm_error": relative,
+        "absolute_mass_norm_error": tuple(
+            record["absolute_error"] for record in records
         ),
+        "reference_mass_norm": tuple(
+            record["reference_norm"] for record in records
+        ),
+        "reference_norm_zero": tuple(
+            record["reference_norm_zero"] for record in records
+        ),
+        "all_relative_errors_defined": all(
+            record["relative_error_defined"] for record in records
+        ),
+        # Retain the established key for consumers of prepared J4B output.
+        "per_observation": relative,
+        "maximum": _optional_maximum(relative),
+        "final": relative[-1],
+        "accumulated": accumulated["relative_error"],
+        "accumulated_record": accumulated,
+    }
+
+
+def _field_squared_norms(case, predicted, target, field_index, name):
+    from firedrake import assemble, inner
+
+    residual = case.new_state(f"{name}_residual")
+    residual.assign(predicted)
+    residual.sub(field_index).assign(
+        predicted.sub(field_index) - target.sub(field_index)
+    )
+    numerator = float(
+        assemble(
+            inner(residual.sub(field_index), residual.sub(field_index))
+            * case.model.spaces.dx
+        )
+    )
+    denominator = float(
+        assemble(
+            inner(target.sub(field_index), target.sub(field_index))
+            * case.model.spaces.dx
+        )
+    )
+    return numerator, denominator
+
+
+def _field_trajectory_metric(case, predicted, truth, steps, name):
+    step_tuple = tuple(int(step) for step in steps)
+    times = tuple(float(case.t0 + step * case.dt) for step in step_tuple)
+    fields = {}
+    for index, field_name in enumerate(STATE_FIELDS):
+        records = []
+        for step in step_tuple:
+            numerator, denominator = _field_squared_norms(
+                case,
+                predicted[step],
+                truth.states[step],
+                index,
+                f"{name}_{field_name}_{step}",
+            )
+            records.append(_relative_error_record(numerator, denominator))
+        relative = tuple(record["relative_error"] for record in records)
+        fields[field_name] = {
+            "steps": step_tuple,
+            "times": times,
+            "relative_mass_norm_error": relative,
+            "reference_norm_zero": tuple(
+                record["reference_norm_zero"] for record in records
+            ),
+            "all_relative_errors_defined": all(
+                record["relative_error_defined"] for record in records
+            ),
+            "maximum": _optional_maximum(relative),
+            "final": relative[-1],
+        }
+    return fields
+
+
+def _diagnostic_mismatch(predicted, truth, steps, times):
+    predicted_values = np.asarray(predicted, dtype=np.float64)
+    truth_values = np.asarray(truth, dtype=np.float64)
+    if predicted_values.shape != truth_values.shape or predicted_values.ndim != 1:
+        raise ValueError("diagnostic histories must be equal one-dimensional arrays")
+    if not np.all(np.isfinite(predicted_values)) or not np.all(
+        np.isfinite(truth_values)
+    ):
+        raise FloatingPointError("diagnostic histories must be finite")
+    absolute = np.abs(predicted_values - truth_values)
+    relative = tuple(
+        _relative_error_record(error * error, reference * reference)[
+            "relative_error"
+        ]
+        for error, reference in zip(absolute, truth_values)
+    )
+    history = _relative_error_record(
+        float(np.dot(predicted_values - truth_values, predicted_values - truth_values)),
+        float(np.dot(truth_values, truth_values)),
+    )
+    return {
+        "steps": tuple(int(step) for step in steps),
+        "times": tuple(float(value) for value in times),
+        "truth": tuple(float(value) for value in truth_values),
+        "predicted": tuple(float(value) for value in predicted_values),
+        "absolute_mismatch": tuple(float(value) for value in absolute),
+        "relative_mismatch": relative,
+        "maximum_absolute_mismatch": float(np.max(absolute)),
+        "final_absolute_mismatch": float(absolute[-1]),
+        "maximum_relative_mismatch": _optional_maximum(relative),
+        "final_relative_mismatch": relative[-1],
+        "all_relative_mismatches_defined": all(
+            value is not None for value in relative
+        ),
+        "relative_history_l2_mismatch": history["relative_error"],
+        "history_reference_norm_zero": history["reference_norm_zero"],
     }
 
 
@@ -515,14 +658,8 @@ def evaluate_resolved_hidden_c0(
     started_work = {
         mode: _objective_work_record(suite[mode]) for mode in TrainingMode
     }
-    training = _autonomous_map(
-        case,
-        trajectory.states[configuration.training_start_step],
-        recovered,
-        configuration.training_start_step,
-        configuration.training_stop_step,
-        "resolved_evaluation_training",
-    )
+    # Construct the held-out prediction before consulting any held-out target.
+    # _advance recursively reuses only its predicted state after trusted X_80.
     heldout = _autonomous_map(
         case,
         trajectory.states[configuration.training_stop_step],
@@ -530,6 +667,14 @@ def evaluate_resolved_hidden_c0(
         configuration.training_stop_step,
         configuration.heldout_stop_step,
         "resolved_evaluation_heldout",
+    )
+    training = _autonomous_map(
+        case,
+        trajectory.states[configuration.training_start_step],
+        recovered,
+        configuration.training_start_step,
+        configuration.training_stop_step,
+        "resolved_evaluation_training",
     )
     training_metric = _trajectory_metric(
         case,
@@ -545,19 +690,19 @@ def evaluate_resolved_hidden_c0(
         configuration.heldout_observation_steps[1:],
         "resolved_heldout",
     )
+    fieldwise = _field_trajectory_metric(
+        case,
+        heldout,
+        trajectory,
+        configuration.heldout_observation_steps[1:],
+        "resolved_evaluation_heldout",
+    )
     first_step = configuration.training_start_step + 1
     one_step = _state_relative_error(
         case,
         training[first_step],
         trajectory.states[first_step],
         "resolved_evaluation_one_step",
-    )
-    final_step = configuration.heldout_stop_step
-    fieldwise = _field_relative_errors(
-        case,
-        heldout[final_step],
-        trajectory.states[final_step],
-        "resolved_evaluation_heldout_final",
     )
     evaluator = ResolvedDiagnosticEvaluator(
         case,
@@ -661,42 +806,112 @@ def evaluate_resolved_hidden_c0(
         value["suspicious_late_time_growth"]
         for value in tuple(predicted_growth.values()) + tuple(truth_growth.values())
     )
-    relative_history = lambda left, right: (
-        np.linalg.norm(left - right)
-        / max(np.linalg.norm(right), np.finfo(float).tiny)
+    kinetic_mismatch = _diagnostic_mismatch(
+        kinetic_prediction,
+        kinetic_truth,
+        diagnostic_steps,
+        diagnostic_times,
     )
-    return {
+    enstrophy_mismatch = _diagnostic_mismatch(
+        enstrophy_prediction,
+        enstrophy_truth,
+        diagnostic_steps,
+        diagnostic_times,
+    )
+    high_mismatch = _diagnostic_mismatch(
+        high_prediction,
+        high_truth,
+        diagnostic_steps,
+        diagnostic_times,
+    )
+    hyper_mismatch = _diagnostic_mismatch(
+        hyper_prediction,
+        hyper_truth,
+        diagnostic_steps,
+        diagnostic_times,
+    )
+    relative_c0_error = abs(recovered - configuration.c0_truth) / abs(
+        configuration.c0_truth
+    )
+    field_maxima = tuple(value["maximum"] for value in fieldwise.values())
+    relative_checks = (
+        heldout_metric["maximum"],
+        kinetic_mismatch["maximum_relative_mismatch"],
+        enstrophy_mismatch["maximum_relative_mismatch"],
+        *field_maxima,
+    )
+    certification_reasons = []
+    if not finite:
+        certification_reasons.append("a deployed state contains nonfinite values")
+    if growth_warning:
+        certification_reasons.append("a late-time growth heuristic issued a warning")
+    if relative_c0_error > GATE4_RELATIVE_C0_TOLERANCE:
+        certification_reasons.append("recovered c0 exceeds the certification tolerance")
+    if any(value is None for value in relative_checks):
+        certification_reasons.append(
+            "at least one required relative error has a zero reference and is undefined"
+        )
+    elif any(
+        value > GATE4_RELATIVE_ERROR_TOLERANCE for value in relative_checks
+    ):
+        certification_reasons.append(
+            "a held-out relative error exceeds the numerical-precision tolerance"
+        )
+    minimum_height = float(
+        min(
+            value["minimum_height_coefficient"]
+            for value in predicted_diagnostics
+        )
+    )
+    if minimum_height <= 0.0:
+        certification_reasons.append("deployed height is not admissible")
+    evaluation = {
         "evaluation_metrics_contract": COMMON_EVALUATION_METRICS,
         "truth_c0": configuration.c0_truth,
         "recovered_c0": recovered,
         "normalized_z": recovered / case.c0_scale,
-        "relative_c0_error": abs(recovered - configuration.c0_truth)
-        / abs(configuration.c0_truth),
+        "relative_c0_error": relative_c0_error,
+        "heldout_deployment_contract": {
+            "trusted_initial_state_index": configuration.training_stop_step,
+            "target_state_indices": (
+                configuration.training_stop_step + 1,
+                configuration.heldout_stop_step,
+            ),
+            "complete_production_steps": (
+                configuration.heldout_stop_step
+                - configuration.training_stop_step
+            ),
+            "truth_resets": 0,
+            "predicted_state_recursively_reused": True,
+            "truth_targets_consulted_only_after_prediction": True,
+        },
         "one_step_state_error": one_step,
         "training_autonomous_trajectory_error": training_metric,
         "heldout_autonomous_trajectory_error": heldout_metric,
         "final_state_error": heldout_metric["final"],
         "accumulated_trajectory_error": heldout_metric["accumulated"],
-        "fieldwise_heldout_final_errors": fieldwise,
-        "kinetic_energy_history_mismatch": float(
-            relative_history(kinetic_prediction, kinetic_truth)
-        ),
-        "projected_enstrophy_history_mismatch": float(
-            relative_history(enstrophy_prediction, enstrophy_truth)
-        ),
-        "high_wavenumber_history_mismatch": float(
-            relative_history(high_prediction, high_truth)
-        ),
-        "hyperviscosity_diagnostic_mismatch": float(
-            relative_history(hyper_prediction, hyper_truth)
-        ),
+        "fieldwise_heldout_errors": fieldwise,
+        "fieldwise_heldout_final_errors": {
+            field: values["final"] for field, values in fieldwise.items()
+        },
+        "kinetic_energy_mismatch": kinetic_mismatch,
+        "kinetic_energy_history_mismatch": kinetic_mismatch[
+            "relative_history_l2_mismatch"
+        ],
+        "projected_enstrophy_mismatch": enstrophy_mismatch,
+        "projected_enstrophy_history_mismatch": enstrophy_mismatch[
+            "relative_history_l2_mismatch"
+        ],
+        "high_wavenumber_mismatch": high_mismatch,
+        "high_wavenumber_history_mismatch": high_mismatch[
+            "relative_history_l2_mismatch"
+        ],
+        "hyperviscosity_diagnostic": hyper_mismatch,
+        "hyperviscosity_diagnostic_mismatch": hyper_mismatch[
+            "relative_history_l2_mismatch"
+        ],
         "all_deployed_states_finite": bool(finite),
-        "minimum_deployed_height_coefficient": float(
-            min(
-                value["minimum_height_coefficient"]
-                for value in predicted_diagnostics
-            )
-        ),
+        "minimum_deployed_height_coefficient": minimum_height,
         "numerical_stability_status": {
             "finite_state_check_passed": bool(finite),
             "prediction_growth_heuristics": predicted_growth,
@@ -715,8 +930,29 @@ def evaluate_resolved_hidden_c0(
             + configuration.heldout_stop_step
             - configuration.training_stop_step
         ),
-        "wall_time_seconds": float(perf_counter() - started),
+        "deployment_step_accounting": {
+            "training_autonomous_steps": (
+                configuration.training_stop_step
+                - configuration.training_start_step
+            ),
+            "canonical_heldout_autonomous_steps": (
+                configuration.heldout_stop_step
+                - configuration.training_stop_step
+            ),
+        },
     }
+    evaluation["gate4_certification"] = {
+        "passed": not certification_reasons,
+        "relative_error_tolerance": GATE4_RELATIVE_ERROR_TOLERANCE,
+        "relative_c0_tolerance": GATE4_RELATIVE_C0_TOLERANCE,
+        "failure_reasons": tuple(certification_reasons),
+        "interpretation": (
+            "deterministic end-to-end workflow certification; not an ML "
+            "generalization claim"
+        ),
+    }
+    evaluation["wall_time_seconds"] = float(perf_counter() - started)
+    return evaluation
 
 
 def _configuration_from_arguments(arguments):
@@ -826,6 +1062,44 @@ def _scan_configuration_from_arguments(arguments):
     )
 
 
+def _validated_fit_result(fitted, configuration):
+    """Validate a completed successful fit and return its mode and c0."""
+    if not isinstance(fitted, Mapping):
+        raise TypeError("fit result must be a mapping")
+    if fitted.get("status") != "complete":
+        raise ValueError("evaluate requires a complete fit result")
+    intent = fitted.get("intent")
+    if not isinstance(intent, Mapping) or intent.get("command") != "fit":
+        raise ValueError("evaluate input is not a fit result")
+    if intent.get("configuration") != configuration.to_dict():
+        raise ValueError("fit result uses a different inference configuration")
+    try:
+        mode = TrainingMode(intent["training_mode"])
+    except (KeyError, ValueError) as exc:
+        raise ValueError("fit result has an invalid training mode") from exc
+    result = fitted.get("result")
+    if not isinstance(result, Mapping):
+        raise ValueError("fit result lacks optimizer output")
+    if result.get("success") is not True:
+        raise ValueError("evaluate requires a successful fit result")
+    if result.get("failure_reason") is not None:
+        raise ValueError("successful fit result has a failure reason")
+    if fitted.get("termination_claim") != "converged":
+        raise ValueError("fit result lacks an independent convergence claim")
+    starting_c0 = float(result["starting_c0"])
+    recovered_c0 = float(result["recovered_c0"])
+    if not np.isfinite(starting_c0) or starting_c0 != configuration.c0_initial:
+        raise ValueError("fit result has an incompatible starting c0")
+    if not np.isfinite(recovered_c0) or recovered_c0 <= 0.0:
+        raise ValueError("fit result recovered c0 must be positive and finite")
+    summary = fitted.get("fit_summary")
+    if not isinstance(summary, Mapping) or float(
+        summary.get("recovered_c0", np.nan)
+    ) != recovered_c0:
+        raise ValueError("fit summary and optimizer output disagree on recovered c0")
+    return mode, starting_c0, recovered_c0
+
+
 def _parser():
     parser = argparse.ArgumentParser(
         description="Prepared Test-1B inference; use only after pilot selection"
@@ -904,6 +1178,15 @@ def main(argv=None):
             else str(Path(arguments.fit_result).resolve())
         ),
     }
+    validated_fit = None
+    if arguments.command == "evaluate":
+        if not arguments.fit_result:
+            raise ValueError("evaluate requires --fit-result")
+        fitted = read_json_record(arguments.fit_result)
+        mode, starting_c0, recovered = _validated_fit_result(
+            fitted, configuration
+        )
+        validated_fit = (fitted, mode, starting_c0, recovered)
     existing = None
     if output_path.exists():
         existing = read_json_record(output_path)
@@ -1009,11 +1292,7 @@ def main(argv=None):
                             suite[mode]
                         ),
                         "wall_time_seconds": result.wall_time_seconds,
-                        "termination_reason": (
-                            "gradient tolerance satisfied"
-                            if result.success
-                            else result.failure_reason
-                        ),
+                        "termination_reason": result.termination_reason,
                     },
                     "termination_claim": (
                         "converged" if result.success else "not converged"
@@ -1021,20 +1300,39 @@ def main(argv=None):
                 }
             )
         else:
-            if not arguments.fit_result:
-                raise ValueError("evaluate requires --fit-result")
-            fitted = read_json_record(arguments.fit_result)
-            if fitted.get("status") != "complete":
-                raise ValueError("evaluate requires a complete fit result")
-            if fitted.get("intent", {}).get("command") != "fit":
-                raise ValueError("evaluate input is not a fit result")
-            if fitted.get("intent", {}).get("configuration") != configuration.to_dict():
-                raise ValueError("fit result uses a different inference configuration")
-            recovered = float(fitted["result"]["recovered_c0"])
-            record["fitted_training_mode"] = fitted["intent"]["training_mode"]
+            fitted, mode, starting_c0, recovered = validated_fit
+            fit_result = fitted["result"]
+            record["fitted_training_mode"] = mode.value
+            record["fit_provenance"] = {
+                "path": str(Path(arguments.fit_result).resolve()),
+                "status": fitted["status"],
+                "success": fit_result["success"],
+                "termination_claim": fitted["termination_claim"],
+                "starting_c0": starting_c0,
+                "recovered_c0": recovered,
+                "accepted_optimizer_steps": fitted["fit_summary"][
+                    "accepted_optimizer_steps"
+                ],
+                "objective_evaluations": fit_result["counts"][
+                    "objective_evaluations"
+                ],
+                "gradient_evaluations": fit_result["counts"][
+                    "gradient_evaluations"
+                ],
+                "hvp_evaluations": fit_result["counts"]["hvp_evaluations"],
+                "fit_wall_time_seconds": fit_result["wall_time_seconds"],
+            }
             record["evaluation"] = evaluate_resolved_hidden_c0(
                 case, truth, suite, configuration, recovered
             )
+            if not record["evaluation"]["gate4_certification"]["passed"]:
+                reasons = record["evaluation"]["gate4_certification"][
+                    "failure_reasons"
+                ]
+                raise RuntimeError(
+                    "Gate-4 deterministic certification failed: "
+                    + "; ".join(reasons)
+                )
         record["status"] = "complete"
     except KeyboardInterrupt:
         record["status"] = "interrupted"

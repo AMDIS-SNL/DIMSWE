@@ -203,6 +203,16 @@ That process was manually interrupted during the next point's exact HVP
 assembly while active at full CPU.  It was not a correctness failure.  This
 spot check is not part of the canonical objective-only nine-point scan.
 
+The subsequently completed canonical Gate-2 scan found the sampled minimum of
+all four objectives exactly at `c0=0.14`.  For this scalar normalized benchmark,
+the operator/apriori and deployed-discrete curves coincide exactly.  Near
+`c0=0.12` their objectives are about `1.02e-2`, whereas truth reset is about
+`2.81e-12` and rollout about `1.49e-10`.  Rollout is therefore substantially
+more sensitive than five-step truth reset on this landscape, but absolute
+objective magnitude is neither training quality nor a convergence test.  Gate
+3 uses scale-invariant bounded-Newton decisions precisely so these definition-
+dependent magnitudes cannot cause premature stopping or curvature rejection.
+
 **STOP after Gate 2.** Inspect all four objective landscapes, finite status,
 and forward cost.  The expected minimizer is 0.14, but software does not
 hard-code that outcome as success.
@@ -221,15 +231,34 @@ done
 ```
 
 Every fit starts at c0=0.07 and uses the same deterministic bounded-Newton
-configuration.  Gate 3 remains unchanged: it requests exact gradients and
-exact HVPs from the cached production trajectory derivatives.  Each result
+configuration.  Gate 3's derivative path remains unchanged: it requests exact
+gradients and exact HVPs from the cached production trajectory derivatives.
+Each result
 records recovered c0, relative error, accepted
 steps, objective/gradient/HVP evaluations, complete solver steps, wall time,
 and the termination reason.  Objective decrease alone is not called
-convergence.
+convergence.  Gradient stopping is relative to the initial nonzero gradient;
+step stopping is relative to `max(1,abs(z))`; positive curvature magnitude is
+relative to the first nonzero curvature reference while negative curvature is
+always rejected; and backtracking uses a scale-homogeneous Armijo test.  These
+rules, the parameter bounds, and the optimizer budget are identical for all
+four modes.
 
-**STOP after Gate 3.** Review all termination claims and accounting before any
-held-out state is accessed.
+The accepted Gate-3 results are:
+
+| mode | starting c0 | learned c0 | accepted steps | objective / gradient / HVP evaluations | fit wall time |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| operator/apriori offline | `0.07` | `0.14` | 1 | `3 / 2 / 1` | `0.00170 s` |
+| deployed-discrete offline | `0.07` | `0.14` | 1 | `3 / 2 / 1` | `0.00161 s` |
+| truth reset | `0.07` | `0.13999999999997986` | 4 | `9 / 5 / 4` | `1721.56 s` |
+| full rollout | `0.07` | `0.13999999999998547` | 5 | `11 / 6 / 5` | `2372.70 s` |
+
+All four values equal the generating `0.14` to the reported scientific
+precision.  These fits used DIMSWE's custom safeguarded bounded scalar Newton
+solver.  They did not use SciPy or ROL.  Exact gradients and HVPs came from the
+production discrete derivative machinery.  Fit inputs stopped at state 80;
+held-out states 81 through 160 were not loaded during Gate 3 and could not
+affect line searches, stopping, or normalization.
 
 ## GATE 4 — common held-out autonomous deployment
 
@@ -251,5 +280,54 @@ and six field-block errors; kinetic-energy and projected-enstrophy mismatch;
 hyperviscosity and high-wavenumber mismatch; finite/height and non-conclusive
 growth status; costs; and objective values under all four training definitions.
 
-Gate 4 completes the canonical comparison.  Horizon or observation-cadence
-sweeps remain a later, separately authorized study.
+Before advancing, `evaluate` independently requires a complete, successful,
+configuration-compatible fit and reads its recovered c0 from that JSON record;
+the evaluator never substitutes the known truth c0.  The canonical held-out
+path is exactly
+
+```text
+Xhat_80 = X*_80,
+Xhat_(n+1) = F_crecovered(Xhat_n),  n=80,...,159.
+```
+
+It constructs all 80 predicted states recursively without a truth reset.  Only
+after this prediction exists does it compare against `X*_81,...,X*_160`.
+Per-time output includes mixed and six fieldwise relative mass errors with
+explicit zero-reference status; absolute and relative kinetic-energy and
+projected-enstrophy mismatches; maxima and final values; finite state, minimum
+height, and existing growth heuristics.  The canonical held-out deployment
+step count is 80.  The broader common-evaluation record separately accounts
+for its retained training-interval deployment and training-objective
+cross-evaluations.
+
+Gate-4 certification requires relative c0 error at most `1e-12`, required
+held-out relative errors at most `1e-10`, finite states, positive height, no
+undefined nonzero-over-zero relative error, and no late-time growth warning.
+These are deterministic numerical-precision workflow checks, not fitted force
+scales or scientific-performance thresholds.  A violation marks the output
+failed and stops the command ladder for diagnosis.
+
+After all four evaluations pass, write the compact plotting summary and three
+minimal figures:
+
+```bash
+python -m dimswe.test1b_gate4 \
+  --result "apriori_offline=$TEST1B_ROOT/gate4_evaluate_apriori_offline.json" \
+  --result "discrete_offline=$TEST1B_ROOT/gate4_evaluate_discrete_offline.json" \
+  --result "truth_reset=$TEST1B_ROOT/gate4_evaluate_truth_reset.json" \
+  --result "rollout=$TEST1B_ROOT/gate4_evaluate_rollout.json" \
+  --output "$TEST1B_ROOT/gate4_aggregate_summary.json" \
+  --plot-directory "$TEST1B_ROOT/gate4_plots"
+```
+
+The summary contains the starting and learned c0, maximum/final mixed error,
+maximum/final absolute and relative KE and projected-enstrophy mismatches,
+held-out complete-step count, evaluation wall time, and pass/fail for each
+strategy.  Its plot data support mixed error versus time and truth/deployed KE
+and projected enstrophy.  Nearly coincident curves are the expected result.
+
+Once all four external records and the aggregate pass, Gate 4 closes Test 1B.
+This is deterministic end-to-end certification of the correctly specified
+inverse workflow, not evidence of difficult extrapolation or machine-learning
+generalization.  Horizon or observation-cadence sweeps remain a later,
+separately authorized study.

@@ -48,7 +48,33 @@ the nine selected c0 values.  Each reset or rollout point therefore has 80
 forward steps and zero reverse, tangent, and incremental-reverse steps.  The
 generic scan API still exposes objective-plus-gradient and full exact-Hessian
 policies, and derivative-level metadata is part of restart compatibility.
-Gate 3 is unchanged and continues to use exact gradients and exact HVPs.
+Gate 3's derivative path is unchanged and continues to use exact gradients and
+exact HVPs.
+
+The completed external Gate-2 landscapes place all four sampled minima exactly
+at c0=0.14.  Operator/apriori and deployed-discrete coincide exactly in this
+scalar normalized case.  Representative c0=0.12 values are about `1.02e-2`
+for either offline loss, `2.81e-12` for five-step truth reset, and `1.49e-10`
+for rollout.  Rollout is substantially more sensitive than reset, but these
+absolute magnitudes are definition-dependent and do not rank training quality.
+The common Gate-3 bounded-Newton policy consequently uses only positive-scale-
+homogeneous decisions: relative gradient reduction, relative parameter step,
+relative curvature magnitude with an independent strict sign check, projected
+bound stationarity, and Armijo sufficient decrease.
+
+Gate 3 subsequently recovered c0 as `0.14`, `0.14`,
+`0.13999999999997986`, and `0.13999999999998547` for operator/apriori,
+deployed-discrete, truth-reset, and rollout.  Accepted steps were 1, 1, 4, and
+5, with objective/gradient/HVP counts `3/2/1`, `3/2/1`, `9/5/4`, and
+`11/6/5`.  Truth-reset and rollout wall times were 1721.56 and 2372.70 seconds.
+The optimizer was DIMSWE's custom safeguarded bounded scalar Newton solver,
+not SciPy or ROL.  No held-out state was loaded during any fit.
+
+The prepared Gate-4 evaluator independently rejects incomplete or unsuccessful
+fit records, reads recovered c0 from the accepted fit, and advances recursively
+from trusted `X*_80` through state 160 with no truth reset.  Truth targets 81
+through 160 enter only post-prediction metrics.  Passing Gate 4 certifies the
+deterministic correctly specified workflow; it is not a generalization claim.
 
 External diagnostic evidence retains one earlier exact truth-reset derivative
 spot check at c0=0.04: `J=7.927002933447668e-11`,
