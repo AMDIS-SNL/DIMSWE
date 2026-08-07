@@ -1,11 +1,12 @@
 # DIMSWE exact JAX moist primal and derivative boundary
 
-Status: **J1/J2 COMPLETE — EXTERNALLY CERTIFIED, SERIAL CPU ONLY.**
+Status: **J1/J2/J3 COMPLETE — EXTERNALLY CERTIFIED, SERIAL CPU ONLY.**
 
 This document describes the opt-in JAX replica of the deployed moist Euler
 child.  The existing UFL `ThreeWayPhysics` term remains unchanged, independent,
-and the only default production implementation.  J1 does not install a runtime
-backend switch.
+and the default production implementation.  J1 did not install a runtime
+backend switch; J3 installs a narrowly scoped complete-split selector while
+retaining that default.
 
 ## Scope
 
@@ -21,9 +22,10 @@ mixed Firedrake state
 ```
 
 J2 adds an opt-in, independent derivative helper for this one moist Euler
-child.  It does not add the backend to the six-child split, PyROL integration,
-a neural network, checkpointing, MPI certification, or accelerator
-certification.
+child.  J3 reuses those J1/J2 helpers behind child 6 of the complete deployed
+split and threads the same backend through the existing reduced and PyROL
+paths.  It does not add a neural network, neural parameters, state
+normalization, checkpointing, MPI certification, or accelerator certification.
 
 The new modules are optional.  `dimswe.__init__` does not import them, so an
 ordinary `import dimswe` does not acquire a JAX dependency.
@@ -298,6 +300,90 @@ J2 certification is serial CPU only.  J3 complete-split integration, neural
 closure, neural parameters in PyROL, MPI, accelerators, and checkpointing are
 explicitly excluded.
 
+## J3 complete-split backend contract
+
+J3 adds the keyword-only construction API
+
+```python
+get_timestepper(..., moist_backend="ufl")  # default
+get_timestepper(..., moist_backend="jax")  # opt in
+```
+
+Only the exact deployed MTSWE graph accepts `"jax"`.  Invalid values and a JAX
+request on another split fail during construction.  The four production
+integrator slots remain `[RK4, Euler, SSPRK43, moist]`, the subcycles remain
+`[2,1,2,1]`, and the expanded children remain
+
+```text
+dry_rk4_0
+dry_rk4_1
+hyperviscosity_euler
+dg_ssprk43_0
+dg_ssprk43_1
+moist_euler
+```
+
+For `"ufl"`, the final slot is the unchanged production `Euler` object and
+`ProductionMoistEulerHVP` differentiates its retained UFL form.  For `"jax"`,
+`JAXMoistEulerIntegrator` uses `JAXMoistEulerPrimal` for the final primal child
+and retains the independently constructed UFL Euler object only as an oracle
+and coefficient store.  `ProductionMTSWESplitHVP` then selects
+`JAXMoistEulerHVP` from that same child choice.  The legacy generic reverse is
+rejected for the JAX wrapper so it cannot silently combine a JAX primal with a
+UFL derivative.
+
+The first five expanded children, their start times, applied steps, solver
+objects, and derivative helpers are not dispatched.  Complete reverse order
+remains moist, DG, DG, hyperviscosity, dry, dry, with genuine mixed
+`Cofunction`s exchanged directly between children.  The JAX fixed-moist
+control wrappers expose exact structural zeros for the moist child physical
+`c0` gradient and HVP.  The only physical scalar control therefore remains
+hyperviscosity `c0`.
+
+The existing PyROL objective constructors and the normalized map `c0=0.07*z`
+are unchanged.  They receive an already configured complete split.  For a JAX
+split, active-set qualification uses the actual broken-CG3/GLL diagnostic;
+the cache also retains the legacy DG1 diagnostic for historical parity.
+
+`tests/test_jax_moist_full_split.py` is the focused J3 source and external
+runtime-certification target.  It contains 11 tests grouped into
+backend/graph, one- and three-step primal, tangent, reverse, incremental
+reverse/HVP and symmetry, reduced objective, PyROL parity, and
+ownership/restoration layers.  Parity failures report timestep, child,
+field/block, absolute and relative error, reference norm, both active-set
+representations, configured physics step, and applied child step.  Tolerances
+are scale-aware float64 multiples of machine epsilon; the accepted production
+natural-pairing symmetry standard remains separate.
+
+## Authoritative J3 external certification
+
+The externally executed J3 sequence reported:
+
+```text
+J3 complete focused suite:
+  11 passed, 11251 warnings in 655.43s
+
+J2 regression:
+  34 passed, 236 warnings in 90.95s
+
+J1 regressions:
+  36 passed, 223 warnings in 52.62s
+
+Production MTSWE HVP regression:
+  22 passed, 29690 warnings in 923.39s
+
+Complete repository:
+  260 passed, 1 skipped, 1 xfailed,
+  72031 warnings in 2191.37s
+```
+
+No `FAILED` or `ERROR` section occurred.  These results certify UFL/JAX
+one- and three-step primal, tangent, reverse, incremental-reverse/HVP,
+reduced-objective, reduced-gradient, reduced-HVP, and existing PyROL scalar,
+initial-condition, and combined-interface parity for the tested serial CPU
+configuration.  The J1/J2 helper regressions and the independent production
+MTSWE UFL oracle remain green.
+
 ## Authoritative J2 external certification
 
 The externally executed J2 sequence reported:
@@ -423,6 +509,7 @@ exact broken-CG3/GLL carrier, weak source assembly, complete mixed mass solve,
 and final Euler update.
 
 J2 separately certifies the isolated child's JAX tangent, reverse, and
-incremental reverse on serial CPU.  It does not imply MPI, GPU/TPU,
-complete-split J3 backend integration, neural closure, neural parameters in
-PyROL, or checkpointing support.
+incremental reverse on serial CPU.  J3 now externally certifies its opt-in
+integration through the complete split, reduced maps, and existing PyROL
+interfaces for that same serial CPU scope.  Neither J2 nor J3 implies MPI,
+GPU/TPU, neural closure, neural parameters in PyROL, or checkpointing support.

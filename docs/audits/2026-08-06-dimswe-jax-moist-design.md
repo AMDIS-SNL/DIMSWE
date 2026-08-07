@@ -1,6 +1,6 @@
-# 2026-08-06 DIMSWE exact JAX moist J0/J1/J2 audit
+# 2026-08-06 DIMSWE exact JAX moist J0/J1/J2/J3 audit
 
-Status: **J1/J2 COMPLETE — EXTERNALLY CERTIFIED, SERIAL CPU ONLY.**
+Status: **J1/J2/J3 COMPLETE — EXTERNALLY CERTIFIED, SERIAL CPU ONLY.**
 
 ## Repository boundary
 
@@ -249,3 +249,78 @@ moist parameters are not exposed through the full helper or PyROL.  J2 is
 certified on serial CPU only.  No J3 complete-split switch, neural closure,
 neural parameters in PyROL, MPI or accelerator claim, checkpointing, remote
 change, or push is part of J2.
+
+## J3 final source and certification audit
+
+J3 started from the externally certified J2 checkpoint
+`51ae8692e5f28389a304a0387f1542577fb54198` on branch
+`dev/dimswe-jax-moist-full-split`.  The only pre-existing untracked paths were
+the protected `.DS_Store` and `docs/.DS_Store`; the index was empty.
+
+The opt-in API is `get_timestepper(..., moist_backend="jax")`; omission and
+explicit `"ufl"` select the unchanged UFL child.  `dimswe.moist_backend`
+validates the two-value selector and wraps only the final deployed
+`terms=['threewayphysics']` Euler object.  The wrapper calls the certified
+`JAXMoistEulerPrimal`, keeps the separately constructed UFL Euler as an oracle,
+and rejects the legacy generic reverse to prevent a mixed-backend derivative.
+
+`ProductionMTSWESplitHVP` reads the same selector from the parent split.  It
+uses `ProductionMoistEulerHVP` for UFL and the certified `JAXMoistEulerHVP` for
+JAX.  The dry RK4, hyperviscosity Euler, and DG SSPRK43 helpers are unchanged.
+The JAX moist result is augmented only with structural physical-`c0` zeros;
+all derivative Functions, Cofunctions, and packed arrays remain the owned J2
+objects.  No Riesz map is inserted between children.
+
+The existing PyROL public vector and objective types are unchanged.  Its
+active-set selector now uses actual GLL margins when that diagnostic exists
+and the legacy UFL diagnostic otherwise.  JAX caches retain both GLL and DG1
+representations; no threshold is loosened.
+
+The focused `tests/test_jax_moist_full_split.py` collects 11 tests.  It covers
+the default and graph contract, every one-step boundary, three-step primal
+trajectories, all three control-direction blocks for tangent and incremental
+reverse, complete reverse boundaries, reduced value/gradient/HVP, natural
+bilinear symmetry, existing scalar/IC/combined PyROL interfaces, ownership,
+repeatability, and induced-exception recovery.  The accepted production suite
+remains unchanged as the deep UFL oracle.
+
+The final source audit confirms that omission and explicit `"ufl"` still use
+the unchanged UFL child and that `"jax"` remains opt-in.  Backend dispatch
+changes only child 6.  The first five children, six-child order, child start
+times, child timestep allocation, and complete reverse order are unchanged.
+Physical `c0` remains hyperviscosity-only; the JAX moist child contributes
+structural zeros to its `c0` gradient and HVP.  Child reverse maps exchange
+genuine mixed Cofunctions without an inter-child Riesz conversion.  Existing
+PyROL scalar, initial-condition, and combined vector/objective interfaces and
+their normalization are unchanged.  J1/J2 helpers are reused rather than
+reimplemented.
+
+The authoritative external J3 certification is:
+
+```text
+J3 complete focused suite:
+  11 passed, 11251 warnings in 655.43s
+
+J2 regression:
+  34 passed, 236 warnings in 90.95s
+
+J1 regressions:
+  36 passed, 223 warnings in 52.62s
+
+Production MTSWE HVP regression:
+  22 passed, 29690 warnings in 923.39s
+
+Complete repository:
+  260 passed, 1 skipped, 1 xfailed,
+  72031 warnings in 2191.37s
+```
+
+No `FAILED` or `ERROR` section occurred.  The focused result certifies
+JAX/UFL one- and three-step primal, tangent, reverse, incremental-reverse/HVP,
+reduced objective/gradient/HVP, and existing PyROL scalar, IC, and combined
+parity in the tested serial CPU configuration.  The J2, J1, and independent
+production-MTSWE-oracle regressions all remain green.
+
+No neural network, neural parameters, state normalization, checkpointing,
+MPI/accelerator certification, remote change, push, stage, or commit is part
+of J3.
