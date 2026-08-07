@@ -57,14 +57,19 @@ class Hamiltonian_Base():
                 self.testvars[var] = TestFunction(space)
                 self.trialvars[var] = TrialFunction(space)
 
-    def get_aux_vars(self, vars):
-        for var, space in zip(self.vars.dhdx_var_list, self.vars.spacelist):
-            vars[var] = Function(space, name=var)
+    #def get_aux_vars_list(self):
+    #    return self.vars.dhdx_var_list
 
+#FIX
+    def get_spacelist(self):
+        return []
+
+#FIX
     def get_aux_vars_list(self):
-        return self.vars.dhdx_var_list
+        return []
 
-
+    def compute_dfdx_expressions(self, x, t, coeff, xhats, expressions):
+        pass
 
 # class AdvDensHamiltonian_AdvectionOnly(Hamiltonian_Base):
 #     def __init__(self, vars, values):
@@ -142,6 +147,7 @@ class ThermalShallowWater_Hamiltonian_CF(ThermalShallowWater_Hamiltonian_Base):
         S = state['S']
         return h*inner(v,v)/2. + inner(h,S)/2. + inner(S,self.bottom_topography)
 
+#REWORK THIS
     def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
         v = xvars['v']
         h = xvars['h']

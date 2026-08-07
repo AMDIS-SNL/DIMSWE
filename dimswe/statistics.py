@@ -67,8 +67,8 @@ class AdvDensStatistics():
 # class AdvDensStatistics_LP(AdvDensStatistics):
 #     pass
 #
-# class AdvDensStatistics_CF(AdvDensStatistics):
-#     pass
+class AdvDensStatistics_CF(AdvDensStatistics):
+    pass
 
 class AdvDensStatistics_CF_H1(AdvDensStatistics):
     pass

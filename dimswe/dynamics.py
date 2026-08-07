@@ -448,12 +448,15 @@ class AdvDensCF_H1_Dynamics(Dynamics):
         self.coriolis.interpolate(varexpr['coriolis'])
         self.bottom_topography.interpolate(varexpr['bottom_topography'])
 
+
+
     def get_aux_var_list(self, terms='all'):
         aux_var_list = []
         for term in self.forcing_terms:
             if terms == 'all' or term.name in terms:
                 aux_var_list = aux_var_list + term.get_aux_vars_list()
         return aux_var_list
+
 
     def compute_aux_expressions(self, x, t, coeff, xhats, terms='all'):
         expressions = {}
@@ -510,127 +513,171 @@ class AdvDensCF_H1_Dynamics(Dynamics):
     def linear_rhs(self, const_state, xstar, xhats, terms='all'):
         raise NotImplementedError
 
-    def post_step(self, statevars, terms='all'):
+    # def post_step(self, statevars, terms='all'):
+    #     for term in self.forcing_terms:
+    #         if terms == 'all' or term.name in terms:
+    #             term.post_step(statevars)
+
+
+
+        self.dynamics = MetriplecticDynamics(parameters, self.mesh, self.spaces, vars, poisson_brackets, metric_brackets, hamiltonian, entropy, forcing_terms, logger)
+
+
+class MetriplecticDynamics(Dynamics):
+    def __init__(self, parameters, mesh, spaces, vars, poisson_brackets, metric_brackets, hamiltonian, entropy, forcing_terms, logger):
+
+        self.mesh = mesh
+        self.spaces = spaces
+        self.vars = vars
+        self.poisson_brackets = poisson_brackets
+        self.metric_brackets = metric_brackets
+        self.hamiltonian = hamiltonian
+        self.entropy = entropy
+        self.logger = logger
+        self.forcing_terms = forcing_terms
+
+        self.density_names = self.vars.active_density_names
+        self.total_density_func = self.vars.get_total_density_expr
+
+        self.coeffspacelist = []
+        self.coefflist = []
+#THIS ASSUMES NO COEFFS IN BRACKETS!
+#THIS SHOULD BE FIXED AT SOME POINT
+        for term in self.forcing_terms:
+            if term.has_coeff():
+                term_coeffs = term.get_coeff()
+                for name,space in term_coeffs:
+                    self.coeffspacelist.append(space)
+                    self.coefflist.append(name)
+
+        self.xspacelist = []
+        self.xvarlist = []
+        self.auxspacelist = []
+        self.auxvarlist = []
+
+        self.xvarlist += self.vars.get_varlist()
+        self.xspacelist += self.vars.get_spacelist()
+        for term in self.forcing_terms:
+            self.auxvarlist += term.get_aux_vars_list()
+            self.auxspacelist += term.get_spacelist()
+        for bracket in self.poisson_brackets:
+            self.auxvarlist += bracket.get_aux_vars_list()
+            self.auxspacelist += bracket.get_spacelist()
+        for metric_bracket in self.metric_brackets:
+            self.auxvarlist += metric_bracket.get_aux_vars_list()
+            self.auxspacelist += metric_bracket.get_spacelist()
+        self.auxvarlist += self.hamiltonian.get_aux_var_list()
+        self.auxspacelist += self.hamiltonian.get_spacelist()
+        self.auxvarlist += self.entropy.get_aux_var_list()
+        self.auxspacelist += self.entropy.get_spacelist()
+
+        self.fullspacelist = self.xspacelist + self.auxspacelist
+        self.fullvarlist = self.xvarlist + self.auxvarlist
+
+        self.has_aux = not (len(self.auxspacelist) == 0)
+        self.has_coeff = not (len(self.coeffspacelist) == 0)
+
+        if not spaces is None:
+
+            self.xspace = MixedFunctionSpace(self.xspacelist)
+            self.x_size = self.xspace.dim()
+            if self.has_coeff:
+                self.coeffspace = MixedFunctionSpace(self.coeffspacelist)
+                self.coeff_size = self.coeffspace.dim()
+            else:
+                self.coeffspace = None
+                self.coeff_size = 0
+            if self.has_aux:
+                self.auxspace = MixedFunctionSpace(self.auxspacelist)
+                self.aux_size = self.auxspace.dim()
+            else:
+                self.auxspace = None
+                self.aux_size = 0
+            self.fullspace = MixedFunctionSpace(self.fullspacelist)
+            self.fullsize = self.fullspace.dim()
+
+#THIS IS A HORRIBLE HACK FOR MAXWELL
+    def get_max_wavespeed(self):
+        return sp.constants.c
+
+    def initialize(self, x, varexpr):
+
+        self.vars.initialize(varexpr, x)
+        for bracket in self.poisson_brackets:
+            bracket.initialize(varexpr)
+        for metric_bracket in self.metric_brackets:
+            metric_bracket.initialize(varexpr)
+        for term in self.forcing_terms:
+            term.initialize(varexpr)
+
+    def get_aux_var_list(self, terms='all'):
+        aux_var_list = []
+        if terms == 'all' or 'model' in terms:
+            aux_var_list += self.get_q_aux_var_list(terms=terms)
+            aux_var_list += self.get_dfdx_aux_var_list(terms=terms)
         for term in self.forcing_terms:
             if terms == 'all' or term.name in terms:
-                term.post_step(statevars)
+                aux_var_list += term.get_aux_vars_list()
+        return aux_vars
 
 
+    def compute_aux_expressions(self, x, t, coeff, xhats, terms='all'):
+        expressions = {}
+        if terms == 'all' or 'model' in terms:
+            self.compute_q_aux_expressions(x, t, coeff, xhats, expressions)
+            self.compute_dfdx_aux_expressions(x, t, coeff, xhats, expressions)
+        for term in self.forcing_terms:
+            if terms == 'all' or term.name in terms:
+                term.compute_aux_expressions(x, t, coeff, xhats, expressions)
+        return expressions
 
+    def get_q_aux_var_list(self):
+        q_aux_var_list = []
+        for bracket in self.poisson_brackets:
+            q_aux_var_list = q_aux_var_list + bracket.get_aux_vars_list()
+        for metric_bracket in self.metric_brackets:
+            q_aux_var_list = q_aux_var_list + metric_bracket.get_aux_vars_list()
+        return q_aux_var_list
 
+    def get_dfdx_aux_var_list(self):
+        dfdx_aux_var_list = []
+        dfdx_aux_var_list = dfdx_aux_var_list + self.hamiltonian.get_aux_vars_list()
+        dfdx_aux_var_list = dfdx_aux_var_list + self.entropy.get_aux_vars_list()
+        return dfdx_aux_var_list
 
-# class MetriplecticDynamics(Dynamics):
-#     def __init__(self, mesh, spaces, vars, poisson_brackets, metric_brackets,
-#         hamiltonian, entropy, statistics, diagnostics, forcing_terms, logger):
-#         self.mesh = mesh
-#         self.spaces = spaces
-#         self.variableset = vars
-#         self.poisson_brackets = poisson_brackets
-#         self.metric_brackets = metric_brackets
-#         self.hamiltonian = hamiltonian
-#         self.entropy = entropy
-#         self.diagnostics = diagnostics
-#         self.statistics = statistics
-#         self.logger = logger
-#         self.forcing_terms = forcing_terms
-#
-# #THIS IS A HORRIBLE HACK FOR MAXWELL
-#     def get_max_wavespeed(self):
-#         return sp.constants.c
-#
-#     def initialize(self, vars, t):
-#         t.assign(self.initcond.get_t0())
-#         varexpr = self.initcond.get_value(self.mesh, t)
-#         self.variableset.initialize(varexpr, vars)
-#         for bracket in self.poisson_brackets:
-#             bracket.initialize(varexpr)
-#         for metric_bracket in self.metric_brackets:
-#             metric_bracket.initialize(varexpr)
-#         for term in self.forcing_terms:
-#             term.initialize(varexpr)
-#         self.diagnostics.initialize(varexpr)
-#         self.statistics.initialize(varexpr)
-#
-#     def get_q_aux_var_list(self, terms='all'):
-#         q_aux_var_list = []
-#         if terms == 'all' or 'model' in terms:
-#             for bracket in self.poisson_brackets:
-#                 q_aux_var_list = q_aux_var_list + bracket.get_aux_vars_list()
-#             for metric_bracket in self.metric_brackets:
-#                 q_aux_var_list = q_aux_var_list + metric_bracket.get_aux_vars_list()
-#         for term in self.forcing_terms:
-#             if terms == 'all' or term.name in terms:
-#                 q_aux_var_list = q_aux_var_list + term.get_aux_vars_list()
-#         return q_aux_var_list
-#
-#     def get_dfdx_aux_var_list(self, terms='all'):
-#         dfdx_aux_var_list = []
-#         if terms == 'all' or 'model' in terms:
-#             dfdx_aux_var_list = dfdx_aux_var_list + self.hamiltonian.get_aux_vars_list()
-#             dfdx_aux_var_list = dfdx_aux_var_list + self.entropy.get_aux_vars_list()
-#         return dfdx_aux_var_list
-#
-#
-#     def get_q_aux_vars(self, terms='all'):
-#         self.logger.output('creating q aux vars', 1)
-#         vars = {}
-#         if terms == 'all' or 'model' in terms:
-#             for bracket in self.poisson_brackets:
-#                 bracket.get_aux_vars(vars)
-#             for metric_bracket in self.metric_brackets:
-#                 metric_bracket.get_aux_vars(vars)
-#         for term in self.forcing_terms:
-#             if terms == 'all' or term.name in terms:
-#                 term.get_aux_vars(vars)
-#         self.logger.output('created q aux vars', 1)
-#         return vars
-#
-#     def get_dfdx_aux_vars(self, terms='all'):
-#         self.logger.output('creating dfdx aux vars', 1)
-#         vars = {}
-#         if terms == 'all' or 'model' in terms:
-#             self.hamiltonian.get_aux_vars(vars)
-#             self.entropy.get_aux_vars(vars)
-#         self.logger.output('created dfdx aux vars', 1)
-#         return vars
-#
-#     def compute_dfdx_expressions(self, x, terms='all'):
-#         expressions = {}
-#         if terms == 'all' or 'model' in terms:
-#             self.hamiltonian.compute_dfdx_expressions(x, expressions)
-#             self.entropy.compute_dfdx_expressions(x, expressions)
-#         return expressions
-#
-#     def compute_q_expressions(self, x, terms='all'):
-#         expressions = {}
-#         if terms == 'all' or 'model' in terms:
-#             for bracket in self.poisson_brackets:
-#                 bracket.compute_q_expressions(x, expressions)
-#             for metric_bracket in self.metric_brackets:
-#                 metric_bracket.compute_q_expressions(x, expressions)
-#         for term in self.forcing_terms:
-#             if terms == 'all' or term.name in terms:
-#                 term.compute_q_expressions(x, expressions)
-#         return expressions
-#
-#
-# #MIGHT NEED SOME GENERALIZATION FOR HIGHER ORDER EC INTEGRATORS?
-#
-#     def rhs(self, qvars, dfdx_vars, xhats, terms='all'):
-#         self.logger.output('computing rhs', 1)
-#         rhs = 0
-#         if terms == 'all' or 'model' in terms:
-#             for bracket in self.poisson_brackets:
-#                 rhs = rhs + bracket.rhs(qvars, dfdx_vars, xhats)
-#             for metric_bracket in self.metric_brackets:
-#                 rhs = rhs + metric_bracket.rhs(qvars, dfdx_vars, xhats)
-#         for term in self.forcing_terms:
-#             if terms == 'all' or term.name in terms:
-#                 rhs = rhs + term.rhs(qvars, xhats)
-#         return rhs
-#         self.logger.output('computing rhs', 1)
-#
-#     def linear_rhs(self, const_state, xstar, xhats, terms='all'):
+    def compute_dfdx_expressions(self, x, t, coeff, xhats):
+        expressions = {}
+        self.hamiltonian.compute_dfdx_expressions(x, t, coeff, xhats expressions)
+        self.entropy.compute_dfdx_expressions(x, t, coeff, xhats expressions)
+        return expressions
+
+    def compute_q_expressions(self, x, t, coeff, xhats):
+        expressions = {}
+        for bracket in self.poisson_brackets:
+            bracket.compute_q_expressions(x, t, coeff, xhats, expressions)
+        for metric_bracket in self.metric_brackets:
+            metric_bracket.compute_q_expressions(x, t, coeff, xhats, expressions)
+        return expressions
+
+#MIGHT NEED SOME GENERALIZATION FOR HIGHER ORDER EC INTEGRATORS?
+
+    def rhs(self, xvars, t, coeff, xhats, terms='all'):
+        self.logger.output('computing rhs', 1)
+        rhs = 0
+        if terms == 'all' or 'model' in terms:
+            for bracket in self.poisson_brackets:
+                rhs = rhs + bracket.rhs(xvars, t, coeff, xhats)
+            for metric_bracket in self.metric_brackets:
+                rhs = rhs + metric_bracket.rhs(xvars, t, coeff, xhats)
+        for term in self.forcing_terms:
+            if terms == 'all' or term.name in terms:
+                rhs = rhs + term.rhs(xvars, t, coeff, xhats)
+        return rhs
+        self.logger.output('computing rhs', 1)
+
+#FIX THIS
+    def linear_rhs(self, const_state, xstar, xhats, terms='all'):
+        raise NotImplementedError
 #         self.logger.output('computing linear rhs', 1)
 #         linear_rhs = 0
 #         if terms == 'all' or 'model' in terms:
@@ -647,16 +694,16 @@ class AdvDensCF_H1_Dynamics(Dynamics):
 #                 linear_rhs = linear_rhs + term.linear_rhs(const_state, xstar, xhats)
 #         self.logger.output('computed linear rhs', 1)
 #         return linear_rhs
-#
-#     def post_step(self, statevars, terms='all'):
-#         if terms == 'all' or 'model' in terms:
-#             for bracket in self.poisson_brackets:
-#                 bracket.post_step(statevars)
-#             for metric_bracket in self.metric_brackets:
-#                 bracket.post_step(statevars)
-#         for term in self.forcing_terms:
-#             if terms == 'all' or term.name in terms:
-#                 term.post_step(statevars)
+
+    # def post_step(self, statevars, terms='all'):
+    #     if terms == 'all' or 'model' in terms:
+    #         for bracket in self.poisson_brackets:
+    #             bracket.post_step(statevars)
+    #         for metric_bracket in self.metric_brackets:
+    #             bracket.post_step(statevars)
+    #     for term in self.forcing_terms:
+    #         if terms == 'all' or term.name in terms:
+    #             term.post_step(statevars)
 #
 # def get_forcing_terms(parameters, vars, spaces, initcond):
 #     forcing_terms = []

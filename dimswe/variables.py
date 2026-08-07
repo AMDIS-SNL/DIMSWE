@@ -146,7 +146,7 @@ class AdvDensVariables_CF_Base(VariablesBase):
             self.dhdx_var_list.append('B_' + dens)
 
 #THIS SHOULD BE DONE VIA A LINEAR SYSTEM I THINK!
-#SAME WITH 
+#SAME WITH
     def initialize(self, varexpr, vars):
         for var in self.varlist:
             if not varexpr[var] == 0:
@@ -218,10 +218,10 @@ class ThermalShallowWaterBase():
         return vars['h']
 
 
-# class ThermalShallowWaterVariables_CF(AdvDensVariables_CF, ThermalShallowWaterBase):
-#     def __init__(self, spaces, tracer_names):
-#         AdvDensVariables_CF.__init__(self, spaces, ['h', 'S'], tracer_names)
-#         self.entropy_name = 'S'
+class ThermalShallowWaterVariables_CF(AdvDensVariables_CF, ThermalShallowWaterBase):
+    def __init__(self, spaces, tracer_names):
+        AdvDensVariables_CF.__init__(self, spaces, ['h', 'S'], tracer_names)
+        self.entropy_name = 'S'
 
 
 class ThermalShallowWaterVariables_CF_H1(AdvDensVariables_CF_H1, ThermalShallowWaterBase):
@@ -235,10 +235,10 @@ class ThermalShallowWaterVariables_CF_H1(AdvDensVariables_CF_H1, ThermalShallowW
 #         self.entropy_name = 'S'
 
 
-# class MoistThermalShallowWaterVariables_CF(AdvDensVariables_CF, ThermalShallowWaterBase):
-#     def __init__(self, spaces, tracer_names):
-#         AdvDensVariables_CF.__init__(self, spaces, ['h', 'S'], ['Qv', 'Qc', 'Qr'] + tracer_names)
-#         self.entropy_name = 'S'
+class MoistThermalShallowWaterVariables_CF(AdvDensVariables_CF, ThermalShallowWaterBase):
+    def __init__(self, spaces, tracer_names):
+        AdvDensVariables_CF.__init__(self, spaces, ['h', 'S'], ['Qv', 'Qc', 'Qr'] + tracer_names)
+        self.entropy_name = 'S'
 
 
 class MoistThermalShallowWaterVariables_CF_H1(AdvDensVariables_CF_H1, ThermalShallowWaterBase):
