@@ -6,6 +6,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 
 import numpy as np
+import pytest
 
 from dimswe.cached_accumulated_objective import (
     AccumulatedTrajectoryTarget,
@@ -13,7 +14,17 @@ from dimswe.cached_accumulated_objective import (
     CachedAccumulatedC0Objective,
     PrefixAccumulatedC0ObjectiveOracle,
 )
+from dimswe.hidden_c0 import (
+    HiddenC0Objective,
+    ScalarOptimizerConfiguration,
+    optimize_hidden_c0,
+)
 from dimswe.learned_physics.objectives import TrainingMode
+from dimswe.resolved_hidden_c0 import (
+    ObjectiveScanConfiguration,
+    ScanDerivativeLevel,
+    scan_scalar_objective,
+)
 
 
 @dataclass(frozen=True)
@@ -240,3 +251,60 @@ def test_gradient_and_hvp_work_use_one_reverse_family_traversal_per_step():
     assert rollout_hvp.work_counts().forward_steps == 80
     assert rollout_hvp.work_counts().tangent_steps == 80
     assert rollout_hvp.work_counts().incremental_reverse_steps == 80
+
+
+@pytest.mark.parametrize("mode", (TrainingMode.TRUTH_RESET, TrainingMode.ROLLOUT))
+def test_canonical_objective_only_scan_point_uses_only_80_forward_steps(mode):
+    objective, _ = _pair(mode)
+    points = scan_scalar_objective(
+        objective,
+        ObjectiveScanConfiguration(
+            physical_lower=0.04,
+            physical_upper=0.20,
+            points=3,
+            derivative_level=ScanDerivativeLevel.OBJECTIVE_ONLY,
+        ),
+    )
+    assert all(point.forward_steps == 80 for point in points)
+    assert all(point.solver_calls == 80 for point in points)
+    assert all(point.reverse_steps == 0 for point in points)
+    assert all(point.tangent_steps == 0 for point in points)
+    assert all(point.incremental_reverse_steps == 0 for point in points)
+
+
+class _ExactOptimizerQuadratic(HiddenC0Objective):
+    def __init__(self):
+        super().__init__(TrainingMode.ROLLOUT, 0.07)
+
+    def value(self, normalized_z):
+        self.objective_evaluations += 1
+        return 0.5 * (float(normalized_z) - 2.0) ** 2
+
+    def value_and_gradient(self, normalized_z):
+        self.objective_evaluations += 1
+        self.gradient_evaluations += 1
+        residual = float(normalized_z) - 2.0
+        return 0.5 * residual * residual, residual
+
+    def gradient(self, normalized_z):
+        self.gradient_evaluations += 1
+        return float(normalized_z) - 2.0
+
+    def hess_vec(self, _normalized_z, direction):
+        self.hvp_evaluations += 1
+        return float(direction)
+
+
+def test_gate3_optimizer_default_still_requests_exact_gradient_and_hvp():
+    configuration = ScalarOptimizerConfiguration()
+    assert configuration.use_hvp
+    objective = _ExactOptimizerQuadratic()
+    result = optimize_hidden_c0(
+        objective,
+        initial_c0=0.07,
+        configuration=configuration,
+    )
+    assert result.success
+    np.testing.assert_allclose(result.recovered_c0, 0.14, rtol=0.0, atol=1e-15)
+    assert result.counts.gradient_evaluations >= 1
+    assert result.counts.hvp_evaluations >= 1

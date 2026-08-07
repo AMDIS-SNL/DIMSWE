@@ -508,6 +508,22 @@ class RolloutLoss(str, Enum):
         return LossAccumulation(self.value)
 
 
+class ScanDerivativeLevel(str, Enum):
+    """Explicit derivative work requested for a scalar landscape scan."""
+
+    OBJECTIVE_ONLY = "objective_only"
+    OBJECTIVE_GRADIENT = "objective_gradient"
+    OBJECTIVE_GRADIENT_HESSIAN = "objective_gradient_hessian"
+
+    @property
+    def includes_gradient(self) -> bool:
+        return self is not ScanDerivativeLevel.OBJECTIVE_ONLY
+
+    @property
+    def includes_hessian(self) -> bool:
+        return self is ScanDerivativeLevel.OBJECTIVE_GRADIENT_HESSIAN
+
+
 class SolverLossNormalization(str, Enum):
     """Fixed normalizer used by resolved solver-in-loop observations.
 
@@ -734,11 +750,10 @@ def resolved_truth_state_indices(
 
 @dataclass(frozen=True)
 class ObjectiveScanConfiguration:
+    derivative_level: ScanDerivativeLevel
     physical_lower: float = 0.03
     physical_upper: float = 0.20
     points: int = 18
-    include_gradient: bool = True
-    include_hessian: bool = True
 
     def __post_init__(self):
         lower = _finite_float("physical_lower", self.physical_lower, positive=True)
@@ -747,6 +762,22 @@ class ObjectiveScanConfiguration:
             raise ValueError("objective scan interval is empty")
         if _positive_integer("points", self.points) < 3:
             raise ValueError("objective scan requires at least three points")
+        object.__setattr__(
+            self, "derivative_level", ScanDerivativeLevel(self.derivative_level)
+        )
+
+    @property
+    def include_gradient(self) -> bool:
+        return self.derivative_level.includes_gradient
+
+    @property
+    def include_hessian(self) -> bool:
+        return self.derivative_level.includes_hessian
+
+    def to_dict(self) -> dict[str, Any]:
+        result = asdict(self)
+        result["derivative_level"] = self.derivative_level.value
+        return result
 
     @property
     def physical_values(self) -> np.ndarray:
@@ -792,9 +823,10 @@ def _objective_trajectory_work(objective):
 
 def scan_scalar_objective(
     objective,
-    configuration=ObjectiveScanConfiguration(),
+    configuration,
     *,
     completed_points=(),
+    completed_configuration=None,
     point_callback=None,
 ):
     """Record J, dJ/dc0, d2J/dc0^2, cost, and failures point by point.
@@ -806,6 +838,15 @@ def scan_scalar_objective(
 
     if not isinstance(configuration, ObjectiveScanConfiguration):
         raise TypeError("configuration must be ObjectiveScanConfiguration")
+    if completed_configuration is not None:
+        if dict(completed_configuration) != configuration.to_dict():
+            raise ValueError(
+                "completed landscape points use an incompatible scan policy"
+            )
+    elif completed_points:
+        raise ValueError(
+            "completed landscape points require their scan configuration"
+        )
     scale = _finite_float("objective.c0_scale", objective.c0_scale, positive=True)
     records = []
     completed = {
@@ -925,6 +966,7 @@ __all__ = (
     "ResolvedInferenceConfiguration",
     "ResolvedPilotConfiguration",
     "RolloutLoss",
+    "ScanDerivativeLevel",
     "SolverLossNormalization",
     "STATE_FIELDS",
     "VectorSpectrum",

@@ -9,6 +9,7 @@ import json
 import numpy as np
 
 from dimswe.resolved_hidden_c0 import (
+    ScanDerivativeLevel,
     build_inference_index_plan,
     read_json_record,
     resolved_truth_state_indices,
@@ -54,6 +55,10 @@ def test_selected_plan_records_exact_scientific_choice_and_pilot_evidence():
     ]
     assert evidence["rejected_32x32_dt400"]["sigma"] == 2.5734163936944783
     assert not evidence["run_64x64"]
+    assert (
+        ScanDerivativeLevel(plan["objective_scan"]["derivative_level"])
+        is ScanDerivativeLevel.OBJECTIVE_ONLY
+    )
 
 
 def test_selected_split_and_fitting_data_boundary_are_exact():

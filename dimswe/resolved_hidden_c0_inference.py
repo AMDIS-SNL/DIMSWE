@@ -44,6 +44,7 @@ from .resolved_hidden_c0 import (
     ResolvedInferenceConfiguration,
     ResolvedPilotConfiguration,
     RolloutLoss,
+    ScanDerivativeLevel,
     SolverLossNormalization,
     STATE_FIELDS,
     build_inference_index_plan,
@@ -792,7 +793,12 @@ def _scan_configuration_from_arguments(arguments):
     if arguments.selected_plan is not None:
         supplied = tuple(
             name
-            for name in ("scan_lower", "scan_upper", "scan_points")
+            for name in (
+                "scan_lower",
+                "scan_upper",
+                "scan_points",
+                "scan_derivative_level",
+            )
             if getattr(arguments, name) is not None
         )
         if supplied:
@@ -806,11 +812,17 @@ def _scan_configuration_from_arguments(arguments):
             physical_lower=scan["physical_lower"],
             physical_upper=scan["physical_upper"],
             points=scan["points"],
+            derivative_level=scan["derivative_level"],
+        )
+    if arguments.scan_derivative_level is None:
+        raise ValueError(
+            "generic scans require explicit --scan-derivative-level"
         )
     return ObjectiveScanConfiguration(
         physical_lower=(0.03 if arguments.scan_lower is None else arguments.scan_lower),
         physical_upper=(0.20 if arguments.scan_upper is None else arguments.scan_upper),
         points=18 if arguments.scan_points is None else arguments.scan_points,
+        derivative_level=arguments.scan_derivative_level,
     )
 
 
@@ -844,6 +856,10 @@ def _parser():
     parser.add_argument("--scan-lower", type=float)
     parser.add_argument("--scan-upper", type=float)
     parser.add_argument("--scan-points", type=int)
+    parser.add_argument(
+        "--scan-derivative-level",
+        choices=tuple(level.value for level in ScanDerivativeLevel),
+    )
     parser.add_argument("--fit-result")
     parser.add_argument("--output", required=True)
     return parser
@@ -880,7 +896,7 @@ def main(argv=None):
         "scan_configuration": (
             None
             if arguments.command != "scan"
-            else asdict(scan_configuration)
+            else scan_configuration.to_dict()
         ),
         "fit_result": (
             None
@@ -948,6 +964,11 @@ def main(argv=None):
                 suite[mode],
                 scan_configuration,
                 completed_points=record.get("points", ()),
+                completed_configuration=(
+                    None
+                    if existing is None
+                    else existing.get("intent", {}).get("scan_configuration")
+                ),
                 point_callback=save_point,
             )
             record["points"] = tuple(asdict(point) for point in scan)

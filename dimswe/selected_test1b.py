@@ -20,6 +20,7 @@ from .resolved_hidden_c0 import (
     ResolvedInferenceConfiguration,
     ResolvedPilotConfiguration,
     RolloutLoss,
+    ScanDerivativeLevel,
     SolverLossNormalization,
     build_inference_index_plan,
     late_time_growth_indicator,
@@ -190,6 +191,11 @@ def load_selected_test1b_plan(path: str | Path = DEFAULT_SELECTED_PLAN):
         raise ValueError("unsupported selected Test 1B plan format")
     configuration = _configuration_from_plan(plan)
     scan = plan["objective_scan"]
+    if (
+        ScanDerivativeLevel(scan["derivative_level"])
+        is not ScanDerivativeLevel.OBJECTIVE_ONLY
+    ):
+        raise ValueError("selected Test 1B Gate 2 must be objective-only")
     expected_scan = np.linspace(
         scan["physical_lower"], scan["physical_upper"], scan["points"]
     )

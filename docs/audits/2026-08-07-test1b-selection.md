@@ -43,6 +43,22 @@ is retained only as a tiny algebraic equivalence oracle.  This removes
 implementation replay from cost comparison without asserting equal total
 optimization cost.
 
+Gate 2 is now explicitly an objective-only scalar landscape sanity check at
+the nine selected c0 values.  Each reset or rollout point therefore has 80
+forward steps and zero reverse, tangent, and incremental-reverse steps.  The
+generic scan API still exposes objective-plus-gradient and full exact-Hessian
+policies, and derivative-level metadata is part of restart compatibility.
+Gate 3 is unchanged and continues to use exact gradients and exact HVPs.
+
+External diagnostic evidence retains one earlier exact truth-reset derivative
+spot check at c0=0.04: `J=7.927002933447668e-11`,
+`dJ/dc0=-1.70886319543831e-09`, and
+`d2J/dc0^2=2.108131445611791e-08`.  It took approximately 656.5 seconds and
+reported 160 forward, 80 reverse, 80 tangent, and 80 incremental-reverse
+steps.  Manual interruption during the next point's active exact incremental
+adjoint assembly was not a correctness failure.  This result is evidence only,
+not part of the canonical objective-only scan.
+
 `dimswe.selected_test1b` validates the plan and audits completed truth without
 Firedrake or solver execution.  It requires all 161 state/output records,
 selected metadata, finite states, positive h, and no late-time growth warning.

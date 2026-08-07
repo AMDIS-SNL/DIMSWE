@@ -77,9 +77,11 @@
   },
   "format_version": 1,
   "objective_scan": {
+    "derivative_level": "objective_only",
     "physical_lower": 0.04,
     "physical_upper": 0.2,
     "points": 9,
+    "purpose": "Gate-2 scalar objective-landscape sanity check before exact-derivative fitting",
     "values": [
       0.04,
       0.06,

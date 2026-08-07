@@ -518,13 +518,20 @@ removes artificial replay overhead; it does not assert equal optimization
 iterations, memory use, or wall time between modes.
 
 Every fit uses the same deterministic bounded normalized-scalar Newton method
-as Test 1A.  Independent scans record physical c0, z, J, dJ/dc0,
-d2J/dc0^2, finite status, objective/gradient/HVP counts, complete solver
-calls, wall time, and failure reason.
+as Test 1A and retains exact gradient/HVP calls.  Landscape scans have an
+explicit derivative level: `objective_only`, `objective_gradient`, or
+`objective_gradient_hessian`.  The selected Gate-2 policy is objective-only at
+all nine prescribed c0 values; it records J, finite status, forward work, wall
+time, and failure reason without reverse, tangent, or incremental-reverse work.
+Derivative-capable scans remain explicit generic opt-ins.
+
 Landscape records are written atomically after each scalar point and resume by
-skipping completed points.  Fit and evaluation records detect a completed
-matching intent; after interruption they are deterministically rerun from the
-beginning because generic adjoint checkpointing is outside this milestone.
+skipping completed points.  The serialized scan configuration includes its
+derivative level.  Completed points with different derivative-level metadata
+are rejected rather than silently resumed.  Fit and evaluation records detect
+a completed matching intent; after interruption they are deterministically
+rerun from the beginning because generic adjoint checkpointing is outside this
+milestone.
 
 Common evaluation starts a training autonomous deployment and a separate
 held-out autonomous deployment at the truth boundary.  It records c0 error,

@@ -163,6 +163,11 @@ one reverse traversal for gradients, and one tangent plus incremental-reverse
 traversal for HVPs.  Canonical objective-only forward work is therefore 80
 deployed steps for reset and 80 for rollout.  This accounting does not imply
 equal total fit time or equal optimizer iterations.
+Canonical Gate 2 is only a nine-point scalar objective-landscape sanity check,
+so its selected derivative level is objective-only.  General scans retain
+explicit objective-plus-gradient and objective-plus-gradient-plus-Hessian
+levels.  Gate 3 remains the actual parameter-learning stage and continues to
+use the exact cached gradient and HVP machinery.
 
 ## Test 1A: hidden-c0 plumbing/integration benchmark
 

@@ -16,6 +16,7 @@ from dimswe.resolved_hidden_c0 import (
     ResolvedInferenceConfiguration,
     ResolvedPilotConfiguration,
     RolloutLoss,
+    ScanDerivativeLevel,
     SolverLossNormalization,
     STATE_FIELDS,
     build_inference_index_plan,
@@ -307,6 +308,11 @@ class _QuadraticObjective:
             self.solver_calls,
         )
 
+    def value(self, z):
+        self.objective_evaluations += 1
+        c0 = self.c0_scale * z
+        return 0.5 * (c0 - 0.14) ** 2
+
     def value_and_gradient(self, z):
         self.objective_evaluations += 1
         self.gradient_evaluations += 1
@@ -323,7 +329,10 @@ def test_objective_landscape_records_physical_derivatives_and_costs():
     result = scan_scalar_objective(
         objective,
         ObjectiveScanConfiguration(
-            physical_lower=0.10, physical_upper=0.18, points=3
+            physical_lower=0.10,
+            physical_upper=0.18,
+            points=3,
+            derivative_level=ScanDerivativeLevel.OBJECTIVE_GRADIENT_HESSIAN,
         ),
     )
     center = result[1]
@@ -342,9 +351,49 @@ def test_objective_landscape_records_physical_derivatives_and_costs():
     assert all(point.finite for point in result)
 
 
+def test_objective_only_landscape_invokes_no_gradient_or_hvp():
+    objective = _QuadraticObjective()
+    configuration = ObjectiveScanConfiguration(
+        physical_lower=0.10,
+        physical_upper=0.18,
+        points=3,
+        derivative_level=ScanDerivativeLevel.OBJECTIVE_ONLY,
+    )
+    result = scan_scalar_objective(objective, configuration)
+    assert objective.objective_evaluations == 3
+    assert objective.gradient_evaluations == 0
+    assert objective.hvp_evaluations == 0
+    assert all(point.physical_gradient is None for point in result)
+    assert all(point.physical_hessian is None for point in result)
+    assert all(point.reverse_steps == 0 for point in result)
+    assert all(point.tangent_steps == 0 for point in result)
+    assert all(point.incremental_reverse_steps == 0 for point in result)
+
+
+def test_objective_plus_gradient_scan_is_explicit_without_hvp():
+    objective = _QuadraticObjective()
+    result = scan_scalar_objective(
+        objective,
+        ObjectiveScanConfiguration(
+            physical_lower=0.10,
+            physical_upper=0.18,
+            points=3,
+            derivative_level=ScanDerivativeLevel.OBJECTIVE_GRADIENT,
+        ),
+    )
+    assert objective.objective_evaluations == 3
+    assert objective.gradient_evaluations == 3
+    assert objective.hvp_evaluations == 0
+    assert all(point.physical_gradient is not None for point in result)
+    assert all(point.physical_hessian is None for point in result)
+
+
 def test_objective_landscape_restart_skips_completed_points():
     configuration = ObjectiveScanConfiguration(
-        physical_lower=0.10, physical_upper=0.18, points=3
+        physical_lower=0.10,
+        physical_upper=0.18,
+        points=3,
+        derivative_level=ScanDerivativeLevel.OBJECTIVE_GRADIENT_HESSIAN,
     )
     first = scan_scalar_objective(_QuadraticObjective(), configuration)
     resumed_objective = _QuadraticObjective()
@@ -352,9 +401,33 @@ def test_objective_landscape_restart_skips_completed_points():
         resumed_objective,
         configuration,
         completed_points=tuple(point.__dict__ for point in first),
+        completed_configuration=configuration.to_dict(),
     )
     assert resumed == first
     assert resumed_objective.counts() == _Counts(0, 0, 0, 0)
+
+
+def test_objective_landscape_restart_rejects_incompatible_derivative_policy():
+    full = ObjectiveScanConfiguration(
+        physical_lower=0.10,
+        physical_upper=0.18,
+        points=3,
+        derivative_level=ScanDerivativeLevel.OBJECTIVE_GRADIENT_HESSIAN,
+    )
+    objective_only = ObjectiveScanConfiguration(
+        physical_lower=0.10,
+        physical_upper=0.18,
+        points=3,
+        derivative_level=ScanDerivativeLevel.OBJECTIVE_ONLY,
+    )
+    completed = scan_scalar_objective(_QuadraticObjective(), full)
+    with pytest.raises(ValueError, match="incompatible scan policy"):
+        scan_scalar_objective(
+            _QuadraticObjective(),
+            objective_only,
+            completed_points=tuple(point.__dict__ for point in completed),
+            completed_configuration=full.to_dict(),
+        )
 
 
 def test_test1a_certified_constants_and_tiny_config_remain_unchanged():

@@ -162,40 +162,52 @@ python -m dimswe.resolved_hidden_c0_inference plan \
   --output "$TEST1B_ROOT/canonical_inference_index_plan.json"
 ```
 
-## GATE 2 — scalar objective landscapes
+## GATE 2 — scalar objective-landscape sanity check
 
 The nine-point interval `[0.04,0.20]` contains c0 truth exactly at 0.14.  Every
-point records J, physical dJ/dc0, physical d2J/dc0² when available, finite
-status, solver steps, and wall time.
+canonical Gate-2 point records only `J(c0)`, finite/nonfinite status, forward
+model-step count, wall time, and any failure reason.  The selected plan fixes
+`derivative_level=objective_only`; no gradient, reverse, tangent, HVP, or
+incremental-reverse work is requested by these commands.
 
 ```bash
 for MODE in apriori_offline discrete_offline truth_reset rollout; do
   python -m dimswe.resolved_hidden_c0_inference scan \
     --mode "$MODE" \
     "${COMMON_TEST1B_ARGS[@]}" \
-    --output "$TEST1B_ROOT/gate2_scan_${MODE}.json" || break
+    --output "$TEST1B_ROOT/gate2_objective_scan_${MODE}.json" || break
 done
 ```
 
 The selected plan owns the interval and nine grid points; conflicting CLI
-overrides are rejected.  Each command records fixed-target preprocessing
-separately from point costs.  Truth-target-mass normalizers need no solver
+overrides, including derivative-level overrides, are rejected.  Each command
+records fixed-target preprocessing separately from point costs.
+Truth-target-mass normalizers need no solver
 steps.  Objective-only evaluation is 80 forward deployed steps for either
-canonical solver loss: `16*5` for reset and one 80-step rollout.  A gradient
-evaluation adds 80 reverse steps.  An HVP evaluation performs 80 forward, 80
-tangent, and 80 incremental-reverse steps; each incremental-reverse step also
-contains the required differentiated ordinary reverse.  Landscape and fit
-records report these traversal families separately.
+canonical solver loss: `16*5` for reset and one 80-step rollout.  Reverse,
+tangent, and incremental-reverse counts must all be zero.  The two offline
+landscapes likewise evaluate only their scalar objective.
 
-Equal intrinsic trajectory length does not imply equal total optimization
-cost or wall time.  Convergence histories, memory behavior, objective calls,
-and the different reset/rollout state trajectories may still differ.
+An earlier external exact truth-reset spot check at `c0=0.04` is retained as
+diagnostic evidence:
 
-**STOP after Gate 2.** Inspect all four landscapes, derivatives, curvature,
-finite status, and cost.  The expected minimizer is 0.14, but software does not
+```text
+J          7.927002933447668e-11
+dJ/dc0    -1.70886319543831e-09
+d2J/dc0²   2.108131445611791e-08
+wall time  approximately 656.5 seconds
+work       forward 160, reverse 80, tangent 80, incremental reverse 80
+```
+
+That process was manually interrupted during the next point's exact HVP
+assembly while active at full CPU.  It was not a correctness failure.  This
+spot check is not part of the canonical objective-only nine-point scan.
+
+**STOP after Gate 2.** Inspect all four objective landscapes, finite status,
+and forward cost.  The expected minimizer is 0.14, but software does not
 hard-code that outcome as success.
 
-## GATE 3 — four deterministic scalar fits
+## GATE 3 — actual parameter-learning optimization with exact derivatives
 
 Only after all landscapes are accepted:
 
@@ -209,7 +221,9 @@ done
 ```
 
 Every fit starts at c0=0.07 and uses the same deterministic bounded-Newton
-configuration.  Each result records recovered c0, relative error, accepted
+configuration.  Gate 3 remains unchanged: it requests exact gradients and
+exact HVPs from the cached production trajectory derivatives.  Each result
+records recovered c0, relative error, accepted
 steps, objective/gradient/HVP evaluations, complete solver steps, wall time,
 and the termination reason.  Objective decrease alone is not called
 convergence.
