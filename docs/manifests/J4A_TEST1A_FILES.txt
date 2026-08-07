@@ -1,0 +1,23 @@
+J4A-FINAL / Test 1A commit manifest
+==================================
+
+This file list is intentionally separate from J4B-PREP.  Do not stage or
+commit it as part of this Codex task; it is a later human commit aid.
+
+dimswe/configs/hidden_c0_tiny.cfg
+dimswe/hidden_c0.py
+dimswe/learned_physics/__init__.py
+dimswe/learned_physics/closure.py
+dimswe/learned_physics/experiment.py
+dimswe/learned_physics/objectives.py
+dimswe/learned_physics/parameters.py
+docs/LEARNED_PHYSICS_EXPERIMENTS.md
+docs/audits/2026-08-07-learned-physics-framework.md
+docs/manifests/J4A_TEST1A_FILES.txt
+tests/test_hidden_c0_benchmark.py
+tests/test_learned_physics_framework.py
+
+The shared learned-physics document contains both the finalized J4A hierarchy
+and links to the separately manifested J4B-PREP resolved-flow material.  If a
+strict documentation-only split is desired later, review that one shared file
+interactively rather than staging it blindly.
