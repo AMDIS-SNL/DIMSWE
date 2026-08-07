@@ -1,0 +1,149 @@
+{
+  "benchmark": "Test 1B resolved hidden-c0 inverse experiment",
+  "canonical_comparison": {
+    "coverage_contract": "All four objectives cover training transitions 0 through 79. Reset and rollout each include target states 1 through 80 exactly once; they differ intentionally only in how long model-generated feedback survives before truth is reintroduced.",
+    "loss": "accumulated",
+    "observation_stride": 1,
+    "reset_window_length": 5,
+    "reset_window_starts": [
+      0,
+      5,
+      10,
+      15,
+      20,
+      25,
+      30,
+      35,
+      40,
+      45,
+      50,
+      55,
+      60,
+      65,
+      70,
+      75
+    ],
+    "reset_window_stride": 5,
+    "rollout_training_length": 80,
+    "solver_loss_normalization": "truth_target_mass",
+    "solver_loss_weighting": {
+      "field_weighting": "natural mixed inner(v,h,S,Qv,Qc,Qr) sum; no extra block scaling",
+      "per_target_normalizer": "N_n = integral_Omega inner(X*_n, X*_n) dx_GLL",
+      "per_target_outer_weight": "1/80 for each target n=1,...,80 in both reset and rollout",
+      "state_metric": "squared mixed L2 norm integral_Omega inner(error,error) dx_GLL"
+    },
+    "training_modes": [
+      "apriori_offline",
+      "discrete_offline",
+      "truth_reset",
+      "rollout"
+    ]
+  },
+  "control": {
+    "c0_initial": 0.07,
+    "c0_normalization": "c0 = 0.07 z",
+    "c0_scale": 0.07,
+    "c0_truth": 0.14
+  },
+  "data_access_contract": {
+    "evaluation": "State 80 initializes held-out deployment; target states 81 through 160 are available only after fitting.",
+    "fitting": "Only states 0 through 80 may be loaded or used by fitting objectives, fitted normalization, scans, gradients, HVPs, or stopping decisions.",
+    "heldout_normalization": false
+  },
+  "data_split": {
+    "boundary_state_index": 80,
+    "heldout": {
+      "physical_interval": "8000 < t <= 16000",
+      "target_state_indices": [
+        81,
+        160
+      ],
+      "transition_start_indices": [
+        80,
+        159
+      ]
+    },
+    "training": {
+      "physical_interval": "0 <= t <= 8000",
+      "state_indices": [
+        0,
+        80
+      ],
+      "transition_start_indices": [
+        0,
+        79
+      ]
+    }
+  },
+  "format_version": 1,
+  "objective_scan": {
+    "physical_lower": 0.04,
+    "physical_upper": 0.2,
+    "points": 9,
+    "values": [
+      0.04,
+      0.06,
+      0.08,
+      0.1,
+      0.12,
+      0.14,
+      0.16,
+      0.18,
+      0.2
+    ]
+  },
+  "pilot_evidence": {
+    "accepted_16x16_dt100": {
+      "final_kinetic_energy_mismatch": 0.007791521,
+      "final_projected_enstrophy_mismatch": 0.01532189,
+      "final_velocity_separation": 0.007174971,
+      "maximum_Qc_separation": 0.0678413,
+      "maximum_mixed_c0_pair_separation": 0.0001643758942633589,
+      "numerical_stability_heuristic_warning": false
+    },
+    "rejected_32x32_dt400": {
+      "c0": 0.14,
+      "disposition": "diagnostic evidence only; forbidden as Test 1B truth or training data",
+      "euler_condition": "sigma <= 2",
+      "sigma": 2.5734163936944783,
+      "stability_result": "explicit-Euler unstable"
+    },
+    "stable_32x32_dt100": {
+      "disposition": "not selected for the first Test 1B",
+      "reason": "c0 sensitivity was approximately one order of magnitude weaker; r^s scaling and the smooth flow left newly available high modes weakly populated"
+    },
+    "run_64x64": false
+  },
+  "selected_configuration": {
+    "case": "doublevortex",
+    "dt": 100.0,
+    "final_time": 16000.0,
+    "moist_backend": "ufl",
+    "nsteps": 160,
+    "nx": 16,
+    "ny": 16,
+    "output_stride": 1,
+    "s": 3.2,
+    "seed": 0
+  },
+  "selection_status": "scientifically selected; gate 1 not yet executed",
+  "truth_data": {
+    "canonical_run_directory": "external-results/test1b-production/truth_c0_0.14",
+    "reuse_output_stride_8_pilot": false,
+    "truth_and_learner_difference": "physical c0 only"
+  },
+  "truth_audit": {
+    "growth_configuration": {
+      "absolute_floor": 1e-30,
+      "baseline_fraction": 0.5,
+      "high_wavenumber_absolute_floor": 1e-12,
+      "high_wavenumber_fraction_factor": 10.0,
+      "hyperviscosity_tendency_factor": 10.0,
+      "kinetic_energy_factor": 1.25,
+      "projected_enstrophy_factor": 2.0,
+      "tail_fraction": 0.25
+    },
+    "minimum_height_coefficient_strictly_greater_than": 0.0,
+    "required_state_count": 161
+  }
+}
