@@ -88,45 +88,54 @@ class ThermalShallowWater_Hamiltonian_Base(Hamiltonian_Base):
     def initialize(self, varexpr):
         self.bottom_topography.interpolate(varexpr['bottom_topography'])
 
-# class ThermalShallowWater_Hamiltonian_LP(ThermalShallowWater_Hamiltonian_Base):
-#
-#     def compute_total_energy(self, state):
-#         m = state['m']
-#         h = state['h']
-#         S = state['S']
-#         return inner(m,m)/(2. * h) + inner(h,S)/2. + inner(h,self.bottom_topography)
-#
-#     def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
-#         m = xvars['m']
-#         h = xvars['h']
-#         S = xvars['S']
-#         mhat = self.testvars['u']
-#         hhat = self.testvars['B_h']
-#         Shat = self.testvars['B_S']
-#         mtrial = self.trialvars['u']
-#         htrial = self.trialvars['B_h']
-#         Strial = self.trialvars['B_S']
-#         expressions['u'] = [m / h, mtrial, mhat]
-#         expressions['B_h'] = [-inner(m,m)/(2.*inner(h,h)) + S/2. + self.bottom_topography, htrial, hhat]
-#         expressions['B_S'] = [h/2., Strial, Shat]
-#         # for tracer_name in self.vars.tracer_names:
-#         #     tracerhat = self.testvars['B_' + tracer_name]
-#         #     tracertrial = self.trialvars['B_' + tracer_name]
-#         #     expressions['B_' + tracer_name] = make_a_L(Constant(0), tracertrial, tracerhat)
-#
-#     def compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars):
-#
-#         H0 = const_state['h']
-#         S0 = const_state['S']
-#         m = xstar['m']
-#         h = xstar['h']
-#         S = xstar['S']
-#
-#         dfdx_linear_vars['u'] = m / H0
-#         dfdx_linear_vars['B_h'] = (S0 + S)/2. + self.bottom_topography
-#         dfdx_linear_vars['B_S'] = (H0 + H)/2.
-#         #for tracer_name in self.vars.tracer_names:
-#         #    dfdx_linear_vars['B_' + tracer_name] = 0.0
+class ThermalShallowWater_Hamiltonian_LP(ThermalShallowWater_Hamiltonian_Base):
+
+    def compute_total_energy(self, state):
+        m = state['m']
+        h = state['h']
+        S = state['S']
+        return inner(m,m)/(2. * h) + inner(h,S)/2. + inner(S,self.bottom_topography)
+
+    def compute_dfdx_expressions(self, xvars, t, coeff, xhats, expressions):
+        u = xvars['u']
+        B_h = xvars['B_h']
+        B_S = xvars['B_S']
+        uhat = xhats['u']
+        B_h_hat = xhats['B_h']
+        B_S_hat = xhats['B_S']
+        dfdx_expressions = {}
+        self.compute_raw_dfdx_expressions(xvars, t, coeff, dfdx_expressions)
+        expressions['u'] = [inner(uhat, u)*self.spaces.dx, inner(uhat, dfdx_expressions['u'])*self.spaces.dx]
+        expressions['B_h'] = [inner(B_h_hat, B_h)*self.spaces.dx, inner(B_h_hat, dfdx_expressions['B_h'])*self.spaces.dx]
+        expressions['B_S'] = [inner(B_S_hat, B_S)*self.spaces.dx, inner(B_S_hat, dfdx_expressions['B_S'])*self.spaces.dx]
+
+    def compute_raw_dfdx_expressions(self, xvars, t, coeff, expressions):
+
+        m = xvars['m']
+        h = xvars['h']
+        S = xvars['S']
+        expressions['u'] = m / h
+        expressions['B_h'] = -inner(m,m)/(2.*inner(h,h)) + S/2.
+        expressions['B_S'] = h/2. + self.bottom_topography
+        # # for tracer_name in self.vars.tracer_names:
+        # #     tracerhat = self.testvars['B_' + tracer_name]
+        # #     tracertrial = self.trialvars['B_' + tracer_name]
+        # #     expressions['B_' + tracer_name] = make_a_L(Constant(0), tracertrial, tracerhat)
+
+    def compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars):
+        raise NotImplementedError
+
+        # H0 = const_state['h']
+        # S0 = const_state['S']
+        # m = xstar['m']
+        # h = xstar['h']
+        # S = xstar['S']
+        #
+        # dfdx_linear_vars['u'] = m / H0
+        # dfdx_linear_vars['B_h'] = (S0 + S)/2. + self.bottom_topography
+        # dfdx_linear_vars['B_S'] = (H0 + H)/2.
+        # #for tracer_name in self.vars.tracer_names:
+        # #    dfdx_linear_vars['B_' + tracer_name] = 0.0
 
 class ThermalShallowWater_Hamiltonian_CF(ThermalShallowWater_Hamiltonian_Base):
 

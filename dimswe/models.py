@@ -1,11 +1,13 @@
-from .hamiltonians import ThermalShallowWater_Hamiltonian_CF
-from .variables import ThermalShallowWaterVariables_CF_H1, MoistThermalShallowWaterVariables_CF_H1, ThermalShallowWaterVariables_CF, MoistThermalShallowWaterVariables_CF
-from .statistics import AdvDensStatistics_CF_H1, AdvDensStatistics_CF
-from .diagnostics import AdvDensDiagnostics_CF_H1, AdvDensDiagnostics_CF
+from .hamiltonians import ThermalShallowWater_Hamiltonian_CF, ThermalShallowWater_Hamiltonian_LP
+from .variables import ThermalShallowWaterVariables_CF_H1, MoistThermalShallowWaterVariables_CF_H1
+from .variables import ThermalShallowWaterVariables_CF, MoistThermalShallowWaterVariables_CF
+from .variables import ThermalShallowWaterVariables_LP, MoistThermalShallowWaterVariables_LP
+from .statistics import AdvDensStatistics_CF_H1, AdvDensStatistics_CF, AdvDensStatistics_LP
+from .diagnostics import AdvDensDiagnostics_CF_H1, AdvDensDiagnostics_CF, AdvDensDiagnostics_LP
 from .dynamics import AdvDensCF_H1_Dynamics, MetriplecticDynamics
 from .initial_conditions import get_advdens_initcond
 from .meshes import get_mesh_and_spaces
-from .poisson_brackets import CurlForm_AdvectedQuantities_Bracket
+from .poisson_brackets import CurlForm_AdvectedQuantities_Bracket, LiePoisson_AdvectedQuantities_Bracket
 from .entropies import EmptyEntropy
 from .dissipation import Hyperviscosity
 from .physics import ThreeWayPhysics
@@ -223,7 +225,15 @@ class MetriplecticModel(Model):
                 raise ValueError("hamiltonian " + parameters['model']['hamiltonian'] + " is unknown")
             poisson_brackets = [CurlForm_AdvectedQuantities_Bracket(self.spaces, vars, parameters), ]
         elif parameters['model']['poisson_bracket'] == 'lp':
-            raise NotImplementedError('LP brackets not implemented yet')
+            if parameters['model']['hamiltonian'] == 'tswe':
+                vars = ThermalShallowWaterVariables_LP(self.spaces, parameters['model']['tracer_names'])
+                hamiltonian = ThermalShallowWater_Hamiltonian_LP(vars, self.spaces)
+            elif parameters['model']['hamiltonian'] == 'mtswe':
+                vars = MoistThermalShallowWaterVariables_LP(self.spaces, parameters['model']['tracer_names'])
+                hamiltonian = ThermalShallowWater_Hamiltonian_LP(vars, self.spaces)
+            else:
+                raise ValueError("hamiltonian " + parameters['model']['hamiltonian'] + " is unknown")
+            poisson_brackets = [LiePoisson_AdvectedQuantities_Bracket(self.spaces, vars, parameters), ]
         else:
             raise ValueError("poisson bracket " + parameters['model']['poisson_bracket'] + " is unknown")
 
@@ -236,6 +246,9 @@ class MetriplecticModel(Model):
             if parameters['model']['poisson_bracket'] == 'cf' and parameters['model']['hamiltonian'] in ['tswe', 'mtswe', 'ce']:
                 self.statistics = AdvDensStatistics_CF(self.spaces, hamiltonian, vars, self.initcond, parameters['timestepping']['num_steps'] // parameters['output']['stat_freq'] + 1)
                 self.diagnostics = AdvDensDiagnostics_CF(self.spaces, hamiltonian, vars, self.initcond, parameters['mesh']['dim'])
+            elif parameters['model']['poisson_bracket'] == 'cf' and parameters['model']['hamiltonian'] in ['tswe', 'mtswe', 'ce']:
+                self.statistics = AdvDensStatistics_LP(self.spaces, hamiltonian, vars, self.initcond, parameters['timestepping']['num_steps'] // parameters['output']['stat_freq'] + 1)
+                self.diagnostics = AdvDensDiagnostics_LP(self.spaces, hamiltonian, vars, self.initcond, parameters['mesh']['dim'])
         forcing_terms = get_forcing_terms(parameters, vars, self.spaces, self.initcond)
         self.dynamics = MetriplecticDynamics(parameters, self.mesh, self.spaces, vars, poisson_brackets, metric_brackets, hamiltonian, entropy, forcing_terms, logger)
 

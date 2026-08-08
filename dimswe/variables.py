@@ -9,6 +9,17 @@ class VariablesBase():
     def get_spacelist(self):
         return self.spacelist
 
+#THIS SHOULD BE DONE VIA A FIXED LINEAR SYSTEM I THINK!
+    def initialize(self, varexpr, vars):
+        for var in self.varlist:
+            if not varexpr[var] == 0:
+                vars[var].project(varexpr[var])
+
+    def get_dhdx_var_list(self):
+        return self.dhdx_var_list
+
+
+
     #def get_vars(self, varname):
     #    return Function(self.mixedspace, name=varname)
 
@@ -152,14 +163,7 @@ class AdvDensVariables_CF_Base(VariablesBase):
         for dens in self.active_density_names:
             self.dhdx_var_list.append('B_' + dens)
 
-    def get_dhdx_var_list(self):
-        return self.dhdx_var_list
 
-#THIS SHOULD BE DONE VIA A FIXED LINEAR SYSTEM I THINK!
-    def initialize(self, varexpr, vars):
-        for var in self.varlist:
-            if not varexpr[var] == 0:
-                vars[var].project(varexpr[var])
         #if not varexpr['v']==0:
         #    vars.sub(0).project(varexpr['v'])
         #for i,dens in enumerate(self.density_names):
@@ -191,32 +195,39 @@ class AdvDensVariables_CF(AdvDensVariables_CF_Base):
                 self.spacelist.append(self.spaces.DG)
 
 
-# class AdvDensVariables_LP(VariablesBase):
-#     def __init__(self, spaces,  active_density_names, inactive_density_names):
-#         self.spaces = spaces
-#         self.density_names = active_density_names + inactive_density_names
-#         self.active_density_names = active_density_names
-#         self.inactive_density_names = inactive_density_names
-#
-#         self.varlist = ['m',]
-#         for dens in self.density_names:
-#             self.varlist.append(dens)
-#
-#         self.dhdx_var_list = ['u',]
-#         for dens in self.active_density_names:
-#             self.dhdx_var_list.append('B_' + dens)
-#
-#         if not spaces is None:
-#
-#             self.spacelist = [self.spaces.DGV, ]
-#             for dens in self.density_names:
-#                 self.spacelist.append(self.spaces.DG)
-#
-#     def initialize(self, varexpr, vars):
-#         vars.sub(0).interpolate(varexpr['m'])
-#         for i,dens in enumerate(self.density_names):
-#             vars.sub(i+1).interpolate(varexpr[dens])
-#
+class AdvDensVariables_LP(VariablesBase):
+    def __init__(self, spaces,  active_density_names, inactive_density_names):
+        self.spaces = spaces
+        self.density_names = active_density_names + inactive_density_names
+        self.active_density_names = active_density_names
+        self.inactive_density_names = inactive_density_names
+
+        self.advected_quantity_names = self.active_density_names
+        self.advected_quantity_bundle = ['S',] * len(self.active_density_names)
+        self.advected_quantity_degree = [dim, ] * len(self.active_density_names)
+        self.inactive_advected_quantity_names = self.inactive_density_names
+        self.inactive_advected_quantity_bundle = ['S',] * len(self.inactive_density_names)
+        self.inactive_advected_quantity_degree = [dim, ] * len(self.inactive_density_names)
+
+        self.varlist = ['m',]
+        for dens in self.density_names:
+            self.varlist.append(dens)
+
+        self.dhdx_var_list = ['u',]
+        for dens in self.active_density_names:
+            self.dhdx_var_list.append('B_' + dens)
+
+        if not spaces is None:
+
+            self.spacelist = [self.spaces.DGV, ]
+            for dens in self.density_names:
+                self.spacelist.append(self.spaces.DG)
+
+    def initialize(self, varexpr, vars):
+        vars.sub(0).interpolate(varexpr['m'])
+        for i,dens in enumerate(self.density_names):
+            vars.sub(i+1).interpolate(varexpr[dens])
+
 
 ###################
 
@@ -238,10 +249,10 @@ class ThermalShallowWaterVariables_CF_H1(AdvDensVariables_CF_H1, ThermalShallowW
         AdvDensVariables_CF_H1.__init__(self, spaces, ['h', 'S'], tracer_names, dg_tracer_names, 2)
         self.entropy_name = 'S'
 
-# class ThermalShallowWaterVariables_LP(AdvDensVariables_LP, ThermalShallowWaterBase):
-#     def __init__(self, spaces, tracer_names):
-#         AdvDensVariables_LP.__init__(self, spaces, ['h', 'S'], tracer_names)
-#         self.entropy_name = 'S'
+class ThermalShallowWaterVariables_LP(AdvDensVariables_LP, ThermalShallowWaterBase):
+    def __init__(self, spaces, tracer_names):
+        AdvDensVariables_LP.__init__(self, spaces, ['h', 'S'], tracer_names)
+        self.entropy_name = 'S'
 
 
 class MoistThermalShallowWaterVariables_CF(AdvDensVariables_CF, ThermalShallowWaterBase):
@@ -255,10 +266,10 @@ class MoistThermalShallowWaterVariables_CF_H1(AdvDensVariables_CF_H1, ThermalSha
         AdvDensVariables_CF_H1.__init__(self, spaces, ['h', 'S'], tracer_names, ['Qv', 'Qc', 'Qr'] + dg_tracer_names, 2)
         self.entropy_name = 'S'
 
-# class MoistThermalShallowWaterVariables_LP(AdvDensVariables_LP, ThermalShallowWaterBase):
-#     def __init__(self, spaces, tracer_names):
-#         AdvDensVariables_LP.__init__(self, spaces, ['h', 'S'], ['Qv', 'Qc', 'Qr'] + tracer_names)
-#         self.entropy_name = 'S'
+class MoistThermalShallowWaterVariables_LP(AdvDensVariables_LP, ThermalShallowWaterBase):
+    def __init__(self, spaces, tracer_names):
+        AdvDensVariables_LP.__init__(self, spaces, ['h', 'S'], ['Qv', 'Qc', 'Qr'] + tracer_names)
+        self.entropy_name = 'S'
 
 
 #
