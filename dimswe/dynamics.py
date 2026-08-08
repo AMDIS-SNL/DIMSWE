@@ -141,23 +141,23 @@ class Dynamics():
     def get_coeff_list(self):
         return self.coefflist
 
-    def get_dfdx_aux_var_list(self, terms='all'):
-        return []
-
-    def compute_dfdx_expressions(self, x, t, coeff, xhats, terms='all'):
-        return {}
-
-    def get_q_aux_var_list(self, terms='all'):
-        return []
-
-    def compute_q_expressions(self, x, t, coeff, xhats, terms='all'):
-        return {}
-
-    def get_aux_var_list(self, terms='all'):
-        return []
-
-    def compute_aux_expressions(self, x, t, coeff, xhats, terms='all'):
-        return {}
+    # def get_dfdx_aux_var_list(self):
+    #     return []
+    #
+    # def compute_dfdx_expressions(self, x, t, coeff, xhats):
+    #     return {}
+    #
+    # def get_q_aux_var_list(self):
+    #     return []
+    #
+    # def compute_q_aux_expressions(self, x, t, coeff, xhats):
+    #     return {}
+    #
+    # def get_aux_var_list(self, terms='all'):
+    #     return []
+    #
+    # def compute_aux_expressions(self, x, t, coeff, xhats, terms='all'):
+    #     return {}
 
     def get_x_test_vars(self):
         xhat = TestFunction(self.xspace)
@@ -475,8 +475,8 @@ class AdvDensCF_H1_Dynamics(Dynamics):
         vtest = xhats['v']
 
         dfdx_expressions = {}
-        self.hamiltonian.compute_dfdx_expressions(xvars, t, coeff, dfdx_expressions)
-        F = dfdx_expressions['F'][0]
+        self.hamiltonian.compute_raw_dfdx_expressions(xvars, t, coeff, dfdx_expressions)
+        F = dfdx_expressions['F']
 
         if self.dim == 1:
             raise NotImplementedError
@@ -488,7 +488,7 @@ class AdvDensCF_H1_Dynamics(Dynamics):
 
         for dens_name in self.density_names:
             denstest = xhats[dens_name]
-            Bdens = dfdx_expressions['B_' + dens_name][0]
+            Bdens = dfdx_expressions['B_' + dens_name]
             dens = xvars[dens_name]
             if self.use_split_form[dens_name]:
                 rhs_expr = rhs_expr + inner(denstest, 0.5 *( div(dens/total_dens*F) + dot(grad(dens/total_dens),F) + dens/total_dens * div(F)))*self.dx
@@ -566,9 +566,9 @@ class MetriplecticDynamics(Dynamics):
         for metric_bracket in self.metric_brackets:
             self.auxvarlist += metric_bracket.get_aux_vars_list()
             self.auxspacelist += metric_bracket.get_spacelist()
-        self.auxvarlist += self.hamiltonian.get_aux_var_list()
+        self.auxvarlist += self.hamiltonian.get_aux_vars_list()
         self.auxspacelist += self.hamiltonian.get_spacelist()
-        self.auxvarlist += self.entropy.get_aux_var_list()
+        self.auxvarlist += self.entropy.get_aux_vars_list()
         self.auxspacelist += self.entropy.get_spacelist()
 
         self.fullspacelist = self.xspacelist + self.auxspacelist
@@ -613,19 +613,19 @@ class MetriplecticDynamics(Dynamics):
     def get_aux_var_list(self, terms='all'):
         aux_var_list = []
         if terms == 'all' or 'model' in terms:
-            aux_var_list += self.get_q_aux_var_list(terms=terms)
-            aux_var_list += self.get_dfdx_aux_var_list(terms=terms)
+            aux_var_list += self.get_q_aux_var_list()
+            aux_var_list += self.get_dfdx_aux_var_list()
         for term in self.forcing_terms:
             if terms == 'all' or term.name in terms:
                 aux_var_list += term.get_aux_vars_list()
-        return aux_vars
+        return aux_var_list
 
 
     def compute_aux_expressions(self, x, t, coeff, xhats, terms='all'):
         expressions = {}
         if terms == 'all' or 'model' in terms:
-            self.compute_q_aux_expressions(x, t, coeff, xhats, expressions)
-            self.compute_dfdx_aux_expressions(x, t, coeff, xhats, expressions)
+            self.compute_q_expressions(x, t, coeff, xhats, expressions)
+            self.compute_dfdx_expressions(x, t, coeff, xhats, expressions)
         for term in self.forcing_terms:
             if terms == 'all' or term.name in terms:
                 term.compute_aux_expressions(x, t, coeff, xhats, expressions)
@@ -645,19 +645,15 @@ class MetriplecticDynamics(Dynamics):
         dfdx_aux_var_list = dfdx_aux_var_list + self.entropy.get_aux_vars_list()
         return dfdx_aux_var_list
 
-    def compute_dfdx_expressions(self, x, t, coeff, xhats):
-        expressions = {}
-        self.hamiltonian.compute_dfdx_expressions(x, t, coeff, xhats expressions)
-        self.entropy.compute_dfdx_expressions(x, t, coeff, xhats expressions)
-        return expressions
+    def compute_dfdx_expressions(self, x, t, coeff, xhats, expressions):
+        self.hamiltonian.compute_dfdx_expressions(x, t, coeff, xhats, expressions)
+        self.entropy.compute_dfdx_expressions(x, t, coeff, xhats, expressions)
 
-    def compute_q_expressions(self, x, t, coeff, xhats):
-        expressions = {}
+    def compute_q_expressions(self, x, t, coeff, xhats, expressions):
         for bracket in self.poisson_brackets:
             bracket.compute_q_expressions(x, t, coeff, xhats, expressions)
         for metric_bracket in self.metric_brackets:
             metric_bracket.compute_q_expressions(x, t, coeff, xhats, expressions)
-        return expressions
 
 #MIGHT NEED SOME GENERALIZATION FOR HIGHER ORDER EC INTEGRATORS?
 

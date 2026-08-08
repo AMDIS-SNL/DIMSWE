@@ -3,7 +3,14 @@ from firedrake import VertexBasedLimiter, FunctionSpace
 from .operators import ForcingBase
 
 
-def SVLieDerivative(degree, dim, u, a, ahat, alpha_s, n, order, dx, dS):
+#             denstilde = 0.5 * ((1. + alpha) * dens('+') + (1. - alpha)*dens('-'))
+#             rhs_expr = rhs_expr + (denstest('+')*inner(F('+'), n('+')) + denstest('-')*inner(F('-'), n('-')))*denstilde/total_dens_avg*self.dS
+#             rhs_expr = rhs_expr - (Bdens('+')*inner(vtest('+'), n('+')) + Bdens('-')*inner(vtest('-'), n('-')))*denstilde/total_dens_avg*self.dS
+#             if self.spaces.order >1:
+#                 rhs_expr = rhs_expr + inner(grad(Bdens   ), dens/total_dens * vtest)*self.dx
+#                 rhs_expr = rhs_expr - inner(grad(denstest), dens/total_dens * F   )*self.dx
+
+def SVLieDerivative(degree, dim, u, a, ahat, afac, alpha_s, n, order, dx, dS):
     #0-forms
     if degree == 0:
         raise NotImplementedError
@@ -12,9 +19,9 @@ def SVLieDerivative(degree, dim, u, a, ahat, alpha_s, n, order, dx, dS):
         alpha = alpha_s * sign(dot(u('+'),n('+')))
 #MISSING BOUNDARY TERMS- ds
         atilde = 0.5 * ((1. + alpha) * a('+') + (1. - alpha)*a('-'))
-        expr = (ahat('+')*inner(u('+'), n('+')) + ahat('-')*inner(u('-'), n('-')))*atilde*dS
+        expr = (ahat('+')*inner(u('+'), n('+')) + ahat('-')*inner(u('-'), n('-')))*atilde/afac*dS
         if order > 1:
-            rhs_expr = rhs_expr - inner(grad(ahat), a * u)*dx
+            rhs_expr = rhs_expr - inner(grad(ahat), a/ afac * u)*dx
         return expr
 #PROBABLY NEED TO DISTINGUISH BETWEEN 1-FORMS AND N-1 FORMS HERE!
     #1-forms in 2D

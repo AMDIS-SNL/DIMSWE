@@ -188,10 +188,10 @@ class AdvDensH1Model(Model):
 
         if parameters['model']['hamiltonian'] == 'tswe':
             vars = ThermalShallowWaterVariables_CF_H1(self.spaces, parameters['model']['tracer_names'], parameters['model']['dg_tracer_names'])
-            hamiltonian = ThermalShallowWater_Hamiltonian_CF(vars)
+            hamiltonian = ThermalShallowWater_Hamiltonian_CF(vars, self.spaces)
         elif parameters['model']['hamiltonian'] == 'mtswe':
             vars = MoistThermalShallowWaterVariables_CF_H1(self.spaces, parameters['model']['tracer_names'], parameters['model']['dg_tracer_names'])
-            hamiltonian = ThermalShallowWater_Hamiltonian_CF(vars)
+            hamiltonian = ThermalShallowWater_Hamiltonian_CF(vars, self.spaces)
         else:
             raise ValueError("hamiltonian " + parameters['model']['hamiltonian'] + " is unknown")
 
@@ -215,10 +215,10 @@ class MetriplecticModel(Model):
         if parameters['model']['poisson_bracket'] == 'cf':
             if parameters['model']['hamiltonian'] == 'tswe':
                 vars = ThermalShallowWaterVariables_CF(self.spaces, parameters['model']['tracer_names'])
-                hamiltonian = ThermalShallowWater_Hamiltonian_CF(vars)
+                hamiltonian = ThermalShallowWater_Hamiltonian_CF(vars, self.spaces)
             elif parameters['model']['hamiltonian'] == 'mtswe':
                 vars = MoistThermalShallowWaterVariables_CF(self.spaces, parameters['model']['tracer_names'])
-                hamiltonian = ThermalShallowWater_Hamiltonian_CF(vars)
+                hamiltonian = ThermalShallowWater_Hamiltonian_CF(vars, self.spaces)
             else:
                 raise ValueError("hamiltonian " + parameters['model']['hamiltonian'] + " is unknown")
             poisson_brackets = [CurlForm_AdvectedQuantities_Bracket(self.spaces, vars, parameters), ]

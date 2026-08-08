@@ -17,14 +17,17 @@ def plot_scalar2D(func, name):
     fig.colorbar(contours)
     fig.savefig(name + '.png')
     plt.close()
-    
-def animate_scalar2D(chkpoint_file, mesh, varname, noutput, name):
+
+def animate_scalar2D(chkpoint_file, mesh, varname, noutput, name, is_vector):
     fig, axes = plt.subplots()
     axes.set_aspect("equal")
     artists = []
     for i in range(noutput):
         func = chkpoint_file.load_function(mesh, varname, idx=i)
-        artist = tripcolor(func, axes=axes, cmap="inferno")
+        if is_vector:
+            artist = quiver(func, axes=axes)
+        else:
+            artist = tripcolor(func, axes=axes, cmap="inferno")
         txt = axes.text(0.02, 0.98, 't='+str(i), transform=axes.transAxes,
                       va="top", ha="left", color="w",
                       bbox=dict(facecolor="black", alpha=0.3, edgecolor="none", pad=2))

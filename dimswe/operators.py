@@ -39,6 +39,14 @@ class BracketBase(OperatorBase):
     def linear_rhs(self, const_state, dfdx_linear_vars, xhats):
         return 0.0
 
+class FunctionalBase(OperatorBase):
+
+    def compute_dfdx_expressions(self, xvars, t, coeff, xhats, expressions):
+        pass
+
+    def compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars):
+        pass
+
 class ForcingBase(OperatorBase):
 
     def linear_rhs(self, const_state, xvars, xhats):
