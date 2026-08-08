@@ -186,21 +186,29 @@ class AdvDensVariables_CF_H1(AdvDensVariables_CF_Base):
                 self.spacelist.append(FunctionSpace(self.spaces.mesh, 'DG', 1, variant="spectral"))
 
 class AdvDensVariables_CF(AdvDensVariables_CF_Base):
-    def __init__(self, spaces, active_density_names, inactive_density_names, dim):
-        AdvDensVariables_CF_Base.__init__(self, spaces, active_density_names, inactive_density_names, dim)
+    def __init__(self, spaces, active_density_names, inactive_density_names, dg_inactive_density_names, dim):
+        AdvDensVariables_CF_Base.__init__(self, spaces, active_density_names, inactive_density_names + dg_inactive_density_names, dim)
+
+        self.dg_inactive_density_names = dg_inactive_density_names
 
         if not spaces is None:
             self.spacelist = [self.spaces.Hdiv, ]
-            for dens in self.density_names:
+            for dens in self.active_density_names + self.inactive_density_names:
                 self.spacelist.append(self.spaces.DG)
+            for dens in self.dg_inactive_density_names:
+#EVENTUALLY MAKE THIS TUNABLE, IFF THE SLOPE LIMITER EVER GETS GENERALIZED...
+                self.spacelist.append(FunctionSpace(self.spaces.mesh, 'DG', 1, variant="spectral"))
 
 
 class AdvDensVariables_LP(VariablesBase):
-    def __init__(self, spaces,  active_density_names, inactive_density_names):
+    def __init__(self, spaces, active_density_names, inactive_density_names, dg_inactive_density_names, dim):
         self.spaces = spaces
-        self.density_names = active_density_names + inactive_density_names
+
+        self.density_names = active_density_names + inactive_density_names + dg_inactive_density_names
         self.active_density_names = active_density_names
         self.inactive_density_names = inactive_density_names
+        self.dg_inactive_density_names = dg_inactive_density_names
+        self.dim = dim
 
         self.advected_quantity_names = self.active_density_names
         self.advected_quantity_bundle = ['S',] * len(self.active_density_names)
@@ -220,14 +228,11 @@ class AdvDensVariables_LP(VariablesBase):
         if not spaces is None:
 
             self.spacelist = [self.spaces.DGV, ]
-            for dens in self.density_names:
+            for dens in self.active_density_names + self.inactive_density_names:
                 self.spacelist.append(self.spaces.DG)
-
-    def initialize(self, varexpr, vars):
-        vars.sub(0).interpolate(varexpr['m'])
-        for i,dens in enumerate(self.density_names):
-            vars.sub(i+1).interpolate(varexpr[dens])
-
+            for dens in self.dg_inactive_density_names:
+#EVENTUALLY MAKE THIS TUNABLE, IFF THE SLOPE LIMITER EVER GETS GENERALIZED...
+                self.spacelist.append(FunctionSpace(self.spaces.mesh, 'DG', 1, variant="spectral"))
 
 ###################
 
@@ -239,25 +244,25 @@ class ThermalShallowWaterBase():
 
 
 class ThermalShallowWaterVariables_CF(AdvDensVariables_CF, ThermalShallowWaterBase):
-    def __init__(self, spaces, tracer_names):
-        AdvDensVariables_CF.__init__(self, spaces, ['h', 'S'], tracer_names, 2)
+    def __init__(self, spaces, tracer_names, dg_tracer_names=[]):
+        AdvDensVariables_CF.__init__(self, spaces, ['h', 'S'], tracer_names, dg_tracer_names, 2)
         self.entropy_name = 'S'
 
 
 class ThermalShallowWaterVariables_CF_H1(AdvDensVariables_CF_H1, ThermalShallowWaterBase):
-    def __init__(self, spaces, tracer_names, dg_tracer_names):
+    def __init__(self, spaces, tracer_names, dg_tracer_names=[]):
         AdvDensVariables_CF_H1.__init__(self, spaces, ['h', 'S'], tracer_names, dg_tracer_names, 2)
         self.entropy_name = 'S'
 
 class ThermalShallowWaterVariables_LP(AdvDensVariables_LP, ThermalShallowWaterBase):
-    def __init__(self, spaces, tracer_names):
-        AdvDensVariables_LP.__init__(self, spaces, ['h', 'S'], tracer_names)
+    def __init__(self, spaces, tracer_names, dg_tracer_names=[]):
+        AdvDensVariables_LP.__init__(self, spaces, ['h', 'S'], tracer_names, dg_tracer_names, 2)
         self.entropy_name = 'S'
 
 
 class MoistThermalShallowWaterVariables_CF(AdvDensVariables_CF, ThermalShallowWaterBase):
-    def __init__(self, spaces, tracer_names):
-        AdvDensVariables_CF.__init__(self, spaces, ['h', 'S'], ['Qv', 'Qc', 'Qr'] + tracer_names, 2)
+    def __init__(self, spaces, tracer_names, dg_tracer_names=[]):
+        AdvDensVariables_CF.__init__(self, spaces, ['h', 'S'], tracer_names, ['Qv', 'Qc', 'Qr'] + dg_tracer_names, 2)
         self.entropy_name = 'S'
 
 
@@ -267,8 +272,8 @@ class MoistThermalShallowWaterVariables_CF_H1(AdvDensVariables_CF_H1, ThermalSha
         self.entropy_name = 'S'
 
 class MoistThermalShallowWaterVariables_LP(AdvDensVariables_LP, ThermalShallowWaterBase):
-    def __init__(self, spaces, tracer_names):
-        AdvDensVariables_LP.__init__(self, spaces, ['h', 'S'], ['Qv', 'Qc', 'Qr'] + tracer_names)
+    def __init__(self, spaces, tracer_names, dg_tracer_names=[]):
+        AdvDensVariables_LP.__init__(self, spaces, ['h', 'S'], tracer_names, ['Qv', 'Qc', 'Qr'] + dg_tracer_names, 2)
         self.entropy_name = 'S'
 
 

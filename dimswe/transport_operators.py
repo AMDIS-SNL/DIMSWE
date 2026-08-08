@@ -10,13 +10,13 @@ from .operators import ForcingBase
 #                 rhs_expr = rhs_expr + inner(grad(Bdens   ), dens/total_dens * vtest)*self.dx
 #                 rhs_expr = rhs_expr - inner(grad(denstest), dens/total_dens * F   )*self.dx
 
-def SVLieDerivative(degree, dim, u, a, ahat, afac, alpha_s, n, order, dx, dS):
+def SVLieDerivative(degree, dim, u, a, ahat, afac, v, alpha_s, n, order, dx, dS):
     #0-forms
     if degree == 0:
         raise NotImplementedError
     #volume forms
     elif degree == dim:
-        alpha = alpha_s * sign(dot(u('+'),n('+')))
+        alpha = alpha_s * sign(dot(v('+'),n('+')))
 #MISSING BOUNDARY TERMS- ds
         atilde = 0.5 * ((1. + alpha) * a('+') + (1. - alpha)*a('-'))
         expr = (ahat('+')*inner(u('+'), n('+')) + ahat('-')*inner(u('-'), n('-')))*atilde/afac*dS

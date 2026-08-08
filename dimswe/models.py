@@ -216,20 +216,20 @@ class MetriplecticModel(Model):
 
         if parameters['model']['poisson_bracket'] == 'cf':
             if parameters['model']['hamiltonian'] == 'tswe':
-                vars = ThermalShallowWaterVariables_CF(self.spaces, parameters['model']['tracer_names'])
+                vars = ThermalShallowWaterVariables_CF(self.spaces, parameters['model']['tracer_names'], parameters['model']['dg_tracer_names'])
                 hamiltonian = ThermalShallowWater_Hamiltonian_CF(vars, self.spaces)
             elif parameters['model']['hamiltonian'] == 'mtswe':
-                vars = MoistThermalShallowWaterVariables_CF(self.spaces, parameters['model']['tracer_names'])
+                vars = MoistThermalShallowWaterVariables_CF(self.spaces, parameters['model']['tracer_names'], parameters['model']['dg_tracer_names'])
                 hamiltonian = ThermalShallowWater_Hamiltonian_CF(vars, self.spaces)
             else:
                 raise ValueError("hamiltonian " + parameters['model']['hamiltonian'] + " is unknown")
             poisson_brackets = [CurlForm_AdvectedQuantities_Bracket(self.spaces, vars, parameters), ]
         elif parameters['model']['poisson_bracket'] == 'lp':
             if parameters['model']['hamiltonian'] == 'tswe':
-                vars = ThermalShallowWaterVariables_LP(self.spaces, parameters['model']['tracer_names'])
+                vars = ThermalShallowWaterVariables_LP(self.spaces, parameters['model']['tracer_names'], parameters['model']['dg_tracer_names'])
                 hamiltonian = ThermalShallowWater_Hamiltonian_LP(vars, self.spaces)
             elif parameters['model']['hamiltonian'] == 'mtswe':
-                vars = MoistThermalShallowWaterVariables_LP(self.spaces, parameters['model']['tracer_names'])
+                vars = MoistThermalShallowWaterVariables_LP(self.spaces, parameters['model']['tracer_names'], parameters['model']['dg_tracer_names'])
                 hamiltonian = ThermalShallowWater_Hamiltonian_LP(vars, self.spaces)
             else:
                 raise ValueError("hamiltonian " + parameters['model']['hamiltonian'] + " is unknown")

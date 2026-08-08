@@ -144,6 +144,10 @@ class GeneralRK(TimeStepper):
             for var in self.model.get_aux_var_list():
                 xi_split[self.xk_split[var]] = self.Fi[i][2][var]
             xi_split[self.t] = self.t + float(self.c[i])*self.dt
+#THIS IS A HACKY THING TO MAKE CF WORK DUE TO FPERP...
+            if 'F' in self.model.get_aux_var_list():
+                xi_split[self.xk_split['F'][0]] = self.Fi[i][2]['F'][0]
+                xi_split[self.xk_split['F'][1]] = self.Fi[i][2]['F'][1]
             xi_splits.append(xi_split)
 
         #construct residuals for F and aux
@@ -154,6 +158,8 @@ class GeneralRK(TimeStepper):
             rhs_Fi = -model.rhs(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
             rhs_Fi = replace(rhs_Fi, xi_splits[i])
             residual_F = inner(xhat[0], self.Fi[i][0][0])*self.dx - rhs_Fi
+            #print('resF', i, residual_F)
+            #print('xisplits', xi_splits[i])
 #MIGHT HAVE TO MODIFY THIS INNER PRODUCT A LITTLE FOR IRK GENERALITY
 
             residual_aux = 0
@@ -350,11 +356,19 @@ class GeneralRK(TimeStepper):
 #NEED SOME WAY OF DOING THIS FOR FULL SPACE, SINCE AUX INITIAL GUESS SHOULD GO IN FI...
         #if len(self.xk) > 1:
         #    self.Fi[0][0][1].assign(xn[1])
-
+        #print('v', norm(self.xk[0].sub(0)))
+        #print('h', norm(self.xk[0].sub(1)))
+        #print('S', norm(self.xk[0].sub(2)))
         if self.is_explicit:
             for i in range(self.nstages):
+
                 self.auxsolvers[i].solve()
                 self.Fsolvers[i].solve()
+                #print('rhs', norm(self.Fi[i][0][0]))
+                #print('F', norm(self.Fi[i][0][1].sub(0)))
+                #print('B_h', norm(self.Fi[i][0][1].sub(1)))
+                #print('B_s', norm(self.Fi[i][0][1].sub(2)))
+
         elif self.is_dirk:
             for i in range(self.nstages):
                 self.Fauxsolvers[i].solve()
