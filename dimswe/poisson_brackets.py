@@ -48,64 +48,50 @@ class LiePoisson_AdvectedQuantities_Bracket(PoissonBracket):
         mtest = xhats['m']
         total_dens = self.total_density_func(xvars)
 
-#FIX THIS UP PROBABLY?
-        rhs_expr = CVLieDerivative(self.dim, self.dim, u, m, mtest, 1, self.alpha_s, self.n, self.order, self.dx, self.dS)
+        rhs_expr = CVLieDerivative(self.dim, self.dim, u, m, mtest, 1, u, self.alpha_s, self.n, self.order, self.dx, self.dS)
 
-# #FIX THIS STUFF UP!
-#         mtilde = 0.5 * ((1. + alpha) * m('+') + (1. - alpha)*m('-'))
-#         rhs_expr = (mtest('+')*inner(u('+'), n('+')) + mtest('-')*inner(u('-'), n('-')))*mtilde*self.dS
-#         rhs_expr = rhs_expr - (u('+')*inner(mtest('+'), n('+')) + u('-')*inner(mtest('-'), n('-')))*mtilde*self.dS
-#
-# #FIX THIS STUFF UP!
-# #super unclear if this is the correct notation
-# #probably need some sort of tensor product type thing for u*m, etc.
-# #could write in terms of coordinates pretty easy, so maybe do that?
-#         if self.spaces.order >1:
-#             rhs_expr = rhs_expr - inner(grad(mtest), outer(u,m))*self.dx
-#             rhs_expr = rhs_expr + inner(grad(u), outer(mtest,m))*self.dx
-#
 #WHY IS SV LIE DERIVATIVE FAILING?
 #ACTUALLY, DOES IT FAIL?
-
-        alpha = self.alpha_s * sign(dot(v('+'),self.n('+')))
-        for densname, dhdx_name in zip(self.advected_quantity_names, self.advected_quantity_dhdx_names):
-            dens = xvars[densname]
-            Bdens = xvars[dhdx_name]
-            denstest = xhats[densname]
-            denstilde = 0.5 * ((1. + alpha) * dens('+') + (1. - alpha)*dens('-'))
-            rhs_expr = rhs_expr + (denstest('+')*inner(v('+'), self.n('+')) + denstest('-')*inner(v('-'), self.n('-')))*denstilde*self.dS
-            rhs_expr = rhs_expr - (Bdens('+')*inner(vtest('+'), self.n('+')) + Bdens('-')*inner(vtest('-'), self.n('-')))*denstilde*self.dS
-            if self.spaces.order >1:
-                rhs_expr = rhs_expr + inner(grad(Bdens   ), dens * vtest)*self.dx
-                rhs_expr = rhs_expr - inner(grad(denstest), dens * v   )*self.dx
-
-        for dens in self.inactive_advected_quantity_names:
-            dens = xvars[densname]
-            denstest = xhats[densname]
-            denstilde = 0.5 * ((1. + alpha) * dens('+') + (1. - alpha)*dens('-'))
-            rhs_expr = rhs_expr + (denstest('+')*inner(v('+'), self.n('+')) + denstest('-')*inner(v('-'), self.n('-')))*denstilde*self.dS
-            if self.spaces.order >1:
-                rhs_expr = rhs_expr - inner(grad(denstest), dens * v   )*self.dx
-
-
-        # for name, dhdx_name, bundle, degree in zip(self.advected_quantity_names, self.advected_quantity_dhdx_names, self.advected_quantity_bundle, self.advected_quantity_degree):
-        #     if bundle == 'S':
-        #         rhs_expr = rhs_expr + SVLieDerivative(degree, self.dim, F, xvars[name], xhats[name], 1, self.alpha_s, self.n, self.order, self.dx, self.dS)
-        #         rhs_expr = rhs_expr - SVLieDerivative(degree, self.dim, vtest, xvars[name], xvars[dhdx_name], 1, self.alpha_s, self.n, self.order, self.dx, self.dS)
-        #     elif bundle == 'VV':
-        #         rhs_expr = rhs_expr + VVLieDerivative(degree, self.dim, F, xvars[name], xhats[name], 1, self.alpha_s, self.n, self.order, self.dx, self.dS)
-        #         rhs_expr = rhs_expr - VVLieDerivative(degree, self.dim, vtest, xvars[name], xvars[dhdx_name], 1, self.alpha_s, self.n, self.order, self.dx, self.dS)
-        #     elif bundle == 'CV':
-        #         rhs_expr = rhs_expr + CVLieDerivative(degree, self.dim, F, xvars[name], xhats[name], 1, self.alpha_s, self.n, self.order, self.dx, self.dS)
-        #         rhs_expr = rhs_expr - CVLieDerivative(degree, self.dim, vtest, xvars[name], xvars[dhdx_name], 1, self.alpha_s, self.n, self.order, self.dx, self.dS)
         #
-        # for name, bundle, degree in zip(self.inactive_advected_quantity_names, self.inactive_advected_quantity_bundle, self.inactive_advected_quantity_degree):
-        #     if bundle == 'S':
-        #         rhs_expr = rhs_expr + SVLieDerivative(degree, self.dim, F, xvars[name], xhats[name], 1, self.alpha_s, self.n, self.order, self.dx, self.dS)
-        #     elif bundle == 'VV':
-        #         rhs_expr = rhs_expr + VVLieDerivative(degree, self.dim, F, xvars[name], xhats[name], 1, self.alpha_s, self.n, self.order, self.dx, self.dS)
-        #     elif bundle == 'CV':
-        #         rhs_expr = rhs_expr + CVLieDerivative(degree, self.dim, F, xvars[name], xhats[name], 1, self.alpha_s, self.n, self.order, self.dx, self.dS)
+        # alpha = self.alpha_s * sign(dot(v('+'),self.n('+')))
+        # for densname, dhdx_name in zip(self.advected_quantity_names, self.advected_quantity_dhdx_names):
+        #     dens = xvars[densname]
+        #     Bdens = xvars[dhdx_name]
+        #     denstest = xhats[densname]
+        #     denstilde = 0.5 * ((1. + alpha) * dens('+') + (1. - alpha)*dens('-'))
+        #     rhs_expr = rhs_expr + (denstest('+')*inner(v('+'), self.n('+')) + denstest('-')*inner(v('-'), self.n('-')))*denstilde*self.dS
+        #     rhs_expr = rhs_expr - (Bdens('+')*inner(vtest('+'), self.n('+')) + Bdens('-')*inner(vtest('-'), self.n('-')))*denstilde*self.dS
+        #     if self.spaces.order >1:
+        #         rhs_expr = rhs_expr + inner(grad(Bdens   ), dens * vtest)*self.dx
+        #         rhs_expr = rhs_expr - inner(grad(denstest), dens * v   )*self.dx
+        #
+        # for dens in self.inactive_advected_quantity_names:
+        #     dens = xvars[densname]
+        #     denstest = xhats[densname]
+        #     denstilde = 0.5 * ((1. + alpha) * dens('+') + (1. - alpha)*dens('-'))
+        #     rhs_expr = rhs_expr + (denstest('+')*inner(v('+'), self.n('+')) + denstest('-')*inner(v('-'), self.n('-')))*denstilde*self.dS
+        #     if self.spaces.order >1:
+        #         rhs_expr = rhs_expr - inner(grad(denstest), dens * v   )*self.dx
+
+
+        for name, dhdx_name, bundle, degree in zip(self.advected_quantity_names, self.advected_quantity_dhdx_names, self.advected_quantity_bundle, self.advected_quantity_degree):
+            if bundle == 'S':
+                rhs_expr = rhs_expr + SVLieDerivative(degree, self.dim, u, xvars[name], xhats[name], 1, 1, u, self.alpha_s, self.n, self.order, self.dx, self.dS)
+                rhs_expr = rhs_expr - SVLieDerivative(degree, self.dim, mtest, xvars[name], xvars[dhdx_name], 1, 1, u, self.alpha_s, self.n, self.order, self.dx, self.dS)
+            elif bundle == 'VV':
+                rhs_expr = rhs_expr + VVLieDerivative(degree, self.dim, u, xvars[name], xhats[name], 1, 1, u, self.alpha_s, self.n, self.order, self.dx, self.dS)
+                rhs_expr = rhs_expr - VVLieDerivative(degree, self.dim, mtest, xvars[name], xvars[dhdx_name], 1, 1, u, self.alpha_s, self.n, self.order, self.dx, self.dS)
+            elif bundle == 'CV':
+                rhs_expr = rhs_expr + CVLieDerivative(degree, self.dim, u, xvars[name], xhats[name], 1, 1, u, self.alpha_s, self.n, self.order, self.dx, self.dS)
+                rhs_expr = rhs_expr - CVLieDerivative(degree, self.dim, mtest, xvars[name], xvars[dhdx_name], 1, 1, u, self.alpha_s, self.n, self.order, self.dx, self.dS)
+
+        for name, bundle, degree in zip(self.inactive_advected_quantity_names, self.inactive_advected_quantity_bundle, self.inactive_advected_quantity_degree):
+            if bundle == 'S':
+                rhs_expr = rhs_expr + SVLieDerivative(degree, self.dim, u, xvars[name], xhats[name], 1, 1, v, self.alpha_s, self.n, self.order, self.dx, self.dS)
+            elif bundle == 'VV':
+                rhs_expr = rhs_expr + VVLieDerivative(degree, self.dim, u, xvars[name], xhats[name], 1, 1, v, self.alpha_s, self.n, self.order, self.dx, self.dS)
+            elif bundle == 'CV':
+                rhs_expr = rhs_expr + CVLieDerivative(degree, self.dim, u, xvars[name], xhats[name], 1, 1, v, self.alpha_s, self.n, self.order, self.dx, self.dS)
 
 
 #
@@ -213,22 +199,22 @@ class CurlForm_AdvectedQuantities_Bracket(PoissonBracket):
         #rhs_expr = inner(vtest, self.coriolis / total_dens * Fperp)*self.dx
 
 #WHY IS SV LIE DERIVATIVE FAILING?
-#MAYBE IT IS IN ALPHA CALCS- DEPENDING ON V VS F?
-
+#ONLY FOR ORDER >1, SO SOMETHING IS WEIRD WITH THE GRADIENT STUFF...
         total_dens_avg = 0.5 * (total_dens('+') + total_dens('-'))
-        alpha = self.alpha_s * sign(dot(v('+'),self.n('+')))
-        for densname, dhdx_name in zip(self.advected_quantity_names, self.advected_quantity_dhdx_names):
-            dens = xvars[densname]
-            Bdens = xvars[dhdx_name]
-            denstest = xhats[densname]
-            denstilde = 0.5 * ((1. + alpha) * dens('+') + (1. - alpha)*dens('-'))
-            rhs_expr = rhs_expr + (denstest('+')*inner(F('+'), self.n('+')) + denstest('-')*inner(F('-'), self.n('-')))*denstilde/total_dens_avg*self.dS
-            rhs_expr = rhs_expr - (Bdens('+')*inner(vtest('+'), self.n('+')) + Bdens('-')*inner(vtest('-'), self.n('-')))*denstilde/total_dens_avg*self.dS
-            if self.spaces.order >1:
-                rhs_expr = rhs_expr + inner(grad(Bdens   ), dens/total_dens * vtest)*self.dx
-                rhs_expr = rhs_expr - inner(grad(denstest), dens/total_dens * F   )*self.dx
-        #print(rhs_expr)
 
+
+        # alpha = self.alpha_s * sign(dot(v('+'),self.n('+')))
+        # for densname, dhdx_name in zip(self.advected_quantity_names, self.advected_quantity_dhdx_names):
+        #     dens = xvars[densname]
+        #     Bdens = xvars[dhdx_name]
+        #     denstest = xhats[densname]
+        #     denstilde = 0.5 * ((1. + alpha) * dens('+') + (1. - alpha)*dens('-'))
+        #     rhs_expr = rhs_expr + (denstest('+')*inner(F('+'), self.n('+')) + denstest('-')*inner(F('-'), self.n('-')))*denstilde/total_dens_avg*self.dS
+        #     rhs_expr = rhs_expr - (Bdens('+')*inner(vtest('+'), self.n('+')) + Bdens('-')*inner(vtest('-'), self.n('-')))*denstilde/total_dens_avg*self.dS
+        #     if self.spaces.order >1:
+        #         rhs_expr = rhs_expr + inner(grad(Bdens   ), dens/total_dens * vtest)*self.dx
+        #         rhs_expr = rhs_expr - inner(grad(denstest), dens/total_dens * F   )*self.dx
+        #
 
         # for dens in self.inactive_advected_quantity_names:
         #     dens = xvars[densname]
@@ -239,24 +225,24 @@ class CurlForm_AdvectedQuantities_Bracket(PoissonBracket):
         #         rhs_expr = rhs_expr - inner(grad(denstest), dens/total_dens * F   )*self.dx
         #
 
-        # for name, dhdx_name, bundle, degree in zip(self.advected_quantity_names, self.advected_quantity_dhdx_names, self.advected_quantity_bundle, self.advected_quantity_degree):
-        #     if bundle == 'S':
-        #         rhs_expr = rhs_expr + SVLieDerivative(degree, self.dim, F, xvars[name], xhats[name], total_dens_avg, v, self.alpha_s, self.n, self.order, self.dx, self.dS)
-        #         rhs_expr = rhs_expr - SVLieDerivative(degree, self.dim, vtest, xvars[name], xvars[dhdx_name], total_dens_avg, v, self.alpha_s, self.n, self.order, self.dx, self.dS)
-        #     elif bundle == 'VV':
-        #         rhs_expr = rhs_expr + VVLieDerivative(degree, self.dim, F, xvars[name], xhats[name], total_dens_avg, v, self.alpha_s, self.n, self.order, self.dx, self.dS)
-        #         rhs_expr = rhs_expr - VVLieDerivative(degree, self.dim, vtest, xvars[name], xvars[dhdx_name], total_dens_avg, v, self.alpha_s, self.n, self.order, self.dx, self.dS)
-        #     elif bundle == 'CV':
-        #         rhs_expr = rhs_expr + CVLieDerivative(degree, self.dim, F, xvars[name], xhats[name], total_dens_avg, v, self.alpha_s, self.n, self.order, self.dx, self.dS)
-        #         rhs_expr = rhs_expr - CVLieDerivative(degree, self.dim, vtest, xvars[name], xvars[dhdx_name], total_dens_avg, v, self.alpha_s, self.n, self.order, self.dx, self.dS)
-        #
-        # for name, bundle, degree in zip(self.inactive_advected_quantity_names, self.inactive_advected_quantity_bundle, self.inactive_advected_quantity_degree):
-        #     if bundle == 'S':
-        #         rhs_expr = rhs_expr + SVLieDerivative(degree, self.dim, F, xvars[name], xhats[name], total_dens_avg, v, self.alpha_s, self.n, self.order, self.dx, self.dS)
-        #     elif bundle == 'VV':
-        #         rhs_expr = rhs_expr + VVLieDerivative(degree, self.dim, F, xvars[name], xhats[name], total_dens_avg, v, self.alpha_s, self.n, self.order, self.dx, self.dS)
-        #     elif bundle == 'CV':
-        #         rhs_expr = rhs_expr + CVLieDerivative(degree, self.dim, F, xvars[name], xhats[name], total_dens_avg, v, self.alpha_s, self.n, self.order, self.dx, self.dS)
+        for name, dhdx_name, bundle, degree in zip(self.advected_quantity_names, self.advected_quantity_dhdx_names, self.advected_quantity_bundle, self.advected_quantity_degree):
+            if bundle == 'S':
+                rhs_expr = rhs_expr + SVLieDerivative(degree, self.dim, F, xvars[name], xhats[name], total_dens_avg, total_dens, v, self.alpha_s, self.n, self.order, self.dx, self.dS)
+                rhs_expr = rhs_expr - SVLieDerivative(degree, self.dim, vtest, xvars[name], xvars[dhdx_name], total_dens_avg, total_dens, v, self.alpha_s, self.n, self.order, self.dx, self.dS)
+            elif bundle == 'VV':
+                rhs_expr = rhs_expr + VVLieDerivative(degree, self.dim, F, xvars[name], xhats[name], total_dens_avg, total_dens, v, self.alpha_s, self.n, self.order, self.dx, self.dS)
+                rhs_expr = rhs_expr - VVLieDerivative(degree, self.dim, vtest, xvars[name], xvars[dhdx_name], total_dens_avg, total_dens, v, self.alpha_s, self.n, self.order, self.dx, self.dS)
+            elif bundle == 'CV':
+                rhs_expr = rhs_expr + CVLieDerivative(degree, self.dim, F, xvars[name], xhats[name], total_dens_avg, total_dens, v, self.alpha_s, self.n, self.order, self.dx, self.dS)
+                rhs_expr = rhs_expr - CVLieDerivative(degree, self.dim, vtest, xvars[name], xvars[dhdx_name], total_dens_avg, total_dens, v, self.alpha_s, self.n, self.order, self.dx, self.dS)
+
+        for name, bundle, degree in zip(self.inactive_advected_quantity_names, self.inactive_advected_quantity_bundle, self.inactive_advected_quantity_degree):
+            if bundle == 'S':
+                rhs_expr = rhs_expr + SVLieDerivative(degree, self.dim, F, xvars[name], xhats[name], total_dens_avg, total_dens, v, self.alpha_s, self.n, self.order, self.dx, self.dS)
+            elif bundle == 'VV':
+                rhs_expr = rhs_expr + VVLieDerivative(degree, self.dim, F, xvars[name], xhats[name], total_dens_avg, total_dens, v, self.alpha_s, self.n, self.order, self.dx, self.dS)
+            elif bundle == 'CV':
+                rhs_expr = rhs_expr + CVLieDerivative(degree, self.dim, F, xvars[name], xhats[name], total_dens_avg, total_dens, v, self.alpha_s, self.n, self.order, self.dx, self.dS)
         return rhs_expr
 
 #
