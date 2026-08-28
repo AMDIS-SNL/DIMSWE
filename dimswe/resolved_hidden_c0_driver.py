@@ -89,6 +89,7 @@ def resolved_hidden_c0_parameters(
         )
     parameters = get_parameters(str(config_path))
     parameters["initial-conditions"]["name"] = configuration.case
+    parameters["initial-conditions"]["zeta"] = configuration.initial_moisture_zeta
     parameters["mesh"]["nx"] = configuration.nx
     parameters["mesh"]["ny"] = configuration.ny
     parameters["timestepping"]["dt"] = configuration.dt
@@ -103,8 +104,14 @@ def resolved_hidden_c0_parameters(
 
 def build_resolved_hidden_c0_case(
     configuration: ResolvedPilotConfiguration,
+    *,
+    jax_moist_local_physics=None,
 ) -> HiddenC0Case:
     """Construct a native repository IC with the complete production split."""
+    if jax_moist_local_physics is not None and configuration.moist_backend != "jax":
+        raise ValueError(
+            "an opt-in JAX moist local-physics provider requires moist_backend='jax'"
+        )
     parameters = resolved_hidden_c0_parameters(configuration)
 
     logger = EmptyLogger()
@@ -129,6 +136,7 @@ def build_resolved_hidden_c0_case(
         logger,
         _serial_solver_parameters(),
         moist_backend=configuration.moist_backend,
+        jax_moist_local_physics=jax_moist_local_physics,
     )
     timestepper.set_coeff(coefficient)
     helper = timestepper._get_mtswe_split_hvp_helper()
@@ -654,6 +662,15 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--s", type=float, default=3.2)
     parser.add_argument("--moist-backend", choices=("ufl", "jax"), default="ufl")
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument(
+        "--initial-moisture-zeta",
+        type=float,
+        default=0.0,
+        help=(
+            "signed initial saturation deficit in Qv=h*(1-zeta)*qsat; "
+            "negative values are supersaturated"
+        ),
+    )
     parser.add_argument("--output-directory", required=True)
     parser.add_argument("--base-config")
     parser.add_argument("--spectral-nx", type=int)
@@ -683,6 +700,7 @@ def main(argv=None) -> int:
         s=arguments.s,
         moist_backend=arguments.moist_backend,
         seed=arguments.seed,
+        initial_moisture_zeta=arguments.initial_moisture_zeta,
         output_directory=arguments.output_directory,
         base_config=arguments.base_config,
         spectral_nx=arguments.spectral_nx,

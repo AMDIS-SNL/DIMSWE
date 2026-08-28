@@ -40,6 +40,12 @@ from .hyperviscosity_hvp import (
 )
 from .physics import qsat
 from .moist_backend import validate_moist_backend
+from .learned_physics.parameters import (
+    tree_axpy,
+    tree_copy,
+    tree_zeros,
+    validate_float64_tree,
+)
 
 
 _MTSWE_FIELDS = ("v", "h", "S", "Qv", "Qc", "Qr")
@@ -679,6 +685,41 @@ class MTSWESplitHVPResult:
 
 
 @dataclass(frozen=True)
+class MTSWEFixedPrefixCache:
+    """Owned theta-independent children 1--5 at one trusted reset state."""
+
+    t0: float
+    dt: float
+    state_in: Function
+    boundary_states: tuple[Function, ...]
+    children: tuple[MTSWEChildPrimalCache, ...]
+    state_out: Function
+    forward_child_order: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class MTSWENeuralParameterTangentCache:
+    """Exact joint state/neural-parameter tangent of one complete step."""
+
+    primal: MTSWESplitPrimalCache
+    state_direction_in: Function
+    parameter_direction: object
+    state_direction_out: Function
+    moist_parameter_tangent: object
+
+
+@dataclass(frozen=True)
+class MTSWENeuralParameterReverseResult:
+    """Exact complete-step state and neural-parameter reverse action."""
+
+    state_adjoint_in: Cofunction
+    parameter_adjoint: object
+    children: tuple[MTSWEChildReverseData, ...]
+    reverse_child_order: tuple[str, ...]
+    stopped_at_fixed_prefix: bool
+
+
+@dataclass(frozen=True)
 class MTSWEReducedGradientResult:
     objective_value: float
     initial_condition_gradient: Cofunction
@@ -727,7 +768,8 @@ class ProductionMTSWESplitHVP:
             from .jax_moist_hvp import JAXMoistEulerHVP
 
             self.moist_helper = JAXMoistEulerHVP(
-                self.moist_child.ufl_oracle
+                self.moist_child.ufl_oracle,
+                local_physics=self.moist_child.local_physics,
             )
         self.state_space = self.dry_helper.state_space
         self.state_dual_space = self.dry_helper.state_dual_space
@@ -844,7 +886,9 @@ class ProductionMTSWESplitHVP:
             raise RuntimeError("expanded production MTSWE child order changed")
         return tuple(specs)
 
-    def _forward_child(self, name, state, child_t0, child_dt):
+    def _forward_child(
+        self, name, state, child_t0, child_dt, *, neural_parameters=None
+    ):
         if name.startswith("dry_rk4"):
             return self.dry_helper.take_forward_step_cached(
                 state, child_t0, child_dt
@@ -858,12 +902,25 @@ class ProductionMTSWESplitHVP:
                 state, child_t0, child_dt
             )
         if name == "moist_euler":
+            if neural_parameters is None:
+                return self.moist_helper.take_forward_step_cached(
+                    state, child_t0, child_dt
+                )
+            if self.moist_backend != "jax":
+                raise ValueError(
+                    "neural parameters require the opt-in JAX moist backend"
+                )
             return self.moist_helper.take_forward_step_cached(
-                state, child_t0, child_dt
+                state,
+                child_t0,
+                child_dt,
+                neural_parameters=neural_parameters,
             )
         raise RuntimeError(f"unknown MTSWE child {name}")
 
-    def take_forward_step_cached(self, xn, tn, dt):
+    def take_forward_step_cached(
+        self, xn, tn, dt, *, neural_parameters=None
+    ):
         state_in = self._state_from_container("xn", xn)
         t0 = _as_float("tn", tn)
         step = _as_float("dt", dt)
@@ -872,7 +929,15 @@ class ProductionMTSWESplitHVP:
         children = []
         for boundary_index, spec in enumerate(self._child_specs(t0, step), 1):
             name, integrator_index, subcycle_index, child_t0, child_dt = spec
-            cache = self._forward_child(name, current, child_t0, child_dt)
+            cache = self._forward_child(
+                name,
+                current,
+                child_t0,
+                child_dt,
+                neural_parameters=(
+                    neural_parameters if name == "moist_euler" else None
+                ),
+            )
             children.append(
                 MTSWEChildPrimalCache(
                     name=name,
@@ -899,6 +964,199 @@ class ProductionMTSWESplitHVP:
             children=tuple(children),
             state_out=_copy_function(current, "mtswe_state_out_cache"),
             forward_child_order=_FORWARD_CHILD_ORDER,
+        )
+
+    def take_fixed_prefix_cached(self, xn, tn, dt):
+        """Cache exact children 1--5 before the first neural moist child."""
+        if self.moist_backend != "jax" or self.moist_helper.local_physics is None:
+            raise ValueError(
+                "fixed neural prefix requires opt-in learned JAX moist physics"
+            )
+        state_in = self._state_from_container("xn", xn)
+        t0 = _as_float("tn", tn)
+        step = _as_float("dt", dt)
+        current = _copy_function(state_in, "mtswe_prefix_current_0")
+        boundaries = [_copy_function(state_in, "mtswe_prefix_boundary_0")]
+        children = []
+        for boundary_index, spec in enumerate(self._child_specs(t0, step)[:-1], 1):
+            name, integrator_index, subcycle_index, child_t0, child_dt = spec
+            cache = self._forward_child(name, current, child_t0, child_dt)
+            children.append(
+                MTSWEChildPrimalCache(
+                    name=name,
+                    integrator_index=integrator_index,
+                    subcycle_index=subcycle_index,
+                    t0=child_t0,
+                    dt=child_dt,
+                    cache=cache,
+                )
+            )
+            current = _copy_function(
+                cache.state_out, f"mtswe_prefix_current_{boundary_index}"
+            )
+            boundaries.append(
+                _copy_function(
+                    current, f"mtswe_prefix_boundary_{boundary_index}"
+                )
+            )
+        names = tuple(child.name for child in children)
+        if names != _FORWARD_CHILD_ORDER[:-1]:
+            raise RuntimeError("fixed prefix child order changed")
+        return MTSWEFixedPrefixCache(
+            t0=t0,
+            dt=step,
+            state_in=_copy_function(state_in, "mtswe_prefix_state_in"),
+            boundary_states=tuple(boundaries),
+            children=tuple(children),
+            state_out=_copy_function(current, "mtswe_prefix_state_out"),
+            forward_child_order=names,
+        )
+
+    def take_forward_step_from_prefix(self, prefix, neural_parameters):
+        """Complete one exact step by applying child 6 to a fixed prefix."""
+        if not isinstance(prefix, MTSWEFixedPrefixCache):
+            raise TypeError("prefix must be an MTSWEFixedPrefixCache")
+        owned = validate_float64_tree(
+            neural_parameters, name="neural_parameters"
+        )
+        spec = self._child_specs(prefix.t0, prefix.dt)[-1]
+        name, integrator_index, subcycle_index, child_t0, child_dt = spec
+        if name != "moist_euler":
+            raise RuntimeError("final deployed child is not moist Euler")
+        moist = self._forward_child(
+            name,
+            prefix.state_out,
+            child_t0,
+            child_dt,
+            neural_parameters=owned,
+        )
+        child = MTSWEChildPrimalCache(
+            name=name,
+            integrator_index=integrator_index,
+            subcycle_index=subcycle_index,
+            t0=child_t0,
+            dt=child_dt,
+            cache=moist,
+        )
+        boundary_states = prefix.boundary_states + (
+            _copy_function(moist.state_out, "mtswe_prefix_completed_boundary_6"),
+        )
+        return MTSWESplitPrimalCache(
+            t0=prefix.t0,
+            dt=prefix.dt,
+            state_in=_copy_function(prefix.state_in, "mtswe_prefix_completed_in"),
+            boundary_states=boundary_states,
+            children=prefix.children + (child,),
+            state_out=_copy_function(moist.state_out, "mtswe_prefix_completed_out"),
+            forward_child_order=_FORWARD_CHILD_ORDER,
+        )
+
+    @staticmethod
+    def _add_states(left, right, name):
+        result = _copy_function(left, name)
+        with result.dat.vec as output, right.dat.vec_ro as increment:
+            output.axpy(1.0, increment)
+        return result
+
+    def take_neural_parameter_tangent_step(
+        self, primal, state_direction, parameter_direction
+    ):
+        """Apply the exact joint state/parameter tangent of one split step."""
+        if not isinstance(primal, MTSWESplitPrimalCache):
+            raise TypeError("primal must be an MTSWESplitPrimalCache")
+        if self.moist_backend != "jax" or self.moist_helper.local_physics is None:
+            raise ValueError("neural tangent requires opt-in learned moist physics")
+        current = _copy_function(
+            self._state_from_container("state_direction", state_direction),
+            "mtswe_neural_tangent_current",
+        )
+        owned_direction = validate_float64_tree(
+            parameter_direction, name="parameter_direction"
+        )
+        moist_parameter_tangent = None
+        for child in primal.children:
+            if child.name == "moist_euler":
+                state_part = self.moist_helper.take_tangent_step(
+                    child.cache, current
+                )
+                moist_parameter_tangent = (
+                    self.moist_helper.take_parameter_tangent_step(
+                        child.cache, owned_direction
+                    )
+                )
+                current = self._add_states(
+                    state_part.state_direction_out,
+                    moist_parameter_tangent.state_direction_out,
+                    "mtswe_neural_tangent_out",
+                )
+            else:
+                cache = self._tangent_child(child, current, 0.0)
+                current = _copy_function(
+                    cache.state_direction_out, "mtswe_neural_tangent_current"
+                )
+        if moist_parameter_tangent is None:
+            raise RuntimeError("complete step did not contain neural moist child")
+        return MTSWENeuralParameterTangentCache(
+            primal=primal,
+            state_direction_in=_copy_function(
+                state_direction, "mtswe_neural_tangent_in"
+            ),
+            parameter_direction=tree_copy(owned_direction),
+            state_direction_out=_copy_function(
+                current, "mtswe_neural_tangent_result"
+            ),
+            moist_parameter_tangent=moist_parameter_tangent,
+        )
+
+    def take_neural_parameter_adjoint_step(
+        self, primal, lambda_plus_star, *, stop_at_fixed_prefix=False
+    ):
+        """Apply the exact complete-step transpose and return the theta VJP."""
+        if not isinstance(primal, MTSWESplitPrimalCache):
+            raise TypeError("primal must be an MTSWESplitPrimalCache")
+        if self.moist_backend != "jax" or self.moist_helper.local_physics is None:
+            raise ValueError("neural reverse requires opt-in learned moist physics")
+        self._require_dual("lambda_plus_star", lambda_plus_star)
+        current = _copy_cofunction(
+            lambda_plus_star, "mtswe_neural_reverse_current"
+        )
+        parameter_adjoint = tree_zeros(
+            primal.children[-1].cache.neural_parameters
+        )
+        children = []
+        for child in reversed(primal.children):
+            if child.name == "moist_euler":
+                result = self.moist_helper.take_parameter_adjoint_step(
+                    child.cache, current
+                )
+                parameter_adjoint = tree_axpy(
+                    parameter_adjoint, 1.0, result.parameter_adjoint
+                )
+                current = _copy_cofunction(
+                    result.ordinary_state_reverse.state_adjoint_in,
+                    "mtswe_neural_reverse_current",
+                )
+                children.append(MTSWEChildReverseData(child.name, result))
+                if stop_at_fixed_prefix:
+                    break
+            else:
+                result = self._reverse_child(child, current)
+                current = _copy_cofunction(
+                    result.state_adjoint_in, "mtswe_neural_reverse_current"
+                )
+                children.append(MTSWEChildReverseData(child.name, result))
+        reverse_order = tuple(child.name for child in children)
+        expected = ("moist_euler",) if stop_at_fixed_prefix else _REVERSE_CHILD_ORDER
+        if reverse_order != expected:
+            raise RuntimeError("neural reverse child order changed")
+        return MTSWENeuralParameterReverseResult(
+            state_adjoint_in=_copy_cofunction(
+                current, "mtswe_neural_state_adjoint_in"
+            ),
+            parameter_adjoint=tree_copy(parameter_adjoint),
+            children=tuple(children),
+            reverse_child_order=reverse_order,
+            stopped_at_fixed_prefix=bool(stop_at_fixed_prefix),
         )
 
     def _tangent_child(self, child, direction, delta_c0):

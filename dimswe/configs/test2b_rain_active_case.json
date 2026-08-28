@@ -1,0 +1,53 @@
+{
+  "format_version": 1,
+  "scientific_purpose": "Test2B rain-active double-vortex truth after controlled initial-vapor-loading case design",
+  "selected_case": {
+    "case": "doublevortex",
+    "nx": 64,
+    "ny": 64,
+    "dt": 100.0,
+    "nsteps": 160,
+    "final_time": 16000.0,
+    "output_stride": 1,
+    "c0": 0.14,
+    "s": 3.2,
+    "moist_backend": "ufl",
+    "seed": 0,
+    "spectral_nx": 128,
+    "spectral_ny": 128,
+    "initial_moisture_zeta": -0.06,
+    "initial_boundary_saturation_ratio": 1.06,
+    "initial_Qc": 0.0,
+    "initial_Qr": 0.0,
+    "qprecip": 0.0001,
+    "gamma_r": 0.001
+  },
+  "frozen_laws": {
+    "analytical_A": "unchanged",
+    "analytical_R": "unchanged",
+    "rain_threshold": "unchanged",
+    "rain_conversion_factor": "unchanged"
+  },
+  "proposed_sustained_rain_criterion": {
+    "canonical_status": "PROPOSED_FOR_THIS_CASE_DESIGN_NOT_GLOBAL_CANON",
+    "minimum_continuous_duration": 1000.0,
+    "every_saved_state_requires_physically_meaningful_R": true,
+    "every_saved_state_requires_positive_integrated_rain_production": true,
+    "minimum_mean_active_GLL_fraction": 0.0001,
+    "requires_positive_rain_mass_gain_above_128eps_total_water": true
+  },
+  "bounded_evidence": {
+    "n64_selected_audit": "external-results/test2b-rain-active-case-design/sweep-n64-zeta-m0p06-t12000/rain_activity_audit.json",
+    "n32_sensitivity_audit": "external-results/test2b-rain-active-case-design/sensitivity-n32-zeta-m0p06-t12000/rain_activity_audit.json",
+    "case_design_summary": "external-results/test2b-rain-active-case-design/case_design_summary.json"
+  },
+  "future_ML_output_contract": {
+    "save_every_complete_step": true,
+    "retain_boundary_states": true,
+    "postprefix_states_reconstructible": true,
+    "analytical_A_labels_reconstructible": true,
+    "analytical_R_labels_reconstructible": true,
+    "four_tendency_labels_reconstructible": true,
+    "chronological_train_heldout_partition": "UNFROZEN_PENDING_COMPLETE_TRUTH"
+  }
+}

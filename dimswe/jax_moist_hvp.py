@@ -28,6 +28,7 @@ from .jax_moist_adapter import (
     JAXMoistEulerPrimal,
     MoistActiveSetSnapshot,
 )
+from .learned_physics.parameters import tree_copy, validate_float64_tree
 from .jax_moist_derivatives import (
     moist_source_differentiated_vjp,
     moist_source_differentiated_vjp_jit,
@@ -105,11 +106,13 @@ class JAXMoistEulerPrimalCache:
     t0: float
     dt: float
     configured_dt: float
+    physics_mode: str
     state_in: Function
     stage_state: Function
     packed_state: Mapping
     packed_fields: Mapping
     parameters: Mapping
+    neural_parameters: object | None
     rates: Mapping
     source_density: Mapping
     gll_diagnostics: Mapping
@@ -128,6 +131,18 @@ class JAXMoistEulerTangentCache:
     state_direction_in: Function
     stage_state_direction: Function
     packed_state_direction: Mapping
+    source_density_direction: Mapping
+    source_dual_direction: Cofunction
+    tendency_direction: Function
+    state_direction_out: Function
+
+
+@dataclass(frozen=True)
+class JAXMoistEulerParameterTangentCache:
+    """Exact complete-child tangent for a neural-parameter direction."""
+
+    primal: JAXMoistEulerPrimalCache
+    parameter_direction: object
     source_density_direction: Mapping
     source_dual_direction: Cofunction
     tendency_direction: Function
@@ -161,6 +176,26 @@ class JAXMoistEulerHVPResult:
     reverse_stage_order: tuple[int, ...]
 
 
+@dataclass(frozen=True)
+class JAXMoistEulerParameterReverseResult:
+    """Complete-child reverse contribution in the neural parameter pytree."""
+
+    ordinary_state_reverse: JAXMoistEulerReverseResult
+    parameter_adjoint: object
+
+
+@dataclass(frozen=True)
+class JAXMoistEulerJointHVPResult:
+    """State/parameter differentiated reverse of the neural moist child."""
+
+    ordinary_state_reverse: JAXMoistEulerReverseResult
+    ordinary_parameter_adjoint: object
+    incremental_state_adjoint_in: Cofunction
+    incremental_parameter_adjoint: object
+    incremental_source_covector: Mapping
+    incremental_packed_state_covector: Mapping
+
+
 class JAXMoistEulerHVP:
     """Exact JAX JVP/VJP/differentiated-VJP moist Euler helper.
 
@@ -168,17 +203,19 @@ class JAXMoistEulerHVP:
     pullback closures are created and consumed within one method call.
     """
 
-    def __init__(self, timestepper, *, use_jit=True):
+    def __init__(self, timestepper, *, use_jit=True, local_physics=None):
         self.timestepper = timestepper
         self.model = timestepper.model
         self.state_space = self.model.dynamics.xspace
         self.state_dual_space = self.state_space.dual()
         self.use_jit = bool(use_jit)
+        self.local_physics = local_physics
         self._validate_timestepper()
         self.primal_helper = JAXMoistEulerPrimal(
             self.model,
             timestepper.solver_parameters,
             use_jit=self.use_jit,
+            local_physics=local_physics,
         )
         self.layout = self.primal_helper.layout
         self.carrier_space = self.primal_helper.carrier_space
@@ -187,17 +224,32 @@ class JAXMoistEulerHVP:
         }
         self._state_test = TestFunction(self.state_space)
         self._carrier_test = TestFunction(self.carrier_space)
-        self._jvp_kernel = (
-            moist_source_jvp_jit if self.use_jit else moist_source_jvp
-        )
-        self._vjp_kernel = (
-            moist_source_vjp_jit if self.use_jit else moist_source_vjp
-        )
-        self._differentiated_vjp_kernel = (
-            moist_source_differentiated_vjp_jit
-            if self.use_jit
-            else moist_source_differentiated_vjp
-        )
+        if local_physics is None:
+            self._jvp_kernel = (
+                moist_source_jvp_jit if self.use_jit else moist_source_jvp
+            )
+            self._vjp_kernel = (
+                moist_source_vjp_jit if self.use_jit else moist_source_vjp
+            )
+            self._differentiated_vjp_kernel = (
+                moist_source_differentiated_vjp_jit
+                if self.use_jit
+                else moist_source_differentiated_vjp
+            )
+        else:
+            if getattr(local_physics, "physics_mode", None) not in (
+                "neural_A_original_R",
+                "neural_A_R",
+                "neural_four_tendency",
+                "neural_A_threshold_nonnegative_R",
+                "neural_A_threshold_positive_gate_R",
+            ):
+                raise ValueError("unsupported JAX moist derivative local physics")
+            self._jvp_kernel = local_physics.state_jvp_kernel
+            self._vjp_kernel = local_physics.state_vjp_kernel
+            self._differentiated_vjp_kernel = (
+                local_physics.state_differentiated_vjp_kernel
+            )
 
     def _validate_timestepper(self):
         if self.timestepper.__class__.__name__ != "Euler":
@@ -400,20 +452,28 @@ class JAXMoistEulerHVP:
             ),
         )
 
-    def take_forward_step_cached(self, xn, tn, dt):
+    def take_forward_step_cached(self, xn, tn, dt, *, neural_parameters=None):
         state = self._state_from_container("xn", xn)
         t0 = _as_float("tn", tn)
         step = _as_float("dt", dt)
-        j1 = self.primal_helper.evaluate(state, step)
+        j1 = self.primal_helper.evaluate(
+            state, step, neural_parameters=neural_parameters
+        )
         return JAXMoistEulerPrimalCache(
             t0=t0,
             dt=step,
             configured_dt=j1.configured_dt,
+            physics_mode=j1.physics_mode,
             state_in=_copy_function(j1.state_in, "jax_moist_j2_state_in"),
             stage_state=_copy_function(j1.state_in, "jax_moist_j2_stage_state"),
             packed_state=_readonly_mapping(j1.packed_state),
             packed_fields=_readonly_mapping(j1.packed_fields),
             parameters=_readonly_mapping(j1.parameters),
+            neural_parameters=(
+                None
+                if j1.neural_parameters is None
+                else tree_copy(j1.neural_parameters)
+            ),
             rates=_readonly_mapping(j1.rates),
             source_density=_readonly_mapping(j1.source_density),
             gll_diagnostics=_readonly_mapping(
@@ -433,12 +493,26 @@ class JAXMoistEulerHVP:
             raise TypeError("primal must be a JAXMoistEulerPrimalCache")
         direction = self._state_from_container("delta_xn", delta_xn)
         packed_direction = self.state_interpolation(direction)
-        _, source_direction_device = self._jvp_kernel(
-            self._to_device_tree(primal.packed_state),
-            self._to_device_tree(packed_direction),
-            self._to_device_tree(primal.packed_fields),
-            self._to_device_tree(primal.parameters),
-        )
+        if primal.neural_parameters is None:
+            _, source_direction_device = self._jvp_kernel(
+                self._to_device_tree(primal.packed_state),
+                self._to_device_tree(packed_direction),
+                self._to_device_tree(primal.packed_fields),
+                self._to_device_tree(primal.parameters),
+            )
+        else:
+            physics = self._require_neural_physics()
+            source = lambda active_state: physics.combined_parameterized_kernel(
+                active_state,
+                self._to_device_tree(primal.packed_fields),
+                self._to_device_tree(primal.parameters),
+                primal.neural_parameters,
+            )["source"]
+            _, source_direction_device = jax.jvp(
+                source,
+                (self._to_device_tree(primal.packed_state),),
+                (self._to_device_tree(packed_direction),),
+            )
         source_direction = self._from_device_tree(source_direction_device)
         source_dual_direction = self.source_assembly(source_direction)
         tendency_direction = self.state_riesz_representative(
@@ -472,6 +546,62 @@ class JAXMoistEulerHVP:
             ),
         )
 
+    def _require_neural_physics(self):
+        if self.local_physics is None:
+            raise ValueError(
+                "neural parameter derivatives require opt-in learned moist physics"
+            )
+        return self.local_physics
+
+    def take_parameter_tangent_step(self, primal, parameter_direction):
+        """Differentiate the complete Euler output in a neural direction."""
+        if not isinstance(primal, JAXMoistEulerPrimalCache):
+            raise TypeError("primal must be a JAXMoistEulerPrimalCache")
+        physics = self._require_neural_physics()
+        direction = validate_float64_tree(
+            parameter_direction, name="parameter_direction"
+        )
+        _, source_direction_device = physics.parameter_jvp(
+            self._to_device_tree(primal.packed_state),
+            direction,
+            self._to_device_tree(primal.packed_fields),
+            self._to_device_tree(primal.parameters),
+            base_parameters=primal.neural_parameters,
+        )
+        source_direction = self._from_device_tree(source_direction_device)
+        source_dual_direction = self.source_assembly(source_direction)
+        tendency_direction = self.state_riesz_representative(
+            source_dual_direction,
+            "jax_moist_j2_parameter_tendency_direction",
+        )
+        zero = _copy_function(
+            primal.state_in, "jax_moist_j2_zero_parameter_direction"
+        )
+        zero.assign(0.0)
+        state_direction_out = self._primal_axpy(
+            zero,
+            primal.dt,
+            tendency_direction,
+            "jax_moist_j2_parameter_state_direction_out",
+        )
+        return JAXMoistEulerParameterTangentCache(
+            primal=primal,
+            parameter_direction=tree_copy(direction),
+            source_density_direction=_readonly_mapping(source_direction),
+            source_dual_direction=_copy_cofunction(
+                source_dual_direction,
+                "jax_moist_j2_parameter_source_dual_direction",
+            ),
+            tendency_direction=_copy_function(
+                tendency_direction,
+                "jax_moist_j2_parameter_tendency_direction_cache",
+            ),
+            state_direction_out=_copy_function(
+                state_direction_out,
+                "jax_moist_j2_parameter_state_direction_out_cache",
+            ),
+        )
+
     def take_adjoint_step_cached(self, primal, lambda_plus_star):
         if not isinstance(primal, JAXMoistEulerPrimalCache):
             raise TypeError("primal must be a JAXMoistEulerPrimalCache")
@@ -484,12 +614,26 @@ class JAXMoistEulerHVP:
             tendency_adjoint, "jax_moist_j2_reverse_auxiliary"
         )
         source_covector = self.source_assembly_transpose(reverse_auxiliary)
-        state_covector_device = self._vjp_kernel(
-            self._to_device_tree(primal.packed_state),
-            self._to_device_tree(source_covector),
-            self._to_device_tree(primal.packed_fields),
-            self._to_device_tree(primal.parameters),
-        )
+        if primal.neural_parameters is None:
+            state_covector_device = self._vjp_kernel(
+                self._to_device_tree(primal.packed_state),
+                self._to_device_tree(source_covector),
+                self._to_device_tree(primal.packed_fields),
+                self._to_device_tree(primal.parameters),
+            )
+        else:
+            physics = self._require_neural_physics()
+            active_state = self._to_device_tree(primal.packed_state)
+            source = lambda state_value: physics.combined_parameterized_kernel(
+                state_value,
+                self._to_device_tree(primal.packed_fields),
+                self._to_device_tree(primal.parameters),
+                primal.neural_parameters,
+            )["source"]
+            _, pullback = jax.vjp(source, active_state)
+            state_covector_device = pullback(
+                self._to_device_tree(source_covector)
+            )[0]
         state_covector = self._from_device_tree(state_covector_device)
         stage_state_adjoint = self.state_interpolation_transpose(
             state_covector, "jax_moist_j2_stage_state_adjoint"
@@ -515,6 +659,22 @@ class JAXMoistEulerHVP:
                 "jax_moist_j2_stage_state_adjoint_result",
             ),
             reverse_stage_order=(0,),
+        )
+
+    def take_parameter_adjoint_step(self, primal, lambda_plus_star):
+        """Apply the complete-child transpose to all neural parameters."""
+        physics = self._require_neural_physics()
+        ordinary = self.take_adjoint_step_cached(primal, lambda_plus_star)
+        parameter_adjoint_device = physics.parameter_vjp(
+            self._to_device_tree(primal.packed_state),
+            self._to_device_tree(ordinary.source_covector),
+            self._to_device_tree(primal.packed_fields),
+            self._to_device_tree(primal.parameters),
+            base_parameters=primal.neural_parameters,
+        )
+        return JAXMoistEulerParameterReverseResult(
+            ordinary_state_reverse=ordinary,
+            parameter_adjoint=tree_copy(parameter_adjoint_device),
         )
 
     def take_incremental_adjoint_step(
@@ -590,11 +750,92 @@ class JAXMoistEulerHVP:
             reverse_stage_order=(0,),
         )
 
+    def take_joint_incremental_adjoint_step(
+        self,
+        primal,
+        state_direction,
+        parameter_direction,
+        lambda_plus_star,
+        mu_plus_star,
+    ):
+        """Differentiate state and neural-parameter VJPs without dense maps."""
+        if not isinstance(primal, JAXMoistEulerPrimalCache):
+            raise TypeError("primal must be a JAXMoistEulerPrimalCache")
+        physics = self._require_neural_physics()
+        direction = self._state_from_container("state_direction", state_direction)
+        self._require_dual("lambda_plus_star", lambda_plus_star)
+        self._require_dual("mu_plus_star", mu_plus_star)
+        parameter_direction = validate_float64_tree(
+            parameter_direction, name="parameter_direction"
+        )
+        packed_direction = self.state_interpolation(direction)
+        ordinary = self.take_adjoint_step_cached(primal, lambda_plus_star)
+        ordinary_parameter_adjoint = physics.parameter_vjp(
+            self._to_device_tree(primal.packed_state),
+            self._to_device_tree(ordinary.source_covector),
+            self._to_device_tree(primal.packed_fields),
+            self._to_device_tree(primal.parameters),
+            base_parameters=primal.neural_parameters,
+        )
+        incremental_tendency_adjoint = self._dual_sum(
+            [(primal.dt, mu_plus_star)],
+            "jax_moist_j2_joint_incremental_tendency_adjoint",
+        )
+        incremental_reverse_auxiliary = self.state_riesz_representative(
+            incremental_tendency_adjoint,
+            "jax_moist_j2_joint_incremental_reverse_auxiliary",
+        )
+        incremental_source_covector = self.source_assembly_transpose(
+            incremental_reverse_auxiliary
+        )
+        _, differentiated = physics.joint_differentiated_vjp(
+            self._to_device_tree(primal.packed_state),
+            self._to_device_tree(ordinary.source_covector),
+            self._to_device_tree(packed_direction),
+            parameter_direction,
+            self._to_device_tree(incremental_source_covector),
+            self._to_device_tree(primal.packed_fields),
+            self._to_device_tree(primal.parameters),
+            base_parameters=primal.neural_parameters,
+        )
+        incremental_state_covector_device, incremental_parameter_adjoint = differentiated
+        incremental_state_covector = self._from_device_tree(
+            incremental_state_covector_device
+        )
+        incremental_stage_state_adjoint = self.state_interpolation_transpose(
+            incremental_state_covector,
+            "jax_moist_j2_joint_incremental_stage_state_adjoint",
+        )
+        incremental_state_adjoint_in = self._dual_sum(
+            [(1.0, mu_plus_star), (1.0, incremental_stage_state_adjoint)],
+            "jax_moist_j2_joint_incremental_state_adjoint_in",
+        )
+        return JAXMoistEulerJointHVPResult(
+            ordinary_state_reverse=ordinary,
+            ordinary_parameter_adjoint=tree_copy(ordinary_parameter_adjoint),
+            incremental_state_adjoint_in=_copy_cofunction(
+                incremental_state_adjoint_in,
+                "jax_moist_j2_joint_incremental_state_adjoint_in_result",
+            ),
+            incremental_parameter_adjoint=tree_copy(
+                incremental_parameter_adjoint
+            ),
+            incremental_source_covector=_readonly_mapping(
+                incremental_source_covector
+            ),
+            incremental_packed_state_covector=_readonly_mapping(
+                incremental_state_covector
+            ),
+        )
+
 
 __all__ = (
     "JAXMoistActiveSetDiagnostics",
     "JAXMoistEulerHVP",
     "JAXMoistEulerHVPResult",
+    "JAXMoistEulerJointHVPResult",
+    "JAXMoistEulerParameterReverseResult",
+    "JAXMoistEulerParameterTangentCache",
     "JAXMoistEulerPrimalCache",
     "JAXMoistEulerReverseResult",
     "JAXMoistEulerTangentCache",

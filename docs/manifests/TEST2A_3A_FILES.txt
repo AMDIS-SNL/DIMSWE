@@ -1,0 +1,16 @@
+Test 2A-3A deployed-discrete offline objective manifest
+========================================================
+
+dimswe/configs/test2a_deployed_discrete_offline.json
+dimswe/test2a_discrete_offline.py
+dimswe/test2a_pyrol.py
+tests/test_test2a_discrete_offline.py
+tests/test_test2a_discrete_offline_firedrake.py
+tests/test_test2a_pyrol.py
+docs/TEST2A_DEPLOYED_DISCRETE_OFFLINE.md
+docs/LEARNED_PHYSICS_EXPERIMENTS.md
+docs/manifests/TEST2A_3A_FILES.txt
+
+Generated comparison, certification, fit, parameter, and optimizer-history
+outputs remain under external-results and are not tracked. Test 2A-3A accesses
+only fixed truth states 0..80 and implements no recursive training objective.

@@ -1,0 +1,52 @@
+{
+  "benchmark_stage": "Test 2A Method-3/Method-4 shared trajectory preparation",
+  "format_version": 1,
+  "truth": {
+    "run_directory": "external-results/test1b-production/truth_c0_0.14",
+    "selected_plan": "dimswe/configs/test1b_selected_plan.json",
+    "allowed_state_indices": [0, 80],
+    "states_after_80_forbidden": true
+  },
+  "model": {
+    "embedding_configuration": "dimswe/configs/test2a_embedded_neural_a.json",
+    "certification_parameter_file": "external-results/test2a/optimizer-study/continuation-m20-plus45000/continuation_final_parameters.npz",
+    "parameter_count": 1281,
+    "R": "original deployed analytical R"
+  },
+  "solver": {
+    "complete_child_order": ["dry_rk4_0", "dry_rk4_1", "hyperviscosity_euler", "dg_ssprk43_0", "dg_ssprk43_1", "moist_euler"],
+    "c0": 0.14,
+    "moist_backend": "jax",
+    "serial_only": true
+  },
+  "supported_horizons": [1, 2, 3, 5, 10],
+  "certification_horizons": [1, 2],
+  "performance_horizons": [1, 2, 5, 10],
+  "loss": {
+    "supported_modes": ["endpoint", "accumulated"],
+    "certification_metric": "per-target relative production mixed mass norm",
+    "production_metric_scientifically_frozen": false,
+    "weights_explicit": true
+  },
+  "reuse": {
+    "fixed_children_1_through_5_truth_prefix": true,
+    "same_exact_parameter_value_gradient_tape": true,
+    "parameter_fingerprint_equality": "exact float64 pytree SHA256",
+    "bounded_tape_count": 1
+  },
+  "parallelism": {
+    "serial_reference": true,
+    "method3_window_map_reduce_ready": true,
+    "parallel_prototype": false,
+    "MPI_claim": false
+  },
+  "optimizer_plumbing": {
+    "library": "PyROL/ROL",
+    "method": "line-search L-BFGS",
+    "maximum_secant_storage": 20,
+    "gradient_tolerance": 1e-8,
+    "step_tolerance": 1e-12,
+    "production_HVP": false,
+    "parameter_checkpoint_resume_restores_secant_history": false
+  }
+}

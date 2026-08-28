@@ -1,0 +1,12 @@
+dimswe/configs/test2a_horizon_curriculum_h1_h2_h5.json
+dimswe/test2a_horizon_curriculum.py
+dimswe/test2a_trajectory.py
+docs/TEST2A_HORIZON_CURRICULUM_H1_H2_H5.md
+docs/manifests/TEST2A_HORIZON_CURRICULUM_FILES.txt
+scripts/run_test2a_horizon_curriculum_stage.sh
+scripts/run_test2a_horizon_curriculum_h1.sh
+scripts/run_test2a_horizon_curriculum_h2.sh
+scripts/run_test2a_horizon_curriculum_h5.sh
+scripts/run_test2a_horizon_curriculum_postprocess.sh
+scripts/run_test2a_horizon_curriculum_h1_h2_h5.sh
+tests/test_test2a_horizon_curriculum.py

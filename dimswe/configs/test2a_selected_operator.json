@@ -1,0 +1,77 @@
+{
+  "benchmark_stage": "Test 2A-1 local operator learning",
+  "data": {
+    "cell_local_representation": "exact deployed broken-CG3 tensor-product 4x4 GLL points; shared physical CG points remain repeated",
+    "feature_order": [
+      "h",
+      "S",
+      "Qv",
+      "Qc",
+      "B"
+    ],
+    "future_states_forbidden": true,
+    "sample_count": 331776,
+    "source_truth_provenance": "external-results/test1b-production/truth_c0_0.14",
+    "target": "certified J1 cache.rates['A']",
+    "truth_state_indices": [
+      0,
+      80
+    ]
+  },
+  "diagnostics": {
+    "active_magnitude_thresholds_relative_to_max_abs_A": [
+      0.001,
+      1e-06
+    ],
+    "pointwise_validation_split": null,
+    "purpose": "representability on the complete physical training support, not generalization"
+  },
+  "embedding_readiness": {
+    "minimum_relative_rms_improvement_fraction": 0.1,
+    "requires_original_R_in_hybrid_deployment": true,
+    "requires_review_before_deployed_discrete_training": true
+  },
+  "format_version": 1,
+  "model": {
+    "activation": "tanh",
+    "dtype": "float64",
+    "hidden_layers": [
+      32,
+      32
+    ],
+    "input_dimension": 5,
+    "output_dimension": 1,
+    "parameter_count": 1281,
+    "seed": 0
+  },
+  "normalization": {
+    "inputs": "training-only mean and population standard deviation per feature; scale 1 for exactly/diagnostically zero variation",
+    "output": "uncentered training RMS(A), positive scale with explicit zero-target fallback",
+    "physical_output": "A_theta = RMS_training(A) * normalized_network_output"
+  },
+  "objective": {
+    "batch_policy": "deterministic full batch",
+    "definition": "mean(((A_theta - A_truth) / RMS_training(A_truth))**2)",
+    "sample_weighting": "each state-major/cell-major/local-GLL sample exactly once"
+  },
+  "optimizer": {
+    "gradient_tolerance": 1e-08,
+    "iteration_limit": 100,
+    "library": "PyROL/ROL",
+    "maximum_secant_storage": 10,
+    "method": "line-search L-BFGS",
+    "objective_derivatives": "exact JAX reverse-mode gradients",
+    "production_HVP": false,
+    "step_tolerance": 1e-12
+  },
+  "physics": {
+    "learned": "A only",
+    "original_R_retained": true,
+    "source_structure": {
+      "Qc": "-h*(A_theta + R_original)",
+      "Qr": "h*R_original",
+      "Qv": "h*A_theta",
+      "S": "h*beta2*A_theta"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "benchmark_stage": "Test 2A-3B a-priori autonomous training-support evaluation",
+  "format_version": 1,
+  "truth": {
+    "run_directory": "external-results/test1b-production/truth_c0_0.14",
+    "selected_plan": "dimswe/configs/test1b_selected_plan.json",
+    "state_indices": [0, 80],
+    "states_after_80_forbidden": true
+  },
+  "deployment": {
+    "initial_truth_state": 0,
+    "complete_steps": 80,
+    "truth_resets_after_initialization": 0,
+    "c0": 0.14,
+    "moist_backend": "jax",
+    "A": "compatible frozen neural parameter artifact",
+    "R": "original deployed analytical R",
+    "interpretation": "training-support autonomous deployment diagnostic; not unseen-state validation or generalization"
+  },
+  "model": {
+    "embedding_configuration": "dimswe/configs/test2a_embedded_neural_a.json",
+    "default_parameter_file": "external-results/test2a/optimizer-study/continuation-m20-plus45000/continuation_final_parameters.npz",
+    "default_parameter_pytree_sha256": "f7d2fd9577ba2a824d3df6c1f8c90a425e6964e1fb5962508315509b247bed56",
+    "accept_arbitrary_compatible_parameter_artifact": true,
+    "normalization_refitted": false
+  },
+  "rain_activity": {
+    "float64_scale_multiplier": 64.0,
+    "physical_increment_relative_threshold": 1e-12,
+    "physical_contract": "abs(dt*h*R) > threshold * RMS(Qr) at the same deployed GLL state"
+  },
+  "output_directory": "external-results/test2a/apriori-autonomous-training-support"
+}

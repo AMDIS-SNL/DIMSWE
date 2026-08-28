@@ -1,0 +1,32 @@
+Test 2A-1 local A-operator learning manifest
+=============================================
+
+dimswe/configs/test2a_selected_operator.json
+dimswe/configs/test2a_optimizer_study.json
+dimswe/configs/test2a_m20_continuation.json
+dimswe/configs/test2a_m20_plateau_continuation.json
+dimswe/test2a_operator.py
+dimswe/test2a_continuation.py
+dimswe/test2a_optimizer_study.py
+dimswe/test2a_pyrol.py
+dimswe/test2a_residual_diagnostic.py
+tests/test_test2a_operator.py
+tests/test_test2a_optimizer_study.py
+tests/test_test2a_continuation.py
+tests/test_test2a_pyrol.py
+tests/test_test2a_residual_diagnostic.py
+docs/TEST2A_OPERATOR_LEARNING.md
+docs/TEST2A_OPTIMIZER_STUDY.md
+docs/TEST2A_CONTINUATION.md
+docs/TEST2A_PLATEAU_CONTINUATION.md
+docs/TEST2A_RESIDUAL_STRUCTURE.md
+docs/TEST2_MOIST_ACTIVITY.md
+docs/LEARNED_PHYSICS_EXPERIMENTS.md
+docs/manifests/TEST2A_1_FILES.txt
+
+Generated datasets, trained parameters, result JSON, and plots belong under
+external-results/test2a and remain untracked.  Test 2A-1 neither embeds the
+network in the solver nor accesses truth states after 80.
+
+Test 2A-2 embedding changes are intentionally kept in the separate
+`docs/manifests/TEST2A_2_FILES.txt` manifest.

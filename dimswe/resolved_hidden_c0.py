@@ -125,6 +125,7 @@ class ResolvedPilotConfiguration:
     s: float = 3.2
     moist_backend: str = "ufl"
     seed: int = 0
+    initial_moisture_zeta: float = 0.0
     output_directory: str = "resolved_hidden_c0/doublevortex_n16_c0_0.07"
     base_config: str | None = None
     spectral_nx: int | None = None
@@ -151,6 +152,11 @@ class ResolvedPilotConfiguration:
         if self.moist_backend not in ("ufl", "jax"):
             raise ValueError("moist_backend must be 'ufl' or 'jax'")
         _nonnegative_integer("seed", self.seed)
+        zeta = _finite_float("initial_moisture_zeta", self.initial_moisture_zeta)
+        if zeta >= 1.0:
+            raise ValueError(
+                "initial_moisture_zeta must be below one so initial Qv is positive"
+            )
         if not str(self.output_directory):
             raise ValueError("output_directory must be nonempty")
         for name in ("spectral_nx", "spectral_ny"):

@@ -1,0 +1,8 @@
+dimswe/configs/test2a_fiml_sparse_endpoint_h2_h5.json
+dimswe/test2a_fiml.py
+tests/test_test2a_fiml.py
+scripts/run_test2a_fiml_stage.sh
+scripts/run_test2a_fiml_campaign.sh
+scripts/run_test2a_fiml_postprocess.sh
+docs/TEST2A_FIML_SPARSE_ENDPOINT_H2_H5.md
+docs/manifests/TEST2A_FIML_SPARSE_ENDPOINT_FILES.txt

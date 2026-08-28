@@ -10,7 +10,12 @@ class DummySolver():
         pass
 
 def get_time_integrator(
-    name, parameters, solver_parameters, *, moist_backend="ufl"
+    name,
+    parameters,
+    solver_parameters,
+    *,
+    moist_backend="ufl",
+    jax_moist_local_physics=None,
 ):
     if name == 'RK4':
         return RK4
@@ -33,12 +38,19 @@ def get_time_integrator(
             subcycle_list,
             solver_parameters,
             moist_backend=moist_backend,
+            jax_moist_local_physics=jax_moist_local_physics,
         )
     else:
         raise ValueError("time step method " + name + " is unknown")
 
 def get_timestepper(
-    parameters, model, logger, solver_parameters, *, moist_backend="ufl"
+    parameters,
+    model,
+    logger,
+    solver_parameters,
+    *,
+    moist_backend="ufl",
+    jax_moist_local_physics=None,
 ):
     from .moist_backend import validate_moist_backend
 
@@ -48,6 +60,7 @@ def get_timestepper(
         parameters,
         solver_parameters,
         moist_backend=backend,
+        jax_moist_local_physics=jax_moist_local_physics,
     )(model, logger, solver_parameters)
 
 
@@ -753,6 +766,7 @@ class LieSplittingIntegrator():
         solver_parameters,
         *,
         moist_backend="ufl",
+        jax_moist_local_physics=None,
     ):
 
         from .moist_backend import (
@@ -761,6 +775,9 @@ class LieSplittingIntegrator():
         )
 
         self.moist_backend = validate_moist_backend(moist_backend)
+        if self.moist_backend == "ufl" and jax_moist_local_physics is not None:
+            raise ValueError("learned local physics requires moist_backend='jax'")
+        self.jax_moist_local_physics = jax_moist_local_physics
 
         self.subcycle_list = subcycle_list
         self.timestepper_list = timestepper_list
@@ -790,7 +807,9 @@ class LieSplittingIntegrator():
                     "subcycles [2,1,2,1]"
                 )
             self.time_integrators[-1] = build_moist_integrator(
-                self.time_integrators[-1], self.moist_backend
+                self.time_integrators[-1],
+                self.moist_backend,
+                local_physics=self.jax_moist_local_physics,
             )
 
         self.lambda_k, self.lambda_sub, self.lambda_split = model.get_x_var('lambda_k')

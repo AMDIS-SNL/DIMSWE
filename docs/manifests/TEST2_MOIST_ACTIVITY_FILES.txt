@@ -1,0 +1,13 @@
+Test 2 moist-activity audit manifest
+====================================
+
+dimswe/test2_moist_activity.py
+tests/test_test2_moist_activity.py
+docs/TEST2_MOIST_ACTIVITY.md
+docs/LEARNED_PHYSICS_EXPERIMENTS.md
+docs/manifests/TEST2_MOIST_ACTIVITY_FILES.txt
+
+Generated JSON and plots belong under external-results/test2-prep and are not
+tracked.  This audit introduces no neural network, training run, production
+moist-physics change, optimizer change, or access to truth snapshots after
+step 80.

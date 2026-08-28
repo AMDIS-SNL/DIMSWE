@@ -456,7 +456,10 @@ class DoubleVortex(IC2D):
         self.a = 1./3.
         self.D = 0.5 * self.Lx
 
-        self.zeta = 0.0 #10^-3, 0.02
+        # ``zeta`` is the signed initial saturation deficit in
+        # Qv = h (1-zeta) qsat.  Historical configurations omitted it and
+        # therefore retain the exact zeta=0 saturated initial condition.
+        self.zeta = params['initial-conditions'].get('zeta', 0.0)
         self.q0 = 0.002
 
         self.const_state = {}

@@ -1,0 +1,12 @@
+dimswe/configs/test2a_problem_b.json
+dimswe/test2a_problem_b.py
+dimswe/test2a_problem_b_campaign.py
+docs/TEST2A_PROBLEM_B_PREPARATION.md
+docs/manifests/TEST2A_PROBLEM_B_FILES.txt
+scripts/run_test2a_problem_b_campaign.sh
+tests/test_test2a_problem_b.py
+
+Protocol extensions shared with the existing learned moist stack:
+dimswe/jax_moist_adapter.py
+dimswe/jax_moist_hvp.py
+dimswe/mtswe_split_hvp.py

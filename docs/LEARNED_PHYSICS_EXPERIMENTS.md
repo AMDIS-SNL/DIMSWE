@@ -1,5 +1,16 @@
 # DIMSWE learned-physics experiments
 
+Test-2A Method-3/Method-4 trajectory preparation and the matched
+Method-1/Method-2 long-fit contract are documented in
+[`TEST2A_M3_M4_PREP_AND_FAIR_LONGFIT.md`](TEST2A_M3_M4_PREP_AND_FAIR_LONGFIT.md).
+The final Method-3/Method-4 metric, horizon, reset schedule, and
+endpoint-versus-accumulated choice remain scientifically unfrozen.
+
+The secondary operator-pretrained deployed-discrete workflow diagnostic is
+documented separately in
+[`TEST2A_M1_TO_M2_FINETUNE.md`](TEST2A_M1_TO_M2_FINETUNE.md). It does not
+replace the matched seed-zero Method-1/Method-2 comparison.
+
 ## Purpose and scope
 
 J4A provides an opt-in laboratory for comparing learned or inferred physics
@@ -139,13 +150,131 @@ optimizer.  Plotting is deliberately absent from the optimization core.
 - **Test 1B-0:** resolved-flow c0 identifiability and resolution pilot.
 - **Test 1B:** selected 16-by-16, dt=100 `doublevortex` hidden-c0 inverse
   experiment, executed through four explicit review gates.
-- **Test 2:** full learned replacement of moist physics.
+- **Test 2 activity audit:** quantitative A/R signal screen on states 0..80.
+- **Test 2A-1:** local neural operator learning for A only, with original R
+  retained.
+- **Test 2A-2:** opt-in embedding and derivative certification of the frozen
+  neural A while retaining original deployed R.
+- **Later Test 2 stages:** deployed-discrete and solver-in-loop comparisons
+  after the Test 2A-2 external certification gate passes.
 - **Test 3:** learned correction of configurable misspecified moist physics.
 
 Test 2 does not begin until Test 1B has been understood.  Test 1B remains a
 correctly specified scalar inverse problem: truth and learner differ only in
 c0.  It isolates the behavior of the four training formulations in nonlinear,
 resolved flow before introducing neural representation or model error.
+
+After Test 1B closure, Test 2 begins with a quantitative moist-activity audit,
+not network implementation.  `dimswe.test2_moist_activity` evaluates A, R, and
+their structurally coupled sources at the certified cell-local 4-by-4 GLL
+points for truth states 0 through 80 only.  It measures rate support,
+intermittency, source increments, actual moist-child mass-norm updates, process
+contributions, and existing-input support before any architecture, feature, or
+normalization choice.  States 81 through 160 remain untouched future Test-2
+deployment data.  The detailed contract and external command are in
+`docs/TEST2_MOIST_ACTIVITY.md`.
+
+The accepted activity classification is `A_ACTIVE_R_WEAK`: A is active
+throughout the training trajectory, while R is exactly zero at all 331,776
+training samples.  Test 2A-1 consequently learns only A from the exact local
+inputs `(h,S,Qv,Qc,B)`, but its hybrid output map always retains the original
+deployed R law.  The selected configurable 5-32-32-1 tanh model, training-only
+normalization, full-batch operator objective, arbitrary-pytree PyROL adapter,
+and external training command are documented in
+`docs/TEST2A_OPERATOR_LEARNING.md`.  This is a scoped architecture freeze for
+the first operator proof, not a general scientific choice for later Test 2
+models.
+
+The subsequent fixed-problem optimizer study compares common-start ROL
+L-BFGS memory 10/20 and trust-region truncated CG with exact local JAX HVPs.
+Longer L-BFGS runs substantially improve operator accuracy, but all methods
+terminate at their iteration limits without convincing stationarity.  The
+classification is `OPTIMIZATION_AND_MODEL_BOTH_UNRESOLVED`, so that endpoint
+was not ready for solver embedding. See `docs/TEST2A_OPTIMIZER_STUDY.md`.
+
+A checkpointed memory-20 continuation then ran for 1,500 additional accepted
+iterations from the exact optimizer-study pytree.  It reached relative RMS
+`0.205` and correlation `0.979`, but remained at `MAXITER`, with sign accuracy
+`0.813` and an 8.05-percent objective reduction over its last 100 accepted
+steps.  The result is `CONTINUING_OPTIMIZER_LIMITED`; further same-method
+optimization, not Test 2A-2 embedding or architecture modification, is the
+next controlled step.  Details are in `docs/TEST2A_CONTINUATION.md`.
+
+The bounded convergence-to-plateau continuation from that exact `+1500`
+endpoint then completed another 5,000 accepted memory-20 iterations. It
+reached normalized MSE `0.00946960`, relative RMS(A) `0.0973119`, and
+correlation `0.995243`. Sign accuracy was `0.92494`, `0.98937`, and `1.0` on
+the `1e-3`, `1e-2`, and `1e-1` activity strata, respectively. The result is
+still `STILL_OPTIMIZER_LIMITED`: the final 100 steps reduced the objective by
+`1.064%`, the gradient ratio was `0.402`, and the relative parameter step was
+`4.49e-5`, so the joint practical-plateau screen was not met. See
+`docs/TEST2A_PLATEAU_CONTINUATION.md`.
+
+A read-only residual-structure audit of that frozen endpoint found no
+saturation-switch-localized failure: `|qv-q_sat|/q_sat <= 1e-6` accounts for
+only `0.244%` of residual squared energy. Instead, `83.89%` lies at
+`|A| > 1e-2 max|A|`, with moderate weighting toward sub-saturated evaporation
+branches and early states. Activity-stratified sign accuracy reaches `0.92494`,
+`0.98937`, and `1.0` at the `1e-3`, `1e-2`, and `1e-1` thresholds. Because the
+residual is distributed rather than a sharp representation failure and the
+source fit remained nonstationary, the diagnostic recommendation is
+`CONTINUE_OPTIMIZATION`. See `docs/TEST2A_RESIDUAL_STRUCTURE.md`.
+
+The subsequent accepted memory-20 continuation is frozen as the practical
+Test 2A operator baseline. Its 5-32-32-1 float64 parameter artifact has 1,281
+parameters and reaches normalized MSE `0.004285912836972889`, relative RMS
+error `0.0654668835135207`, correlation `0.9978490330152804`, and active
+`1e-3` sign accuracy `0.9557392085657594`. ROL did not meet the nominal
+mathematical gradient tolerance; Test 2A-2 does not continue optimization.
+
+Test 2A-2 inserts that frozen network only inside the existing local JAX moist
+evaluation. It retains the analytical rain law at the current deployed state,
+the exact coupled sources, broken-CG3 4-by-4 GLL packing, weak assembly, mixed
+mass solve, and Euler update. The original UFL backend remains the default and
+the analytical JAX path remains the no-provider behavior. Pure-network parity
+on all 331,776 state-0..80 samples is bitwise exact. Complete-child state and
+parameter JVP/VJP, joint differentiated-VJP, weak primal, and full-split smoke
+certifications are defined for the external Firedrake environment in
+`docs/TEST2A_EMBEDDED_NEURAL_A.md`. No state after 80 is accessed.
+
+Test 2A-3A defines the deployed-discrete offline neural objective without
+training it. At each fixed truth state, shared original R cancels and the
+neural error follows the exact linear map
+`G_k=M^-1 W H_k` from local A error to the mass-solved moist tendency. The
+global mixed-mass loss therefore weights pointwise operator error by
+`G_k^* M G_k`; it contains no recursive state feedback. Pointwise exact fits
+minimize both offline losses, but projection null spaces and finite-network
+weighting can produce different discrete optima. The actual value/gradient
+comparison is an external certification gate documented in
+`docs/TEST2A_DEPLOYED_DISCRETE_OFFLINE.md`. Canonical optimization, if later
+authorized, starts from the same seed-0 initial pytree as Test 2A-1 rather
+than the operator-trained artifact.
+
+The external Test 2A-3A comparison confirmed that the two offline objectives
+are strongly distinct on this benchmark. At seed 0 their gradient cosine is
+`-0.17895866992372664` with nonproportional residual
+`0.9838565924255072`; at the frozen operator fit the corresponding values are
+`0.1828428001277335` and `0.9831421618674736`. A separate fixed-state
+deployed-discrete fit is therefore justified.
+
+Test 2A-3B prepares an evaluation-only, 80-step autonomous deployment of the
+frozen a-priori network from `X*_0` over the already used training-support
+interval. It records mixed/field/energy/enstrophy errors, evaluates neural and
+analytical A on every model-generated state, retains and audits original R,
+and imposes no automatic scientific pass threshold. Test 2A-3C prepares a
+same-seed, memory-20 ROL L-BFGS deployed-discrete fit. Its production-oracle
+certified sparse cache removes repeated Firedrake setup while preserving the
+exact fixed-state weak/mass objective; it forms no dense `G_k` or `K_k`.
+Periodic CG3 indexing is obtained from cell topology rather than interpolated
+seam coordinates. The resulting 48-by-48 ordering reconstructs the production
+mass matrix to float64 roundoff and performs no Firedrake/PETSc solve in the
+training hot loop. The completed direct-production Method-2 fit has
+`J_disc=0.0017427829635521567`, parameter SHA-256
+`4db13a84f52d6fcf66f0345ce5c677aff2b46a84350228a78bc05b073ff6b12a`, and
+`J_op=0.0020819762080123453`. This accepted artifact is a comparison result,
+not an accelerated warm start.
+Commands and restart contracts are in `docs/TEST2A_3B_3C.md`.
+
 Resolved case discovery, diagnostics, inference equations, and staged external
 commands are in `docs/RESOLVED_HIDDEN_C0.md`; the exact selected ladder is in
 `docs/TEST1B_SELECTED_EXECUTION.md`.

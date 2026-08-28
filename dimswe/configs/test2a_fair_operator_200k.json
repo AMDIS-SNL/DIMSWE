@@ -1,0 +1,25 @@
+{
+  "benchmark_stage": "Test 2A fair operator seed-0 m20 long fit",
+  "format_version": 1,
+  "selected_configuration": "dimswe/configs/test2a_selected_operator.json",
+  "operator_dataset": "external-results/test2a/dataset/doublevortex_A_operator.npz",
+  "truth_state_indices": [0, 80],
+  "states_after_80_forbidden": true,
+  "initialization": {
+    "kind": "Test 2A-1 seed-0 initial pytree",
+    "parameter_pytree_sha256": "6d4ac7bafe775b90a70e2a199ef3305308c3d02333f7daeac1c870b6f18e0975"
+  },
+  "optimizer": {
+    "library": "PyROL/ROL",
+    "method": "line-search L-BFGS",
+    "maximum_secant_storage": 20,
+    "accepted_iteration_limit": 200000,
+    "gradient_tolerance": 1e-8,
+    "step_tolerance": 1e-12,
+    "exact_gradients": true,
+    "production_HVP": false
+  },
+  "progress_accepted_iteration_stride": 1000,
+  "checkpoint_accepted_iterations": [25000, 50000, 75000, 100000, 150000, 200000],
+  "resume_contract": "parameter-exact restart from latest verified checkpoint; ROL L-BFGS secant history is process-local and is not restored"
+}

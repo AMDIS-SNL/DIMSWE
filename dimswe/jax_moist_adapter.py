@@ -131,9 +131,11 @@ class JAXMoistEulerPrimalCache:
     """Owned result of one standalone JAX moist Euler evaluation."""
 
     state_in: Function
+    physics_mode: str
     applied_dt: float
     configured_dt: float
     parameters: Mapping
+    neural_parameters: object | None
     packed_state: Mapping
     packed_fields: Mapping
     rates: Mapping
@@ -149,7 +151,9 @@ class JAXMoistEulerPrimalCache:
 class JAXMoistEulerPrimal:
     """Standalone serial primal replica of the deployed moist Euler child."""
 
-    def __init__(self, model, solver_parameters, *, use_jit=True):
+    def __init__(
+        self, model, solver_parameters, *, use_jit=True, local_physics=None
+    ):
         self.model = model
         self.spaces = model.spaces
         self.mesh = self.spaces.mesh
@@ -157,16 +161,33 @@ class JAXMoistEulerPrimal:
         self.state_dual_space = self.state_space.dual()
         self.dx = self.spaces.dx
         self.use_jit = bool(use_jit)
-        self._combined_kernel = (
-            moist_rates_and_source_density_jit
-            if self.use_jit
-            else moist_rates_and_source_density_jax
-        )
-        self._diagnostic_kernel = (
-            moist_diagnostics_jit
-            if self.use_jit
-            else moist_diagnostics_jax
-        )
+        self.local_physics = local_physics
+        if local_physics is None:
+            self.physics_mode = "analytical_A_original_R"
+            self._combined_kernel = (
+                moist_rates_and_source_density_jit
+                if self.use_jit
+                else moist_rates_and_source_density_jax
+            )
+            self._diagnostic_kernel = (
+                moist_diagnostics_jit
+                if self.use_jit
+                else moist_diagnostics_jax
+            )
+        else:
+            if getattr(local_physics, "physics_mode", None) not in (
+                "neural_A_original_R",
+                "neural_A_R",
+                "neural_four_tendency",
+                "neural_A_threshold_nonnegative_R",
+                "neural_A_threshold_positive_gate_R",
+            ):
+                raise ValueError("unsupported opt-in JAX moist local physics")
+            if bool(getattr(local_physics, "use_jit", self.use_jit)) != self.use_jit:
+                raise ValueError("local physics and adapter JIT settings differ")
+            self.physics_mode = local_physics.physics_mode
+            self._combined_kernel = local_physics.combined_kernel
+            self._diagnostic_kernel = local_physics.diagnostic_kernel
 
         if tuple(model.get_x_var_list()) != _STATE_FIELDS:
             raise ValueError(
@@ -405,6 +426,27 @@ class JAXMoistEulerPrimal:
         )
 
     def _legacy_active_set(self, state, parameters):
+        if self.physics_mode in (
+            "neural_A_R", "neural_four_tendency",
+            "neural_A_threshold_nonnegative_R",
+            "neural_A_threshold_positive_gate_R",
+        ):
+            # These learned-R sources have no matching UFL analytical switch.
+            # Return a neutral certification snapshot without evaluating the
+            # analytical A/R switching law, which is absent from Problem B.
+            size = int(np.asarray(state.sub(3).dat.data_ro).size)
+            masks = {
+                key: np.zeros(size, dtype=bool) for key in _MASK_KEYS
+            }
+            margins = {key: np.inf for key in _MARGIN_KEYS}
+            return MoistActiveSetSnapshot(
+                sampling="smooth neural-four-tendency DG diagnostic",
+                masks=_readonly_mapping(masks, dtype=bool),
+                signature=tuple(
+                    tuple(False for _ in range(size)) for _ in _MASK_KEYS
+                ),
+                margins=_readonly_mapping(margins, dtype=np.float64),
+            )
         fields = {
             name: state.sub(index)
             for index, name in enumerate(_STATE_FIELDS)
@@ -526,7 +568,9 @@ class JAXMoistEulerPrimal:
         self._require_state(primal)
         return float(assemble(action(dual, primal)))
 
-    def evaluate(self, state, applied_dt, *, coefficient=None):
+    def evaluate(
+        self, state, applied_dt, *, coefficient=None, neural_parameters=None
+    ):
         """Return an owned cache for one standalone primal moist Euler step."""
         self._require_state(state)
         step = float(applied_dt)
@@ -546,14 +590,42 @@ class JAXMoistEulerPrimal:
         state_device = self._to_device_tree(packed_state)
         fields_device = self._to_device_tree(packed_fields)
         parameter_device = self._to_device_tree(parameters)
-        combined = self._combined_kernel(
-            state_device, fields_device, parameter_device
-        )
+        if neural_parameters is None:
+            combined = self._combined_kernel(
+                state_device, fields_device, parameter_device
+            )
+            diagnostics = self._diagnostic_kernel(
+                state_device, fields_device, parameter_device
+            )
+            owned_neural_parameters = None
+        else:
+            if self.local_physics is None:
+                raise ValueError(
+                    "explicit neural parameters require opt-in learned moist physics"
+                )
+            from .learned_physics.parameters import (
+                tree_copy,
+                validate_float64_tree,
+            )
+
+            owned_neural_parameters = validate_float64_tree(
+                neural_parameters, name="neural_parameters"
+            )
+            combined = self.local_physics.combined_parameterized_kernel(
+                state_device,
+                fields_device,
+                parameter_device,
+                owned_neural_parameters,
+            )
+            diagnostics = self.local_physics.diagnostic_parameterized_kernel(
+                state_device,
+                fields_device,
+                parameter_device,
+                owned_neural_parameters,
+            )
+            owned_neural_parameters = tree_copy(owned_neural_parameters)
         rates = self._from_device_tree(combined["rates"])
         source_density = self._from_device_tree(combined["source"])
-        diagnostics = self._diagnostic_kernel(
-            state_device, fields_device, parameter_device
-        )
 
         source_dual = self._assemble_source_dual(source_density)
         tendency = self.solve_mass(source_dual, "jax_moist_tendency")
@@ -563,9 +635,11 @@ class JAXMoistEulerPrimal:
 
         return JAXMoistEulerPrimalCache(
             state_in=_copy_function(state, "jax_moist_state_in_cache"),
+            physics_mode=self.physics_mode,
             applied_dt=step,
             configured_dt=float(parameters["configured_dt"]),
             parameters=_readonly_mapping(parameters, dtype=np.float64),
+            neural_parameters=owned_neural_parameters,
             packed_state=_readonly_mapping(packed_state, dtype=np.float64),
             packed_fields=_readonly_mapping(
                 packed_fields, dtype=np.float64

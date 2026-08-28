@@ -1,0 +1,61 @@
+{
+  "benchmark_stage": "Test2B rain-active learning preparation/campaign",
+  "format_version": 1,
+  "truth": {
+    "run_directory": "external-results/test2b-rain-active-truth/production-n64-zeta-m0p06-dt100-t16000",
+    "manifest": "external-results/test2b-rain-active-learning/preparation/truth_manifest.json",
+    "support_audit": "external-results/test2b-rain-active-learning/preparation/learning_support_audit.json",
+    "training_states": [0, 80],
+    "heldout_states": [81, 160],
+    "heldout_forbidden_for_training_selection": true
+  },
+  "regimes": {
+    "PRE_RAIN": [0, 50],
+    "ONSET": [51, 60],
+    "SUSTAINED_RAIN_ACTIVE": [61, 160]
+  },
+  "model": {
+    "features": ["h", "S", "Qv", "Qc", "B"],
+    "common_hidden_layers": [32, 32],
+    "activation": "tanh",
+    "dtype": "float64",
+    "seed": 0,
+    "representations": {
+      "A": {"outputs": ["A"], "parameter_count": 1281, "analytical_R": true},
+      "B": {"outputs": ["A", "R"], "parameter_count": 1314, "structured_source_map": true},
+      "C": {"outputs": ["S_t", "Qv_t", "Qc_t", "Qr_t"], "parameter_count": 1380, "structured_source_map": false}
+    }
+  },
+  "normalization": {
+    "input": "mass-weighted mean/population RMS scale on boundary truth states 0..80; degenerate B scale=1",
+    "A": "mass-weighted all-training-support RMS",
+    "R": "mass-weighted active-only RMS; inactive zero samples retained in loss",
+    "four_source": "all-support RMS for S,Qv,Qc; active-only RMS for Qr"
+  },
+  "objectives": {
+    "M1": "direct normalized local rate/source regression",
+    "M2-X": "fixed boundary-state exact deployed source-to-state regression",
+    "H1": "fixed post-prefix exact deployed one-step regression",
+    "H2": "dense accumulated recursive horizon-2",
+    "H5": "dense accumulated recursive horizon-5",
+    "dense_schedules": {"1": [0, 79, 1], "2": [0, 78, 2], "5": [0, 75, 5]}
+  },
+  "optimizer": {
+    "library": "PyROL/ROL",
+    "method": "line-search L-BFGS",
+    "maximum_secant_storage": 20,
+    "gradient_tolerance": 1e-8,
+    "step_tolerance": 1e-12,
+    "production_HVP": false,
+    "cross_stage_secant_history_reused": false
+  },
+  "recommended_iteration_caps_after_measured_benchmark": {
+    "M1": 10000,
+    "M2-X-independent": 10000,
+    "M1-to-M2-X": 5000,
+    "H1-from-M1": 5000,
+    "H2-from-H1": 20,
+    "H5-from-H2": 20
+  },
+  "output_root": "external-results/test2b-rain-active-learning/production"
+}

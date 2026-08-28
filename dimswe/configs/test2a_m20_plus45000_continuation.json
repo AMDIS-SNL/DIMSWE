@@ -1,0 +1,98 @@
+{
+  "additional_accepted_iteration_limit": 45000,
+  "benchmark_stage": "Test 2A-1 memory-20 L-BFGS convergence-to-plateau continuation",
+  "checkpoint_additional_iterations": [
+    5000,
+    10000,
+    15000,
+    20000,
+    25000,
+    30000,
+    35000,
+    40000,
+    45000
+  ],
+  "decision_diagnostics": {
+    "classification_labels": {
+      "adequate": "OPERATOR_REPRESENTATION_ADEQUATE",
+      "improving": "STILL_OPTIMIZER_LIMITED",
+      "plateau_inadequate": "PRACTICALLY_CONVERGED_MODEL_INADEQUATE"
+    },
+    "plateau_final_gradient_ratio_maximum": 0.1,
+    "plateau_final_relative_step_maximum": 1e-06,
+    "plateau_physical_active_sign_change_maximum": 0.002,
+    "plateau_physical_correlation_change_maximum": 0.0002,
+    "plateau_physical_relative_rms_relative_change_maximum": 0.002,
+    "plateau_physical_sign_accuracy_change_maximum": 0.002,
+    "plateau_recent_100_relative_objective_decrease_maximum": 0.001,
+    "ready_active_1e-2_sign_accuracy_minimum": 0.95,
+    "ready_active_1e-3_relative_rms_maximum": 0.12,
+    "ready_active_1e-3_sign_accuracy_minimum": 0.95,
+    "ready_relative_rms_maximum": 0.1,
+    "ready_sign_accuracy_minimum": 0.9
+  },
+  "format_version": 1,
+  "frozen_problem": {
+    "architecture": "5 -> 32 -> 32 -> 1 tanh float64",
+    "dataset": "external-results/test2a/dataset/doublevortex_A_operator.npz",
+    "feature_order": [
+      "h",
+      "S",
+      "Qv",
+      "Qc",
+      "B"
+    ],
+    "normalization": "training mean/population standard deviation inputs; uncentered RMS(A) output scale",
+    "objective": "mean(((A_theta - A_truth) / RMS_training(A_truth))**2)",
+    "parameter_count": 1281,
+    "sample_count": 331776,
+    "target": "A"
+  },
+  "monitoring": {
+    "accepted_iterate_objective": "every accepted iterate",
+    "accepted_iterate_rol_gradient_norm": "every accepted iterate",
+    "physical_metrics_additional_iterations": [
+      0,
+      5000,
+      10000,
+      15000,
+      20000,
+      25000,
+      30000,
+      35000,
+      40000,
+      45000
+    ],
+    "recent_objective_windows": [
+      50,
+      100
+    ],
+    "sign_accuracy_activity_thresholds_relative_to_max_abs_A": [
+      0.001,
+      0.01,
+      0.1
+    ]
+  },
+  "optimizer": {
+    "exact_JAX_gradients": true,
+    "gradient_tolerance": 1e-08,
+    "kind": "line_search_lbfgs",
+    "maximum_secant_storage": 20,
+    "method": "ROL line-search Limited-Memory BFGS",
+    "production_HVP": false,
+    "step_tolerance": 1e-12
+  },
+  "source": {
+    "accepted_iterations": 5000,
+    "comparison_label": "m20_500_plus_1500_plus_5000",
+    "expected_benchmark_stage": "Test 2A-1 memory-20 L-BFGS convergence-to-plateau continuation",
+    "expected_decision": "STILL_OPTIMIZER_LIMITED",
+    "final_gradient_norm": 0.05634216855139055,
+    "final_objective": 0.009469597429489865,
+    "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/optimizer-study/continuation-m20-plateau/continuation_final_parameters.npz",
+    "parameter_npz_sha256": "697907b2c288386487175f60cd0368d4f7f23db708dff5a4a4ba0c47d68c6d1d",
+    "parameter_pytree_sha256": "011f329e0c6182709116deb10ac060cd49b28c0f1d72c50e9a6b8fb6478d55c8",
+    "result_contract": "completed_continuation",
+    "result_file": "external-results/test2a/optimizer-study/continuation-m20-plateau/continuation_result.json"
+  }
+}

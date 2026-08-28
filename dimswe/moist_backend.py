@@ -53,7 +53,7 @@ class JAXMoistEulerIntegrator:
 
     moist_backend = "jax"
 
-    def __init__(self, ufl_oracle):
+    def __init__(self, ufl_oracle, *, local_physics=None):
         if ufl_oracle.__class__.__name__ != "Euler":
             raise ValueError("JAX moist backend requires the production Euler")
         if ufl_oracle.terms != ["threewayphysics"]:
@@ -79,8 +79,14 @@ class JAXMoistEulerIntegrator:
         self.logger = ufl_oracle.logger
         self.solver_parameters = ufl_oracle.solver_parameters
         self.terms = ufl_oracle.terms
+        self.local_physics = local_physics
+        self.moist_A_model = (
+            "analytical" if local_physics is None else "neural"
+        )
         self.primal_helper = JAXMoistEulerPrimal(
-            self.model, self.solver_parameters
+            self.model,
+            self.solver_parameters,
+            local_physics=local_physics,
         )
         self.last_primal_cache = None
 
@@ -116,12 +122,18 @@ class JAXMoistEulerIntegrator:
         )
 
 
-def build_moist_integrator(ufl_integrator, moist_backend):
+def build_moist_integrator(
+    ufl_integrator, moist_backend, *, local_physics=None
+):
     """Return the unchanged UFL child or the narrowly wrapped JAX child."""
     backend = validate_moist_backend(moist_backend)
     if backend == "ufl":
+        if local_physics is not None:
+            raise ValueError("learned local physics requires moist_backend='jax'")
         return ufl_integrator
-    return JAXMoistEulerIntegrator(ufl_integrator)
+    return JAXMoistEulerIntegrator(
+        ufl_integrator, local_physics=local_physics
+    )
 
 
 def wrap_jax_moist_reverse(result):
