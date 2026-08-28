@@ -189,7 +189,7 @@ next stage's cost.
 Sequential normal-Terminal command:
 
 ```bash
-cd /Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615
+cd /path/to/DIMSWE-collaborator
 nohup caffeinate -i bash scripts/run_test2a_horizon_curriculum_h1_h2_h5.sh \
   > external-results/test2a/horizon-curriculum-h1-h2-h5/curriculum_master.log 2>&1 &
 ```

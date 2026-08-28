@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPOSITORY="/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615"
-ENVIRONMENT="/Users/arjunsharma/venvs/dimswe-firedrake-2026.4.1-py312"
+SCRIPT_DIRECTORY="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIRECTORY/reproduction_environment.sh"
 CONFIGURATION="$REPOSITORY/dimswe/configs/test2b_rain_active_case.json"
 OUTPUT_ROOT="$REPOSITORY/external-results/test2b-rain-active-truth/production-n64-zeta-m0p06-dt100-t16000"
 
 cd "$REPOSITORY"
-source "$ENVIRONMENT/bin/activate"
 export JAX_ENABLE_X64=True
 export OMP_NUM_THREADS=1
 export PYTHONPATH="$REPOSITORY"
@@ -19,10 +18,10 @@ export XDG_CACHE_HOME="$TEST2B_CASE_CACHE_ROOT/xdg"
 export MPLCONFIGDIR="$TEST2B_CASE_CACHE_ROOT/matplotlib"
 export PYTHONPYCACHEPREFIX="$TEST2B_CASE_CACHE_ROOT/pycache"
 
-python -u -m dimswe.test2b_rain_case_design validate-configuration \
+"$PYTHON" -u -m dimswe.test2b_rain_case_design validate-configuration \
   --configuration "$CONFIGURATION"
 
-python -u -m dimswe.resolved_hidden_c0_driver run \
+"$PYTHON" -u -m dimswe.resolved_hidden_c0_driver run \
   --case doublevortex \
   --nx 64 --ny 64 \
   --dt 100 \
@@ -37,11 +36,11 @@ python -u -m dimswe.resolved_hidden_c0_driver run \
   --high-wavenumber-fraction 0.6666666666666666 \
   --output-directory "$OUTPUT_ROOT"
 
-python -u -m dimswe.test2b_rain_truth_driver audit-run \
+"$PYTHON" -u -m dimswe.test2b_rain_truth_driver audit-run \
   --run "$OUTPUT_ROOT" \
   --output "$OUTPUT_ROOT/rain_activity_audit.json"
 
-python - "$OUTPUT_ROOT" <<'PY'
+"$PYTHON" - "$OUTPUT_ROOT" <<'PY'
 import json
 import sys
 from pathlib import Path

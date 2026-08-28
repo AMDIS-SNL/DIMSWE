@@ -1,8 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-REPOSITORY="/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615"
-VIRTUAL_ENVIRONMENT="/Users/arjunsharma/venvs/dimswe-firedrake-2026.4.1-py312"
+SCRIPT_DIRECTORY="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIRECTORY/reproduction_environment.sh"
 ROOT="$REPOSITORY/external-results/test2a/horizon-curriculum-h1-h2-h5"
 CONFIGURATION="$REPOSITORY/dimswe/configs/test2a_horizon_curriculum_h1_h2_h5.json"
 H1_CACHE="$ROOT/h1_postprefix_cache.npz"
@@ -11,7 +11,6 @@ POSTPROCESS="$ROOT/postprocess"
 MANIFEST="$POSTPROCESS/stage_boundary_manifest.json"
 
 cd "$REPOSITORY"
-source "$VIRTUAL_ENVIRONMENT/bin/activate"
 export JAX_ENABLE_X64=True
 export OMP_NUM_THREADS=1
 export PYTHONPATH="$REPOSITORY"
@@ -23,7 +22,7 @@ export MPLCONFIGDIR="$RUN_CACHE_ROOT/matplotlib"
 export PYTHONPYCACHEPREFIX="$RUN_CACHE_ROOT/pycache"
 mkdir -p "$POSTPROCESS/cross-objectives" "$POSTPROCESS/autonomous"
 
-python - "$MANIFEST" <<'PY'
+"$PYTHON" - "$MANIFEST" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -93,7 +92,7 @@ write_json_record(
 )
 PY
 
-python - "$MANIFEST" <<'PY' | while IFS=$'\t' read -r label parameter_file parameter_sha cross_file rollout_file; do
+"$PYTHON" - "$MANIFEST" <<'PY' | while IFS=$'\t' read -r label parameter_file parameter_sha cross_file rollout_file; do
 import json
 import sys
 record = json.load(open(sys.argv[1], encoding="utf-8"))
@@ -108,7 +107,7 @@ for entry in record["entries"]:
     )
 PY
   if [[ ! -e "$cross_file" ]]; then
-    python -u -m dimswe.test2a_horizon_curriculum cross-evaluate \
+    "$PYTHON" -u -m dimswe.test2a_horizon_curriculum cross-evaluate \
       --configuration "$CONFIGURATION" \
       --h1-cache "$H1_CACHE" \
       --parameter-file "$parameter_file" \
@@ -117,7 +116,7 @@ PY
   fi
   rollout_directory="$(dirname "$rollout_file")"
   if [[ ! -e "$rollout_file" ]]; then
-    python -u -m dimswe.test2a_apriori_autonomous \
+    "$PYTHON" -u -m dimswe.test2a_apriori_autonomous \
       --configuration "$AUTONOMOUS_CONFIGURATION" \
       --parameter-file "$parameter_file" \
       --expected-pytree-sha256 "$parameter_sha" \
@@ -125,8 +124,7 @@ PY
   fi
 done
 
-python -u -m dimswe.test2a_horizon_curriculum report \
+"$PYTHON" -u -m dimswe.test2a_horizon_curriculum report \
   --manifest "$MANIFEST" \
   --output-json "$POSTPROCESS/horizon_curriculum_report.json" \
   --output-markdown "$POSTPROCESS/horizon_curriculum_report.md"
-

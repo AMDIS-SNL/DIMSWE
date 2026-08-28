@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPOSITORY="/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615"
-PYTHON="/Users/arjunsharma/venvs/dimswe-firedrake-2026.4.1-py312/bin/python"
+SCRIPT_DIRECTORY="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIRECTORY/reproduction_environment.sh"
 CONFIGURATION="dimswe/configs/test2a_problem_b.json"
 PREPARATION="external-results/test2a/problem-b/preparation/problem_b_fixed_data.npz"
 RECURSIVE_BENCHMARK="external-results/test2a/problem-b/preparation/problem_b_recursive_benchmark.json"

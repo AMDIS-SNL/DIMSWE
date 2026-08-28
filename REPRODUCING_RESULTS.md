@@ -24,6 +24,18 @@ Do not install or upgrade packages merely to make this snapshot look clean.
 Create and validate a separate environment if the recorded environment is not
 available.
 
+The shell entry points discover the repository relative to `scripts/`; they no
+longer contain machine-local checkout or environment paths. Normally activate
+the environment before invoking a runner. Alternatively set one or more of:
+
+```sh
+export DIMSWE_REPOSITORY=/path/to/DIMSWE-collaborator
+export DIMSWE_VIRTUAL_ENVIRONMENT=/path/to/dimswe-firedrake-environment
+export DIMSWE_PYTHON=/path/to/dimswe-firedrake-environment/bin/python
+```
+
+The shared validation logic is in `scripts/reproduction_environment.sh`.
+
 ## 2. Artifact prerequisites
 
 An ordinary Git clone contains source, configs, reports, compact final parameter
@@ -120,8 +132,9 @@ The historical Test 2A entry points are:
 
 ## 6. Training campaigns: explicit authorization required
 
-The `train` subcommands and `scripts/run_test2*.sh` files are preserved
-reproduction entry points, not routine validation commands. They may consume
+The `train` subcommands and the retained `scripts/run_test2*.sh` files are
+canonical or accepted-provenance reproduction entry points, not routine
+validation commands. They may consume
 hours, overwrite a chosen output directory if a guard is bypassed, and create
 new scientific results. Before any rerun:
 
@@ -136,7 +149,8 @@ new scientific results. Before any rerun:
 
 Do not run B+ merely to populate this repository. Its current scientific status
 is `PREPARED_NOT_RUN`, and changing that status requires a separately authorized
-campaign and review.
+campaign and review. Historical BTP/BTPL/B+ launch sketches are intentionally
+isolated under `archive/development-history/test2b_constrained_rain_variants/`.
 
 ## 7. Expected outputs
 

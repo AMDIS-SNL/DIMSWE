@@ -25,7 +25,7 @@ physical c0.  The immutable control remains `c0=0.07 z`, with defaults
 Every command below starts with
 
 ```bash
-cd /Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615
+cd /path/to/DIMSWE-collaborator
 export JAX_ENABLE_X64=True
 export OMP_NUM_THREADS=1
 ```
@@ -133,7 +133,7 @@ needed.  They do not authorize another pilot.  The table command assembles
 operators and solves sparse eigenproblems but advances no DIMSWE state.
 
 ```bash
-cd /Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615
+cd /path/to/DIMSWE-collaborator
 export JAX_ENABLE_X64=True
 export OMP_NUM_THREADS=1
 export DIMSWE_STABILITY_CACHE_ROOT="$(mktemp -d /tmp/dimswe-hv-stability.XXXXXX)"

@@ -18,13 +18,12 @@ if [[ "$RESUME_FLAG" != "" && "$RESUME_FLAG" != "--resume" ]]; then
   exit 2
 fi
 
-REPOSITORY="/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615"
-VIRTUAL_ENVIRONMENT="/Users/arjunsharma/venvs/dimswe-firedrake-2026.4.1-py312"
+SCRIPT_DIRECTORY="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIRECTORY/reproduction_environment.sh"
 CONFIGURATION="$REPOSITORY/dimswe/configs/test2a_horizon_curriculum_h1_h2_h5.json"
 H1_CACHE="$REPOSITORY/external-results/test2a/horizon-curriculum-h1-h2-h5/h1_postprefix_cache.npz"
 
 cd "$REPOSITORY"
-source "$VIRTUAL_ENVIRONMENT/bin/activate"
 export JAX_ENABLE_X64=True
 export OMP_NUM_THREADS=1
 export PYTHONPATH="$REPOSITORY"
@@ -38,7 +37,7 @@ export PYTHONPYCACHEPREFIX="$RUN_CACHE_ROOT/pycache"
 
 mkdir -p "$OUTPUT_DIRECTORY" "$(dirname "$LOG_FILE")"
 
-python - "$HORIZON" "$INITIAL_PARAMETERS" "$EXPECTED_INITIAL_SHA" <<'PY'
+"$PYTHON" - "$HORIZON" "$INITIAL_PARAMETERS" "$EXPECTED_INITIAL_SHA" <<'PY'
 import sys
 
 from dimswe.test2a_horizon_curriculum import (
@@ -85,7 +84,7 @@ print(
 PY
 
 if [[ -e "$OUTPUT_DIRECTORY/fit_result.json" ]]; then
-  python - "$OUTPUT_DIRECTORY/fit_result.json" "$HORIZON" "$EXPECTED_INITIAL_SHA" <<'PY'
+  "$PYTHON" - "$OUTPUT_DIRECTORY/fit_result.json" "$HORIZON" "$EXPECTED_INITIAL_SHA" <<'PY'
 import json
 import sys
 
@@ -108,7 +107,7 @@ if [[ -e "$OUTPUT_DIRECTORY/fit_progress.json" && "$RESUME_FLAG" != "--resume" ]
 fi
 
 COMMAND=(
-  python -u -m dimswe.test2a_horizon_curriculum train
+  "$PYTHON" -u -m dimswe.test2a_horizon_curriculum train
   --configuration "$CONFIGURATION"
   --h1-cache "$H1_CACHE"
   --horizon "$HORIZON"
@@ -121,4 +120,3 @@ if [[ "$RESUME_FLAG" == "--resume" ]]; then
   COMMAND+=(--resume)
 fi
 "${COMMAND[@]}" 2>&1 | tee -a "$LOG_FILE"
-

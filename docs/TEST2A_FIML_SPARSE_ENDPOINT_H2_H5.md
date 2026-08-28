@@ -64,7 +64,7 @@ The short-smoke extrapolation projects about `15,080 s` for both direct branches
 Normal-Terminal launch after review:
 
 ```bash
-cd /Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615
+cd /path/to/DIMSWE-collaborator
 nohup caffeinate -i bash scripts/run_test2a_fiml_campaign.sh \
   > external-results/test2a/fiml-sparse-endpoint-h2-h5/campaign.log 2>&1 &
 ```

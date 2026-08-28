@@ -102,7 +102,7 @@ the same for local loss Hessian actions.  No intermediate Riesz map is used.
 Run each gate from a fresh shell with:
 
 ```bash
-cd /Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615
+cd /path/to/DIMSWE-collaborator
 export JAX_ENABLE_X64=True
 export OMP_NUM_THREADS=1
 export TEST1B_PLAN="$PWD/dimswe/configs/test1b_selected_plan.json"

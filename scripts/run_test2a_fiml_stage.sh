@@ -7,14 +7,13 @@ if [[ $# -ne 1 ]]; then
 fi
 
 STAGE="$1"
-REPOSITORY="/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615"
-VIRTUAL_ENVIRONMENT="/Users/arjunsharma/venvs/dimswe-firedrake-2026.4.1-py312"
+SCRIPT_DIRECTORY="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIRECTORY/reproduction_environment.sh"
 CONFIGURATION="$REPOSITORY/dimswe/configs/test2a_fiml_sparse_endpoint_h2_h5.json"
 ROOT="$REPOSITORY/external-results/test2a/fiml-sparse-endpoint-h2-h5"
 PLAN="$ROOT/preparation/production_plan.json"
 
 cd "$REPOSITORY"
-source "$VIRTUAL_ENVIRONMENT/bin/activate"
 export JAX_ENABLE_X64=True
 export OMP_NUM_THREADS=1
 export PYTHONPATH="$REPOSITORY"
@@ -25,7 +24,7 @@ export XDG_CACHE_HOME="$RUN_CACHE_ROOT/xdg"
 export MPLCONFIGDIR="$RUN_CACHE_ROOT/matplotlib"
 export PYTHONPYCACHEPREFIX="$RUN_CACHE_ROOT/pycache"
 
-python - "$CONFIGURATION" "$PLAN" <<'PY'
+"$PYTHON" - "$CONFIGURATION" "$PLAN" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -63,7 +62,7 @@ case "$STAGE" in
     HORIZON="${STAGE#direct-h}"
     OUTPUT="$ROOT/direct-endpoint-h$HORIZON"
     if [[ -e "$OUTPUT/fit_result.json" ]]; then exit 0; fi
-    python -u -m dimswe.test2a_fiml train-direct \
+    "$PYTHON" -u -m dimswe.test2a_fiml train-direct \
       --configuration "$CONFIGURATION" --horizon "$HORIZON" \
       --iterations 100 --output-directory "$OUTPUT" \
       2>&1 | tee -a "$ROOT/logs/$STAGE.log"
@@ -72,7 +71,7 @@ case "$STAGE" in
     HORIZON="${STAGE#fi-h}"
     OUTPUT="$ROOT/field-inversion/h$HORIZON"
     if [[ "$HORIZON" == "2" ]]; then ITERATIONS=25; else ITERATIONS=50; fi
-    python -u -m dimswe.test2a_fiml train-field-inversion \
+    "$PYTHON" -u -m dimswe.test2a_fiml train-field-inversion \
       --configuration "$CONFIGURATION" --horizon "$HORIZON" \
       --iterations "$ITERATIONS" --output-directory "$OUTPUT" \
       2>&1 | tee -a "$ROOT/logs/$STAGE.log"
@@ -87,7 +86,7 @@ case "$STAGE" in
       exit 2
     fi
     mkdir -p "$(dirname "$OUTPUT")"
-    python -u -m dimswe.test2a_fiml build-pseudo-labels \
+    "$PYTHON" -u -m dimswe.test2a_fiml build-pseudo-labels \
       --configuration "$CONFIGURATION" --horizon "$HORIZON" \
       --controls-directory "$CONTROLS" --output "$OUTPUT" \
       2>&1 | tee -a "$ROOT/logs/$STAGE.log"
@@ -98,7 +97,7 @@ case "$STAGE" in
     test -e "$DATASET"
     OUTPUT="$ROOT/stage2/h$HORIZON"
     if [[ -e "$OUTPUT/fit_result.json" ]]; then exit 0; fi
-    python -u -m dimswe.test2a_fiml train-stage2 \
+    "$PYTHON" -u -m dimswe.test2a_fiml train-stage2 \
       --configuration "$CONFIGURATION" --horizon "$HORIZON" \
       --dataset "$DATASET" --iterations 50000 --output-directory "$OUTPUT" \
       2>&1 | tee -a "$ROOT/logs/$STAGE.log"

@@ -75,7 +75,7 @@ exists.
 External command:
 
 ```bash
-cd /Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615
+cd /path/to/DIMSWE-collaborator
 export JAX_ENABLE_X64=True
 export OMP_NUM_THREADS=1
 export TEST2A3_CACHE_ROOT="$(mktemp -d /tmp/dimswe-test2a3.XXXXXX)"

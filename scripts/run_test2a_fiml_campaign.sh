@@ -1,7 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-REPOSITORY="/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615"
+SCRIPT_DIRECTORY="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIRECTORY/reproduction_environment.sh"
 STAGE="$REPOSITORY/scripts/run_test2a_fiml_stage.sh"
 ROOT="$REPOSITORY/external-results/test2a/fiml-sparse-endpoint-h2-h5"
 

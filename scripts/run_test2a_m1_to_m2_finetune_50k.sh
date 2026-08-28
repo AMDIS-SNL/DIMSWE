@@ -1,8 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-REPOSITORY="/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615"
-VIRTUAL_ENVIRONMENT="/Users/arjunsharma/venvs/dimswe-firedrake-2026.4.1-py312"
+SCRIPT_DIRECTORY="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIRECTORY/reproduction_environment.sh"
 CONFIGURATION="$REPOSITORY/dimswe/configs/test2a_m1_to_m2_finetune_50k.json"
 CACHE="$REPOSITORY/external-results/test2a/deployed-discrete-offline/fixed_operator_cache.npz"
 AUTONOMOUS_CONFIGURATION="$REPOSITORY/dimswe/configs/test2a_apriori_autonomous.json"
@@ -20,7 +20,6 @@ elif [[ $# -ne 0 ]]; then
 fi
 
 cd "$REPOSITORY"
-source "$VIRTUAL_ENVIRONMENT/bin/activate"
 export JAX_ENABLE_X64=True
 export OMP_NUM_THREADS=1
 export PYTHONPATH="$REPOSITORY"
@@ -34,7 +33,7 @@ export PYTHONPYCACHEPREFIX="$RUN_CACHE_ROOT/pycache"
 
 mkdir -p "$OUTPUT_ROOT"
 
-python - <<'PY'
+"$PYTHON" - <<'PY'
 from dimswe.test2a_discrete_training import (
     load_discrete_training_configuration,
     load_fixed_cache,
@@ -74,7 +73,7 @@ if [[ -e "$FIT_ROOT/fit_result.json" ]]; then
     echo "fit is already complete; --resume is invalid" >&2
     exit 2
   fi
-  python - <<PY
+  "$PYTHON" - <<PY
 import json
 record = json.load(open('$FIT_ROOT/fit_result.json', encoding='utf-8'))
 assert record['status'] == 'complete'
@@ -89,14 +88,14 @@ else
     exit 2
   fi
   if [[ "$resume_requested" -ne 0 ]]; then
-    python -u -m dimswe.test2a_discrete_training train \
+    "$PYTHON" -u -m dimswe.test2a_discrete_training train \
       --configuration "$CONFIGURATION" \
       --cache "$CACHE" \
       --output-directory "$FIT_ROOT" \
       --resume \
       2>&1 | tee "$FIT_LOG"
   else
-    python -u -m dimswe.test2a_discrete_training train \
+    "$PYTHON" -u -m dimswe.test2a_discrete_training train \
       --configuration "$CONFIGURATION" \
       --cache "$CACHE" \
       --output-directory "$FIT_ROOT" \
@@ -104,20 +103,20 @@ else
   fi
 fi
 
-python -u -m dimswe.test2a_m1_to_m2_finetune prepare-postprocess \
+"$PYTHON" -u -m dimswe.test2a_m1_to_m2_finetune prepare-postprocess \
   --configuration "$CONFIGURATION" \
   --cache "$CACHE" \
   --fit-result "$FIT_ROOT/fit_result.json" \
   --output-directory "$POSTPROCESS_ROOT"
 
-python - <<PY | while IFS=$'\t' read -r label parameter_file parameter_sha output_directory; do
+"$PYTHON" - <<PY | while IFS=$'\t' read -r label parameter_file parameter_sha output_directory; do
 import json
 manifest = json.load(open('$POSTPROCESS_ROOT/autonomous_manifest.json', encoding='utf-8'))
 for entry in manifest['entries']:
     print(entry['label'], entry['parameter_file'], entry['parameter_pytree_sha256'], entry['output_directory'], sep='\t')
 PY
   if [[ -e "$output_directory/rollout_summary.json" ]]; then
-    python - <<PY
+    "$PYTHON" - <<PY
 import json
 record = json.load(open('$output_directory/rollout_summary.json', encoding='utf-8'))
 assert record['status'] == 'complete'
@@ -126,7 +125,7 @@ assert record['deployment_contract']['states_after_80_accessed'] is False
 PY
     echo "reusing complete autonomous evaluation for $label"
   else
-    python -u -m dimswe.test2a_apriori_autonomous \
+    "$PYTHON" -u -m dimswe.test2a_apriori_autonomous \
       --configuration "$AUTONOMOUS_CONFIGURATION" \
       --parameter-file "$parameter_file" \
       --expected-pytree-sha256 "$parameter_sha" \
@@ -134,7 +133,7 @@ PY
   fi
 done
 
-python -u -m dimswe.test2a_m1_to_m2_finetune report \
+"$PYTHON" -u -m dimswe.test2a_m1_to_m2_finetune report \
   --postprocess-directory "$POSTPROCESS_ROOT" \
   --output-json "$POSTPROCESS_ROOT/m1_to_m2_finetune_report.json" \
   --output-markdown "$POSTPROCESS_ROOT/m1_to_m2_finetune_report.md"

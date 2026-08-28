@@ -1,7 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-REPOSITORY="/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615"
+SCRIPT_DIRECTORY="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIRECTORY/reproduction_environment.sh"
 ROOT="$REPOSITORY/external-results/test2a/horizon-curriculum-h1-h2-h5"
 resume_requested=0
 if [[ "${1:-}" == "--resume" ]]; then
@@ -34,4 +35,3 @@ run_stage "h5-from-h2" "$REPOSITORY/scripts/run_test2a_horizon_curriculum_h5.sh"
 bash "$REPOSITORY/scripts/run_test2a_horizon_curriculum_postprocess.sh"
 
 echo '{"event":"test2a_horizon_curriculum_pipeline_complete"}'
-

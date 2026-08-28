@@ -88,7 +88,7 @@ claim that Method 2 beats Method 1 in the matched from-seed experiment.
 Run from a normal Terminal, not from Codex:
 
 ```bash
-cd /Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615
+cd /path/to/DIMSWE-collaborator
 mkdir -p external-results/test2a/m1-to-m2-finetune
 nohup caffeinate -i bash scripts/run_test2a_m1_to_m2_finetune_50k.sh \
   > external-results/test2a/m1-to-m2-finetune/manual-launch.log 2>&1 &

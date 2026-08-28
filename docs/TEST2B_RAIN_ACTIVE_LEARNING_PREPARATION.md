@@ -316,7 +316,7 @@ diagnostics without using them for selection.
 Normal-Terminal commands (do **not** run them inside Codex):
 
 ```bash
-cd /Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615
+cd /path/to/DIMSWE-collaborator
 mkdir -p external-results/test2b-rain-active-learning/logs
 
 nohup caffeinate -i bash scripts/run_test2b_rain_learning_representation.sh A \

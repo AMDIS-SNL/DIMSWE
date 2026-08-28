@@ -48,6 +48,28 @@ Problem-B, and M1--M4 wording is retained only as historical provenance.
 - [REPRODUCING_RESULTS.md](REPRODUCING_RESULTS.md): environment and reproduction entry points.
 - [`docs/provenance/FINAL_VERIFICATION.md`](docs/provenance/FINAL_VERIFICATION.md): final integrity and static-check record.
 
+## Collaborator source surface
+
+For the shortest route through the implementation, read these files in order:
+
+1. `dimswe/physics.py` and `dimswe/timestepping.py` — Chris's analytical moist
+   source and the modified split/backend hook;
+2. `dimswe/moist_backend.py` and `dimswe/jax_moist_adapter.py` — the
+   Firedrake/PETSc ↔ JAX boundary;
+3. `dimswe/test2a_operator.py` and `dimswe/test2b_rain_learning.py` — features,
+   networks, normalization, and Representation A/B/C output maps;
+4. `dimswe/jax_moist_hvp.py` and `dimswe/mtswe_split_hvp.py` — child and
+   complete-split tangent/adjoint/HVP paths;
+5. `dimswe/test2a_discrete_training.py` and `dimswe/test2a_trajectory.py` —
+   M2-X and H1/H2/H5 objectives; and
+6. `dimswe/test2a_pyrol.py` and `dimswe/test2b_rain_learning_campaign.py` —
+   parameter-vector/PyROL integration and the canonical A/B/C driver.
+
+Canonical configurations live in `dimswe/configs/`, final regression tests in
+`tests/`, campaign wrappers in `scripts/`, and frozen result summaries under
+`external-results/`. Superseded development material is isolated under
+`archive/` and is not part of this reading path.
+
 ## Repository policy
 
 Source, tests, configurations, compact canonical parameter files, and compact

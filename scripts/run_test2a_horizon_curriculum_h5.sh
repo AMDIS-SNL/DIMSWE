@@ -1,12 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 
-REPOSITORY="/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615"
+SCRIPT_DIRECTORY="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIRECTORY/reproduction_environment.sh"
 ROOT="$REPOSITORY/external-results/test2a/horizon-curriculum-h1-h2-h5"
 H1_RESULT="$ROOT/h1-from-m1-200k/fit_result.json"
 UPSTREAM="$ROOT/h2-from-h1/fit_result.json"
 cd "$REPOSITORY"
-source "/Users/arjunsharma/venvs/dimswe-firedrake-2026.4.1-py312/bin/activate"
 export JAX_ENABLE_X64=True
 export OMP_NUM_THREADS=1
 export PYTHONPATH="$REPOSITORY"

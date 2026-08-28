@@ -89,7 +89,7 @@
     "expected_decision": "STILL_OPTIMIZER_LIMITED",
     "final_gradient_norm": 0.05634216855139055,
     "final_objective": 0.009469597429489865,
-    "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/optimizer-study/continuation-m20-plateau/continuation_final_parameters.npz",
+    "parameter_file": "external-results/test2a/optimizer-study/continuation-m20-plateau/continuation_final_parameters.npz",
     "parameter_npz_sha256": "697907b2c288386487175f60cd0368d4f7f23db708dff5a4a4ba0c47d68c6d1d",
     "parameter_pytree_sha256": "011f329e0c6182709116deb10ac060cd49b28c0f1d72c50e9a6b8fb6478d55c8",
     "result_contract": "completed_continuation",

@@ -372,7 +372,7 @@ it should be treated as a diagnostic production-candidate segment pending the
 readiness caveat above.
 
 ```bash
-cd /Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615
+cd /path/to/DIMSWE-collaborator
 mkdir -p external-results/test2b-rain-active-truth
 nohup caffeinate -i bash scripts/run_test2b_rain_truth_segment1.sh \
   > external-results/test2b-rain-active-truth/segment1-master.log 2>&1 &

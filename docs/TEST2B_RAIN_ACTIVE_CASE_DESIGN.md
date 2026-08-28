@@ -204,7 +204,7 @@ partition remains unfrozen until the final truth's regime coverage is audited.
 ## 8. Manual production launch (not executed)
 
 ```bash
-cd /Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615
+cd /path/to/DIMSWE-collaborator
 mkdir -p external-results/test2b-rain-active-truth
 nohup caffeinate -i bash scripts/run_test2b_rain_active_truth_production.sh \
   > external-results/test2b-rain-active-truth/production-n64-zeta-m0p06-master.log 2>&1 &

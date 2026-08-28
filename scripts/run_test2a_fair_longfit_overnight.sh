@@ -1,8 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-REPOSITORY="/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615"
-VIRTUAL_ENVIRONMENT="/Users/arjunsharma/venvs/dimswe-firedrake-2026.4.1-py312"
+SCRIPT_DIRECTORY="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIRECTORY/reproduction_environment.sh"
 OUTPUT_ROOT="$REPOSITORY/external-results/test2a/fair-longfit"
 OPERATOR_ROOT="$OUTPUT_ROOT/operator-seed0-m20-200k"
 DISCRETE_ROOT="$OUTPUT_ROOT/discrete-seed0-m20-200k"
@@ -15,7 +15,6 @@ SELECTED="$REPOSITORY/dimswe/configs/test2a_selected_operator.json"
 AUTONOMOUS_CONFIG="$REPOSITORY/dimswe/configs/test2a_apriori_autonomous.json"
 
 cd "$REPOSITORY"
-source "$VIRTUAL_ENVIRONMENT/bin/activate"
 export JAX_ENABLE_X64=True
 export OMP_NUM_THREADS=1
 export PYTHONPATH="$REPOSITORY"
@@ -35,7 +34,7 @@ for path in "$OPERATOR_ROOT" "$DISCRETE_ROOT"; do
   fi
 done
 
-python - <<'PY'
+"$PYTHON" - <<'PY'
 from pathlib import Path
 from dimswe.test2a_discrete_training import load_fixed_cache
 from dimswe.test2a_operator import initialize_mlp, load_selected_configuration, mlp_configuration_from_record
@@ -52,32 +51,32 @@ print({'event': 'overnight_preflight_ok', 'seed_sha256': expected,
        'cache_sha256': cache.metadata['cache_npz_sha256']}, flush=True)
 PY
 
-python -u -m dimswe.test2a_fair_longfit train-operator \
+"$PYTHON" -u -m dimswe.test2a_fair_longfit train-operator \
   --configuration "$OPERATOR_CONFIG" \
   --output-directory "$OPERATOR_ROOT" \
   2>&1 | tee "$OPERATOR_ROOT.log"
 
-python - <<PY
+"$PYTHON" - <<PY
 import json
 r=json.load(open('$OPERATOR_ROOT/fit_result.json'))
 assert r['status'] == 'complete'
 assert r['initialization']['parameter_pytree_sha256'] == '6d4ac7bafe775b90a70e2a199ef3305308c3d02333f7daeac1c870b6f18e0975'
 PY
 
-python -u -m dimswe.test2a_discrete_training train \
+"$PYTHON" -u -m dimswe.test2a_discrete_training train \
   --configuration "$DISCRETE_CONFIG" \
   --cache "$CACHE" \
   --output-directory "$DISCRETE_ROOT" \
   2>&1 | tee "$DISCRETE_ROOT.log"
 
-python - <<PY
+"$PYTHON" - <<PY
 import json
 r=json.load(open('$DISCRETE_ROOT/fit_result.json'))
 assert r['status'] == 'complete'
 assert r['initialization']['parameter_pytree_sha256'] == '6d4ac7bafe775b90a70e2a199ef3305308c3d02333f7daeac1c870b6f18e0975'
 PY
 
-python -u -m dimswe.test2a_fair_longfit cross-objectives \
+"$PYTHON" -u -m dimswe.test2a_fair_longfit cross-objectives \
   --operator-result "$OPERATOR_ROOT/fit_result.json" \
   --discrete-result "$DISCRETE_ROOT/fit_result.json" \
   --cache "$CACHE" \
@@ -85,17 +84,17 @@ python -u -m dimswe.test2a_fair_longfit cross-objectives \
   --dataset "$DATASET" \
   --output "$COMPARISON_ROOT/cross_objectives.json"
 
-python -u -m dimswe.test2a_apriori_autonomous \
+"$PYTHON" -u -m dimswe.test2a_apriori_autonomous \
   --configuration "$AUTONOMOUS_CONFIG" \
   --parameter-file "$OPERATOR_ROOT/final_parameters.npz" \
   --output-directory "$COMPARISON_ROOT/operator-autonomous-training-support"
 
-python -u -m dimswe.test2a_apriori_autonomous \
+"$PYTHON" -u -m dimswe.test2a_apriori_autonomous \
   --configuration "$AUTONOMOUS_CONFIG" \
   --parameter-file "$DISCRETE_ROOT/final_parameters.npz" \
   --output-directory "$COMPARISON_ROOT/discrete-autonomous-training-support"
 
-python -u -m dimswe.test2a_fair_longfit report \
+"$PYTHON" -u -m dimswe.test2a_fair_longfit report \
   --cross-objectives "$COMPARISON_ROOT/cross_objectives.json" \
   --operator-rollout "$COMPARISON_ROOT/operator-autonomous-training-support/rollout_summary.json" \
   --discrete-rollout "$COMPARISON_ROOT/discrete-autonomous-training-support/rollout_summary.json" \

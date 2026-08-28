@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPOSITORY="/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615"
+SCRIPT_DIRECTORY="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIRECTORY/reproduction_environment.sh"
 cd "$REPOSITORY"
 for representation in A B C; do
   bash scripts/run_test2b_rain_learning_representation.sh "$representation"
 done
 
-PYTHON="/Users/arjunsharma/venvs/dimswe-firedrake-2026.4.1-py312/bin/python"
 CONFIGURATION="dimswe/configs/test2b_rain_active_learning.json"
 PREPARATION="external-results/test2b-rain-active-learning/preparation/fixed_learning_data.npz"
 OUTPUT_ROOT="external-results/test2b-rain-active-learning/production"

@@ -149,7 +149,7 @@ preparation reads existing restart states and executes the local certified
 moist child; it does not integrate a new truth trajectory.
 
 ```bash
-cd /Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615
+cd /path/to/DIMSWE-collaborator
 export JAX_ENABLE_X64=True
 export OMP_NUM_THREADS=1
 export TEST2A_CACHE_ROOT="$(mktemp -d /tmp/dimswe-test2a.XXXXXX)"

@@ -316,8 +316,8 @@ First run the external recursive timing and one-iteration smoke gate from a
 normal Terminal:
 
 ```bash
-cd /Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615
-source /Users/arjunsharma/venvs/dimswe-firedrake-2026.4.1-py312/bin/activate
+cd /path/to/DIMSWE-collaborator
+source /path/to/dimswe-firedrake-environment/bin/activate
 export JAX_ENABLE_X64=True OMP_NUM_THREADS=1 PYTHONPATH="$PWD"
 export TEST2B_CACHE_ROOT="$(mktemp -d /tmp/dimswe-test2b-gate.XXXXXX)"
 export PYOP2_CACHE_DIR="$TEST2B_CACHE_ROOT/pyop2"
@@ -340,7 +340,7 @@ python -u -m dimswe.test2a_problem_b_campaign smoke \
 After that gate confirms the estimates, the exact production launch is:
 
 ```bash
-cd /Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615
+cd /path/to/DIMSWE-collaborator
 nohup caffeinate -i bash scripts/run_test2a_problem_b_campaign.sh \
   > external-results/test2a/problem-b/problem_b_campaign_master.log 2>&1 &
 ```
