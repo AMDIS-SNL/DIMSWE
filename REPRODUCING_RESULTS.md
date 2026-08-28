@@ -62,6 +62,12 @@ The complete transfer/check contract is
 `docs/provenance/FROZEN_DIRTY_STATE_MANIFEST.tsv`. Compare received artifacts by
 path, byte count, and SHA-256 before running any evaluation.
 
+Some frozen JSON result records retain the absolute path at which an artifact
+was originally produced. Those strings are immutable run provenance, not
+portable defaults. Supply the current configuration/artifact paths through the
+documented CLI when evaluating a transferred snapshot; do not edit an accepted
+result record merely to relocate it.
+
 ## 3. Cheap read-only verification
 
 From the repository root, these commands inspect provenance without running the

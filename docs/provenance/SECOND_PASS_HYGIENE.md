@@ -61,6 +61,12 @@ layout remains available in the authoritative checkout.
   chain-of-custody/audit evidence, in byte-preserved archive files, and in 84
   frozen result JSON files whose recorded output paths are scientific
   provenance rather than executable defaults.
+- Eight case-building/postprocessing locations use a `/tmp/...-no-output`
+  value to satisfy the nonempty `ResolvedPilotConfiguration.output_directory`
+  contract without invoking a result writer. Ten campaign runners use
+  `mktemp -d /tmp/...` for disposable runtime/compiler caches. These paths are
+  operational scratch sentinels, not scientific artifact inputs or outputs;
+  they were retained rather than introducing unvalidated runtime plumbing.
 - Examined progress prints and internal `*_debug` records. Retained prints are
   CLI progress/reporting or test diagnostics; retained debug records expose
   zero-derivative safety checks. No dead debug branch was removed from a

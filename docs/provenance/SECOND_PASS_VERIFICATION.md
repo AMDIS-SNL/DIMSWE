@@ -35,6 +35,10 @@ interface, equation, objective, network, optimizer setting, or configuration.
   path. Eighty-four frozen result JSON files retain historical absolute output
   paths as immutable result provenance; chain-of-custody documents and
   byte-preserved archive files also intentionally retain historical paths.
+- Eight `/tmp/...-no-output` strings in case builders are non-writing
+  configuration sentinels, and ten `/tmp/...` runner templates are passed to
+  `mktemp -d` for ephemeral caches. They are not accepted result locations and
+  were retained as intentional scratch behavior.
 - No active source imports an archived module. References from primary
   documentation now identify those paths explicitly as archived history.
 - A conservative import/name scan found only unused imports in the original
