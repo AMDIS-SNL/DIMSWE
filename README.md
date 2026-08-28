@@ -46,6 +46,7 @@ Problem-B, and M1--M4 wording is retained only as historical provenance.
 - [CHANGES_FROM_UPSTREAM_DIMSWE.md](CHANGES_FROM_UPSTREAM_DIMSWE.md): provenance relative to the Chris baseline.
 - [CANONICAL_EXPERIMENTS.md](CANONICAL_EXPERIMENTS.md): evidence matrix and accepted limitations.
 - [REPRODUCING_RESULTS.md](REPRODUCING_RESULTS.md): environment and reproduction entry points.
+- [`docs/provenance/FINAL_VERIFICATION.md`](docs/provenance/FINAL_VERIFICATION.md): final integrity and static-check record.
 
 ## Repository policy
 
