@@ -28,7 +28,7 @@ from .test2a_embedded_moist import parameter_pytree_sha256
 from .test2a_problem_b_campaign import _carrier_mass_weights
 from .test2b_rain_learning import (
     RainActiveNeuralMoistPhysics, RainLearningNormalization, RainMLPConfiguration,
-    LINEAR_EXCEEDANCE_VARIANTS, REPRESENTATIONS, SOURCE_ORDER,
+    LINEAR_EXCEEDANCE_VARIANTS, REPRESENTATIONS,
     STRUCTURED_RAIN_VARIANTS, build_model, canonical_sha256,
     initial_parameters, structured_rain_physical_rates,
     load_parameters, save_parameters, source_invariant_diagnostics,

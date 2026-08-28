@@ -21,7 +21,7 @@ from jax.experimental import sparse as jsparse
 from jax.flatten_util import ravel_pytree
 import numpy as np
 
-from .learned_physics.parameters import tree_axpy, tree_dot, tree_norm
+from .learned_physics.parameters import tree_axpy, tree_norm
 from .resolved_hidden_c0 import read_json_record, write_json_record
 from .test2a_discrete_offline import (
     _deterministic_parameter_vectors,
@@ -40,7 +40,6 @@ from .test2a_operator import (
     normalization_from_record,
     operator_metrics,
     physical_predictions,
-    save_mlp_parameters,
     save_mlp_parameters_atomic,
 )
 from .test2a_pyrol import JAXPytreeObjective, build_test2a_lbfgs_parameters

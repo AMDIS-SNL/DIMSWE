@@ -16,7 +16,6 @@ from types import MappingProxyType
 
 import jax
 import jax.numpy as jnp
-from jax.flatten_util import ravel_pytree
 import numpy as np
 
 from .learned_physics.parameters import tree_copy, validate_float64_tree

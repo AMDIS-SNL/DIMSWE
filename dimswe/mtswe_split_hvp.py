@@ -27,10 +27,6 @@ from firedrake import (
 
 from .dry_lie_hvp import ProductionDryRK4HVP
 from .hyperviscosity_hvp import (
-    HyperviscosityHVPResult,
-    HyperviscosityPrimalCache,
-    HyperviscosityReverseResult,
-    HyperviscosityTangentCache,
     _as_float,
     _copy_cofunction,
     _copy_function,

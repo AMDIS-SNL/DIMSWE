@@ -17,7 +17,6 @@ from time import perf_counter
 
 import jax
 import jax.numpy as jnp
-from jax.flatten_util import ravel_pytree
 import numpy as np
 
 from .hidden_c0 import _copy_function, _flat_values
@@ -37,7 +36,6 @@ from .resolved_hidden_c0_inference import load_resolved_truth
 from .selected_test1b import load_selected_test1b_plan
 from .test2a_apriori_autonomous import load_compatible_neural_physics
 from .test2a_discrete_training import _file_sha256
-from .test2a_discrete_training import CompactCheckpointObjective
 from .test2a_embedded_moist import (
     PHYSICS_MODE_NEURAL_A,
     parameter_pytree_sha256,
@@ -47,13 +45,12 @@ from .test2a_operator import (
     DenseMLP,
     load_mlp_parameters,
     load_operator_dataset,
-    mlp_configuration_from_record,
     normalization_from_record,
     operator_metrics,
     physical_predictions,
     save_mlp_parameters_atomic,
 )
-from .test2a_pyrol import JAXPytreeObjective, build_test2a_lbfgs_parameters
+from .test2a_pyrol import build_test2a_lbfgs_parameters
 from .test2a_trajectory import (
     GlobalMixedMassMetric,
     NeuralTrajectoryObjective,

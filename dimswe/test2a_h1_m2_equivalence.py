@@ -9,9 +9,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass
-from pathlib import Path
 
-import jax
 import jax.numpy as jnp
 from jax.flatten_util import ravel_pytree
 import numpy as np

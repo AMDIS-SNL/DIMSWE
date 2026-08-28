@@ -18,7 +18,7 @@ from time import perf_counter
 import jax.numpy as jnp
 import numpy as np
 
-from .hidden_c0 import STATE_FIELDS, _copy_function, _serial_solver_parameters
+from .hidden_c0 import STATE_FIELDS, _copy_function
 from .jax_moist import moist_rates_jax
 from .learned_physics.parameters import tree_copy
 from .resolved_hidden_c0 import ResolvedPilotConfiguration, write_json_record

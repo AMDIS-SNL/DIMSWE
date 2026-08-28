@@ -13,14 +13,12 @@ import json
 from pathlib import Path
 from time import perf_counter
 
-import jax
 import jax.numpy as jnp
 from jax.flatten_util import ravel_pytree
 import numpy as np
 
-from .learned_physics.parameters import tree_axpy, tree_dot, tree_norm
+from .learned_physics.parameters import tree_norm
 from .resolved_hidden_c0 import read_json_record, write_json_record
-from .test2a_discrete_offline import objective_gradient_comparison
 from .test2a_discrete_training import (
     CompactCheckpointObjective,
     FastFixedDiscreteObjective,

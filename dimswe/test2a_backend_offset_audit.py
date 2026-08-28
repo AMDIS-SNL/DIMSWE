@@ -8,7 +8,6 @@ children on the same post-prefix states.  No optimizer is imported or run.
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 
 import numpy as np
 
