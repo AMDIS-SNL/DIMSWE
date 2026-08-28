@@ -47,6 +47,9 @@ Problem-B, and M1--M4 wording is retained only as historical provenance.
 - [CANONICAL_EXPERIMENTS.md](CANONICAL_EXPERIMENTS.md): evidence matrix and accepted limitations.
 - [REPRODUCING_RESULTS.md](REPRODUCING_RESULTS.md): environment and reproduction entry points.
 - [`docs/provenance/FINAL_VERIFICATION.md`](docs/provenance/FINAL_VERIFICATION.md): final integrity and static-check record.
+- [`docs/provenance/SECOND_PASS_HYGIENE.md`](docs/provenance/SECOND_PASS_HYGIENE.md)
+  and [`SECOND_PASS_VERIFICATION.md`](docs/provenance/SECOND_PASS_VERIFICATION.md):
+  collaborator-surface decisions and the checks run after cleanup.
 
 ## Collaborator source surface
 

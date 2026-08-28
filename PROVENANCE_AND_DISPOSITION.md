@@ -91,11 +91,28 @@ external-result paths are listed separately in
 The full disposition table has SHA-256
 `48cbcd7b9f31369bb142a52ecef73b18620870c3c4c9012d727058ccfd65866e`.
 
-Only the 76 recorded `.DS_Store`/`__pycache__`/bytecode files were removed from
-the collaborator copy. They remain recoverable from the authoritative checkout
-and are fully hashed in the freeze manifest. No scientific file was deleted or
-moved. Uncertain and superseded material remains in place, locally ignored by
-Git, rather than being silently discarded.
+Only the 76 recorded `.DS_Store`/`__pycache__`/bytecode files were removed in
+the preservation-first pass. They remain recoverable from the authoritative
+checkout and are fully hashed in the freeze manifest. No scientific file was
+deleted or moved in that pass. Uncertain and superseded result material remains
+in place, locally ignored by Git, rather than being silently discarded.
+
+## Second-pass collaborator hygiene
+
+The source-surface audit began from frozen collaborator commit
+`10a0482a16cb190c2012550a40a72af53893abfe`. Twelve closed development files
+were moved byte-for-byte from active source/test/script/documentation paths to
+`archive/`; none was permanently discarded. The mapping, decision, reason, and
+source SHA-256 for every move are recorded in
+[`docs/provenance/SECOND_PASS_DISPOSITION.tsv`](docs/provenance/SECOND_PASS_DISPOSITION.tsv).
+All 12 archived destinations were rehashed successfully after the move.
+
+The decision record is
+[`docs/provenance/SECOND_PASS_HYGIENE.md`](docs/provenance/SECOND_PASS_HYGIENE.md),
+and the checks actually run are in
+[`docs/provenance/SECOND_PASS_VERIFICATION.md`](docs/provenance/SECOND_PASS_VERIFICATION.md).
+The authoritative checkout retains every item at its original location; the
+second pass changed only this independent collaborator repository.
 
 ## Distribution boundary
 
