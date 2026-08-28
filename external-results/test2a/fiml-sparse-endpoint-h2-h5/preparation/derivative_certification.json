@@ -1,0 +1,149 @@
+{
+  "H1_control_sanity": {
+    "control_dimension": 4096,
+    "data_misfit_at_H1_baseline": 2.8359195943356396e-05,
+    "gradient_norm": 2.668320296193587e-05,
+    "interpretation": "one final moist-child control maps linearly through dt*G(Y0), the fixed one-step post-prefix M2-Y map",
+    "production_FIML_experiment": false,
+    "tangent_adjoint_discrepancy": 0.0,
+    "truth_control_endpoint_fieldwise_maximum_difference": {
+      "Qc": 3.0043242199573328e-15,
+      "Qr": 0.0,
+      "Qv": 2.886579864025407e-15,
+      "S": 9.094947017729282e-13,
+      "h": 0.0,
+      "v": 0.0
+    }
+  },
+  "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+  "benchmark_stage": "Test 2A sparse-endpoint/FIML derivative certification",
+  "common_denominator_D": 4090171967662.3027,
+  "common_denominator_sha256": "10bda77bf2e003802c560ef1218fe28b17531da6b30e3f97cf22fa04a62d4753",
+  "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+  "horizons": {
+    "2": {
+      "adjoint_pairing": 0.0001565291114270548,
+      "all_control_gradient_norm": 4.6140548971931826e-05,
+      "centered_directional_derivative": 0.00015654279461834434,
+      "control_dimension": 8192,
+      "directional_adjoint": 0.0001565291114270548,
+      "directional_relative_discrepancy": 8.740863048288628e-05,
+      "intermediate_truth_in_objective": [],
+      "observed_truth_indices": [
+        0,
+        2
+      ],
+      "representative_window_origin": 0,
+      "source_invariants": [
+        {
+          "internal_step": 1,
+          "thermal_maximum_absolute_residual": 1.734723475976807e-18,
+          "water_maximum_absolute_residual": 0.0
+        },
+        {
+          "internal_step": 2,
+          "thermal_maximum_absolute_residual": 8.673617379884035e-19,
+          "water_maximum_absolute_residual": 0.0
+        }
+      ],
+      "tangent_adjoint_absolute_discrepancy": 1.0842021724855044e-19,
+      "tangent_adjoint_relative_discrepancy": 6.925915530822222e-16,
+      "tangent_pairing": 0.0001565291114270549,
+      "truth_control_oracle": {
+        "endpoint_fieldwise_maximum_absolute_difference": {
+          "Qc": 3.328934350399493e-15,
+          "Qr": 0.0,
+          "Qv": 3.1086244689504383e-15,
+          "S": 1.8189894035458565e-12,
+          "h": 1.1368683772161603e-13,
+          "v": 3.552713678800501e-15
+        },
+        "intermediate_truth_boundaries_compared": [],
+        "optimizer_saw_truth_control": false,
+        "purpose": "post-hoc implementation/controllability oracle only"
+      },
+      "zero_control_data_misfit": 4.096966104688279e-05,
+      "zero_control_direct_endpoint_value": 4.096966104688279e-05,
+      "zero_control_endpoint_fieldwise_maximum_difference": {
+        "Qc": 0.0,
+        "Qr": 0.0,
+        "Qv": 0.0,
+        "S": 0.0,
+        "h": 0.0,
+        "v": 0.0
+      },
+      "zero_control_objective_absolute_difference": 0.0
+    },
+    "5": {
+      "adjoint_pairing": 5.262351398354197e-05,
+      "all_control_gradient_norm": 5.031669719197071e-05,
+      "centered_directional_derivative": 5.26159077734507e-05,
+      "control_dimension": 20480,
+      "directional_adjoint": 5.262351398354197e-05,
+      "directional_relative_discrepancy": 0.0001445401402431522,
+      "intermediate_truth_in_objective": [],
+      "observed_truth_indices": [
+        40,
+        45
+      ],
+      "representative_window_origin": 40,
+      "source_invariants": [
+        {
+          "internal_step": 1,
+          "thermal_maximum_absolute_residual": 8.673617379884035e-19,
+          "water_maximum_absolute_residual": 0.0
+        },
+        {
+          "internal_step": 2,
+          "thermal_maximum_absolute_residual": 8.673617379884035e-19,
+          "water_maximum_absolute_residual": 0.0
+        },
+        {
+          "internal_step": 3,
+          "thermal_maximum_absolute_residual": 8.673617379884035e-19,
+          "water_maximum_absolute_residual": 0.0
+        },
+        {
+          "internal_step": 4,
+          "thermal_maximum_absolute_residual": 8.673617379884035e-19,
+          "water_maximum_absolute_residual": 0.0
+        },
+        {
+          "internal_step": 5,
+          "thermal_maximum_absolute_residual": 8.673617379884035e-19,
+          "water_maximum_absolute_residual": 0.0
+        }
+      ],
+      "tangent_adjoint_absolute_discrepancy": 1.7618285302889447e-19,
+      "tangent_adjoint_relative_discrepancy": 3.347987234071734e-15,
+      "tangent_pairing": 5.262351398354214e-05,
+      "truth_control_oracle": {
+        "endpoint_fieldwise_maximum_absolute_difference": {
+          "Qc": 7.2476746826311e-15,
+          "Qr": 0.0,
+          "Qv": 6.661338147750939e-15,
+          "S": 2.7284841053187847e-12,
+          "h": 1.1368683772161603e-13,
+          "v": 7.105427357601002e-15
+        },
+        "intermediate_truth_boundaries_compared": [],
+        "optimizer_saw_truth_control": false,
+        "purpose": "post-hoc implementation/controllability oracle only"
+      },
+      "zero_control_data_misfit": 2.6690883171965058e-05,
+      "zero_control_direct_endpoint_value": 2.6690883171965058e-05,
+      "zero_control_endpoint_fieldwise_maximum_difference": {
+        "Qc": 0.0,
+        "Qr": 0.0,
+        "Qv": 0.0,
+        "S": 0.0,
+        "h": 0.0,
+        "v": 0.0
+      },
+      "zero_control_objective_absolute_difference": 0.0
+    }
+  },
+  "optimization_performed": false,
+  "states_after_80_accessed": false,
+  "status": "complete"
+}

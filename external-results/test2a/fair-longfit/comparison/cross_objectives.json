@@ -1,0 +1,136 @@
+{
+  "cache": {
+    "npz_sha256": "baee2dd3ae8a5e3f9ec16f6883e3583d4ac61281d777c3079b002e611504bacf",
+    "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/deployed-discrete-offline/fixed_operator_cache.npz",
+    "production_oracle_certified": true
+  },
+  "comparison": "matched seed-0 m20 200k-cap fair long fits",
+  "cross_objective_table": {
+    "theta_disc_long": {
+      "J_disc": 0.001721966994676836,
+      "J_op": 0.002489117530253537,
+      "direct_A_metrics": {
+        "correlation": 0.9987532887772144,
+        "magnitude_strata": {
+          "abs_A_gt_1e-03_max_abs_A": {
+            "mae": 3.0407986591869074e-10,
+            "relative_rms_error": 0.04920086968277833,
+            "rmse": 5.735115504777293e-10,
+            "sample_count": 213688,
+            "sample_fraction": 0.6440731095679012
+          },
+          "abs_A_gt_1e-06_max_abs_A": {
+            "mae": 2.175837931888951e-10,
+            "relative_rms_error": 0.04940946320221284,
+            "rmse": 4.722255555081515e-10,
+            "sample_count": 317865,
+            "sample_fraction": 0.9580711082175926
+          }
+        },
+        "maximum_absolute_error": 1.29355806538922e-08,
+        "normalized_mse": 0.002489117530253537,
+        "physical_mae_A": 2.15021227647798e-10,
+        "physical_rmse_A": 4.667248492655062e-10,
+        "relative_rms_error": 0.049891056615926035,
+        "sample_count": 331776,
+        "sign_accuracy": 0.8720903528227392,
+        "sign_accuracy_strata": {
+          "abs_A_gt_1e-01_max_abs_A": {
+            "accuracy": 1.0,
+            "sample_count": 35348,
+            "sample_fraction": 0.10654176311728394,
+            "threshold": 1.0805235023802465e-08
+          },
+          "abs_A_gt_1e-02_max_abs_A": {
+            "accuracy": 0.9995786056529271,
+            "sample_count": 128146,
+            "sample_fraction": 0.3862425250771605,
+            "threshold": 1.0805235023802465e-09
+          },
+          "abs_A_gt_1e-03_max_abs_A": {
+            "accuracy": 0.982348096289918,
+            "sample_count": 213688,
+            "sample_fraction": 0.6440731095679012,
+            "threshold": 1.0805235023802465e-10
+          }
+        },
+        "sign_accuracy_threshold": 1.0805235023802464e-13
+      },
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fair-longfit/discrete-seed0-m20-200k/final_parameters.npz",
+      "parameter_pytree_sha256": "94bb112961bc2f2e05cbca459bc50d64513110a077e2b15cded39fe8427de6f8"
+    },
+    "theta_op_long": {
+      "J_disc": 0.0008346864309047664,
+      "J_op": 0.000373006108792648,
+      "direct_A_metrics": {
+        "correlation": 0.9998129822756522,
+        "magnitude_strata": {
+          "abs_A_gt_1e-03_max_abs_A": {
+            "mae": 1.3425764244117012e-10,
+            "relative_rms_error": 0.018577356418787806,
+            "rmse": 2.1654756414286925e-10,
+            "sample_count": 213688,
+            "sample_fraction": 0.6440731095679012
+          },
+          "abs_A_gt_1e-06_max_abs_A": {
+            "mae": 1.0440082310780005e-10,
+            "relative_rms_error": 0.019080449253483994,
+            "rmse": 1.8235931265223788e-10,
+            "sample_count": 317865,
+            "sample_fraction": 0.9580711082175926
+          }
+        },
+        "maximum_absolute_error": 4.1438731143682445e-09,
+        "normalized_mse": 0.000373006108792648,
+        "physical_mae_A": 1.0339217826332899e-10,
+        "physical_rmse_A": 1.8067422254202868e-10,
+        "relative_rms_error": 0.019313366065827262,
+        "sample_count": 331776,
+        "sign_accuracy": 0.8790241140106649,
+        "sign_accuracy_strata": {
+          "abs_A_gt_1e-01_max_abs_A": {
+            "accuracy": 1.0,
+            "sample_count": 35348,
+            "sample_fraction": 0.10654176311728394,
+            "threshold": 1.0805235023802465e-08
+          },
+          "abs_A_gt_1e-02_max_abs_A": {
+            "accuracy": 0.9999687856039206,
+            "sample_count": 128146,
+            "sample_fraction": 0.3862425250771605,
+            "threshold": 1.0805235023802465e-09
+          },
+          "abs_A_gt_1e-03_max_abs_A": {
+            "accuracy": 0.9815244655759799,
+            "sample_count": 213688,
+            "sample_fraction": 0.6440731095679012,
+            "threshold": 1.0805235023802465e-10
+          }
+        },
+        "sign_accuracy_threshold": 1.0805235023802464e-13
+      },
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fair-longfit/operator-seed0-m20-200k/final_parameters.npz",
+      "parameter_pytree_sha256": "f86ee79be3086028f21de10b947c0089147234f494c066f8bbbb2fffb3f8bef8"
+    }
+  },
+  "historical_practical_fits": {
+    "theta_disc": {
+      "J_disc": 0.0017427829635521567,
+      "J_op": 0.0020819762080123453,
+      "parameter_pytree_sha256": "4db13a84f52d6fcf66f0345ce5c677aff2b46a84350228a78bc05b073ff6b12a"
+    },
+    "theta_op": {
+      "J_disc": 0.00794193542678781,
+      "J_op": 0.004285912836972889,
+      "parameter_pytree_sha256": "f7d2fd9577ba2a824d3df6c1f8c90a425e6964e1fb5962508315509b247bed56"
+    }
+  },
+  "status": "complete",
+  "truth_state_access": {
+    "state_indices": [
+      0,
+      80
+    ],
+    "states_after_80_accessed": false
+  }
+}

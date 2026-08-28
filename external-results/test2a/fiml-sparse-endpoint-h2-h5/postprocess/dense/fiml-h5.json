@@ -1,0 +1,61 @@
+{
+  "J_M2_X": 0.0005603587985933929,
+  "J_op": 0.0005582155192189827,
+  "autonomous_metrics_used_for_selection": false,
+  "direct_A_metrics": {
+    "correlation": 0.9997203073299916,
+    "magnitude_strata": {
+      "abs_A_gt_1e-03_max_abs_A": {
+        "mae": 1.526992249408839e-10,
+        "relative_rms_error": 0.023078405668622418,
+        "rmse": 2.690141922877134e-10,
+        "sample_count": 213688,
+        "sample_fraction": 0.6440731095679012
+      },
+      "abs_A_gt_1e-06_max_abs_A": {
+        "mae": 1.1344438328742097e-10,
+        "relative_rms_error": 0.023310770112162194,
+        "rmse": 2.2279014286165347e-10,
+        "sample_count": 317865,
+        "sample_fraction": 0.9580711082175926
+      }
+    },
+    "maximum_absolute_error": 6.019448491850003e-09,
+    "normalized_mse": 0.0005582155192189825,
+    "physical_mae_A": 1.124989441546569e-10,
+    "physical_rmse_A": 2.210238683093972e-10,
+    "relative_rms_error": 0.023626585009666176,
+    "sample_count": 331776,
+    "sign_accuracy": 0.8951693328928948,
+    "sign_accuracy_strata": {
+      "abs_A_gt_1e-01_max_abs_A": {
+        "accuracy": 1.0,
+        "sample_count": 35348,
+        "sample_fraction": 0.10654176311728394,
+        "threshold": 1.0805235023802465e-08
+      },
+      "abs_A_gt_1e-02_max_abs_A": {
+        "accuracy": 1.0,
+        "sample_count": 128146,
+        "sample_fraction": 0.3862425250771605,
+        "threshold": 1.0805235023802465e-09
+      },
+      "abs_A_gt_1e-03_max_abs_A": {
+        "accuracy": 0.9880386357680356,
+        "sample_count": 213688,
+        "sample_fraction": 0.6440731095679012,
+        "threshold": 1.0805235023802465e-10
+      }
+    },
+    "sign_accuracy_threshold": 1.0805235023802464e-13
+  },
+  "horizon_objectives": {
+    "H1": 0.00044523880589001,
+    "H2": 0.0007061273613859621,
+    "H5": 0.001410574677847604
+  },
+  "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/stage2/h5/final_parameters.npz",
+  "parameter_pytree_sha256": "de5d02ce84100ad6bdc90db54699a490242b7ae5bb1c9424e65414818fcc52a3",
+  "states_after_80_accessed": false,
+  "status": "complete"
+}

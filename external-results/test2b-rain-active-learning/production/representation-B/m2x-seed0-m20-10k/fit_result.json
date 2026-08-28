@@ -1,0 +1,15 @@
+{
+  "accepted_iterations": 10000,
+  "final_objective": 1.863373258646678e-05,
+  "final_parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-B/m2x-seed0-m20-10k/final_parameters.npz",
+  "final_parameter_pytree_sha256": "8292c556c31e15a303cc9010d9174149ab46cf31ce6ef385ffcb22d406b9b74a",
+  "gradient_evaluations": 10001,
+  "objective_evaluations": 20944,
+  "parameter_only_restart_restores_secant_history": false,
+  "representation": "B",
+  "source_secant_history_reused": false,
+  "stage": "M2-X",
+  "status": "complete",
+  "termination_reason": "EExitStatus.EXITSTATUS_MAXITER",
+  "wall_seconds": 45794.08840800007
+}

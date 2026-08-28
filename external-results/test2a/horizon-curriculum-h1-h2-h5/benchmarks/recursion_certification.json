@@ -1,0 +1,2156 @@
+{
+  "benchmark_stage": "Test 2A H1-H2-H5 recursion certification",
+  "common_denominator_sha256": "10bda77bf2e003802c560ef1218fe28b17531da6b30e3f97cf22fa04a62d4753",
+  "common_denominator_state_mass_D": 4090171967662.3027,
+  "existing_derivative_certification": {
+    "certifies": [
+      "H2 state tangent-adjoint duality",
+      "H1/H2 all-1281-parameter gradients",
+      "same-theta tape and changed-theta invalidation",
+      "fixed-prefix primal/gradient parity"
+    ],
+    "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/m3-m4-prep/trajectory_certification.json",
+    "retained": true
+  },
+  "optimization_performed": false,
+  "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fair-longfit/operator-seed0-m20-200k/final_parameters.npz",
+  "parameter_pytree_sha256": "f86ee79be3086028f21de10b947c0089147234f494c066f8bbbb2fffb3f8bef8",
+  "recursion_certificates": {
+    "H2_recursive_vs_80_independent_H1": {
+      "gradient": {
+        "absolute_difference": 0.15849663977350584,
+        "best_alpha_left_approximately_alpha_right": 1.4022089266161004,
+        "cosine": 0.9649829289395224,
+        "dot": 0.11471809184180631,
+        "left_norm": 0.4156259837134501,
+        "maximum_absolute_component_difference": 0.07482840480978434,
+        "relative_difference_to_right": 0.5541284724597464,
+        "relative_nonproportional_residual": 0.26231268908556604,
+        "right_norm": 0.2860286876614512
+      },
+      "independent_H1_objective": 0.0007048714201166905,
+      "objective_ratio_recursive_over_independent": 1.5897288062978874,
+      "recursive_feedback_present": true,
+      "recursive_objective": 0.001120554401295603
+    },
+    "H5_recursive_vs_80_independent_H1": {
+      "gradient": {
+        "absolute_difference": 0.39390322719540216,
+        "best_alpha_left_approximately_alpha_right": 2.005307179091898,
+        "cosine": 0.9052456735870723,
+        "dot": 0.1640590134433512,
+        "left_norm": 0.6336129489809398,
+        "maximum_absolute_component_difference": 0.17937814570461733,
+        "relative_difference_to_right": 1.3771458744782736,
+        "relative_nonproportional_residual": 0.42488853885682487,
+        "right_norm": 0.2860286876614512
+      },
+      "independent_H1_objective": 0.0007048714201166905,
+      "objective_ratio_recursive_over_independent": 3.1929697955254466,
+      "recursive_feedback_present": true,
+      "recursive_objective": 0.0022506331541617204
+    }
+  },
+  "status": "complete",
+  "target_multisets": {
+    "H1": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80
+    ],
+    "H2": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80
+    ],
+    "H5": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80
+    ]
+  },
+  "truth_state_access": {
+    "maximum": 80,
+    "minimum": 0,
+    "states_after_80_accessed": false
+  },
+  "window_schedules": {
+    "H1": [
+      {
+        "horizon": 1,
+        "label": "truth_reset_0_H1",
+        "loss_mode": "accumulated",
+        "start_step": 0,
+        "target_steps": [
+          1
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_1_H1",
+        "loss_mode": "accumulated",
+        "start_step": 1,
+        "target_steps": [
+          2
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_2_H1",
+        "loss_mode": "accumulated",
+        "start_step": 2,
+        "target_steps": [
+          3
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_3_H1",
+        "loss_mode": "accumulated",
+        "start_step": 3,
+        "target_steps": [
+          4
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_4_H1",
+        "loss_mode": "accumulated",
+        "start_step": 4,
+        "target_steps": [
+          5
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_5_H1",
+        "loss_mode": "accumulated",
+        "start_step": 5,
+        "target_steps": [
+          6
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_6_H1",
+        "loss_mode": "accumulated",
+        "start_step": 6,
+        "target_steps": [
+          7
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_7_H1",
+        "loss_mode": "accumulated",
+        "start_step": 7,
+        "target_steps": [
+          8
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_8_H1",
+        "loss_mode": "accumulated",
+        "start_step": 8,
+        "target_steps": [
+          9
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_9_H1",
+        "loss_mode": "accumulated",
+        "start_step": 9,
+        "target_steps": [
+          10
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_10_H1",
+        "loss_mode": "accumulated",
+        "start_step": 10,
+        "target_steps": [
+          11
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_11_H1",
+        "loss_mode": "accumulated",
+        "start_step": 11,
+        "target_steps": [
+          12
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_12_H1",
+        "loss_mode": "accumulated",
+        "start_step": 12,
+        "target_steps": [
+          13
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_13_H1",
+        "loss_mode": "accumulated",
+        "start_step": 13,
+        "target_steps": [
+          14
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_14_H1",
+        "loss_mode": "accumulated",
+        "start_step": 14,
+        "target_steps": [
+          15
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_15_H1",
+        "loss_mode": "accumulated",
+        "start_step": 15,
+        "target_steps": [
+          16
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_16_H1",
+        "loss_mode": "accumulated",
+        "start_step": 16,
+        "target_steps": [
+          17
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_17_H1",
+        "loss_mode": "accumulated",
+        "start_step": 17,
+        "target_steps": [
+          18
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_18_H1",
+        "loss_mode": "accumulated",
+        "start_step": 18,
+        "target_steps": [
+          19
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_19_H1",
+        "loss_mode": "accumulated",
+        "start_step": 19,
+        "target_steps": [
+          20
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_20_H1",
+        "loss_mode": "accumulated",
+        "start_step": 20,
+        "target_steps": [
+          21
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_21_H1",
+        "loss_mode": "accumulated",
+        "start_step": 21,
+        "target_steps": [
+          22
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_22_H1",
+        "loss_mode": "accumulated",
+        "start_step": 22,
+        "target_steps": [
+          23
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_23_H1",
+        "loss_mode": "accumulated",
+        "start_step": 23,
+        "target_steps": [
+          24
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_24_H1",
+        "loss_mode": "accumulated",
+        "start_step": 24,
+        "target_steps": [
+          25
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_25_H1",
+        "loss_mode": "accumulated",
+        "start_step": 25,
+        "target_steps": [
+          26
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_26_H1",
+        "loss_mode": "accumulated",
+        "start_step": 26,
+        "target_steps": [
+          27
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_27_H1",
+        "loss_mode": "accumulated",
+        "start_step": 27,
+        "target_steps": [
+          28
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_28_H1",
+        "loss_mode": "accumulated",
+        "start_step": 28,
+        "target_steps": [
+          29
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_29_H1",
+        "loss_mode": "accumulated",
+        "start_step": 29,
+        "target_steps": [
+          30
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_30_H1",
+        "loss_mode": "accumulated",
+        "start_step": 30,
+        "target_steps": [
+          31
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_31_H1",
+        "loss_mode": "accumulated",
+        "start_step": 31,
+        "target_steps": [
+          32
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_32_H1",
+        "loss_mode": "accumulated",
+        "start_step": 32,
+        "target_steps": [
+          33
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_33_H1",
+        "loss_mode": "accumulated",
+        "start_step": 33,
+        "target_steps": [
+          34
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_34_H1",
+        "loss_mode": "accumulated",
+        "start_step": 34,
+        "target_steps": [
+          35
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_35_H1",
+        "loss_mode": "accumulated",
+        "start_step": 35,
+        "target_steps": [
+          36
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_36_H1",
+        "loss_mode": "accumulated",
+        "start_step": 36,
+        "target_steps": [
+          37
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_37_H1",
+        "loss_mode": "accumulated",
+        "start_step": 37,
+        "target_steps": [
+          38
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_38_H1",
+        "loss_mode": "accumulated",
+        "start_step": 38,
+        "target_steps": [
+          39
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_39_H1",
+        "loss_mode": "accumulated",
+        "start_step": 39,
+        "target_steps": [
+          40
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_40_H1",
+        "loss_mode": "accumulated",
+        "start_step": 40,
+        "target_steps": [
+          41
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_41_H1",
+        "loss_mode": "accumulated",
+        "start_step": 41,
+        "target_steps": [
+          42
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_42_H1",
+        "loss_mode": "accumulated",
+        "start_step": 42,
+        "target_steps": [
+          43
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_43_H1",
+        "loss_mode": "accumulated",
+        "start_step": 43,
+        "target_steps": [
+          44
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_44_H1",
+        "loss_mode": "accumulated",
+        "start_step": 44,
+        "target_steps": [
+          45
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_45_H1",
+        "loss_mode": "accumulated",
+        "start_step": 45,
+        "target_steps": [
+          46
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_46_H1",
+        "loss_mode": "accumulated",
+        "start_step": 46,
+        "target_steps": [
+          47
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_47_H1",
+        "loss_mode": "accumulated",
+        "start_step": 47,
+        "target_steps": [
+          48
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_48_H1",
+        "loss_mode": "accumulated",
+        "start_step": 48,
+        "target_steps": [
+          49
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_49_H1",
+        "loss_mode": "accumulated",
+        "start_step": 49,
+        "target_steps": [
+          50
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_50_H1",
+        "loss_mode": "accumulated",
+        "start_step": 50,
+        "target_steps": [
+          51
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_51_H1",
+        "loss_mode": "accumulated",
+        "start_step": 51,
+        "target_steps": [
+          52
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_52_H1",
+        "loss_mode": "accumulated",
+        "start_step": 52,
+        "target_steps": [
+          53
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_53_H1",
+        "loss_mode": "accumulated",
+        "start_step": 53,
+        "target_steps": [
+          54
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_54_H1",
+        "loss_mode": "accumulated",
+        "start_step": 54,
+        "target_steps": [
+          55
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_55_H1",
+        "loss_mode": "accumulated",
+        "start_step": 55,
+        "target_steps": [
+          56
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_56_H1",
+        "loss_mode": "accumulated",
+        "start_step": 56,
+        "target_steps": [
+          57
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_57_H1",
+        "loss_mode": "accumulated",
+        "start_step": 57,
+        "target_steps": [
+          58
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_58_H1",
+        "loss_mode": "accumulated",
+        "start_step": 58,
+        "target_steps": [
+          59
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_59_H1",
+        "loss_mode": "accumulated",
+        "start_step": 59,
+        "target_steps": [
+          60
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_60_H1",
+        "loss_mode": "accumulated",
+        "start_step": 60,
+        "target_steps": [
+          61
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_61_H1",
+        "loss_mode": "accumulated",
+        "start_step": 61,
+        "target_steps": [
+          62
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_62_H1",
+        "loss_mode": "accumulated",
+        "start_step": 62,
+        "target_steps": [
+          63
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_63_H1",
+        "loss_mode": "accumulated",
+        "start_step": 63,
+        "target_steps": [
+          64
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_64_H1",
+        "loss_mode": "accumulated",
+        "start_step": 64,
+        "target_steps": [
+          65
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_65_H1",
+        "loss_mode": "accumulated",
+        "start_step": 65,
+        "target_steps": [
+          66
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_66_H1",
+        "loss_mode": "accumulated",
+        "start_step": 66,
+        "target_steps": [
+          67
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_67_H1",
+        "loss_mode": "accumulated",
+        "start_step": 67,
+        "target_steps": [
+          68
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_68_H1",
+        "loss_mode": "accumulated",
+        "start_step": 68,
+        "target_steps": [
+          69
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_69_H1",
+        "loss_mode": "accumulated",
+        "start_step": 69,
+        "target_steps": [
+          70
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_70_H1",
+        "loss_mode": "accumulated",
+        "start_step": 70,
+        "target_steps": [
+          71
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_71_H1",
+        "loss_mode": "accumulated",
+        "start_step": 71,
+        "target_steps": [
+          72
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_72_H1",
+        "loss_mode": "accumulated",
+        "start_step": 72,
+        "target_steps": [
+          73
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_73_H1",
+        "loss_mode": "accumulated",
+        "start_step": 73,
+        "target_steps": [
+          74
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_74_H1",
+        "loss_mode": "accumulated",
+        "start_step": 74,
+        "target_steps": [
+          75
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_75_H1",
+        "loss_mode": "accumulated",
+        "start_step": 75,
+        "target_steps": [
+          76
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_76_H1",
+        "loss_mode": "accumulated",
+        "start_step": 76,
+        "target_steps": [
+          77
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_77_H1",
+        "loss_mode": "accumulated",
+        "start_step": 77,
+        "target_steps": [
+          78
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_78_H1",
+        "loss_mode": "accumulated",
+        "start_step": 78,
+        "target_steps": [
+          79
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      {
+        "horizon": 1,
+        "label": "truth_reset_79_H1",
+        "loss_mode": "accumulated",
+        "start_step": 79,
+        "target_steps": [
+          80
+        ],
+        "weights": [
+          1.0
+        ]
+      }
+    ],
+    "H2": [
+      {
+        "horizon": 2,
+        "label": "truth_reset_0_H2",
+        "loss_mode": "accumulated",
+        "start_step": 0,
+        "target_steps": [
+          1,
+          2
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_2_H2",
+        "loss_mode": "accumulated",
+        "start_step": 2,
+        "target_steps": [
+          3,
+          4
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_4_H2",
+        "loss_mode": "accumulated",
+        "start_step": 4,
+        "target_steps": [
+          5,
+          6
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_6_H2",
+        "loss_mode": "accumulated",
+        "start_step": 6,
+        "target_steps": [
+          7,
+          8
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_8_H2",
+        "loss_mode": "accumulated",
+        "start_step": 8,
+        "target_steps": [
+          9,
+          10
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_10_H2",
+        "loss_mode": "accumulated",
+        "start_step": 10,
+        "target_steps": [
+          11,
+          12
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_12_H2",
+        "loss_mode": "accumulated",
+        "start_step": 12,
+        "target_steps": [
+          13,
+          14
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_14_H2",
+        "loss_mode": "accumulated",
+        "start_step": 14,
+        "target_steps": [
+          15,
+          16
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_16_H2",
+        "loss_mode": "accumulated",
+        "start_step": 16,
+        "target_steps": [
+          17,
+          18
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_18_H2",
+        "loss_mode": "accumulated",
+        "start_step": 18,
+        "target_steps": [
+          19,
+          20
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_20_H2",
+        "loss_mode": "accumulated",
+        "start_step": 20,
+        "target_steps": [
+          21,
+          22
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_22_H2",
+        "loss_mode": "accumulated",
+        "start_step": 22,
+        "target_steps": [
+          23,
+          24
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_24_H2",
+        "loss_mode": "accumulated",
+        "start_step": 24,
+        "target_steps": [
+          25,
+          26
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_26_H2",
+        "loss_mode": "accumulated",
+        "start_step": 26,
+        "target_steps": [
+          27,
+          28
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_28_H2",
+        "loss_mode": "accumulated",
+        "start_step": 28,
+        "target_steps": [
+          29,
+          30
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_30_H2",
+        "loss_mode": "accumulated",
+        "start_step": 30,
+        "target_steps": [
+          31,
+          32
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_32_H2",
+        "loss_mode": "accumulated",
+        "start_step": 32,
+        "target_steps": [
+          33,
+          34
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_34_H2",
+        "loss_mode": "accumulated",
+        "start_step": 34,
+        "target_steps": [
+          35,
+          36
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_36_H2",
+        "loss_mode": "accumulated",
+        "start_step": 36,
+        "target_steps": [
+          37,
+          38
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_38_H2",
+        "loss_mode": "accumulated",
+        "start_step": 38,
+        "target_steps": [
+          39,
+          40
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_40_H2",
+        "loss_mode": "accumulated",
+        "start_step": 40,
+        "target_steps": [
+          41,
+          42
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_42_H2",
+        "loss_mode": "accumulated",
+        "start_step": 42,
+        "target_steps": [
+          43,
+          44
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_44_H2",
+        "loss_mode": "accumulated",
+        "start_step": 44,
+        "target_steps": [
+          45,
+          46
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_46_H2",
+        "loss_mode": "accumulated",
+        "start_step": 46,
+        "target_steps": [
+          47,
+          48
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_48_H2",
+        "loss_mode": "accumulated",
+        "start_step": 48,
+        "target_steps": [
+          49,
+          50
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_50_H2",
+        "loss_mode": "accumulated",
+        "start_step": 50,
+        "target_steps": [
+          51,
+          52
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_52_H2",
+        "loss_mode": "accumulated",
+        "start_step": 52,
+        "target_steps": [
+          53,
+          54
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_54_H2",
+        "loss_mode": "accumulated",
+        "start_step": 54,
+        "target_steps": [
+          55,
+          56
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_56_H2",
+        "loss_mode": "accumulated",
+        "start_step": 56,
+        "target_steps": [
+          57,
+          58
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_58_H2",
+        "loss_mode": "accumulated",
+        "start_step": 58,
+        "target_steps": [
+          59,
+          60
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_60_H2",
+        "loss_mode": "accumulated",
+        "start_step": 60,
+        "target_steps": [
+          61,
+          62
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_62_H2",
+        "loss_mode": "accumulated",
+        "start_step": 62,
+        "target_steps": [
+          63,
+          64
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_64_H2",
+        "loss_mode": "accumulated",
+        "start_step": 64,
+        "target_steps": [
+          65,
+          66
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_66_H2",
+        "loss_mode": "accumulated",
+        "start_step": 66,
+        "target_steps": [
+          67,
+          68
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_68_H2",
+        "loss_mode": "accumulated",
+        "start_step": 68,
+        "target_steps": [
+          69,
+          70
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_70_H2",
+        "loss_mode": "accumulated",
+        "start_step": 70,
+        "target_steps": [
+          71,
+          72
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_72_H2",
+        "loss_mode": "accumulated",
+        "start_step": 72,
+        "target_steps": [
+          73,
+          74
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_74_H2",
+        "loss_mode": "accumulated",
+        "start_step": 74,
+        "target_steps": [
+          75,
+          76
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_76_H2",
+        "loss_mode": "accumulated",
+        "start_step": 76,
+        "target_steps": [
+          77,
+          78
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 2,
+        "label": "truth_reset_78_H2",
+        "loss_mode": "accumulated",
+        "start_step": 78,
+        "target_steps": [
+          79,
+          80
+        ],
+        "weights": [
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    "H5": [
+      {
+        "horizon": 5,
+        "label": "truth_reset_0_H5",
+        "loss_mode": "accumulated",
+        "start_step": 0,
+        "target_steps": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 5,
+        "label": "truth_reset_5_H5",
+        "loss_mode": "accumulated",
+        "start_step": 5,
+        "target_steps": [
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 5,
+        "label": "truth_reset_10_H5",
+        "loss_mode": "accumulated",
+        "start_step": 10,
+        "target_steps": [
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 5,
+        "label": "truth_reset_15_H5",
+        "loss_mode": "accumulated",
+        "start_step": 15,
+        "target_steps": [
+          16,
+          17,
+          18,
+          19,
+          20
+        ],
+        "weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 5,
+        "label": "truth_reset_20_H5",
+        "loss_mode": "accumulated",
+        "start_step": 20,
+        "target_steps": [
+          21,
+          22,
+          23,
+          24,
+          25
+        ],
+        "weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 5,
+        "label": "truth_reset_25_H5",
+        "loss_mode": "accumulated",
+        "start_step": 25,
+        "target_steps": [
+          26,
+          27,
+          28,
+          29,
+          30
+        ],
+        "weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 5,
+        "label": "truth_reset_30_H5",
+        "loss_mode": "accumulated",
+        "start_step": 30,
+        "target_steps": [
+          31,
+          32,
+          33,
+          34,
+          35
+        ],
+        "weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 5,
+        "label": "truth_reset_35_H5",
+        "loss_mode": "accumulated",
+        "start_step": 35,
+        "target_steps": [
+          36,
+          37,
+          38,
+          39,
+          40
+        ],
+        "weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 5,
+        "label": "truth_reset_40_H5",
+        "loss_mode": "accumulated",
+        "start_step": 40,
+        "target_steps": [
+          41,
+          42,
+          43,
+          44,
+          45
+        ],
+        "weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 5,
+        "label": "truth_reset_45_H5",
+        "loss_mode": "accumulated",
+        "start_step": 45,
+        "target_steps": [
+          46,
+          47,
+          48,
+          49,
+          50
+        ],
+        "weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 5,
+        "label": "truth_reset_50_H5",
+        "loss_mode": "accumulated",
+        "start_step": 50,
+        "target_steps": [
+          51,
+          52,
+          53,
+          54,
+          55
+        ],
+        "weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 5,
+        "label": "truth_reset_55_H5",
+        "loss_mode": "accumulated",
+        "start_step": 55,
+        "target_steps": [
+          56,
+          57,
+          58,
+          59,
+          60
+        ],
+        "weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 5,
+        "label": "truth_reset_60_H5",
+        "loss_mode": "accumulated",
+        "start_step": 60,
+        "target_steps": [
+          61,
+          62,
+          63,
+          64,
+          65
+        ],
+        "weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 5,
+        "label": "truth_reset_65_H5",
+        "loss_mode": "accumulated",
+        "start_step": 65,
+        "target_steps": [
+          66,
+          67,
+          68,
+          69,
+          70
+        ],
+        "weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 5,
+        "label": "truth_reset_70_H5",
+        "loss_mode": "accumulated",
+        "start_step": 70,
+        "target_steps": [
+          71,
+          72,
+          73,
+          74,
+          75
+        ],
+        "weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "horizon": 5,
+        "label": "truth_reset_75_H5",
+        "loss_mode": "accumulated",
+        "start_step": 75,
+        "target_steps": [
+          76,
+          77,
+          78,
+          79,
+          80
+        ],
+        "weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ]
+  }
+}

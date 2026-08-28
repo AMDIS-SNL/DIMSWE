@@ -1,0 +1,116 @@
+{
+  "H1_cached_vs_literal": {
+    "cached_value": 0.08516429362700192,
+    "fully_fixed_state_cacheable": true,
+    "gradient": {
+      "absolute_error": 2.3659628437458544e-14,
+      "cosine": 1.0000000000000002,
+      "maximum_absolute_component": 1.0994677390741003e-14,
+      "relative_error_to_right": 3.7815024926364376e-13
+    },
+    "literal_directional": {
+      "absolute_discrepancy": 1.4886011555359513e-09,
+      "directional_adjoint": 0.0032340637045466213,
+      "directional_centered_fd": 0.0032340622159454657,
+      "gradient_norm": 0.0625667402931241,
+      "gradient_parameter_count": 1380,
+      "objective": 0.0851642936270274,
+      "scale_aware_relative_discrepancy": 4.602881363911278e-07
+    },
+    "literal_value": 0.0851642936270274,
+    "value_absolute_difference": 2.5479618415147343e-14,
+    "value_relative_difference": 2.9918193799309845e-13
+  },
+  "M1_gradient": {
+    "absolute_discrepancy": 4.7687812032570776e-11,
+    "directional_adjoint": -0.07980314343463872,
+    "directional_centered_fd": -0.07980314348232653,
+    "gradient_norm": 1.0590204854690275,
+    "gradient_parameter_count": 1380,
+    "objective": 1.2144329998546857,
+    "scale_aware_relative_discrepancy": 5.975680900731922e-10
+  },
+  "M2_X_production_oracle": {
+    "cached_value": 1.2698591469892104,
+    "gradient": {
+      "absolute_error": 7.945884011779884e-16,
+      "cosine": 1.0,
+      "maximum_absolute_component": 1.6653345369377348e-16,
+      "relative_error_to_right": 3.2157446397845023e-16
+    },
+    "production_value": 1.2698591469892115,
+    "value_absolute_difference": 1.1102230246251565e-15,
+    "value_relative_difference": 8.742883234392206e-16
+  },
+  "benchmark_stage": "Test 2A Problem B derivative and objective certification",
+  "classification": {
+    "H1": "truth-reset, fixed-state, fully offline/cacheable",
+    "H2": "first objective with model-generated-state recursive feedback",
+    "H5": "five-step recursive feedback"
+  },
+  "parameter_count": 1380,
+  "preparation_npz_sha256": "a869d1dd6801fd06d6f4e981f1ad36bab6f285204c259a1bfe9c19b6d4eb839b",
+  "recursive_certification": {
+    "H2": {
+      "directional_gradient": {
+        "absolute_discrepancy": 2.6783346027126065e-10,
+        "directional_adjoint": 0.009703266967705588,
+        "directional_centered_fd": 0.009703267235539048,
+        "gradient_norm": 0.18250636023298292,
+        "gradient_parameter_count": 1380,
+        "objective": 0.27722815381683197,
+        "scale_aware_relative_discrepancy": 2.7602399662898866e-08
+      },
+      "recursive_vs_independent_H1": {
+        "gradient": {
+          "absolute_error": 0.12272407489268884,
+          "cosine": 0.9861156191542849,
+          "maximum_absolute_component": 0.05746468081569564,
+          "relative_error_to_right": 2.0102432901530447
+        },
+        "independent_objective": 0.12534856602152938,
+        "recursive_objective": 0.27722815381683197
+      },
+      "state_tangent_adjoint": {
+        "absolute_discrepancy": 0.0,
+        "adjoint_pairing": 13770541.220724996,
+        "relative_discrepancy": 0.0,
+        "tangent_pairing": 13770541.220724996
+      }
+    },
+    "H5": {
+      "directional_gradient": {
+        "absolute_discrepancy": 5.422609562766301e-09,
+        "directional_adjoint": 0.05571324350667481,
+        "directional_centered_fd": 0.055713238084065246,
+        "gradient_norm": 1.1260602494856493,
+        "gradient_parameter_count": 1380,
+        "objective": 1.5957197687824576,
+        "scale_aware_relative_discrepancy": 9.733071028464958e-08
+      },
+      "recursive_vs_independent_H1": {
+        "gradient": {
+          "absolute_error": 1.0290155463042603,
+          "cosine": 0.9388825295425866,
+          "maximum_absolute_component": 0.4611971146400353,
+          "relative_error_to_right": 9.891929334384752
+        },
+        "independent_objective": 0.19995555728124573,
+        "recursive_objective": 1.5957197687824576
+      },
+      "state_tangent_adjoint": {
+        "absolute_discrepancy": 1.862645149230957e-09,
+        "adjoint_pairing": 13775568.537054678,
+        "relative_discrepancy": 1.3521366789477022e-16,
+        "tangent_pairing": 13775568.53705468
+      }
+    }
+  },
+  "seed0_parameter_pytree_sha256": "e52dd73e3f97d44adf4d55354b1c8d9a9b252186a17cae4ad09410270b86df1e",
+  "states_after_80_accessed": false,
+  "status": "complete",
+  "truth_state_indices": [
+    0,
+    80
+  ]
+}

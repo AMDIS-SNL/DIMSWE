@@ -1,0 +1,61 @@
+{
+  "J_M2_X": 0.0005738573480544569,
+  "J_op": 0.0006140898435256454,
+  "autonomous_metrics_used_for_selection": false,
+  "direct_A_metrics": {
+    "correlation": 0.9996923297336965,
+    "magnitude_strata": {
+      "abs_A_gt_1e-03_max_abs_A": {
+        "mae": 1.6112119803340914e-10,
+        "relative_rms_error": 0.024254609558248045,
+        "rmse": 2.8272465148825976e-10,
+        "sample_count": 213688,
+        "sample_fraction": 0.6440731095679012
+      },
+      "abs_A_gt_1e-06_max_abs_A": {
+        "mae": 1.1828735146322457e-10,
+        "relative_rms_error": 0.024452124822411818,
+        "rmse": 2.3369851601830285e-10,
+        "sample_count": 317865,
+        "sample_fraction": 0.9580711082175926
+      }
+    },
+    "maximum_absolute_error": 6.4127627336171045e-09,
+    "normalized_mse": 0.0006140898435256456,
+    "physical_mae_A": 1.1727100952481136e-10,
+    "physical_rmse_A": 2.31821749863092e-10,
+    "relative_rms_error": 0.024780836215221744,
+    "sample_count": 331776,
+    "sign_accuracy": 0.8902364211221745,
+    "sign_accuracy_strata": {
+      "abs_A_gt_1e-01_max_abs_A": {
+        "accuracy": 1.0,
+        "sample_count": 35348,
+        "sample_fraction": 0.10654176311728394,
+        "threshold": 1.0805235023802465e-08
+      },
+      "abs_A_gt_1e-02_max_abs_A": {
+        "accuracy": 1.0,
+        "sample_count": 128146,
+        "sample_fraction": 0.3862425250771605,
+        "threshold": 1.0805235023802465e-09
+      },
+      "abs_A_gt_1e-03_max_abs_A": {
+        "accuracy": 0.9900509153532253,
+        "sample_count": 213688,
+        "sample_fraction": 0.6440731095679012,
+        "threshold": 1.0805235023802465e-10
+      }
+    },
+    "sign_accuracy_threshold": 1.0805235023802464e-13
+  },
+  "horizon_objectives": {
+    "H1": 0.000456754896450503,
+    "H2": 0.0007333002803344029,
+    "H5": 0.0014937912932989346
+  },
+  "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/direct-endpoint-h2/final_parameters.npz",
+  "parameter_pytree_sha256": "d2e4dd4532b55ae99f9d6f8edb4e0564ef5743f9d65cced377857fc07751d5f6",
+  "states_after_80_accessed": false,
+  "status": "complete"
+}

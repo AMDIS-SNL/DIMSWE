@@ -1,0 +1,57 @@
+{
+  "heldout_accessed": false,
+  "representations": {
+    "B": {
+      "H1": {
+        "Firedrake_PETSc_solves": 0,
+        "first_value_gradient_seconds": 4.1938497081864625,
+        "first_value_seconds": 2.6815427499823272,
+        "steady_value_gradient_median_seconds": 0.9231915620621294,
+        "steady_value_median_seconds": 0.5535820834338665
+      },
+      "H2": {
+        "complete_timesteps": 80,
+        "gradient_after_same_theta_value_seconds": 161.42832558299415,
+        "gradient_norm": 4.247351520059482,
+        "same_theta_tape_reused": true,
+        "same_theta_value": 1.757401215613502,
+        "setup_seconds": 83.15808808291331,
+        "value": 1.757401215613502,
+        "value_plus_gradient_seconds": 192.40482154209167,
+        "value_seconds": 30.97649595909752,
+        "window_count": 40
+      },
+      "H5": {
+        "complete_timesteps": 80,
+        "gradient_after_same_theta_value_seconds": 88.80842729099095,
+        "gradient_norm": 16.07868723816724,
+        "same_theta_tape_reused": true,
+        "same_theta_value": 3.65706906544393,
+        "setup_seconds": 13.2209848749917,
+        "value": 3.65706906544393,
+        "value_plus_gradient_seconds": 119.19210129091516,
+        "value_seconds": 30.383673999924213,
+        "window_count": 16
+      },
+      "M1": {
+        "Firedrake_PETSc_solves": 0,
+        "first_value_gradient_seconds": 3.018006124999374,
+        "first_value_seconds": 1.7874571247957647,
+        "steady_value_gradient_median_seconds": 1.8369075420778245,
+        "steady_value_median_seconds": 0.19599770801141858
+      },
+      "M2-X": {
+        "Firedrake_PETSc_solves": 0,
+        "first_value_gradient_seconds": 4.406929000047967,
+        "first_value_seconds": 2.794090459123254,
+        "steady_value_gradient_median_seconds": 1.4839017710182816,
+        "steady_value_median_seconds": 0.6199625210138038
+      }
+    }
+  },
+  "status": "complete",
+  "truth_states": [
+    0,
+    80
+  ]
+}

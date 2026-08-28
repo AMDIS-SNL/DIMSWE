@@ -1,0 +1,61 @@
+{
+  "heldout_accessed": false,
+  "representations": {
+    "A": {
+      "H1_state_tangent_adjoint": {
+        "absolute_discrepancy": 3.725290298461914e-09,
+        "adjoint_pairing": 13769230.362327497,
+        "relative_discrepancy": 2.705518173807504e-16,
+        "tangent_pairing": 13769230.362327501
+      },
+      "M2_X_cache_vs_literal_child": {
+        "cached_value": 1.0281950073374075,
+        "gradient_absolute_error": 2.108496370464922e-15,
+        "gradient_relative_error": 1.5512159081275485e-15,
+        "literal_value": 1.0281950073374073,
+        "maximum_component_difference": 1.0269562977782698e-15,
+        "value_absolute_difference": 2.220446049250313e-16,
+        "value_relative_difference": 2.15955731491085e-16
+      }
+    },
+    "B": {
+      "H1_state_tangent_adjoint": {
+        "absolute_discrepancy": 0.0,
+        "adjoint_pairing": 13776740.696220614,
+        "relative_discrepancy": 0.0,
+        "tangent_pairing": 13776740.696220614
+      },
+      "M2_X_cache_vs_literal_child": {
+        "cached_value": 0.8477309893125985,
+        "gradient_absolute_error": 8.406193797740368e-16,
+        "gradient_relative_error": 6.414616754536091e-16,
+        "literal_value": 0.8477309893126013,
+        "maximum_component_difference": 2.220446049250313e-16,
+        "value_absolute_difference": 2.7755575615628914e-15,
+        "value_relative_difference": 3.2741018041743464e-15
+      }
+    },
+    "C": {
+      "H1_state_tangent_adjoint": {
+        "absolute_discrepancy": 1.862645149230957e-09,
+        "adjoint_pairing": 13766935.998649608,
+        "relative_discrepancy": 1.3529845344045057e-16,
+        "tangent_pairing": 13766935.99864961
+      },
+      "M2_X_cache_vs_literal_child": {
+        "cached_value": 1.1766963261917516,
+        "gradient_absolute_error": 6.867558634067324e-16,
+        "gradient_relative_error": 4.806019527643148e-16,
+        "literal_value": 1.1766963261917525,
+        "maximum_component_difference": 1.6653345369377348e-16,
+        "value_absolute_difference": 8.881784197001252e-16,
+        "value_relative_difference": 7.548068264771562e-16
+      }
+    }
+  },
+  "status": "complete",
+  "truth_states": [
+    0,
+    80
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "analytical_A_formula_encoded": false,
+  "architecture": {
+    "activation": "tanh",
+    "dtype": "float64",
+    "hidden_layers": [
+      32,
+      32
+    ],
+    "input_dimension": 5,
+    "output_dimension": 1,
+    "parameter_count": 1281,
+    "seed": 0
+  },
+  "format_version": 1,
+  "parameter_file": "final_parameters.incomplete.npz"
+}

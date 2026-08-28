@@ -1,0 +1,125 @@
+{
+  "checkpoint_schedule": [
+    0,
+    10,
+    25,
+    50,
+    75,
+    100,
+    500,
+    1000,
+    5000,
+    10000,
+    25000,
+    50000
+  ],
+  "checkpoints": [
+    {
+      "accepted_iteration": 0,
+      "objective": 0.0005169328070913088,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/h1-from-m1/checkpoint_000000000_parameters.npz",
+      "parameter_pytree_sha256": "ed8fb21167bf5f0b56c59201c7dc771473d5d946d6d304cd26b57ac983a56516"
+    },
+    {
+      "accepted_iteration": 10,
+      "objective": 0.0005120465564858774,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/h1-from-m1/checkpoint_000000010_parameters.npz",
+      "parameter_pytree_sha256": "384b8292da416e8b3c0d79090002a45227ac424c114c4265c98da2f9430277f4"
+    },
+    {
+      "accepted_iteration": 25,
+      "objective": 0.0005049922626841721,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/h1-from-m1/checkpoint_000000025_parameters.npz",
+      "parameter_pytree_sha256": "05b962d5ed8bd1335039f7e460deb765cfee546a6f638a548081bc5af4819a08"
+    },
+    {
+      "accepted_iteration": 50,
+      "objective": 0.0005014788890428452,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/h1-from-m1/checkpoint_000000050_parameters.npz",
+      "parameter_pytree_sha256": "18c3181c5111a77767e3e44d1d94d249eccb806e5423e5aad0eec92616e54910"
+    },
+    {
+      "accepted_iteration": 75,
+      "objective": 0.0004990434861958365,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/h1-from-m1/checkpoint_000000075_parameters.npz",
+      "parameter_pytree_sha256": "4c1899bb31adc5cd92c21647d20fcb10f3adb7822cc3b416bd898905e267ed38"
+    },
+    {
+      "accepted_iteration": 100,
+      "objective": 0.0004971934920959468,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/h1-from-m1/checkpoint_000000100_parameters.npz",
+      "parameter_pytree_sha256": "7ba7900f0ca7913072fd82eca2abf854a5e1ca2b161d7c2be2306e4fdb8213e7"
+    },
+    {
+      "accepted_iteration": 500,
+      "objective": 0.00048492807649042107,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/h1-from-m1/checkpoint_000000500_parameters.npz",
+      "parameter_pytree_sha256": "06e9c1d8eaba3900779cc5232bae4cd0aabbab1d9ea966c1ff6c121970fffae2"
+    },
+    {
+      "accepted_iteration": 1000,
+      "objective": 0.0004782351330583537,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/h1-from-m1/checkpoint_000001000_parameters.npz",
+      "parameter_pytree_sha256": "a0590a31a1a3d004f6a17367f67ef59438fcc27273a8c9846049499b04b94c03"
+    },
+    {
+      "accepted_iteration": 5000,
+      "objective": 0.0004549266578919739,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/h1-from-m1/checkpoint_000005000_parameters.npz",
+      "parameter_pytree_sha256": "d4b143186f33ddc0584f21c99bc1aa1086a71d820de99ba920f7c08627a6b859"
+    },
+    {
+      "accepted_iteration": 10000,
+      "objective": 0.0004450058629802094,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/h1-from-m1/checkpoint_000010000_parameters.npz",
+      "parameter_pytree_sha256": "043cb6de50e206e0320dca0ba176e8d9f33fe0c258afcf9b2a7af6cd2534de8a"
+    },
+    {
+      "accepted_iteration": 25000,
+      "objective": 0.0004210584081450941,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/h1-from-m1/checkpoint_000025000_parameters.npz",
+      "parameter_pytree_sha256": "d282cb4b3dbca7f4f86a5a4f8c3190ea2dbbafef4f517cb9185275ca6fc47f09"
+    },
+    {
+      "accepted_iteration": 50000,
+      "objective": 0.0003984244402958454,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/h1-from-m1/checkpoint_000050000_parameters.npz",
+      "parameter_pytree_sha256": "282ff45c40844f90f1c1d7e3602a0989bcd56b88ae425ae2414bcc0045166afb"
+    }
+  ],
+  "configuration_sha256": "355f037241c42bead4592d5046ae77fcda8e2aeb7d43bb5d2db9293fbffb54a7",
+  "final_objective": 0.0003984244402958454,
+  "final_parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/h1-from-m1/final_parameters.npz",
+  "final_parameter_pytree_sha256": "282ff45c40844f90f1c1d7e3602a0989bcd56b88ae425ae2414bcc0045166afb",
+  "initial_objective": 0.0005169328070913088,
+  "initialization": {
+    "initial_parameter_pytree_sha256": "ed8fb21167bf5f0b56c59201c7dc771473d5d946d6d304cd26b57ac983a56516",
+    "kind": "new_optimizer_from_verified_parameter_artifact",
+    "new_optimizer_process": true,
+    "source_optimizer_secant_history_reused": false,
+    "source_parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/m1-seed0-m20-200k/final_parameters.npz"
+  },
+  "optimizer": {
+    "HVP_evaluations": 0,
+    "accepted_iterations": 50000,
+    "gradient_evaluations": 50001,
+    "gradient_tolerance": 1e-08,
+    "iteration_limit": 50000,
+    "library": "PyROL/ROL",
+    "maximum_secant_storage": 20,
+    "method": "line-search L-BFGS",
+    "objective_evaluations": 104325,
+    "step_tolerance": 1e-12,
+    "termination_reason": "EExitStatus.EXITSTATUS_MAXITER"
+  },
+  "parameter_only_restart_restores_secant_history": false,
+  "preparation_npz_sha256": "a869d1dd6801fd06d6f4e981f1ad36bab6f285204c259a1bfe9c19b6d4eb839b",
+  "stage": "H1",
+  "states_after_80_accessed": false,
+  "status": "complete",
+  "truth_state_indices": [
+    0,
+    80
+  ],
+  "wall_seconds": 4972.549628333189
+}

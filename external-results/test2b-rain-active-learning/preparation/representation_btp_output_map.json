@@ -1,0 +1,76 @@
+{
+  "analytical_gamma_r_or_tau_r_used": false,
+  "architecture_B": {
+    "activation": "tanh",
+    "dtype": "float64",
+    "features": [
+      "h",
+      "S",
+      "Qv",
+      "Qc",
+      "B"
+    ],
+    "layers": [
+      5,
+      32,
+      32,
+      2
+    ],
+    "outputs": [
+      "A",
+      "R"
+    ],
+    "parameter_count": 1314,
+    "representation": "B",
+    "seed": 0
+  },
+  "architecture_BTP": {
+    "activation": "tanh",
+    "dtype": "float64",
+    "features": [
+      "h",
+      "S",
+      "Qv",
+      "Qc",
+      "B"
+    ],
+    "layers": [
+      5,
+      32,
+      32,
+      2
+    ],
+    "outputs": [
+      "A",
+      "R_TP"
+    ],
+    "parameter_count": 1314,
+    "representation": "BTP",
+    "seed": 0
+  },
+  "base_preparation": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/preparation/fixed_learning_data.npz",
+  "delta_q_scale_used": false,
+  "fixed_learning_data_npz_sha256": "6e159015234fd94881b0b97888b7481eb049a02dcd96c571078920c0bedc901c",
+  "fixed_learning_data_sidecar_sha256": "efeba6e0f80063a79ff47209aa1b8973565386e4d4e8844b4b4c2fb0281f0cae",
+  "format_version": 1,
+  "heldout_accessed": false,
+  "initialization_bitwise_equal_to_B": true,
+  "linear_exceedance_factor_used": false,
+  "parameter_count": 1314,
+  "payload_sha256": "298bc9043129b4984387305a41b50fff07524af0186f41014c6b8fc91004e1c9",
+  "physical_output_map": "A=sigma_A*a_raw; R_TP=where(Qc/h>q_precip,sigma_R*softplus(r_raw)/log(2),0)",
+  "q_precip": 0.0001,
+  "representation": "BTP",
+  "scientific_change_from_B": "hard precipitation threshold and nonnegative rain output only",
+  "scientific_variant": "B_TP",
+  "seed0_BTP_parameter_pytree_sha256": "cfadd9f3ee02a78c5b3a946b88c039d9f7ed34e719325ff22c92e1fe4afac056",
+  "seed0_B_parameter_pytree_sha256": "cfadd9f3ee02a78c5b3a946b88c039d9f7ed34e719325ff22c92e1fe4afac056",
+  "sigma_A": 9.052258655848717e-08,
+  "sigma_R": 1.9902871261559996e-11,
+  "status": "complete",
+  "training_data_modified": false,
+  "training_states": [
+    0,
+    80
+  ]
+}
