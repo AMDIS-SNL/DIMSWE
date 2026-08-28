@@ -86,6 +86,7 @@ accepted as complete.
 - Test 2A/Test 2B campaign drivers, configs, postprocessors, tests, and synthesis
   reports listed in `CANONICAL_EXPERIMENTS.md`.
 
-The `firedrake_hvp_prototype/`, `ode_adjoint/hvp.py`, Test 1A/1B material, and
-early Test 2 preparation remain useful derivative/provenance evidence but are
-not the primary final Representation A/B/C campaign.
+The archived `archive/development-history/firedrake_hvp_prototype/`,
+`ode_adjoint/hvp.py`, Test 1A/1B material, and early Test 2 preparation remain
+useful derivative/provenance evidence but are not the primary final
+Representation A/B/C campaign.

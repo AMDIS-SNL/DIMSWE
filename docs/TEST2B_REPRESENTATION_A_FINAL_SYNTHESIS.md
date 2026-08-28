@@ -7,8 +7,8 @@
 **Scope:** learned scalar `A_theta`; analytical, state-dependent `R`; no new
 training or truth generation
 
-This document supersedes
-`docs/TEST2B_REPRESENTATION_A_M1_M2X_INTERIM_ANALYSIS.md`.  The interim
+This document supersedes the interim report retained at
+`archive/development-history/test2b_representation_a_interim/README.md`. The interim
 fixed-objective, optimizer-basin, and direct-`A` findings remain valid; the
 present document adds the completed H1/H2/H5 artifacts, the exact 6-by-5
 objective matrix, and identical 160-step autonomous evaluations.

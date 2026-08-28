@@ -41,8 +41,10 @@
 
 `dimswe/test2a_*`, `dimswe/test2b_*`, their configs, `scripts/test2*`, and the
 representation postprocessors construct campaigns and syntheses around the core
-above. Test 1A/1B, `firedrake_hvp_prototype/`, and `ode_adjoint/hvp.py` are
-certification/provenance infrastructure, not a separate production timestep.
+above. Test 1A/1B and `ode_adjoint/hvp.py` are certification/provenance
+infrastructure, not a separate production timestep. The superseded isolated
+Firedrake prototype is under
+`archive/development-history/firedrake_hvp_prototype/`.
 
 ### UNKNOWN / PRESERVED
 

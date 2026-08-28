@@ -233,20 +233,13 @@ of five planned independent interventions against frozen B:
 Items 2--5 are not implemented here.  They should first be tested separately,
 not cumulatively, so their effects remain attributable.
 
-## 8. M1-only manual production launch
+## 8. Historical launch sketches
 
-From a normal Terminal, when explicitly authorized later:
-
-```bash
-cd /Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615
-mkdir -p external-results/test2b-rain-active-learning/logs
-nohup caffeinate -i bash scripts/run_test2b_rain_learning_btp_btpl_m1.sh BTPL \
-  > external-results/test2b-rain-active-learning/logs/representation-BTPL-M1.log 2>&1 &
-```
-
-This command was prepared but not executed in this task.
-
-The previously prepared full-ladder `BPLUS` runner is retained but is deferred;
-the initial controlled comparison is M1-only.
+The unaccepted M1-only BTP/BTPL launcher and the unexecuted full-ladder B+
+launcher are retained under
+`archive/development-history/test2b_constrained_rain_variants/`. They are not
+collaborator-facing reproduction entry points because neither establishes a
+canonical completed B+ campaign. Reinstating or running either requires a new,
+explicit scientific authorization.
 
 **Readiness:** `TEST2B_REPRESENTATION_B_TPL_M1_PREPARED`.

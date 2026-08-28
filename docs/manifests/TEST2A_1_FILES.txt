@@ -1,6 +1,11 @@
 Test 2A-1 local A-operator learning manifest
 =============================================
 
+Historical Track 1 path manifest. During the second-pass collaborator hygiene
+audit, the residual-only entries below moved unchanged to
+archive/development-history/test2a_residual_structure/. Other paths remain
+current.
+
 dimswe/configs/test2a_selected_operator.json
 dimswe/configs/test2a_optimizer_study.json
 dimswe/configs/test2a_m20_continuation.json

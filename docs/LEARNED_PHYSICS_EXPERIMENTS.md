@@ -218,7 +218,8 @@ branches and early states. Activity-stratified sign accuracy reaches `0.92494`,
 `0.98937`, and `1.0` at the `1e-3`, `1e-2`, and `1e-1` thresholds. Because the
 residual is distributed rather than a sharp representation failure and the
 source fit remained nonstationary, the diagnostic recommendation is
-`CONTINUE_OPTIMIZATION`. See `docs/TEST2A_RESIDUAL_STRUCTURE.md`.
+`CONTINUE_OPTIMIZATION`. The closed diagnostic implementation and report are
+retained under `archive/development-history/test2a_residual_structure/`.
 
 The subsequent accepted memory-20 continuation is frozen as the practical
 Test 2A operator baseline. Its 5-32-32-1 float64 parameter artifact has 1,281
@@ -564,7 +565,7 @@ Use a writable cold-cache root and run only the focused sequence until every
 J4A check is green:
 
 ```bash
-cd /Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615
+cd /path/to/DIMSWE-collaborator
 export JAX_ENABLE_X64=True
 export OMP_NUM_THREADS=1
 export DIMSWE_TEST_CACHE_DIR="$(mktemp -d /tmp/dimswe-j4a.XXXXXX)"
