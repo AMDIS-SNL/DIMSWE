@@ -205,7 +205,7 @@ J_{M2-X}(\theta)=\sum_k
 The fixed feature arrays and exact interpolation/weak-source/mass-update
 operators are cached. `ProductionDiscreteOfflineOperations.predict` in
 `dimswe/test2a_discrete_offline.py:346-383` is the literal bridge;
-`FastFixedDiscreteObjective` in `dimswe/test2a_discrete_training.py:350-436`
+`FastFixedDiscreteObjective` in `dimswe/test2a_discrete_training.py:349-438`
 executes its cacheable JAX form. It is offline deployed-discrete training, not
 recursive “online” training.
 
@@ -220,7 +220,7 @@ J_{H1}(\theta)=\sum_k
 
 Every sample resets to truth before applying the fixed prefix; no learned state
 feeds a later learned evaluation. `prepare_h1_cache` in
-`dimswe/test2a_horizon_curriculum.py:416-552` constructs the exact fixed cache.
+`dimswe/test2a_horizon_curriculum.py:414-537` constructs the exact fixed cache.
 `dimswe/test2a_h1_m2_equivalence.py:88-409` states and audits its exact
 deployed-discrete equivalence. H1 is therefore also offline/cacheable here.
 

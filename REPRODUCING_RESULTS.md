@@ -205,10 +205,12 @@ Canonical evaluation/render entry points are:
 "$PYTHON" postprocessing/ground_truth_figures_20260829/scripts/ground_truth_figures_20260829/make_ground_truth_figures.py --help
 ```
 
-The accepted directories already contain outputs and the scripts intentionally
-refuse unsafe overwrites. Run them only in a disposable copy or with a new
-explicit output path. Missing NPZ/movie inputs must be restored by exact hash;
-the scripts never substitute another cache.
+The accepted directories already contain outputs. Several W4/W5 entry points
+refuse collisions; the W6 generators write their selected output directory and
+some final-asset tasks intentionally replace their own task outputs after
+establishing a baseline. Run these commands only in a disposable package copy
+or with a new explicit output path. Missing NPZ/movie inputs must be restored
+by exact hash; the scripts never substitute another cache.
 
 The historical Test 2A entry points are:
 

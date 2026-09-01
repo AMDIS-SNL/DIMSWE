@@ -39,7 +39,7 @@ A/B/C and the prepared constrained-rain variants where accepted by the provider.
 |---|---|---|---|---|
 | `dimswe/test2a_operator.py:75` `MLPConfiguration` | dimensions/layers/activation/dtype/seed → validated config | network architecture | EXPERIMENT / Python | default Rep A 5-32-32-1, tanh, float64, seed 0; all Test2A objectives |
 | `dimswe/test2a_operator.py:149` `initialize_mlp` | config → parameter pytree | Glorot-uniform weights, zero biases | NEW / JAX+NumPy | creates theta; Test2A and reused by Test2B |
-| `dimswe/test2a_operator.py:184` `DenseMLP.__call__` | theta, normalized features → raw output | dense affine/activation composition | NEW / JAX | theta enters every layer; A/B/C/B+; all objectives |
+| `dimswe/test2a_operator.py:189` `DenseMLP.__call__` | theta, normalized features → raw output | dense affine/activation composition | NEW / JAX | theta enters every layer; A/B/C/B+; all objectives |
 | `dimswe/test2a_operator.py:207` `NormalizationMetadata` | offsets/scales → normalized coordinates | `(z-mu)/sigma`, `A/sigma_A` | EXPERIMENT / JAX+NumPy | Rep A Test2A; M1-X/M1-Y/M2-X/H1/H2/H5 |
 | `dimswe/test2a_operator.py:365` `LocalAFeatureMap` | packed state/context → five-vector | `(h,S,Qv,Qc,B)` | EXPERIMENT / JAX | Rep A; all Test2A objectives |
 | `dimswe/test2a_operator.py:383` `HybridAMoistOutputMap` | state/context/oracle/raw output → source | `G(A_theta,R_analytic)` | EXPERIMENT / JAX | theta through raw A; Rep A only |
@@ -84,10 +84,10 @@ do not change this architecture or the X-fitted normalization.
 | File / routine | Arguments → returns | Mathematical object | Provenance / technology | Theta, representations, objectives, experiments |
 |---|---|---|---|---|
 | `dimswe/test2a_discrete_offline.py:282` `ProductionDiscreteOfflineOperations` | split helper/provider → literal operations | exact source/interpolation/mass deployed map | EXPERIMENT / mixed | A (and shared concept for A/B/C); M2-X |
-| `dimswe/test2a_discrete_training.py:153` `FixedDiscreteCache` | arrays/operators/metadata → validated cache | cached M2-X/H1 discrete operators | EXPERIMENT / NumPy/SciPy | theta-independent cache; M2-X/H1 |
-| `dimswe/test2a_discrete_training.py:350` `FastFixedDiscreteObjective` | cache/model config → objective | fixed JAX deployed-discrete loss | EXPERIMENT / JAX | theta explicit; M2-X/H1 |
-| `dimswe/test2a_horizon_curriculum.py:416` `prepare_h1_cache` | config, path → written certified cache | `Y_k=P(X_k*)` fixed data | EXPERIMENT / mixed | Rep A; H1/M2-Y |
-| `dimswe/test2a_h1_m2_equivalence.py:409` `run_equivalence_audit` | configs/caches/output → audit record | H1/M2-Y value/gradient equivalence | EXPERIMENT / mixed | Rep A; dedicated regression support |
+| `dimswe/test2a_discrete_training.py:152` `FixedDiscreteCache` | arrays/operators/metadata → validated cache | cached M2-X/H1 discrete operators | EXPERIMENT / NumPy/SciPy | theta-independent cache; M2-X/H1 |
+| `dimswe/test2a_discrete_training.py:349` `FastFixedDiscreteObjective` | cache/model config → objective | fixed JAX deployed-discrete loss | EXPERIMENT / JAX | theta explicit; M2-X/H1 |
+| `dimswe/test2a_horizon_curriculum.py:414` `prepare_h1_cache` | config, path → written certified cache | `Y_k=P(X_k*)` fixed data | EXPERIMENT / mixed | Rep A; H1/M2-Y |
+| `dimswe/test2a_h1_m2_equivalence.py:407` `run_equivalence_audit` | configs/caches/output → audit record | H1/M2-Y value/gradient equivalence | EXPERIMENT / mixed | Rep A; dedicated regression support |
 | `dimswe/test2b_m1y_campaign.py:158` `load_m1y_configuration` | config path → resolved source + frozen record | M1-Y state/support/architecture contract | EXPERIMENT / Python | no theta; A/B/C M1-Y |
 | `dimswe/test2b_m1y_campaign.py:367` `_postprefix` | analytical case, `X_k*`, step → `Y_k*` | `Y_k*=P(X_k*)` | EXPERIMENT / Firedrake-PETSc | no learned theta; M1-Y cache preparation only |
 | `dimswe/test2b_m1y_campaign.py:376` `prepare_m1y` | config, immutable manifest, output → certified NPZ/sidecar | fixed Y-state features and analytical A/R targets | EXPERIMENT / mixed | no optimization theta; A/B/C M1-Y |

@@ -14,7 +14,8 @@ Provenance is split by purpose:
 - [archaeological snapshot and disposition](../PROVENANCE_AND_DISPOSITION.md);
 - [post-snapshot reconciliation](provenance/POST_SNAPSHOT_RECONCILIATION.md);
 - [exact imported-file hash map](provenance/POST_SNAPSHOT_IMPORT.tsv); and
-- [large external artifact contract](provenance/EXTERNAL_ARTIFACTS.md).
+- [large external artifact contract](provenance/EXTERNAL_ARTIFACTS.md); and
+- [post-snapshot verification](provenance/POST_SNAPSHOT_VERIFICATION.md).
 
 M1-Y campaign-specific evidence is in
 [`m1y_test2b_20260828/`](m1y_test2b_20260828/). The state-location discovery

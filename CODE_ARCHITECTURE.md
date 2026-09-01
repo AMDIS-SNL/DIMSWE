@@ -199,7 +199,7 @@ from seed zero and do not continue the H1/H2/H5 ladder.
 ### M2-X
 
 Literal preparation applies exact Firedrake interpolation/source-assembly/mass
-operators once. `FixedDiscreteCache` (`test2a_discrete_training.py:153-335`)
+operators once. `FixedDiscreteCache` (`test2a_discrete_training.py:152-335`)
 stores feature/target arrays and sparse/tensor operator data.
 `FastFixedDiscreteObjective` executes the algebra in JAX with zero hot-loop
 Firedrake/PETSc solves.

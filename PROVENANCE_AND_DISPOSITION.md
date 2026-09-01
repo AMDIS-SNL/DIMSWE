@@ -164,7 +164,7 @@ regenerability classification in `docs/provenance/EXTERNAL_ARTIFACTS.md`.
 Missing data must fail or skip explicitly; a workflow must never substitute a
 similarly named artifact.
 
-BTP/BTPL M1-only outputs are classified `UNKNOWN`: they are preserved but are
+BTP/BTPL M1-X-only outputs are classified `UNKNOWN`: they are preserved but are
 not promoted to a completed B+ campaign. Files explicitly under a
 `superseded` path remain `SUPERSEDED`; preparatory and early campaigns remain
 `ARCHAEOLOGY`.

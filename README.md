@@ -58,6 +58,8 @@ provenance.
 - [CANONICAL_EXPERIMENTS.md](CANONICAL_EXPERIMENTS.md): evidence matrix and accepted limitations.
 - [REPRODUCING_RESULTS.md](REPRODUCING_RESULTS.md): environment and reproduction entry points.
 - [docs/README.md](docs/README.md): compact index of scientific and provenance documentation.
+- [`docs/provenance/POST_SNAPSHOT_VERIFICATION.md`](docs/provenance/POST_SNAPSHOT_VERIFICATION.md):
+  post-snapshot import, test, and preservation checks.
 - [`docs/provenance/FINAL_VERIFICATION.md`](docs/provenance/FINAL_VERIFICATION.md): final integrity and static-check record.
 - [`docs/provenance/SECOND_PASS_HYGIENE.md`](docs/provenance/SECOND_PASS_HYGIENE.md)
   and [`SECOND_PASS_VERIFICATION.md`](docs/provenance/SECOND_PASS_VERIFICATION.md):
