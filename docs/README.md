@@ -13,7 +13,7 @@ Provenance is split by purpose:
 - [changes from Chris/upstream DIMSWE](../CHANGES_FROM_UPSTREAM_DIMSWE.md);
 - [archaeological snapshot and disposition](../PROVENANCE_AND_DISPOSITION.md);
 - [post-snapshot reconciliation](provenance/POST_SNAPSHOT_RECONCILIATION.md);
-- [exact imported-file hash map](provenance/POST_SNAPSHOT_IMPORT.tsv); and
+- [exact imported-file hash map](provenance/POST_SNAPSHOT_IMPORT.tsv);
 - [large external artifact contract](provenance/EXTERNAL_ARTIFACTS.md); and
 - [post-snapshot verification](provenance/POST_SNAPSHOT_VERIFICATION.md).
 

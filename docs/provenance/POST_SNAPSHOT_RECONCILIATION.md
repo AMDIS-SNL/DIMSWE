@@ -87,12 +87,13 @@ Large required artifacts are hash-addressed in
 `docs/provenance/EXTERNAL_ARTIFACTS.md`. The file-by-file copy/hash mapping is
 `docs/provenance/POST_SNAPSHOT_IMPORT.tsv`.
 
-The import table has 415 rows: 410 map to later-workspace files, of which 395
-are byte-identical and 15 carry an explicitly recorded portability or
-provenance-path edit. Four rows are Codex-created integration files and one is
-the pre-existing collaborator environment helper extended to export its
-validated repository root. All source and destination hashes were recomputed
-successfully after import.
+The import table has 415 rows: 410 map to later-workspace files, of which 392
+are byte-identical and 18 carry an explicitly recorded behavior-preserving
+portability, safety, test-collection, or provenance/documentation edit. Four
+rows are Codex-created integration files and one is the pre-existing
+collaborator environment helper extended to export its validated repository
+root. All source and destination hashes were recomputed successfully after
+the final pre-share hardening pass.
 
 ## Safety statement
 

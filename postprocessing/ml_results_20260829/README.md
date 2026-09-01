@@ -67,6 +67,12 @@ Absolute paths in JSON sidecars are immutable records of the accepted 2026-08-29
 run and have intentionally not been rewritten. Hashes, not those historical
 locations, identify the frozen inputs.
 
+The asset-writing scripts `generate_figures.py`,
+`finalize_table_sidecars.py`, and `build_caption_inventory.py` require the
+explicit `--overwrite-accepted-assets` flag. Their `--help` paths are read-only;
+use the overwrite flag only in a disposable package copy after verifying the
+frozen inputs.
+
 ## Important scope correction
 
 The accepted Test 2B autonomous JSONs contain mixed-state final, maximum, and

@@ -26,11 +26,11 @@ cache was required.
 | JSON parse of every tracked `*.json` | 319 files, 0 errors |
 | `/bin/bash -n` on every tracked `*.sh` | 23 files, 0 errors |
 | `git diff --check` | passed |
-| Markdown local-link resolution, excluding fenced mathematical pseudocode | 41 links checked, 0 broken |
+| Markdown local-link resolution, excluding fenced mathematical pseudocode | 47 links checked, 0 broken |
 | explicit collaborator-facing `file.py:line[-line]` bounds | 94 citations checked, 0 errors |
 | exact routine-at-line checks in `CODE_WALKTHROUGH.md` | 68 routines checked, 0 errors |
 | active imported Python/shell machine-path scan | 0 `/Users/arjunsharma`, `/home`, or Windows-drive defaults |
-| safe postprocessor `--help` smoke checks | 8 entry points passed |
+| safe postprocessor `--help` smoke checks | 8 entry points passed; the 3 accepted-output writers are explicitly gated |
 
 The strict routine check independently caught and corrected five stale
 pre-existing walkthrough citations: `DenseMLP.__call__`,
@@ -48,8 +48,9 @@ runtime defaults.
 `POST_SNAPSHOT_IMPORT.tsv` contains 415 destination rows:
 
 - 410 rows map to actual later-workspace source files;
-- 395 of those are byte-identical source-to-destination;
-- 15 have an explicit behavior-preserving portability or provenance-path edit;
+- 392 of those are byte-identical source-to-destination;
+- 18 have an explicit behavior-preserving portability, safety,
+  test-collection, or provenance/documentation edit;
 - 4 are Codex-created integration files; and
 - 1 is the prior collaborator `scripts/reproduction_environment.sh` extended
   to export its already validated repository root.
@@ -78,15 +79,38 @@ tests/test_jax_moist_derivatives.py::TestPureJAXMoistDerivatives
 tests/test_test2a_operator.py
 tests/test_test2b_rain_learning.py
 tests/test_learned_physics_framework.py
+tests/test_test2b_m1y_campaign.py
 
-72 passed in 13.48s
+72 passed, 1 skipped in 13.42s
 ```
 
-The dedicated M1-Y command was attempted under the same CPU/x64 settings, but
-collection stopped with `ModuleNotFoundError: No module named 'pyrol'` through
-`dimswe/test2a_pyrol.py`. Therefore zero M1-Y tests executed in this
+PyROL was unavailable, so the M1-Y campaign module skipped explicitly at its
+dependency gate and zero M1-Y scientific assertions executed in this
 environment. PyROL/Firedrake were not installed or stubbed, and the
 environment-pinned bit-exactness assertions were not weakened.
+
+## Final pre-share hardening
+
+The root README now exposes the principal science, ML hook, neural model,
+derivative/optimizer, canonical-experiment, and reproduction reading paths
+without replacing the deeper `docs/README.md` index. M2-X is explicitly marked
+as the historical X-state deployed-discrete control, and the M1-Y training
+routine citation was rechecked against its current source extent.
+
+The three W4 scripts that write accepted figures, table sidecars, or caption
+inventories now require `--overwrite-accepted-assets`. Each `--help` invocation
+exited 0 and each no-argument invocation refused before its original write
+body with exit 2. Before and after those checks, the 169 accepted W4
+data/figure/table/caption files totaled 44,039,287 bytes and had aggregate
+SHA-256
+`097852912a5dccffa102db698338f461a1428e7d2d9196fc097e757286b62508`.
+The numerical and formatting bodies were not changed.
+
+The external-artifact documentation now describes the actual enforcement
+boundary: explicit receipt-time size/SHA-256 verification plus frozen input
+hash records, rather than automatic rehashing by every consumer. The complete
+415-row import manifest and all 32 external-artifact contracts were rehashed
+successfully after these edits.
 
 The accepted H1/M2-Y equivalence fact remains separate:
 

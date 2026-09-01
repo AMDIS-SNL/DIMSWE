@@ -161,8 +161,10 @@ The post-snapshot update follows the same boundary. Its approximately 1.4 GB
 cache/movie collection is not in Git. Each required file has an expected
 repository-relative path, byte size, SHA-256, producer, consumer, and
 regenerability classification in `docs/provenance/EXTERNAL_ARTIFACTS.md`.
-Missing data must fail or skip explicitly; a workflow must never substitute a
-similarly named artifact.
+Collaborators must perform the documented receipt-time size/hash check. The
+recorded input hashes then expose a mismatch even where a downstream script
+does not automatically enforce the full contract; a similarly named artifact
+is not an acceptable substitute without a hash match.
 
 BTP/BTPL M1-X-only outputs are classified `UNKNOWN`: they are preserved but are
 not promoted to a completed B+ campaign. Files explicitly under a

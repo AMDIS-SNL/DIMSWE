@@ -15,6 +15,24 @@ hashing all 6,948 modified or untracked evidence files. See
 [PROVENANCE_AND_DISPOSITION.md](PROVENANCE_AND_DISPOSITION.md) and
 [`docs/provenance/DISPOSITION_MANIFEST.tsv`](docs/provenance/DISPOSITION_MANIFEST.tsv).
 
+## Start here
+
+| Goal | Read |
+|---|---|
+| Overview | this `README.md` |
+| Science and objective definitions | [LEARNED_PHYSICS_EQUATIONS.md](LEARNED_PHYSICS_EQUATIONS.md) |
+| Original DIMSWE → learned-physics hook | [`dimswe/physics.py`](dimswe/physics.py), [`dimswe/timestepping.py`](dimswe/timestepping.py), [`dimswe/moist_backend.py`](dimswe/moist_backend.py), [`dimswe/jax_moist_adapter.py`](dimswe/jax_moist_adapter.py) |
+| Neural physics | [`dimswe/test2b_rain_learning.py`](dimswe/test2b_rain_learning.py), [`dimswe/test2b_m1y_campaign.py`](dimswe/test2b_m1y_campaign.py) |
+| Tangent, adjoint, and optimization | [`dimswe/jax_moist_hvp.py`](dimswe/jax_moist_hvp.py), [`dimswe/mtswe_split_hvp.py`](dimswe/mtswe_split_hvp.py), [`dimswe/test2a_trajectory.py`](dimswe/test2a_trajectory.py), [`dimswe/test2a_pyrol.py`](dimswe/test2a_pyrol.py) |
+| What was actually run | [CANONICAL_EXPERIMENTS.md](CANONICAL_EXPERIMENTS.md) |
+| How to reproduce it | [REPRODUCING_RESULTS.md](REPRODUCING_RESULTS.md) |
+
+For the full module map and routine-level guide, continue with
+[CODE_ARCHITECTURE.md](CODE_ARCHITECTURE.md) and
+[CODE_WALKTHROUGH.md](CODE_WALKTHROUGH.md). Provenance relative to Chris's
+baseline is in [CHANGES_FROM_UPSTREAM_DIMSWE.md](CHANGES_FROM_UPSTREAM_DIMSWE.md),
+with the complete documentation index in [docs/README.md](docs/README.md).
+
 ## Scientific vocabulary
 
 Physics representation and training objective are independent axes.
@@ -30,7 +48,7 @@ Physics representation and training objective are independent axes.
 |---|---|
 | M1-X | direct physical-law regression with features and targets at timestep-boundary truth `X*`; historical state-location control |
 | M1-Y | direct physical-law regression with features and targets at `Y*=P(X*)`; current direct-regression baseline |
-| M2-X | fixed/cacheable deployed-discrete loss at timestep-boundary truth `X*` |
+| M2-X | fixed/cacheable deployed-discrete loss at timestep-boundary truth `X*`; historical state-location control |
 | M2-Y / H1 | fixed/cacheable one-step loss at post-prefix truth `Y*=P(X*)` |
 | H2 | first recursive objective; step two sees a learned-model state |
 | H5 | the same recursion over five steps |
@@ -49,42 +67,7 @@ M1-Y (independent seed-zero fit; initializes none of the ladder)
 Older Problem-A, Problem-B, and M1--M4 wording is retained only as historical
 provenance.
 
-## Start here
-
-- [LEARNED_PHYSICS_EQUATIONS.md](LEARNED_PHYSICS_EQUATIONS.md): equations and objective semantics.
-- [CODE_ARCHITECTURE.md](CODE_ARCHITECTURE.md): module map and call graph.
-- [CODE_WALKTHROUGH.md](CODE_WALKTHROUGH.md): important routines and technology boundaries.
-- [CHANGES_FROM_UPSTREAM_DIMSWE.md](CHANGES_FROM_UPSTREAM_DIMSWE.md): provenance relative to the Chris baseline.
-- [CANONICAL_EXPERIMENTS.md](CANONICAL_EXPERIMENTS.md): evidence matrix and accepted limitations.
-- [REPRODUCING_RESULTS.md](REPRODUCING_RESULTS.md): environment and reproduction entry points.
-- [docs/README.md](docs/README.md): compact index of scientific and provenance documentation.
-- [`docs/provenance/POST_SNAPSHOT_VERIFICATION.md`](docs/provenance/POST_SNAPSHOT_VERIFICATION.md):
-  post-snapshot import, test, and preservation checks.
-- [`docs/provenance/FINAL_VERIFICATION.md`](docs/provenance/FINAL_VERIFICATION.md): final integrity and static-check record.
-- [`docs/provenance/SECOND_PASS_HYGIENE.md`](docs/provenance/SECOND_PASS_HYGIENE.md)
-  and [`SECOND_PASS_VERIFICATION.md`](docs/provenance/SECOND_PASS_VERIFICATION.md):
-  collaborator-surface decisions and the checks run after cleanup.
-
-## Collaborator source surface
-
-For the shortest route through the implementation, read these files in order:
-
-1. `dimswe/physics.py` and `dimswe/timestepping.py` — Chris's analytical moist
-   source and the modified split/backend hook;
-2. `dimswe/moist_backend.py` and `dimswe/jax_moist_adapter.py` — the
-   Firedrake/PETSc ↔ JAX boundary;
-3. `dimswe/test2a_operator.py` and `dimswe/test2b_rain_learning.py` — features,
-   the frozen 5-32-32-`d` networks, normalization, and Representation A/B/C
-   output maps;
-4. `dimswe/jax_moist_hvp.py` and `dimswe/mtswe_split_hvp.py` — child and
-   complete-split tangent/adjoint/HVP paths;
-5. `dimswe/test2b_m1y_campaign.py` — M1-Y post-prefix preparation, fixed
-   direct objective, and independent A/B/C fits;
-6. `dimswe/test2a_discrete_training.py` and `dimswe/test2a_trajectory.py` —
-   M2-X and M2-Y/H1/H2/H5 objectives; and
-7. `dimswe/test2a_pyrol.py` and `dimswe/test2b_rain_learning_campaign.py` —
-   parameter-vector/PyROL integration and the historical M1-X → H1 → H2 → H5
-   driver.
+## Repository orientation
 
 Canonical configurations live in `dimswe/configs/`, final regression tests in
 `tests/`, campaign wrappers in `scripts/`, and frozen result summaries under
@@ -98,6 +81,10 @@ scaffolding. They are not the learned-physics front door; begin with the files
 above. The inherited GitHub CI predates the complete Firedrake/JAX/PyROL
 campaign environment and is not evidence that the environment-pinned numerical
 regressions ran.
+
+Integrity and cleanup records are indexed under `docs/provenance/`, including
+`POST_SNAPSHOT_VERIFICATION.md`, `FINAL_VERIFICATION.md`, and
+`SECOND_PASS_HYGIENE.md`.
 
 ## Repository policy
 

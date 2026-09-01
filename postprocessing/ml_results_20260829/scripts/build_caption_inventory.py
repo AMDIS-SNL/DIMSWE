@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import csv
 import json
 from pathlib import Path
@@ -88,7 +89,24 @@ FIGURE_TITLES = {
 }
 
 
-def main() -> None:
+def _parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--overwrite-accepted-assets",
+        action="store_true",
+        help="allow this script to recreate captions and the figure inventory",
+    )
+    return parser
+
+
+def main(argv=None) -> None:
+    parser = _parser()
+    arguments = parser.parse_args(argv)
+    if not arguments.overwrite_accepted_assets:
+        parser.error(
+            "refusing to write accepted captions/inventory without "
+            "--overwrite-accepted-assets"
+        )
     CAPTIONS.parent.mkdir(parents=True, exist_ok=True)
     lines = [
         "# Machine-Learning Results caption drafts",

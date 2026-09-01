@@ -7,6 +7,7 @@ optimizer code is imported or executed.
 
 from __future__ import annotations
 
+import argparse
 import csv
 from pathlib import Path
 
@@ -301,7 +302,24 @@ def history_coverage() -> None:
     ].to_csv(DATA / "recursive_objective_endpoints.csv", index=False)
 
 
-def main() -> None:
+def _parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--overwrite-accepted-assets",
+        action="store_true",
+        help="allow this script to recreate accepted table/data sidecars",
+    )
+    return parser
+
+
+def main(argv=None) -> None:
+    parser = _parser()
+    arguments = parser.parse_args(argv)
+    if not arguments.overwrite_accepted_assets:
+        parser.error(
+            "refusing to write accepted table/data sidecars without "
+            "--overwrite-accepted-assets"
+        )
     table1()
     table2()
     table3()

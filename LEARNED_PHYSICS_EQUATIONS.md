@@ -257,7 +257,7 @@ The accepted rain-active continuation script
 Each arrow transfers only the preceding final parameter vector; ROL/L-BFGS
 secant history is not transferred. M1-Y was fitted later from the representation
 specific seed-zero initialization in
-`dimswe/test2b_m1y_campaign.py:879-973`. It initializes none of H1, H2, or H5.
+`dimswe/test2b_m1y_campaign.py:879-1049`. It initializes none of H1, H2, or H5.
 Changing that genealogy would be a new experiment, not repository
 reconciliation.
 

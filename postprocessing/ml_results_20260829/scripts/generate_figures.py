@@ -9,6 +9,7 @@ plotted rows and a machine-readable provenance/caption sidecar.
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 from pathlib import Path
@@ -1077,7 +1078,24 @@ def figure_test2a_deployment() -> None:
     )
 
 
-def main() -> None:
+def _parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--overwrite-accepted-assets",
+        action="store_true",
+        help="allow this script to recreate its accepted figure bundles",
+    )
+    return parser
+
+
+def main(argv=None) -> None:
+    parser = _parser()
+    arguments = parser.parse_args(argv)
+    if not arguments.overwrite_accepted_assets:
+        parser.error(
+            "refusing to write accepted figure bundles without "
+            "--overwrite-accepted-assets"
+        )
     MAIN.mkdir(parents=True, exist_ok=True)
     SUPP.mkdir(parents=True, exist_ok=True)
     figure_ml1_test2b()

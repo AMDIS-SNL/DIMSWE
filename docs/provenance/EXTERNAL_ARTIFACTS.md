@@ -2,8 +2,10 @@
 
 These accepted artifacts are intentionally not stored in Git. Restore each file
 at the repository-relative path below and verify both byte count and SHA-256
-before running a consumer. A missing or mismatched file is an error; no workflow
-may silently substitute another cache.
+before running a consumer. Receipt-time verification and the input hashes
+recorded in accepted sidecars provide mismatch detection; not every downstream
+consumer automatically rehashes every input. Do not replace a missing artifact
+with a similarly named file without first matching this contract.
 
 ## M1-Y and quantitative postprocessing caches
 
@@ -90,4 +92,5 @@ stat -f '%z %N' /path/to/artifact   # macOS
 Compare to this table and to the versioned JSON sidecar. Do not edit a frozen
 sidecar's historical absolute path; configure current roots through
 `scripts/reproduction_environment.sh` and the optional variables documented
-in `REPRODUCING_RESULTS.md`.
+in `REPRODUCING_RESULTS.md`. These explicit receipt checks are the enforcement
+step when a consumer does not itself validate the expected hash.

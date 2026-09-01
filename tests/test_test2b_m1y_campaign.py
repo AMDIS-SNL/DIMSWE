@@ -2,6 +2,10 @@ import json
 
 import jax.numpy as jnp
 import numpy as np
+import pytest
+
+
+pytest.importorskip("pyrol", reason="PyROL is required for M1-Y campaign tests")
 
 from dimswe.jax_moist import moist_rates_jax
 from dimswe.test2b_m1y_campaign import (
