@@ -21,6 +21,7 @@ hashing all 6,948 modified or untracked evidence files. See
 |---|---|
 | Overview | this `README.md` |
 | Science and objective definitions | [LEARNED_PHYSICS_EQUATIONS.md](LEARNED_PHYSICS_EQUATIONS.md) |
+| Technical research record | [DIMSWEML.pdf](research-notes/DIMSWEML/DIMSWEML.pdf); synthesized investigation record—the repository's code, documentation, and provenance paths remain authoritative |
 | Original DIMSWE → learned-physics hook | [`dimswe/physics.py`](dimswe/physics.py), [`dimswe/timestepping.py`](dimswe/timestepping.py), [`dimswe/moist_backend.py`](dimswe/moist_backend.py), [`dimswe/jax_moist_adapter.py`](dimswe/jax_moist_adapter.py) |
 | Neural physics | [`dimswe/test2b_rain_learning.py`](dimswe/test2b_rain_learning.py), [`dimswe/test2b_m1y_campaign.py`](dimswe/test2b_m1y_campaign.py) |
 | Tangent, adjoint, and optimization | [`dimswe/jax_moist_hvp.py`](dimswe/jax_moist_hvp.py), [`dimswe/mtswe_split_hvp.py`](dimswe/mtswe_split_hvp.py), [`dimswe/test2a_trajectory.py`](dimswe/test2a_trajectory.py), [`dimswe/test2a_pyrol.py`](dimswe/test2a_pyrol.py) |

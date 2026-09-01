@@ -7,3 +7,5 @@ postprocessing/deployed_hybrid_dynamics_20260830/DEPLOYED_HYBRID_DYNAMICS_SUMMAR
 postprocessing/deployed_hybrid_dynamics_20260830/REPLAY_VALIDATION.md -whitespace
 postprocessing/deployed_hybrid_dynamics_20260830/captions/DEPLOYED_HYBRID_DYNAMICS_CAPTIONS.md -whitespace
 postprocessing/deployed_hybrid_dynamics_20260830/data/truth_reference/truth_reference.json -whitespace
+# Preserve the imported research-record source byte-for-byte.
+research-notes/DIMSWEML/DIMSWEML.tex -whitespace
