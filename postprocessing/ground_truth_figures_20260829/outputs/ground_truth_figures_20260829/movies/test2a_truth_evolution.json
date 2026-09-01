@@ -1,0 +1,1022 @@
+{
+  "behavior_visible": "The coarse saturated case develops paired condensation and evaporation patterns as the vortices reorganize moisture. Cloud water remains below the rain threshold throughout, so no rain-water or rain-production panels are needed.",
+  "case": "test2a",
+  "color_limits": {
+    "A_g_kg-1_h-1": [
+      -0.24,
+      0.1
+    ],
+    "relative_vorticity_1e5_s-1": [
+      -17.0,
+      17.0
+    ],
+    "specific_cloud_g_kg-1": [
+      0.0,
+      0.032
+    ],
+    "supersaturation_percent": [
+      -7.0,
+      1.0
+    ]
+  },
+  "coordinate_units": "km",
+  "display_clipping": "negative numerical Qc/Qr undershoots clipped to zero; raw cache retained",
+  "format_version": 1,
+  "frame_count": 161,
+  "frames": [
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000000.png",
+      "sha256": "2048b02ceaaf180b49d8748c717f8607e4c8e2b86c0ba0a82cde2648b3d873b7"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000001.png",
+      "sha256": "1746d11a356fc5742b9dbcddec91e0ab32ebe08c44e78d63bb911106471f9a23"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000002.png",
+      "sha256": "dc7828ecb280e0d363fca9e6ef7ba26069c7f966f4960e20f40dac63a2b24d11"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000003.png",
+      "sha256": "581193ba4bd19ee160bc5854cdd7ed642d7656e100a612b67ee4acde810643d5"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000004.png",
+      "sha256": "34529ba3a2bd469b904410d8505db9c6b3b91891573dc14b7a95d562eaa25c7c"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000005.png",
+      "sha256": "9737119373627c9d77ab4fdfe05a86430c1317ad3285e510e84f20af0a5ca4b2"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000006.png",
+      "sha256": "b8ee487a2ce35565e77b460d5e8dce053044d38600c023fe416f32800568efa5"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000007.png",
+      "sha256": "277c7c8af129b2021f860dae3dddee1e9bc0380a84d036be175305d346b09660"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000008.png",
+      "sha256": "7d7aca39eeedab87a91cfaca3da41df92a6e3fe0c811d926c7f4748b8e36b2dc"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000009.png",
+      "sha256": "aafa978d3546f5f775b1b35873c66e7c17ad390393937626a57b62849a389eb6"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000010.png",
+      "sha256": "24c19aec875890f5c5da30cf381de584533196d691071925256280831227eca2"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000011.png",
+      "sha256": "3d473623eb5dd7cb106e20c3191d35d2c539a522b90b91a7d6a33b7e70e3021b"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000012.png",
+      "sha256": "45e433310800deb1e4e3a373df5b9c249f961dc9eb469a575dac4a39529218af"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000013.png",
+      "sha256": "ab3b1762c525730f92369dbe87ecb230a6a8db956917b8c6f4605e53a1f4458c"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000014.png",
+      "sha256": "525f7421dd3357c58194ec7c01ec5211a0c92187b7c9e63a5cb2ebb97cebcdeb"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000015.png",
+      "sha256": "015ae4e8a2ace37465281673edec443ff01b90416443f6199e5f5d03f6958fc9"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000016.png",
+      "sha256": "3d29b062f05e7b0f544411b1262f53dffd995d99e21989aa5c8c29950d63c050"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000017.png",
+      "sha256": "f0101906c9b3e960f46856c97358e8e114899eb6ea2505e70b4608a9a2626f1d"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000018.png",
+      "sha256": "4113aa7c03606c7e10cfc3e0ab4fffccc386c1d5d5768d8d6f2b43245bd44474"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000019.png",
+      "sha256": "4032791f70a5cd5990875fc87fa8c92b417b2cee420983dcc12c84af3dfc70e0"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000020.png",
+      "sha256": "94f2046765cd31ba21f3d8ea10ec3f08bfa2c65e4e20f85278d2a0e7102cedc3"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000021.png",
+      "sha256": "0725c147992779eb229509fc6a5209456f60ad10caa51f01174d4631ec14845e"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000022.png",
+      "sha256": "99585899dd98b68b26488de724350962aeb77739d1865d3c427c24668d1b5359"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000023.png",
+      "sha256": "590360b197e924ec56e9e3f88b45508aa9f2c4dac46cfb440cf4de234f00eb8d"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000024.png",
+      "sha256": "8439e44f8d598121178ecc0d25b9ce2e612a9d4995005b940bc82d4f3c330c84"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000025.png",
+      "sha256": "3a95e7233b16a715fe7844b7436c38dee8be3c74e923bfcb3630353884f6ac7a"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000026.png",
+      "sha256": "c41c7d2adc4f46d8b693c054ace2af5acdb69e86e220916a26f841dcb67aac05"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000027.png",
+      "sha256": "7c43176d95118fe9688a1631ee59f1a82907f413c6f2d712bdc556de7d7d9a0f"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000028.png",
+      "sha256": "689b41e58122f35618b8ee9670db4cb43315dfd57bb7cdce0a98db4b7d590757"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000029.png",
+      "sha256": "e0d1124755fef38c47be9c5845bb68198c282d2f4c2259826d9eb197001d31f0"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000030.png",
+      "sha256": "c39b65513ceef4a2c5748a1ab5c0411f8ca5c9ed9f316c724d7f4e0aa871f538"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000031.png",
+      "sha256": "7e397dcb2fd6b07018f6bc120853165110b84074095924ce67167cf7e18368be"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000032.png",
+      "sha256": "58b0c790b7944b2cdf441511dc8f18553d09b289f99312e69bf2e7107b1cc2dc"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000033.png",
+      "sha256": "1474039e4ed76e705bdf2b2c6a8b1a3a17934752180fa25b23d9e5ddf21ca1cf"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000034.png",
+      "sha256": "53ca981380e110162815d2df7e3fec68c6b911fbb2c89d5559d6b718fa531756"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000035.png",
+      "sha256": "4c6e2accf621a3650d284dbf89ac36bca9e0d914141468fc66bd50a9d9b8fcbe"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000036.png",
+      "sha256": "6707f33b226b49eedc4be0d3594c3ac42e5b270442594beb529aea44c0be2e89"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000037.png",
+      "sha256": "df8e77e291515061d0d4d16419e2c30f6d3c1f7ca9d652435a04bd5ecc7a2e1e"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000038.png",
+      "sha256": "7b524371006ec17a2a135f2a31d537bd6d5d0b52a9dbb6c5503b1c8be0ab6978"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000039.png",
+      "sha256": "0095425219773c0ca1e11ac6165b1ef703579937ce40aaf40b2103dc2e3bcb6e"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000040.png",
+      "sha256": "57b588fbc10dabb8c1c9928b543fc0d2468d6851c3af5ccbcd19fd09dbc25e5d"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000041.png",
+      "sha256": "847027d4ba3596577c546206912536ab5e2db1044e020028779e4591a955f8d0"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000042.png",
+      "sha256": "c2b2c1dd5076541aab28b04a1317a1bf9edfb65fa1080c26df9f0c805c9a1b81"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000043.png",
+      "sha256": "4e829c72a3a50274cc3748a422c3698f72c8bfc03623774a282a82fe10e8abb2"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000044.png",
+      "sha256": "656e0e96793f5545caa097d060941f949bc8ed23ef8286a62f65c37695d16ca7"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000045.png",
+      "sha256": "a5f60e78f6c90e3ed81c55ecfa78ae86ade86da1473d58300a692868aa5262ef"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000046.png",
+      "sha256": "3d12d39bc27da213d7acd9143a0d97b653c4411db8dc174043d26088c509020c"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000047.png",
+      "sha256": "643a7ce4ff78db4dde02b1a8f3d55ecb90d493902b5bfed9d367b65b6239dc5a"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000048.png",
+      "sha256": "3e669b60bb39fc205fe309d9a7217e5edd38b9ea373ff0368e82d951d105f971"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000049.png",
+      "sha256": "5dc2c20615bfe460c0e934c7902a814fa2556e58ed62a3f8666c87a99222b688"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000050.png",
+      "sha256": "ea1b79c41f491efd39aba5372f9cd63c69bb3df10349579cfd7d79aa321b160e"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000051.png",
+      "sha256": "3d3783ed92bc5656f3af11a220238bb2c4552a6c90fa460af838bed9991c2d4b"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000052.png",
+      "sha256": "4d34d7849d605c25759e852fcf0fba34742f82f8a5f49ea63c0ce3766be3345c"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000053.png",
+      "sha256": "fed8781a3949699c31987e4d8fd4d49a5c4f891b492cd39454c316cfe7f6be7e"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000054.png",
+      "sha256": "a5b7fce9a016ac041ae4bf78cd54dcc512341a03f54642daa0ac4dabf11e8325"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000055.png",
+      "sha256": "aad0c2fd8aee31e4dc8f00d377605e9b99bce32d8db9ca3835996d6bf9434189"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000056.png",
+      "sha256": "c4a8960892a50f01f9b1848201c4dbd34e61efc6f245f7202e82362a70f64081"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000057.png",
+      "sha256": "37857e4201139b98e9bfc9ed7cb71f4347a8867951a9160938c457c1abda0e5a"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000058.png",
+      "sha256": "c152c395f6b3d784a220a7b9b8d81f84a8d3f032f7970cf0def4d4fe0c0c3403"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000059.png",
+      "sha256": "2567e76b0357a887e111367bbeabfaf3a35009004c7e397aa93bcb7ef2a280cb"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000060.png",
+      "sha256": "572a9dfea825598319ad84c51f862c2aa534de890d0eac19686f918c2b3cf8a9"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000061.png",
+      "sha256": "0caa1aac49104e480e6f7c6751035733e0aed50fa010623883e7459ec1ab6229"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000062.png",
+      "sha256": "ccfbce71cb38daca773efcd86d34258bdc24b129ede5f4de02572e069583af97"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000063.png",
+      "sha256": "820bff82aac55b8b5a33f1e09c34fc71988c194c66479b8c4f1fca3acd422cf7"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000064.png",
+      "sha256": "d9c90a07d864c2edddca11ca099f2f8e0c6d881b50faf454c02d9ceb83b3e22a"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000065.png",
+      "sha256": "7062d283aa9862b60cfaf2759f4bd9a6942cac8f35cb1b45762c87cf37196294"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000066.png",
+      "sha256": "38c5d9debd37a5eba86ea1749978f81d45f53d897e9271c745def13c06cce679"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000067.png",
+      "sha256": "ec816385c4ec8d6c7a7145f81d4b09ca38dd945d194e471a9e9e3b67cdeaac55"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000068.png",
+      "sha256": "24fbcaa87aa28d3f596681adfa5210878abc7826fd75cb9ace51db36077a1c56"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000069.png",
+      "sha256": "993faa43c2b2f0b5a392b9285c6004d211d47fb56622c4bca290ad92f90a280c"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000070.png",
+      "sha256": "9866ee9d1a06c4f83a5ea592386c3cd2b7c12f23dc79ee257a70bda8e99570e0"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000071.png",
+      "sha256": "4146e87eae6a8858c8bfed5f833d99818a7777a484bca8d9c2c7bb0a6cfbad4f"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000072.png",
+      "sha256": "b7cbc926773244351c93e28e2eb568511391b8b13095d8aaf92a4d40d5a8363f"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000073.png",
+      "sha256": "908655366a3819868e96255799d92ccc66fbad686a2aeeddbc1379bad218011e"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000074.png",
+      "sha256": "485e97e92c8acd0382703c78ad35196b4a4c70cbeee74eb6051a29bd8091bd70"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000075.png",
+      "sha256": "6254d711fe5eafc5828e910caec826fdfb0956a99cf3b26c1028c3448d539496"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000076.png",
+      "sha256": "e1315d4fe83a912710115b201cb64a8e84df7430ffb5fad3428f836f7518a40e"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000077.png",
+      "sha256": "7044e3c8047bc55522c183343cd9a97e78b75168ef9dd5caa9ca08429dbef900"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000078.png",
+      "sha256": "e9b82ae980955279286fa37d2efa16212168d0b8b6a6f0a3fbe2775879bb3d84"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000079.png",
+      "sha256": "58824c5615b1a660434aa9082f6f8562eec91ee79a00734c1ca42117d8d3e67b"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000080.png",
+      "sha256": "798361d44d3d480e17eaf2fc8cb0fc9f98a7595487937284bfe0710448d11ae5"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000081.png",
+      "sha256": "d3386e0acb7b3dc4bd5128b340d5bd701cd3d71adc1195f7dd367cae3a22fa4e"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000082.png",
+      "sha256": "3c8ddc3bc9ffaedf88f8e27bf58e320a6ba1b2b83933878a9af28c2f2bf89fd6"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000083.png",
+      "sha256": "7b5fce9ff5b7da8ff73fe2b5e4bbc31a060ba9da24f4ec28800da42025709a30"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000084.png",
+      "sha256": "be9b58bf4c94fd3fa29d9c5eb7f0a9d1ec94f812d0788100414c5b39e01f4647"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000085.png",
+      "sha256": "d676e12ecee45ab0502e7e8fe4a0a12bbc5de7ee0e342c4df1cf600b8be352ca"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000086.png",
+      "sha256": "d99019b1cc3121ce098bc42e388e88cf674d9358117bb34e565c5e4074e085a0"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000087.png",
+      "sha256": "6bca195a7dd68da01c8b7ec5409ccab2fd305997288c12581304d4559fa03a4d"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000088.png",
+      "sha256": "2f8171491496b090c464fee7f8b924d327fc013e1ef6d8c83638d28cec59256f"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000089.png",
+      "sha256": "2cf6807c256b945a5a8a4c041825f63069d8b3b4ea9aa0c66140428aed04130d"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000090.png",
+      "sha256": "5ba42246f2a27fb401bb6c07bd31941a99f2eaa4f93130a092bcce19f5b7460b"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000091.png",
+      "sha256": "6e6bcde0f5a71a9b9e3e2b1d07b45b54dff9d27079c0fb0488f3465d6bdca656"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000092.png",
+      "sha256": "758127f725571c7297ee867aefe3bc026351e360743f46e390b433410997230d"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000093.png",
+      "sha256": "813ab97ba262d8b7dda1f14ecb9e3a23009ae4d8eb4a75b31a800fe9c6b613f2"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000094.png",
+      "sha256": "042100ddc67b88baab94fb78ef2fec89683f933fbfde0ff316c3ad5acf79af2e"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000095.png",
+      "sha256": "a3c780b90575614c8de35fd87e143b4387189db558050f4a0b17d16868015b3a"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000096.png",
+      "sha256": "c197a15a2015eed3f3244a06f7224d1e815e587c0633a6b73ef8d5cb658f7004"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000097.png",
+      "sha256": "889b83e06eceddee6ed1a9ee15615bbf6fa1824b68770116975300d55b4a3cd4"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000098.png",
+      "sha256": "2a6dfb699690d96cd91b7a74080fd79699f053e8dccba71a4e76436f9b6fa0e0"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000099.png",
+      "sha256": "1f906a0f401b914970547a36bd821ff9b0c4b83e695d584d6fbbc830f8862b69"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000100.png",
+      "sha256": "61689b34e67868ef108bcae98d456a6bc1d642d4173e2519b5b4ff3970152f73"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000101.png",
+      "sha256": "b9673835eae5151ae4075c9ac15b80f41342e12711ed7cce6fd8b6a94124d173"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000102.png",
+      "sha256": "8274bcfc3af0dada482f10d71e8ef3a7dd5fc65eee85505697d80c9d07b8d28f"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000103.png",
+      "sha256": "f00069fdce24d1aee57aed9346da31aac8579b4d8c400545c5793d9c823659a5"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000104.png",
+      "sha256": "e63c1d38767da8283ff9ad74956c9e13b5a627083314a1fc961b7e4c345e113f"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000105.png",
+      "sha256": "f608345a30d3e603e47a190b8303e3c707e9030d3378eafa45345e195999dbdf"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000106.png",
+      "sha256": "79ac6164ce695d385949fdc5e54a6a25876d037b2ed508c1233427636c960ecd"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000107.png",
+      "sha256": "f7750367f34a9005348419471b9678c040a36bb2195f07d48e88bdf5b31cd8a1"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000108.png",
+      "sha256": "9eec7cdee71e644d80cb36d1409d28bf6861df047222f9a2d26e0e1584a95d0f"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000109.png",
+      "sha256": "a53cb14e2d43d597cdf572bc7ba355c1795683aabe4515bfe8db14b142172e32"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000110.png",
+      "sha256": "4f504394d634b648bd140f277812cdcb02219f549553e04f87cdd8dac01b431f"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000111.png",
+      "sha256": "ddfc0b7ab2a91466e8fcbe585d398a8343b8e26aed8adcdcc5cafbcaf37a5157"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000112.png",
+      "sha256": "d20b340be3a872b094848cf34d8a8451bc9a99d51bd49faf10ef79573eaae720"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000113.png",
+      "sha256": "b61e199f1095943beb93b67c81992c4b350efc387bbb1ec4b170a9eaef983be1"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000114.png",
+      "sha256": "2acd897f960732f72eb3f30cf5f05e9824f854fb2f784b84e4ad45adf2e1fd19"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000115.png",
+      "sha256": "9309c1abe5985258218cd9da87223030139a48649b5030100217e98b1eebe9e8"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000116.png",
+      "sha256": "bbcc9fb430f5a85f01daf632f48baeba0e923ea5787b5ab6e4f744a48b91f7f3"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000117.png",
+      "sha256": "4fdda2c6c805cdcdeccbb5c24d2ba495a5e18fa68d5a8141c61eebbed05ab973"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000118.png",
+      "sha256": "9c801cfb2bdac6c9440757df75511a8ba648d90cc1be01d9f67ccf33f051bc47"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000119.png",
+      "sha256": "c078857e29f30ec5a187b275ee945d1c529e1f9be6af68932ff92fd578746532"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000120.png",
+      "sha256": "3ec2533564a6aba73fe16297b0991cdaac9dd35ec4e9290868a5ff43cf7439d9"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000121.png",
+      "sha256": "53e2004e7784e36d1bfe7707952bd861059f382478004860e4721d5d59bdcfcb"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000122.png",
+      "sha256": "e225d87004ec1199890a8add6da08667dff8d204977a52f2593e8cd6836120fe"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000123.png",
+      "sha256": "4b22938c9cdf9a9d345f4b7f1084dbedb0fd2803673c3a090a268fe0a3be22e6"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000124.png",
+      "sha256": "559d6811867fe7ab2c29bd6b793035acef6b60f7a7c68ea110872afdc46f7fbe"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000125.png",
+      "sha256": "502b99b55e43226348a8f102559afe04fd2f54f2bbec1a9f8b11d0e4bb002a02"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000126.png",
+      "sha256": "29c42c5c534fb239eea3d32511172a243e17672ac054ba72518e4d127da5f988"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000127.png",
+      "sha256": "2da2fee794ac100f78ab0a08f2380732f435b6f9ced0a761f9e6a2e92bb816ce"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000128.png",
+      "sha256": "1d89e74835e41ffa5ea56f2e5d9dc8cfead388569c804f9b97c861c75508eddf"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000129.png",
+      "sha256": "38303fe50b2c4a6eed05b83a6e32686087f77a34d46df4dcf24e8a7e289ff872"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000130.png",
+      "sha256": "9464a432c8850b9f4f6c3bd3e8ec2ffb4671980a27e08183ec02ca593da11135"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000131.png",
+      "sha256": "7c409c8e0089f2039bd6db1bc491502c7cda8f140a6970f95f76d6c68d08baa5"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000132.png",
+      "sha256": "e6093f89df37a8ca760d6f5e70648ee66418a710bc9c01f6542ecf4e96144e0e"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000133.png",
+      "sha256": "8f61496c70bcd6ddf3076c8db14282f4a97c5cd3d67908926d6164b61d653951"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000134.png",
+      "sha256": "cc5c79dc18499fb01e2282f9f74f4a7234ab1bf03aa457eba99d14d769e8f0c6"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000135.png",
+      "sha256": "799eef3b2299d4d538da512113eae696b7b58b34b32b13f838c2d8c44cad8ac7"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000136.png",
+      "sha256": "8b89bb2d6c6c2a0ef256396840911d7a43feaccd5c64df4b6bad8e2bc3f6da84"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000137.png",
+      "sha256": "2dc9c069068665081b23eeaf5a70449ab9b2b18c384df630278824b92b439549"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000138.png",
+      "sha256": "9e556bc97b64b8cb5fb54b1a25474652a618123017fc5944e157f4c4ca63aba0"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000139.png",
+      "sha256": "4356f34627fb93b6538448445b46b8402511bf59acdda643ff2ffe7f4d9791c1"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000140.png",
+      "sha256": "c3a3ba8352f2c5cf434ce9dd321faa3ec0c11655d01d1423c6273c0bade725d6"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000141.png",
+      "sha256": "142832b75cc65a960b5f01f194828b36b05565075e29332a9dcc1a10421acff9"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000142.png",
+      "sha256": "435aa768dd473cef3dd71cbfb83f624dbfb2598a61f4ecbe97e0e28627171c2b"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000143.png",
+      "sha256": "fbaac71ab1dcef010db7d95b59ea37c42cbdd9cc0dc4f9813074d4c22f279a04"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000144.png",
+      "sha256": "44448d5c4070098f635a400f97ee69f954ab3db931b8a8e2ee2d450260ff91d7"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000145.png",
+      "sha256": "7e4b3da8d2e3354f6eb559009fc20e4c3cdf1cf71b5638883e2e980f23dd6fbf"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000146.png",
+      "sha256": "fa8a04faa25e88733c79286a9c3a7ce03070b39f5f3d90e7ace5da0d9094c37c"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000147.png",
+      "sha256": "4510369d08910c060aacc218271733b784355d427dd60268f2977ef575b21168"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000148.png",
+      "sha256": "dfed45963b0b20b51f66734215ff752eeab5ca0e7003438bcada7f5d6b80cdd9"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000149.png",
+      "sha256": "4bacb34d8d1717decdce71cea4280406c87cc0333e3469dd88b407480d9d03fc"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000150.png",
+      "sha256": "cd5fa75c051d0b20b4048e865e3b0e1ab0ea31e010f203f6f4591fa63db359e0"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000151.png",
+      "sha256": "566a7b6b914be0e8ba91552fc35fa3e49b51dbf0131f844e1f88994ac09109c3"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000152.png",
+      "sha256": "c82f398d2995a4cc2514c308c7c2922a9f77247b8702f02a5586b31be0215bdd"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000153.png",
+      "sha256": "cf0afa9e89751ff78ce52f8deea2162d5a8e7ddf97bec26e8b7b4e83de7067b7"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000154.png",
+      "sha256": "12278b0c878375ae3075164f4e3d1ec0943297fd35d689e19d8829fbffcb3951"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000155.png",
+      "sha256": "626656c16ca46195631932654875a603fa703b169d2c75d3a7ebd43c4619956d"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000156.png",
+      "sha256": "d161123d7bec66723da0eb51d59f728c7517b07cf86474468e1b3c898aec0281"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000157.png",
+      "sha256": "87d6afbb3828755ecc3db45c274ac23deba2cca8d98377379b83ed59d3bc5cba"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000158.png",
+      "sha256": "cd38a78a5630bfe7001e7195b5a902696c9a7f20e697028d1064a0c74b4fd28f"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000159.png",
+      "sha256": "35073bb148bae8b856b027e62286a7386f7d7b072689f41f72a53e241706757e"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_00000160.png",
+      "sha256": "e9eb5c88998f20ba8cdcb14c2cffe1cb53aaca9756392e715476a9951943c7fa"
+    }
+  ],
+  "movie": {
+    "format": "GIF",
+    "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/movies/test2a_truth_evolution.gif",
+    "sha256": "bbf918632a5684b02ee7db79490f5c6dd43e40570f203c6748a3491a723fc0ab"
+  },
+  "optional_mp4_command": "ffmpeg -framerate 10 -i /Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/frames/test2a/frame_%08d.png -c:v libx264 -pix_fmt yuv420p /Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/movies/test2a_truth_evolution.mp4",
+  "playback_duration_s": 16.1,
+  "playback_fps": 10,
+  "renderer_note": "Pillow was available; ffmpeg was not present, so GIF is the native rendered movie.",
+  "script": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/scripts/ground_truth_figures_20260829/render_truth_movies.py",
+  "script_sha256": "d307e54d6ec712c73c722fcb3f487944880bbfaeabfa8e224eb1801cf9a7db5f",
+  "source_cache": {
+    "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/data/test2a_truth_maps.npz",
+    "sha256": "0cbc5fac8a15c110701ba63e5051f214330532df7ef3435c784129ef405f36ea"
+  },
+  "source_truth": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test1b-production/truth_c0_0.14",
+  "state_indices": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129,
+    130,
+    131,
+    132,
+    133,
+    134,
+    135,
+    136,
+    137,
+    138,
+    139,
+    140,
+    141,
+    142,
+    143,
+    144,
+    145,
+    146,
+    147,
+    148,
+    149,
+    150,
+    151,
+    152,
+    153,
+    154,
+    155,
+    156,
+    157,
+    158,
+    159,
+    160
+  ],
+  "state_rate_timing": "state maps at saved t; A/R at exact post-prefix input to the following moist Euler child",
+  "times_s": [
+    0.0,
+    100.0,
+    200.0,
+    300.0,
+    400.0,
+    500.0,
+    600.0,
+    700.0,
+    800.0,
+    900.0,
+    1000.0,
+    1100.0,
+    1200.0,
+    1300.0,
+    1400.0,
+    1500.0,
+    1600.0,
+    1700.0,
+    1800.0,
+    1900.0,
+    2000.0,
+    2100.0,
+    2200.0,
+    2300.0,
+    2400.0,
+    2500.0,
+    2600.0,
+    2700.0,
+    2800.0,
+    2900.0,
+    3000.0,
+    3100.0,
+    3200.0,
+    3300.0,
+    3400.0,
+    3500.0,
+    3600.0,
+    3700.0,
+    3800.0,
+    3900.0,
+    4000.0,
+    4100.0,
+    4200.0,
+    4300.0,
+    4400.0,
+    4500.0,
+    4600.0,
+    4700.0,
+    4800.0,
+    4900.0,
+    5000.0,
+    5100.0,
+    5200.0,
+    5300.0,
+    5400.0,
+    5500.0,
+    5600.0,
+    5700.0,
+    5800.0,
+    5900.0,
+    6000.0,
+    6100.0,
+    6200.0,
+    6300.0,
+    6400.0,
+    6500.0,
+    6600.0,
+    6700.0,
+    6800.0,
+    6900.0,
+    7000.0,
+    7100.0,
+    7200.0,
+    7300.0,
+    7400.0,
+    7500.0,
+    7600.0,
+    7700.0,
+    7800.0,
+    7900.0,
+    8000.0,
+    8100.0,
+    8200.0,
+    8300.0,
+    8400.0,
+    8500.0,
+    8600.0,
+    8700.0,
+    8800.0,
+    8900.0,
+    9000.0,
+    9100.0,
+    9200.0,
+    9300.0,
+    9400.0,
+    9500.0,
+    9600.0,
+    9700.0,
+    9800.0,
+    9900.0,
+    10000.0,
+    10100.0,
+    10200.0,
+    10300.0,
+    10400.0,
+    10500.0,
+    10600.0,
+    10700.0,
+    10800.0,
+    10900.0,
+    11000.0,
+    11100.0,
+    11200.0,
+    11300.0,
+    11400.0,
+    11500.0,
+    11600.0,
+    11700.0,
+    11800.0,
+    11900.0,
+    12000.0,
+    12100.0,
+    12200.0,
+    12300.0,
+    12400.0,
+    12500.0,
+    12600.0,
+    12700.0,
+    12800.0,
+    12900.0,
+    13000.0,
+    13100.0,
+    13200.0,
+    13300.0,
+    13400.0,
+    13500.0,
+    13600.0,
+    13700.0,
+    13800.0,
+    13900.0,
+    14000.0,
+    14100.0,
+    14200.0,
+    14300.0,
+    14400.0,
+    14500.0,
+    14600.0,
+    14700.0,
+    14800.0,
+    14900.0,
+    15000.0,
+    15100.0,
+    15200.0,
+    15300.0,
+    15400.0,
+    15500.0,
+    15600.0,
+    15700.0,
+    15800.0,
+    15900.0,
+    16000.0
+  ],
+  "truth_cadence_s": 100.0,
+  "variables": [
+    "relative_vorticity_1e5_s-1",
+    "supersaturation_percent",
+    "specific_cloud_g_kg-1",
+    "A_g_kg-1_h-1"
+  ]
+}

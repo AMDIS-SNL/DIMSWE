@@ -1,0 +1,61 @@
+{
+  "draft_caption": "Direct physical-law error during optimization for all seven Test 2B models. Solid curves show training states 0--80 and dashed curves show evaluation states 81--160. Evaluation errors were computed from saved networks, did not influence optimization, and are evaluated on timestep-boundary states X*.",
+  "editorial_revision": {
+    "date": "2026-08-29",
+    "scope": "caption terminology only; rendered asset and CSV unchanged"
+  },
+  "figure_id": "ML2_posthoc_direct_history_test2b_all_models",
+  "files": {
+    "csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML2_posthoc_direct_history_test2b_all_models.csv",
+      "rows": 464,
+      "sha256": "bd8ef944d9ebdfce3f6f949744689eaa889ed7be1271edb6e54a92be9d1ec608"
+    },
+    "pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML2_posthoc_direct_history_test2b_all_models.pdf",
+      "sha256": "0832ad79341d273f96e8677be1fc3fbed302c2c84c742322cb71d8694ad2d6f6"
+    },
+    "png_300dpi": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML2_posthoc_direct_history_test2b_all_models.png",
+      "sha256": "38c07ad4a9da61b097aaa28a653a07fd09dd22c7a2aaa5d1b2d31b5c17b2ee00"
+    }
+  },
+  "metric_definitions": {
+    "normalized_vector_relative_RMS_error": "Carrier-mass-weighted RMS in frozen output-scaled source coordinates divided by the corresponding target RMS.",
+    "relative_RMS_error": "Carrier-mass-weighted physical RMS error divided by carrier-mass-weighted target RMS."
+  },
+  "model_labels": [
+    "M1-X",
+    "M2-X-independent",
+    "warm M2-X",
+    "H1",
+    "H2",
+    "H5",
+    "M1-Y"
+  ],
+  "notes": [
+    "Only actual saved checkpoints are marked; no interpolation is used.",
+    "Representation C retains componentwise histories in checkpoint_direct_histories.csv."
+  ],
+  "quantity_kind": "POST-HOC CHECKPOINT EVALUATION",
+  "representations": [
+    "A",
+    "B",
+    "C"
+  ],
+  "scientific_question": "How does direct physical-quantity prediction evolve on training and held-out truth states?",
+  "source_artifacts": [
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_direct_histories.csv",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/heldout_x_test2b.npz",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/training_x_carriers_test2b.npz"
+  ],
+  "state_intervals": [
+    "0--80",
+    "81--160"
+  ],
+  "support_classification": "Test 2B training truth support 0--80 and held-out truth support 81--160, evaluated at X",
+  "units": {
+    "checkpoint_iteration": "accepted iterations",
+    "value": "dimensionless relative RMS"
+  }
+}

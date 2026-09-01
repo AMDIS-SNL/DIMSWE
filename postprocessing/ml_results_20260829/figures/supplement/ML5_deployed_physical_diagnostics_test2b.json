@@ -1,0 +1,80 @@
+{
+  "archive": {
+    "classification": "SUPPLEMENTARY / PROVENANCE",
+    "pre_reset_snapshot": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/FINAL_MAIN_RESET_BASELINE.json",
+      "sha256": "20bb91198cf015b045a3332a7b4a6d1ff4f063bfa2e99babc969a6b29cb4eac7",
+      "size_bytes": 20616
+    },
+    "reason": "Superseded in the main-paper subset by deployment-consistent M1-Y/H1/H2/H5 figures; numerical assets retained unchanged."
+  },
+  "draft_caption": "Physical diagnostics after deploying the 21 Test 2B models. Points identify separate trained models and are not connected as a continuous path. Representations A and B impose the water and thermodynamic source identities by construction; their roundoff-scale water drift is therefore not evidence that conservation was learned. Representation C does not impose those identities. Moisture minima are finite-element coefficient minima rather than a pointwise positivity proof.",
+  "editorial_revision": {
+    "csv_sha256_unchanged": "401b018e6a070a9281453948ee4576144479621120b7103a1d289a266faaf18e",
+    "data_source": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5_deployed_physical_diagnostics_test2b.csv",
+    "date": "2026-08-29",
+    "scope": "rendering and terminology only"
+  },
+  "figure_id": "ML5_deployed_physical_diagnostics_test2b",
+  "files": {
+    "csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML5_deployed_physical_diagnostics_test2b.csv",
+      "rows": 21,
+      "sha256": "401b018e6a070a9281453948ee4576144479621120b7103a1d289a266faaf18e",
+      "size_bytes": 17002
+    },
+    "pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML5_deployed_physical_diagnostics_test2b.pdf",
+      "sha256": "d02339fe5ef37fa58791ee140cc634098812684cb6e3623190c51252bd1c3633",
+      "size_bytes": 24455
+    },
+    "png_300dpi": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML5_deployed_physical_diagnostics_test2b.png",
+      "sha256": "f6ed5ff8a7c7c0fcb22292da92ff5b98cc52c60f15c25964d00f7f2b8024e2ed",
+      "size_bytes": 219622
+    }
+  },
+  "metric_definitions": {
+    "final partition errors": "Absolute final model-minus-truth integral mass error divided by the corresponding truth final mass.",
+    "final_mixed_state_error": "Stored final mixed state relative mass-norm error.",
+    "minimum_moisture_coefficient": "Minimum saved finite-element coefficient among Qv, Qc, and Qr.",
+    "rain_onset_error_s": "First meaningful model rain time minus truth first-rain time (5100 s).",
+    "relative_maximum_total_water_drift": "Maximum absolute drift of domain-integrated Qv+Qc+Qr divided by its initial value."
+  },
+  "model_labels": [
+    "M1-X",
+    "M1-Y",
+    "M2-X-independent",
+    "warm M2-X",
+    "H1",
+    "H2",
+    "H5"
+  ],
+  "notes": [
+    "A/B source identities are structural; C source identities are not enforced.",
+    "Representation A uses analytical R on the model-generated state."
+  ],
+  "quantity_kind": "FINAL STORED DEPLOYMENT DIAGNOSTIC",
+  "representations": [
+    "A",
+    "B",
+    "C"
+  ],
+  "scientific_question": "Which physical properties remain accurate after model deployment?",
+  "source_artifacts": [
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/evaluation/representation_A_matched.json",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/evaluation/representation_B_matched.json",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/evaluation/representation_C_matched.json",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/deployed_diagnostics.csv",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-A/representation_a_final_comparison.json",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-B/representation_b_final_comparison.json",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-C/representation_c_final_comparison.json"
+  ],
+  "state_intervals": [],
+  "support_classification": "Test 2B deployed trajectories, states 0--160",
+  "units": {
+    "drift/errors": "dimensionless",
+    "minimum_moisture_coefficient": "production state coefficient units",
+    "rain_onset_error_s": "s"
+  }
+}

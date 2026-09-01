@@ -1,0 +1,53 @@
+{
+  "draft_caption": "M1-X/M1-Y direct-error histories evaluated separately at X and Y. Training uses states 0--80 and evaluation uses states 81--160; evaluation states did not influence optimization. Each marker corresponds to an available saved network.",
+  "editorial_revision": {
+    "date": "2026-08-29",
+    "scope": "caption terminology only; rendered asset and CSV unchanged"
+  },
+  "figure_id": "ML3_m1x_m1y_cross_state_checkpoint_history",
+  "files": {
+    "csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML3_m1x_m1y_cross_state_checkpoint_history.csv",
+      "rows": 320,
+      "sha256": "5e843b07ace4aa72077cc8f7550645fe0822005992a3e8f0eb658b77d326d6dd"
+    },
+    "pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML3_m1x_m1y_cross_state_checkpoint_history.pdf",
+      "sha256": "2a7760e11ad26544493db1a40a3cc9799755df21f3327eda4a7885e9fbd66d44"
+    },
+    "png_300dpi": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML3_m1x_m1y_cross_state_checkpoint_history.png",
+      "sha256": "edfe905e74ef925c3f7a0b2ca4e4655c5fe15f8f7682e8e187abc783df3efa46"
+    }
+  },
+  "metric_definitions": {
+    "value": "Representation-specific relative RMS direct-prediction metric named by the panel."
+  },
+  "model_labels": [
+    "M1-X",
+    "M1-Y"
+  ],
+  "notes": [
+    "No checkpoint interpolation is used."
+  ],
+  "quantity_kind": "POST-HOC CHECKPOINT EVALUATION",
+  "representations": [
+    "A",
+    "B",
+    "C"
+  ],
+  "scientific_question": "When during optimization does X/Y state specialization emerge?",
+  "source_artifacts": [
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_direct_histories.csv",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/heldout_x_test2b.npz"
+  ],
+  "state_intervals": [
+    "0--80",
+    "81--160"
+  ],
+  "support_classification": "Separate Test 2B X/Y training truth support 0--80 and X/Y held-out truth support 81--160",
+  "units": {
+    "checkpoint_iteration": "accepted iterations",
+    "value": "dimensionless relative RMS"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "common_visual_limits": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/COMMON_VISUAL_LIMITS.json",
+  "common_visual_limits_sha256": "c11b828d313170422c3602d849571cbc7c18d8d4d8b475f625786f8f64b6b4ac",
+  "figure": "Representation A \u2014 H2",
+  "format": "GIF",
+  "fps": 10,
+  "frame_count": 161,
+  "frame_duration_ms": 100,
+  "model_specific_autoscaling": false,
+  "movie": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_A/movie_repA_H2.gif",
+  "movie_sha256": "dbeb4ec378be34ac4b4282a6c189f18f4c713b3cc148c254e75aaa7e65da5b15",
+  "mp4_not_rendered_reason": "ffmpeg unavailable in execution environment",
+  "negative_values_clipped": false,
+  "panel_titles": [
+    "relative vorticity",
+    "saturation departure",
+    "specific cloud water",
+    "specific rain water",
+    "phase-change rate A",
+    "rain-production rate R"
+  ],
+  "pixel_dimensions": [
+    1019,
+    670
+  ],
+  "rendering": "cache only",
+  "representation_c_rate_labels": null,
+  "source_cache": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repA_H2_maps.npz",
+  "source_cache_sha256": "2df91af27e1fc7da5748b08de27aa6b9adebf076f1fea12695bcdc4236e00713",
+  "status": "complete",
+  "steps": [
+    0,
+    160
+  ],
+  "times_s": [
+    0.0,
+    16000.0
+  ],
+  "variables": [
+    "relative_vorticity_1e5_s-1",
+    "supersaturation_percent",
+    "specific_cloud_g_kg-1",
+    "specific_rain_ug_kg-1",
+    "A_g_kg-1_h-1",
+    "R_ug_kg-1_h-1"
+  ]
+}

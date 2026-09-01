@@ -1,0 +1,69 @@
+{
+  "archive": {
+    "classification": "SUPPLEMENTARY / PROVENANCE",
+    "pre_reset_snapshot": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/FINAL_MAIN_RESET_BASELINE.json",
+      "sha256": "20bb91198cf015b045a3332a7b4a6d1ff4f063bfa2e99babc969a6b29cb4eac7",
+      "size_bytes": 20616
+    },
+    "reason": "Superseded in the main-paper subset by deployment-consistent M1-Y/H1/H2/H5 figures; numerical assets retained unchanged."
+  },
+  "draft_caption": "Matched Test 2B comparison of the final M1-X and M1-Y models. X denotes a timestep-boundary state and Y=P(X) the state immediately before moist physics. Training uses states 0--80 and evaluation uses states 81--160; the evaluation states did not influence optimization. The two models otherwise share the architecture, initialization, normalization, weighting, optimizer, and budget.",
+  "editorial_revision": {
+    "csv_sha256_unchanged": "ea936095e82144ac00855ac1f4a164a97a423c7a5b896e7b1300f7bb605e4b1c",
+    "data_source": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML3_m1x_m1y_cross_state_final.csv",
+    "date": "2026-08-29",
+    "scope": "rendering and terminology only"
+  },
+  "figure_id": "ML3_m1x_m1y_cross_state_final",
+  "files": {
+    "csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML3_m1x_m1y_cross_state_final.csv",
+      "rows": 32,
+      "sha256": "ea936095e82144ac00855ac1f4a164a97a423c7a5b896e7b1300f7bb605e4b1c",
+      "size_bytes": 17928
+    },
+    "pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML3_m1x_m1y_cross_state_final.pdf",
+      "sha256": "51e5bfaf90e8bcb771ac3d403936fb1d752579fa33e339841b170e0d53343ea1",
+      "size_bytes": 18248
+    },
+    "png_300dpi": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML3_m1x_m1y_cross_state_final.png",
+      "sha256": "9d673fc6e9aa3ea897523e428b2358a921f994ca9924984ef2832027edba171a",
+      "size_bytes": 108646
+    }
+  },
+  "metric_definitions": {
+    "A/R relative_RMS_error": "Carrier-mass-weighted physical RMS error divided by target RMS.",
+    "source-vector relative_RMS_error": "Carrier-mass-weighted relative RMS in frozen output-scaled source coordinates."
+  },
+  "model_labels": [
+    "M1-X",
+    "M1-Y"
+  ],
+  "notes": [
+    "Training and evaluation states are not pooled.",
+    "M1-Y is not assumed to improve every quantity."
+  ],
+  "quantity_kind": "POST-HOC FINAL CHECKPOINT EVALUATION",
+  "representations": [
+    "A",
+    "B",
+    "C"
+  ],
+  "scientific_question": "How strongly does X-versus-Y evaluation location affect the fitted law?",
+  "source_artifacts": [
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_hash_manifest.json",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/heldout_x_test2b.npz",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/m1_cross_state_final_metrics.csv"
+  ],
+  "state_intervals": [
+    "0--80",
+    "81--160"
+  ],
+  "support_classification": "Separate X/Y evaluations on Test 2B training states 0--80 and evaluation states 81--160",
+  "units": {
+    "value": "dimensionless relative RMS error"
+  }
+}

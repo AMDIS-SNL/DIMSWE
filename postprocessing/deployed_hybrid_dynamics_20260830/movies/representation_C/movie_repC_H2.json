@@ -1,0 +1,50 @@
+{
+  "common_visual_limits": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/COMMON_VISUAL_LIMITS.json",
+  "common_visual_limits_sha256": "c11b828d313170422c3602d849571cbc7c18d8d4d8b475f625786f8f64b6b4ac",
+  "figure": "Representation C \u2014 H2",
+  "format": "GIF",
+  "fps": 10,
+  "frame_count": 161,
+  "frame_duration_ms": 100,
+  "model_specific_autoscaling": false,
+  "movie": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_C/movie_repC_H2.gif",
+  "movie_sha256": "ecd866ddd26bae8bb6d091b7c590d28056cfc30a4a8c9773100a52dc7741d2e8",
+  "mp4_not_rendered_reason": "ffmpeg unavailable in execution environment",
+  "negative_values_clipped": false,
+  "panel_titles": [
+    "relative vorticity",
+    "saturation departure",
+    "specific cloud water",
+    "specific rain water",
+    "effective A",
+    "effective R"
+  ],
+  "pixel_dimensions": [
+    1019,
+    670
+  ],
+  "rendering": "cache only",
+  "representation_c_rate_labels": {
+    "A": "effective A",
+    "R": "effective R"
+  },
+  "source_cache": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repC_H2_maps.npz",
+  "source_cache_sha256": "14c310f4263936b3bd153d3a33828c447836a21e9779bcaa10a47ea5ce9886dd",
+  "status": "complete",
+  "steps": [
+    0,
+    160
+  ],
+  "times_s": [
+    0.0,
+    16000.0
+  ],
+  "variables": [
+    "relative_vorticity_1e5_s-1",
+    "supersaturation_percent",
+    "specific_cloud_g_kg-1",
+    "specific_rain_ug_kg-1",
+    "A_g_kg-1_h-1",
+    "R_ug_kg-1_h-1"
+  ]
+}

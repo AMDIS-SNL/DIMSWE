@@ -1,0 +1,61 @@
+{
+  "draft_caption": "Global Test 2B trajectories for all seven Representation B models. Integrated cloud and rain water use m^3 under unit reference density. Kinetic energy is not total energy, and projected relative-vorticity squared is not potential enstrophy.",
+  "editorial_revision": {
+    "date": "2026-08-29",
+    "scope": "caption terminology only; rendered asset and CSV unchanged"
+  },
+  "figure_id": "ML6_global_trajectories_representation_B_all_models",
+  "files": {
+    "csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML6_global_trajectories_representation_B_all_models.csv",
+      "rows": 7903,
+      "sha256": "a5bc3db61a69614480ac5eaf85b895f043cf67510053ab372d3697b6ef16f5c0"
+    },
+    "pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML6_global_trajectories_representation_B_all_models.pdf",
+      "sha256": "93626b3195c4ccc2f61d9070c7ea34f6fd00061ad9ba1e7e60ca129c7ba78729"
+    },
+    "png_300dpi": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML6_global_trajectories_representation_B_all_models.png",
+      "sha256": "2a9bb2699d09a383db37d3d125bd1a37d56f2ee1f68762997f4b35073ca00268"
+    }
+  },
+  "metric_definitions": {
+    "M_c/M_r": "Domain integrals of conservative cloud/rain water variables.",
+    "kinetic energy": "0.5*integral(h*|v|^2) dA; not total Hamiltonian energy.",
+    "mixed-state endpoints": "Stored final and maximum relative mixed mass-norm errors; no time series was present.",
+    "projected relative-vorticity squared": "0.5*integral(zeta_h^2) dA after CG(3) L2 projection; not potential enstrophy.",
+    "total-water drift": "Relative change of integral(Qv+Qc+Qr) from its initial value."
+  },
+  "model_labels": [
+    "M1-X",
+    "M2-X-independent",
+    "warm M2-X",
+    "H1",
+    "H2",
+    "H5",
+    "M1-Y"
+  ],
+  "notes": [
+    "Truth and model time grids were verified identical at steps 0--160.",
+    "A mixed-state-error trajectory would require a deployment rerun and is deferred."
+  ],
+  "quantity_kind": "FINAL STORED DEPLOYMENT DIAGNOSTIC",
+  "representations": [
+    "B"
+  ],
+  "scientific_question": "Do frozen deployed models reproduce long-time global physical evolution?",
+  "source_artifacts": [
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/evaluation/representation_B_matched.json",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/deployed_diagnostics.csv",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/global_trajectories/test2b_global_trajectories.csv",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-B/representation_b_final_comparison.json"
+  ],
+  "state_intervals": [],
+  "support_classification": "Test 2B deployed trajectories, states 0--160; truth events at 5100 and 12000 s",
+  "units": {
+    "M_c/M_r": "production integral-mass units",
+    "relative diagnostics": "dimensionless",
+    "time_s": "s"
+  }
+}

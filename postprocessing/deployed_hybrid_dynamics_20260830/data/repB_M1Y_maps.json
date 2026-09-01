@@ -1,0 +1,327 @@
+{
+  "accepted_scalar_record": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/evaluation/representation_B_matched.json",
+  "array_dtypes": {
+    "A_g_kg-1_h-1": "float32",
+    "Qc_mass": "float64",
+    "Qr_mass": "float64",
+    "Qv_mass": "float64",
+    "R_ug_kg-1_h-1": "float32",
+    "kinetic_energy": "float64",
+    "mixed_state_error_denominator": "float64",
+    "mixed_state_error_numerator": "float64",
+    "mixed_state_relative_error": "float64",
+    "projected_relative_vorticity_squared_half_integral": "float64",
+    "projected_relative_vorticity_squared_integral": "float64",
+    "relative_vorticity_1e5_s-1": "float32",
+    "specific_cloud_g_kg-1": "float32",
+    "specific_rain_ug_kg-1": "float32",
+    "step": "int64",
+    "supersaturation_percent": "float32",
+    "time_s": "float64",
+    "total_water_mass": "float64",
+    "x_km": "float64",
+    "y_km": "float64"
+  },
+  "array_shapes": {
+    "A_g_kg-1_h-1": [
+      161,
+      128,
+      128
+    ],
+    "Qc_mass": [
+      161
+    ],
+    "Qr_mass": [
+      161
+    ],
+    "Qv_mass": [
+      161
+    ],
+    "R_ug_kg-1_h-1": [
+      161,
+      128,
+      128
+    ],
+    "kinetic_energy": [
+      161
+    ],
+    "mixed_state_error_denominator": [
+      161
+    ],
+    "mixed_state_error_numerator": [
+      161
+    ],
+    "mixed_state_relative_error": [
+      161
+    ],
+    "projected_relative_vorticity_squared_half_integral": [
+      161
+    ],
+    "projected_relative_vorticity_squared_integral": [
+      161
+    ],
+    "relative_vorticity_1e5_s-1": [
+      161,
+      128,
+      128
+    ],
+    "specific_cloud_g_kg-1": [
+      161,
+      128,
+      128
+    ],
+    "specific_rain_ug_kg-1": [
+      161,
+      128,
+      128
+    ],
+    "step": [
+      161
+    ],
+    "supersaturation_percent": [
+      161,
+      128,
+      128
+    ],
+    "time_s": [
+      161
+    ],
+    "total_water_mass": [
+      161
+    ],
+    "x_km": [
+      128
+    ],
+    "y_km": [
+      128
+    ]
+  },
+  "boundary_state": "model-generated Xhat_n, n=0..160",
+  "cache": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repB_M1Y_maps.npz",
+  "cache_sha256": "0f97d3265ab189d9f9f9f58eb5dc04b7f3917ede49602d0abd2f5936b1becda6",
+  "checkpoint": {
+    "parameter_pytree_sha256": "1adbd173137cbf10928ee4b25865258fc97f74b3c2c4c0a09cfd8629020566ab",
+    "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/production/representation-B/m1y-seed0-m20-10k/final_parameters.npz",
+    "sha256": "3a829ffff2c2ee96946c197e18a7bd7d7495c255212c61bec1b3d24d788a71ee",
+    "sidecar": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/production/representation-B/m1y-seed0-m20-10k/final_parameters.json",
+    "sidecar_sha256": "a5c255a6de42bbeaadf1db20e8c664d29480c7a062a68e237cbcb8a426088dae"
+  },
+  "configuration": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/dimswe/configs/test2b_rain_active_learning.json",
+  "evaluation_only": true,
+  "final_rate_convention": "at n=160 the complete fixed prefix and moist child are evaluated diagnostically; the moist update is not applied to the trajectory",
+  "frame_count": 161,
+  "immutable_hashes": {
+    "accepted_scalar_record": "4d11a81f32601a82ba018efca73e400d96e1fb8ea6b34d95bdd5123a75e3fa58",
+    "checkpoint": "3a829ffff2c2ee96946c197e18a7bd7d7495c255212c61bec1b3d24d788a71ee",
+    "checkpoint_sidecar": "a5c255a6de42bbeaadf1db20e8c664d29480c7a062a68e237cbcb8a426088dae",
+    "configuration_authoritative": "d04faed1e34469dcd7c0ee8c5382c832e337cd129a7d57cf247c7d2c201d57d1",
+    "configuration_copy": "d04faed1e34469dcd7c0ee8c5382c832e337cd129a7d57cf247c7d2c201d57d1",
+    "preparation": "6e159015234fd94881b0b97888b7481eb049a02dcd96c571078920c0bedc901c",
+    "preparation_sidecar": "efeba6e0f80063a79ff47209aa1b8973565386e4d4e8844b4b4c2fb0281f0cae",
+    "truth_map_cache": "e9477a3ac4e54ebe4da73f9df5ffaafdf98c812afd7fe92b55820230db034de6",
+    "truth_metadata": "744e728934c1e97a67a7bab232993c7444980b1d235b995a5887c7eeff5d1406",
+    "truth_rain_audit": "0302d1cb3808e9543986665eaa05aa3bcd49b1ab70326c2cca9a4d5dc1861b5d"
+  },
+  "mixed_state_summary": {
+    "accumulated": 2.52635678494067e-06,
+    "final": 5.099172034159845e-06,
+    "maximum": 5.099365299068984e-06,
+    "maximum_step": 159
+  },
+  "moist_call_state": "model-generated Yhat_n=P(Xhat_n)",
+  "normalization": {
+    "R_scale_definition": "mass-weighted RMS over meaningful R>0 samples; all zero samples remain in every loss numerator",
+    "feature_order": [
+      "h",
+      "S",
+      "Qv",
+      "Qc",
+      "B"
+    ],
+    "fitted_truth_state_indices": [
+      0,
+      80
+    ],
+    "heldout_state_indices": [
+      81,
+      160
+    ],
+    "input_offset": [
+      749.6487720807651,
+      7376.434989735685,
+      1.4193153609575624,
+      0.06015957787413514,
+      0.0
+    ],
+    "input_scale": [
+      16.913638066122523,
+      133.5602198531373,
+      0.21326095651874272,
+      0.012412402653357142,
+      1.0
+    ],
+    "provenance_sha256": "794e074b2d3149f58025a7e6a74856374d86adab1e3ee518a64fe6f30ff0dd79",
+    "sigma_A_all_training_support": 9.052258655848717e-08,
+    "sigma_R_active_training_support": 1.9902871261559996e-11,
+    "source_order": [
+      "S",
+      "Qv",
+      "Qc",
+      "Qr"
+    ],
+    "source_scales": [
+      0.006671477765500949,
+      6.803353979030477e-05,
+      6.80335397581467e-05,
+      1.5076498196845062e-08
+    ]
+  },
+  "optimizer_instantiated": false,
+  "parity": {
+    "Qc_mass": {
+      "allclose_rtol_5e-13_atol_1e-12": true,
+      "candidate_shape": [
+        161
+      ],
+      "exact_array_equal": true,
+      "maximum_absolute_difference": 0.0,
+      "maximum_relative_difference": 0.0,
+      "passed": true,
+      "reference_shape": [
+        161
+      ],
+      "shape_match": true
+    },
+    "Qr_mass": {
+      "allclose_rtol_5e-13_atol_1e-12": true,
+      "candidate_shape": [
+        161
+      ],
+      "exact_array_equal": true,
+      "maximum_absolute_difference": 0.0,
+      "maximum_relative_difference": 0.0,
+      "passed": true,
+      "reference_shape": [
+        161
+      ],
+      "shape_match": true
+    },
+    "kinetic_energy": {
+      "allclose_rtol_5e-13_atol_1e-12": true,
+      "candidate_shape": [
+        161
+      ],
+      "exact_array_equal": true,
+      "maximum_absolute_difference": 0.0,
+      "maximum_relative_difference": 0.0,
+      "passed": true,
+      "reference_shape": [
+        161
+      ],
+      "shape_match": true
+    },
+    "mixed_state_accumulated": {
+      "allclose_rtol_5e-13_atol_1e-12": true,
+      "candidate_shape": [
+        1
+      ],
+      "exact_array_equal": true,
+      "maximum_absolute_difference": 0.0,
+      "maximum_relative_difference": 0.0,
+      "passed": true,
+      "reference_shape": [
+        1
+      ],
+      "shape_match": true
+    },
+    "mixed_state_final": {
+      "allclose_rtol_5e-13_atol_1e-12": true,
+      "candidate_shape": [
+        1
+      ],
+      "exact_array_equal": true,
+      "maximum_absolute_difference": 0.0,
+      "maximum_relative_difference": 0.0,
+      "passed": true,
+      "reference_shape": [
+        1
+      ],
+      "shape_match": true
+    },
+    "mixed_state_maximum": {
+      "allclose_rtol_5e-13_atol_1e-12": true,
+      "candidate_shape": [
+        1
+      ],
+      "exact_array_equal": true,
+      "maximum_absolute_difference": 0.0,
+      "maximum_relative_difference": 0.0,
+      "passed": true,
+      "reference_shape": [
+        1
+      ],
+      "shape_match": true
+    },
+    "projected_relative_vorticity_squared_half_integral": {
+      "allclose_rtol_5e-13_atol_1e-12": true,
+      "candidate_shape": [
+        161
+      ],
+      "exact_array_equal": true,
+      "maximum_absolute_difference": 0.0,
+      "maximum_relative_difference": 0.0,
+      "passed": true,
+      "reference_shape": [
+        161
+      ],
+      "shape_match": true
+    },
+    "total_water_mass": {
+      "allclose_rtol_5e-13_atol_1e-12": true,
+      "candidate_shape": [
+        161
+      ],
+      "exact_array_equal": true,
+      "maximum_absolute_difference": 0.0,
+      "maximum_relative_difference": 0.0,
+      "passed": true,
+      "reference_shape": [
+        161
+      ],
+      "shape_match": true
+    }
+  },
+  "parity_passed": true,
+  "plot_grid": {
+    "definition": "two interior GLL nodes per coordinate per quadrilateral cell; exact ordering matched to accepted truth cache",
+    "shape_yx": [
+      128,
+      128
+    ],
+    "truth_grid_exact_array_equal": true
+  },
+  "preparation": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/test2b-rain-active-learning/preparation/fixed_learning_data.npz",
+  "representation": "B",
+  "representation_c_projection": null,
+  "status": "complete",
+  "steps": [
+    0,
+    160
+  ],
+  "times_s": [
+    0.0,
+    16000.0
+  ],
+  "training_method": "M1Y",
+  "truth_generated": false,
+  "truth_root": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/test2b-rain-active-truth/production-n64-zeta-m0p06-dt100-t16000",
+  "variables": {
+    "A_g_kg-1_h-1": "3.6e6 learned A at Yhat",
+    "R_ug_kg-1_h-1": "3.6e12 learned R at Yhat",
+    "relative_vorticity_1e5_s-1": "1e5 curl2D(v) at boundary Xhat",
+    "specific_cloud_g_kg-1": "1e3 Qc/h at boundary Xhat",
+    "specific_rain_ug_kg-1": "1e9 Qr/h at boundary Xhat",
+    "supersaturation_percent": "100(qv/qsat-1) at boundary Xhat"
+  },
+  "wall_seconds": 176.43227720900904
+}

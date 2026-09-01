@@ -1,0 +1,53 @@
+{
+  "draft_caption": "Global Test 2B trajectories for Representation C and the four main-paper models. Integrated cloud and rain water use m^3 under the unit-reference-density convention. Kinetic energy is not total energy, and projected relative-vorticity squared is not potential enstrophy. Vertical guides mark first truth rain at 5100 s and peak integrated truth rain production at 12000 s.",
+  "figure_id": "ML5C_main_global_trajectories",
+  "files": {
+    "csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5C_main_global_trajectories.csv",
+      "rows": 4516,
+      "sha256": "e5e985dc33bbc25729cbf68cc3d38346f435944a2fc830970e9c1b20841026c9",
+      "size_bytes": 1349210
+    },
+    "pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5C_main_global_trajectories.pdf",
+      "sha256": "78c9280b2065de110832d1f91eb41baa54005f8303f87d4cd11dcc1b5df00094",
+      "size_bytes": 27096
+    },
+    "png_300dpi": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5C_main_global_trajectories.png",
+      "sha256": "2747ce0498ce46953d30a3e881b45237997cfde5db695bb2a583545f4f5a4e14",
+      "size_bytes": 324349
+    }
+  },
+  "model_labels": [
+    "M1-Y",
+    "H1",
+    "H2",
+    "H5"
+  ],
+  "notes": [
+    "Truth and model time indices match.",
+    "Representation C rain water has an explicit zero line.",
+    "No solver rerun was performed."
+  ],
+  "quantity_kind": "FINAL STORED DEPLOYMENT DIAGNOSTIC TIME SERIES",
+  "rendering": {
+    "csv_field_text_copied_exactly_from_accepted_source": true,
+    "date": "2026-08-29",
+    "numerical_values_recomputed": false,
+    "source_values_filtered_without_modification": true
+  },
+  "representations": [
+    "C"
+  ],
+  "scientific_question": "Do the deployed main-paper models reproduce the global physical evolution?",
+  "source_artifacts": [
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML6_global_trajectories_representation_C_all_models.csv",
+      "sha256": "89abe564c62a78f9707b230d86305c82817dc76568d7c9bc2372119c9996ad8f",
+      "size_bytes": 2380916
+    }
+  ],
+  "state_contracts": {},
+  "support_classification": "Test 2B deployed trajectories, states 0--160"
+}

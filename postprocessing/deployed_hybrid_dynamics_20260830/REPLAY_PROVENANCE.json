@@ -1,0 +1,1899 @@
+{
+  "authoritative_repository": {
+    "branch": "dev/dimswe-learned-physics-framework",
+    "diff_stat_line_count": 11,
+    "diff_stat_sha256": "5b3ee0a9b8dd8551ff7e0163a86c06533835cc4140936da84a9c4381685e0ad7",
+    "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+    "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615",
+    "status_short_line_count": 140,
+    "status_short_sha256": "f6aad727ab0001a0976827a41bce322cf325ae0757a50bd4153aa7461754e076"
+  },
+  "campaign": "deployed_hybrid_dynamics_20260830",
+  "commands": [
+    "python3 deployed_hybrid_dynamics_20260830/scripts/preflight_provenance.py",
+    "firedrake-python replay_spatial_maps.py --representation A --method M1Y (pilot)",
+    "firedrake-python deployed_hybrid_dynamics_20260830/scripts/run_remaining_replays.py",
+    "python3 deployed_hybrid_dynamics_20260830/scripts/finalize_replays_and_limits.py",
+    "python3 deployed_hybrid_dynamics_20260830/scripts/render_spatial_package.py --kind galleries",
+    "python3 render_spatial_package.py --kind movie --representation A --method M1Y (visual pilot and corrected rerender)",
+    "python3 deployed_hybrid_dynamics_20260830/scripts/run_remaining_movies.py",
+    "python3 deployed_hybrid_dynamics_20260830/scripts/audit_rendered_movies.py"
+  ],
+  "execution_notes": [
+    "An initial import preflight stopped before case construction because JAX x64 was not explicit; JAX_ENABLE_X64=True was then frozen in the replay driver.",
+    "A second preflight stopped during case construction before timestep 0 because compiler caches targeted a restricted user directory; all compiler caches were redirected to /private/tmp.",
+    "The first rendered A/M1-Y GIF was preserved under visual_audit/rejected_movie_pilot after inspection found clipped header text; only layout was corrected before final rendering."
+  ],
+  "expected_branch": "dev/dimswe-learned-physics-framework",
+  "expected_head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+  "final_authoritative_repository": {
+    "branch": "dev/dimswe-learned-physics-framework",
+    "diff_stat_line_count": 11,
+    "diff_stat_sha256": "5b3ee0a9b8dd8551ff7e0163a86c06533835cc4140936da84a9c4381685e0ad7",
+    "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+    "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615",
+    "status_short_line_count": 140,
+    "status_short_sha256": "f6aad727ab0001a0976827a41bce322cf325ae0757a50bd4153aa7461754e076"
+  },
+  "final_m1y_workspace": {
+    "branch": "dev/dimswe-learned-physics-framework",
+    "diff_stat_line_count": 11,
+    "diff_stat_sha256": "5b3ee0a9b8dd8551ff7e0163a86c06533835cc4140936da84a9c4381685e0ad7",
+    "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+    "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace",
+    "status_short_line_count": 146,
+    "status_short_sha256": "e2471de7df5d68ff1ff0912ac6ebcb84a1936e87a8a0ffdcbb073ac5fb7285ce"
+  },
+  "immutable_inputs": {
+    "checkpoints": [
+      {
+        "accepted_scalar_record": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/evaluation/representation_A_matched.json",
+        "accepted_scalar_record_sha256": "34db97a05f691298e445222de4bd7eebf55348e01e16aabdfa7ade8b65746fc7",
+        "method": "M1Y",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/production/representation-A/m1y-seed0-m20-10k/final_parameters.npz",
+        "representation": "A",
+        "sha256": "a7f98ffe462a89a00d9d2dedd4efb4531cd0feea6e1d64de0b5359bae5e31db4",
+        "sidecar": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/production/representation-A/m1y-seed0-m20-10k/final_parameters.json",
+        "sidecar_sha256": "feb31b7c6ec68701a98570bee2af48fd07b4da2d0921c91d14c4d65500321bfe"
+      },
+      {
+        "accepted_scalar_record": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-A/representation_a_final_comparison.json",
+        "accepted_scalar_record_sha256": "75506a833862b69437a29a7a2b30e64c361d35b8560342bf8abe93302daf5b7f",
+        "method": "H1",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-A/h1-from-m1-m20-5k/final_parameters.npz",
+        "representation": "A",
+        "sha256": "a6a7667217ce26fa3b392cacc5e70f087db97622804db0cdcf123f7e532516c1",
+        "sidecar": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-A/h1-from-m1-m20-5k/final_parameters.json",
+        "sidecar_sha256": "9d446a4694d7820900287dc4b62e1ba92679536aa865b69a9679ed8c6918b74b"
+      },
+      {
+        "accepted_scalar_record": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-A/representation_a_final_comparison.json",
+        "accepted_scalar_record_sha256": "75506a833862b69437a29a7a2b30e64c361d35b8560342bf8abe93302daf5b7f",
+        "method": "H2",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-A/h2-from-h1-m20-20/final_parameters.npz",
+        "representation": "A",
+        "sha256": "2158c1e48bb422d13ea077cea9617be77aad1be76a5945ec0a5201a796a04ed3",
+        "sidecar": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-A/h2-from-h1-m20-20/final_parameters.json",
+        "sidecar_sha256": "b97d60afd41ab1251df5f1ccc12e4b03e871f39f0b9b11340a84bc618e17a26e"
+      },
+      {
+        "accepted_scalar_record": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-A/representation_a_final_comparison.json",
+        "accepted_scalar_record_sha256": "75506a833862b69437a29a7a2b30e64c361d35b8560342bf8abe93302daf5b7f",
+        "method": "H5",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-A/h5-from-h2-m20-20/final_parameters.npz",
+        "representation": "A",
+        "sha256": "07b3a84734679abf8849b5afb1f30f87568482e221a2a759a143f29a0cfc5ff1",
+        "sidecar": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-A/h5-from-h2-m20-20/final_parameters.json",
+        "sidecar_sha256": "25a3e18690dd674a4b37a8f9e33564eaaa5b2eca1964a8353dc77be50961fdb9"
+      },
+      {
+        "accepted_scalar_record": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/evaluation/representation_B_matched.json",
+        "accepted_scalar_record_sha256": "4d11a81f32601a82ba018efca73e400d96e1fb8ea6b34d95bdd5123a75e3fa58",
+        "method": "M1Y",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/production/representation-B/m1y-seed0-m20-10k/final_parameters.npz",
+        "representation": "B",
+        "sha256": "3a829ffff2c2ee96946c197e18a7bd7d7495c255212c61bec1b3d24d788a71ee",
+        "sidecar": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/production/representation-B/m1y-seed0-m20-10k/final_parameters.json",
+        "sidecar_sha256": "a5c255a6de42bbeaadf1db20e8c664d29480c7a062a68e237cbcb8a426088dae"
+      },
+      {
+        "accepted_scalar_record": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-B/representation_b_final_comparison.json",
+        "accepted_scalar_record_sha256": "6044c0fbd42484e3bd6f0ec53bef91d9a871fa315fc83c193c10f1879813aadd",
+        "method": "H1",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-B/h1-from-m1-m20-5k/final_parameters.npz",
+        "representation": "B",
+        "sha256": "bc622626887cc65acf215c03bf3281eb0fe97447723528415fbc5f8345eccf8e",
+        "sidecar": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-B/h1-from-m1-m20-5k/final_parameters.json",
+        "sidecar_sha256": "6ad99da3f46db51a35ea02faa5936688bb3ab9477bcf2351ca58c587f8e32eec"
+      },
+      {
+        "accepted_scalar_record": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-B/representation_b_final_comparison.json",
+        "accepted_scalar_record_sha256": "6044c0fbd42484e3bd6f0ec53bef91d9a871fa315fc83c193c10f1879813aadd",
+        "method": "H2",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-B/h2-from-h1-m20-20/final_parameters.npz",
+        "representation": "B",
+        "sha256": "b3257a8821b80b90359bce7ca22759e0a48f1785f01b468c60a90c8bf9f41bcc",
+        "sidecar": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-B/h2-from-h1-m20-20/final_parameters.json",
+        "sidecar_sha256": "d8ca80deb0a04bade16dbe622d21ce221fd7bb4c5b53fa8d9825ebb965043d5d"
+      },
+      {
+        "accepted_scalar_record": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-B/representation_b_final_comparison.json",
+        "accepted_scalar_record_sha256": "6044c0fbd42484e3bd6f0ec53bef91d9a871fa315fc83c193c10f1879813aadd",
+        "method": "H5",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-B/h5-from-h2-m20-20/final_parameters.npz",
+        "representation": "B",
+        "sha256": "575d26dacc4eddd4ef84c564725a8b8beb521dc279fb797eaece34e4de842f74",
+        "sidecar": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-B/h5-from-h2-m20-20/final_parameters.json",
+        "sidecar_sha256": "24f38ee2de6de12ac791b223afafa4a63aa2327f2d9b670b545083ea606f7a1b"
+      },
+      {
+        "accepted_scalar_record": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/evaluation/representation_C_matched.json",
+        "accepted_scalar_record_sha256": "7bd7adfc3834b7818a86d478228ad0176ab9f59c8e919d58e763eba4d01e8f79",
+        "method": "M1Y",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/production/representation-C/m1y-seed0-m20-10k/final_parameters.npz",
+        "representation": "C",
+        "sha256": "169eadab27a39916e37a875c27708873595f133cb4ea39e9f23eab14e86d49ee",
+        "sidecar": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/production/representation-C/m1y-seed0-m20-10k/final_parameters.json",
+        "sidecar_sha256": "4c359d363dd3f756317907fcaa92d161dcfa0c13cb4129becacbdbb05249bafd"
+      },
+      {
+        "accepted_scalar_record": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-C/representation_c_final_comparison.json",
+        "accepted_scalar_record_sha256": "8bc1d9fad90d1d5907c3ff8bc4a5e396ae09ce34f4d887d1f77ad429dfbba926",
+        "method": "H1",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-C/h1-from-m1-m20-5k/final_parameters.npz",
+        "representation": "C",
+        "sha256": "be3fac690063191ee78df7a8515b580d17842a34083835c73232ab1bb3995c6b",
+        "sidecar": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-C/h1-from-m1-m20-5k/final_parameters.json",
+        "sidecar_sha256": "5890ae73ec32988bfcfe768f9af62c91be002dbccb7f12aa75e3ecb2d92a1173"
+      },
+      {
+        "accepted_scalar_record": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-C/representation_c_final_comparison.json",
+        "accepted_scalar_record_sha256": "8bc1d9fad90d1d5907c3ff8bc4a5e396ae09ce34f4d887d1f77ad429dfbba926",
+        "method": "H2",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-C/h2-from-h1-m20-20/final_parameters.npz",
+        "representation": "C",
+        "sha256": "cce0fff0c49ad9577a5cfe6b1e8176eb45af8e1d1dbac6e98029d75e3dce1657",
+        "sidecar": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-C/h2-from-h1-m20-20/final_parameters.json",
+        "sidecar_sha256": "0a18efe69801a799e372e354547eea6ebe7b160d664fa34a542d9508500a7bb0"
+      },
+      {
+        "accepted_scalar_record": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-C/representation_c_final_comparison.json",
+        "accepted_scalar_record_sha256": "8bc1d9fad90d1d5907c3ff8bc4a5e396ae09ce34f4d887d1f77ad429dfbba926",
+        "method": "H5",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-C/h5-from-h2-m20-20/final_parameters.npz",
+        "representation": "C",
+        "sha256": "ecb28ef27fbb4663970da2e4f72f9adbcf0c67ab966e80e65bb21f17ada63985",
+        "sidecar": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-C/h5-from-h2-m20-20/final_parameters.json",
+        "sidecar_sha256": "c176d8b638b88cb2dcd225a10f19fede75b9ea057ec3c5d4509d0d0d2a432871"
+      }
+    ],
+    "configuration_authoritative": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/dimswe/configs/test2b_rain_active_learning.json",
+      "sha256": "d04faed1e34469dcd7c0ee8c5382c832e337cd129a7d57cf247c7d2c201d57d1"
+    },
+    "configuration_copy": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/dimswe/configs/test2b_rain_active_learning.json",
+      "sha256": "d04faed1e34469dcd7c0ee8c5382c832e337cd129a7d57cf247c7d2c201d57d1"
+    },
+    "fixed_learning_data": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/test2b-rain-active-learning/preparation/fixed_learning_data.npz",
+      "sha256": "6e159015234fd94881b0b97888b7481eb049a02dcd96c571078920c0bedc901c",
+      "sidecar_sha256": "efeba6e0f80063a79ff47209aa1b8973565386e4d4e8844b4b4c2fb0281f0cae"
+    },
+    "truth_authority": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-truth/production-n64-zeta-m0p06-dt100-t16000",
+    "truth_copy": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/test2b-rain-active-truth/production-n64-zeta-m0p06-dt100-t16000",
+    "truth_manifest": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/test2b-rain-active-learning/preparation/truth_manifest.json",
+      "sha256": "746ae7020093261a4c5292fb37f61c8b12b0c825d5e5fa76a560fc830f37fe40"
+    },
+    "truth_map_cache": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/data/test2b_truth_maps.npz",
+      "sha256": "e9477a3ac4e54ebe4da73f9df5ffaafdf98c812afd7fe92b55820230db034de6",
+      "summary": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/data/test2b_truth_maps_summary.json",
+      "summary_sha256": "c160661085f9b4d09480ad8875eb2890576129445e3af1278c60330ff108df62"
+    },
+    "truth_restart_count": 161,
+    "truth_restart_files": [
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000000.npy",
+        "sha256": "a3dcad8a9f19b2afef5f24fb8115024c4b14f239e80d0104f5cce1780ea2f9c5"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000001.npy",
+        "sha256": "698964a72fd916b36c4e51c96b5f3f326e1fd87ce9e9f088eb58a2f320c62995"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000002.npy",
+        "sha256": "7fc783adc0ab1bdd711fcfdcfe2db060b4181e7af53b5fe040b715d448dfe9d6"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000003.npy",
+        "sha256": "364f0666c1e4d2e60e804d51b0b6721fd58a9c1cf6133f35adfcf2b3d2e76acd"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000004.npy",
+        "sha256": "cb198c2da91fd534113c8403383118140af19b76911ff4e9cdd1264456b96361"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000005.npy",
+        "sha256": "cc0fd1b2a2025b73bf38a570dedb68bab07c83dcefd4dcdd76394a50352eb013"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000006.npy",
+        "sha256": "503546fdf2ed41206c0957d76204a5ebc5276ad0e2d81012d73c4d86e1d53606"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000007.npy",
+        "sha256": "f0a918f2042b85d3a20630b56f30183c3ab53d0244a40b00e4a35f7be2f80d52"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000008.npy",
+        "sha256": "bffed68b9137bf233761f2674e4bdf92c7337528c20f67f7cd70333c2630651d"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000009.npy",
+        "sha256": "8dc75be5520132585e673fd472e47445f44e43d7a3c1f50d95e776d6deeac602"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000010.npy",
+        "sha256": "85fe7f5a6ca15d6a7f7d14253a3c12d86fa1dcb884d90aa08f3bfd8d76a581c3"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000011.npy",
+        "sha256": "45c0f814b52bd3bf89b052d67f536f46c11b0bab32337e5c498be91a5f891e95"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000012.npy",
+        "sha256": "d90c765adf10172cfb04c96a9b5d022092587b6c18feb2fa17b42c831d6397d1"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000013.npy",
+        "sha256": "a45ee2c938c58f7796dc4af3b005b7bf054a4a8275e71538a7e4a3243dbaafcf"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000014.npy",
+        "sha256": "1ddeb3faead81f2dbb705825d3c5db23534b46e5512e884723dedcefdf410222"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000015.npy",
+        "sha256": "3c7264740dc9fb95da09bdfc3d4f647ea01ff4f23dc4b8b77369a610995a97de"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000016.npy",
+        "sha256": "fe120e50d632bea2a0fbc1dcf1377a4f2f078993c8ba22dabb893e3492940453"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000017.npy",
+        "sha256": "39bb254b7d9337e322a1e526db684107f9511394d6dad3bce05e29fef4e22e4a"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000018.npy",
+        "sha256": "356f84a6b148d7ee1638257808b13d188fe41249822cac41e278a55f42f0e6d5"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000019.npy",
+        "sha256": "1149d50763e2b2a20900e01d9d69ef4922e77a02de69f13d1ecd8d03d7994bb8"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000020.npy",
+        "sha256": "27566c0fa77ef320a3e31d9516c87fb65eaac9704c3909a1f6478fe01c86b2c5"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000021.npy",
+        "sha256": "d8193c6cf54e3aba25e0197af256221a1ea0581c3b4dcaf9d108bdbce03301ba"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000022.npy",
+        "sha256": "0a77639863601dfe288850f8dc019f0bb42ebebb5fba506d9e7cfd2575a973b7"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000023.npy",
+        "sha256": "15c3ea26f388d97cbe1861c2663d81d5dc122226af7e2091cd9093346322962e"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000024.npy",
+        "sha256": "4d71fd9820bc2afc6fbdc0e4bd98c71e582f512398a851963c41b6a55cb00a4a"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000025.npy",
+        "sha256": "2d4ae452f184b3540a0e1c3f03279da5d33a719404e0565c6edac893008e42fd"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000026.npy",
+        "sha256": "a5beb4d30294f3e08cf0f0f42c9b29da0bb3f28deb4454ab815f60ced07614c5"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000027.npy",
+        "sha256": "68c576c2945ebbcfc0e81757f8e3f5d01215025b09b0f99aedf9c96ea46c3460"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000028.npy",
+        "sha256": "7cc199eb6627f12f55e23939d1d9a173d5364a2bea35f96c25800096d134bb2a"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000029.npy",
+        "sha256": "b778328d8cfdbba0f6eb45b2eb279afa6748b20020e17fc384b5a50faa194f4b"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000030.npy",
+        "sha256": "3a356dd8d5b84c95aeaa8b5772f2d75e4e149f795f1f04f987db0f875bfc5342"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000031.npy",
+        "sha256": "ab3ba8a9a29723f229d0ff23b5f60902d9b0dab213708d334b05696f9de45cf5"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000032.npy",
+        "sha256": "1b86521cca81d94cf29f94eb2f9f7dac028407a7c1234415e7f16281d589c695"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000033.npy",
+        "sha256": "37ebf0fdc1d5f444979d713946d7c58addb0a921687ef33c620306e0fdeaf3a7"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000034.npy",
+        "sha256": "326aff7a9b2913f6d64b35a58a1d70f64b269d7bbb59d390d3f489c462dcbd01"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000035.npy",
+        "sha256": "ef5787d20bf26fc1edd3307b401e698a20c9d66a20f4f183fad46e5bc8e5c8d0"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000036.npy",
+        "sha256": "31c7bcfd3fddfccc38fda1301c44f8b6ad4e76cb344f8617847c86434481715a"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000037.npy",
+        "sha256": "32f872e59b03a6ce807aba413b11835dd428e34187fa9b2e43482b5a07c3d604"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000038.npy",
+        "sha256": "a37491aaa8f9877e0b7bdc6ba68564378ca2f8093578b38d0afa124b7e18e43e"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000039.npy",
+        "sha256": "6df4b53ab6a204128bcd08c3afffdb544a60cf33b9ee25c78a6fb6f5514aedc2"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000040.npy",
+        "sha256": "046e77fff193872f2ff14868622f21998002c19992e93348e1d725a2bac2f8bb"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000041.npy",
+        "sha256": "1b061a766433de615ed8d36811414359495de104f2e1cd99ba2e70bdcf10c5c0"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000042.npy",
+        "sha256": "62dedcba632778823aa99ca8a824e2d2412458950095c62dd666ce83705b2a19"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000043.npy",
+        "sha256": "28568f9574b11d09b114c2c336b2c653292ce1097a12f99f33a377cf243cd27e"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000044.npy",
+        "sha256": "a80ef9650a668cdda813d497f70e9d4520d1d146bb0df940b6a2871e866bc71c"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000045.npy",
+        "sha256": "213d8eac81a608164f8cfcd77b5abfc7ee11d3b0d2546eb61d0e8753d15ae49e"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000046.npy",
+        "sha256": "3b88ec22930e53247d0191394209073b988723de568f8fbf0969599c198930f5"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000047.npy",
+        "sha256": "de5e7dd69f398f57ac12c216090f84da1fe65ad8cf72d3d0ef2cfaae5313a99c"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000048.npy",
+        "sha256": "e0a47c502e4d661b535272dd60bafb00c083e70aba07e491455b66b7a4250ef1"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000049.npy",
+        "sha256": "957f54a7ac0109f991f70056df8d737597ea5b0fbfdabb66080392ed62ef5643"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000050.npy",
+        "sha256": "3dd716b0bb88e774729c550ce47ea14e839b915368b1f228aa23db1a8c64b222"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000051.npy",
+        "sha256": "237e473eed083988d26fbc22e9fff9e4156b3eaa787516ca18701119d9da1f5d"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000052.npy",
+        "sha256": "9ac589f57cb601475d54a9a633a9c1ad4dad3bc8e63d9a35fbe61ce017b995e4"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000053.npy",
+        "sha256": "9609f590574c0b5325f93553c90cdb968b364ede884b60b644c834ab3de4dfb3"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000054.npy",
+        "sha256": "920007ca5bcdf2da7673b23b7d5b58c1bb9ce48c6883fcd9d81514fef66c2f5e"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000055.npy",
+        "sha256": "d6c8e5a8d2c0f48601edb8fbbece653ec0d7480d70d9946a9d8f31c1000d9786"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000056.npy",
+        "sha256": "4c64703ac484810c71b4a32bbcf4df92be60dbbc8d9938167092de5db4d89fc4"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000057.npy",
+        "sha256": "4ba6a7ecdbf26a726cd6ee83c851785942822269a5b92c42a870da46f5fae852"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000058.npy",
+        "sha256": "b914bfa0c1c8e70460f75d261e81d648c7a35a8face2620ad7ca650e373ce75c"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000059.npy",
+        "sha256": "0b1bca8b743c021a47dcc633bd9d493c882787439773382978e78e66803f3906"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000060.npy",
+        "sha256": "e821cf6aff775d61c0433e1eca02d53cadb3497fcecd16a48c7d56dab1d7b62f"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000061.npy",
+        "sha256": "28c9be1259cef163850ff23792c614351fb69e04370978f4e88ac10173eea806"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000062.npy",
+        "sha256": "d7328bd0b94e111f9d9452498cdb88efd1d64f7874b1f587fedfb3424f6401f3"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000063.npy",
+        "sha256": "0c94d01ca1033a32f4d5c535d44d995a6184e43a8901af3f520cdfcd40164e87"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000064.npy",
+        "sha256": "b5f46526d985131938a0fe16cc532165b02aa588157a52d5d532254a0a9124ef"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000065.npy",
+        "sha256": "fc4743a767ed812e1809a122dfbf8e7ca16122c6ce7922c5749bfcd03046dc2c"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000066.npy",
+        "sha256": "bb2f61e57ba90d97549ec2a3839744d5cf8a50224fd76645e22f851339397fc7"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000067.npy",
+        "sha256": "78f7af8f9332009b3756b661856dc4a0326271ffd4db764971382cc963c8b775"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000068.npy",
+        "sha256": "869b9fb8399a6e35293b9dad27321f21fed53e866cc30f50cd5df20129167809"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000069.npy",
+        "sha256": "6a25828d11833df125cfd134912487c1a4c124107d4dc7204551916e68148041"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000070.npy",
+        "sha256": "10939cac204560f72eb8fc2d281149a1afd4c6e242795e15c66554da9ef02804"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000071.npy",
+        "sha256": "f0508eafc27c6a6a32af43cb612b1060bd0a369f282260e5bebbede716e813b6"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000072.npy",
+        "sha256": "5d831872b3a04530f6ae7f8d0292c50b6a4f4abdbf0f18812cca4f4be9a9e202"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000073.npy",
+        "sha256": "fd529be44a062cb2193e3af5b6a52e4bd380c3c5aaeafe56dfaee75238ce2f2f"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000074.npy",
+        "sha256": "038c5964065cc68c84703ce62db558c51a20cbf511258cc0a5e0135b1a8619ae"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000075.npy",
+        "sha256": "117bbb68372ca17425e02a5b301e0818636e5d60f9f05900c27e816f044540b8"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000076.npy",
+        "sha256": "d9f259476e303a15b5497ab7a2a2cc1e64c7354f64f98343e44a183faa56ccf0"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000077.npy",
+        "sha256": "d4fd69c38476a95ba4def82bc25404d3a41c5ce3379438432c6111530789054d"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000078.npy",
+        "sha256": "5678c21bdf4d4f23716f55ef5a7d1cc094a8ab5c1909d1f61f73385580096804"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000079.npy",
+        "sha256": "e2cbe02247b2680bd2e4cda08b52a9e47f575a80e5205f2c0ae5c5923e047fd2"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000080.npy",
+        "sha256": "50f36bf4faebf79627c0fcc9dd1d668a3a298739047fd7c2c07d13b38554ce1d"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000081.npy",
+        "sha256": "c8289d97b7658d71170c8e83ecbcc03059737d62e4e20e8a7e48982c301a64d8"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000082.npy",
+        "sha256": "8135d3a419a56e3b53eba57be869fac6f05661819eac4595676e321d2ad3d4d5"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000083.npy",
+        "sha256": "d49359e652b527b09fe454ef9710161ea91dfefe351c08f57230b6488a0f48c4"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000084.npy",
+        "sha256": "09499ccd311ee28fc9f1f374780607210e62952388d3e81adae0ac584cb49c9f"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000085.npy",
+        "sha256": "09e56e0c60ce2f706a9ab42748dbf81236f524cef4d874ca040605630ce6b3d7"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000086.npy",
+        "sha256": "8a257b755394903821e1cf7a78a171a84bc32a704d462065a41629ebe3579d61"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000087.npy",
+        "sha256": "adec6ce2e6d08b9d8b79dd5ce60c5f179fffc2953b016a9c94e3c12f1d4ad3f6"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000088.npy",
+        "sha256": "b1d831c34ef0daa2c8d4da6f5d1958dd12fff4d7be8469ab4be895b1d522af03"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000089.npy",
+        "sha256": "e4218e6b669d01db31cf2ad52d01ae3f3026eb90fa73a5a9182a1bf5897bfad7"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000090.npy",
+        "sha256": "c1904d42056d143292a95d06b4c4eb3967c09ada1344b9cae826f264eaddd611"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000091.npy",
+        "sha256": "b910ecf9c5bf39db4eacb5868a6f59148f3f76457b1e82a1269b621977fbb233"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000092.npy",
+        "sha256": "c7abcf05e070c690081113028457e72fe851b50e7bd501e4f519217fdd030df6"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000093.npy",
+        "sha256": "3550f8bf9749d61e37abb0f49b509d5bab0d4828df9fb6c66250e38ebc6a4adc"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000094.npy",
+        "sha256": "21ff7a6da9be47d446ed495a8402505c31de63c3f396043eabd70afe51907c9b"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000095.npy",
+        "sha256": "28521c84c819d9e52a3331e326ca16a3e43779a428f6a4dad84f2757fe56eeb6"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000096.npy",
+        "sha256": "687159893b5dd89d081ba41ef63160bc1636380f93b4ae05970cc5c5bc563bf6"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000097.npy",
+        "sha256": "ac80bff25fe97657b3b164d5234eb96f219063a0597d400b623b7c5b03bd15b2"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000098.npy",
+        "sha256": "35684e3fcc91804cfb51c48adb5d12088ca350eac26064c070189f45bb7050bb"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000099.npy",
+        "sha256": "29038d57df3a51988c614dcf5db71fedf96d9cbf305be261965d8b3ad1d74a7b"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000100.npy",
+        "sha256": "e3ba7e749260aa89b528dd563befe1f8b87f152baca18520f1e97d10e6d39b44"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000101.npy",
+        "sha256": "a14e0ebd16fa35624b037610454d50c49cd0b85a7f6641786c2df9d8c14ac2cc"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000102.npy",
+        "sha256": "77f7fd06d1c295ad493e07d89836bce01c38c90fce6484122cda72af2f3b8c8b"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000103.npy",
+        "sha256": "c5028602b49668409d2651f67692810e9b7fc990a5aba6b0183791858557cfa6"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000104.npy",
+        "sha256": "c17ce98746cdee97cd007e6b2ac400e06bcd790822154b87f370122b20640cb1"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000105.npy",
+        "sha256": "d45628012de06f07022532c8c04d2a760227c13bad6a5516a1c8ccc1618dd701"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000106.npy",
+        "sha256": "84ae60658eedb086b31bc7dda98c2a5edf2e34163fdc5a1240fb24e0223b9373"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000107.npy",
+        "sha256": "aacc2449e20f2ef4e6c68ddbf58169dbd3f924f3f59686ec37d15ae03f270f94"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000108.npy",
+        "sha256": "e92a7b148e1fc907196f80a2b02b50d14790fbd9c2ad23850c1ea8eecad8e084"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000109.npy",
+        "sha256": "5f28072e293d4560b16142f733da5e626f67750664c1347326436ca9930de047"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000110.npy",
+        "sha256": "21373284b3a95b4502212d3f643f61e9c446e8f0e1a7bb884b9d5288d254d829"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000111.npy",
+        "sha256": "1c6bea942ec6c06772b06224ab3b6d88ec46ca6e2aea1cffafe70427a1ac92ec"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000112.npy",
+        "sha256": "037fe2ff566a49e3fa63c3ed4d412d6a85cbce79983866365414b8adbbaa189f"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000113.npy",
+        "sha256": "81efc61af8015acc12f78b325d6ea405c563e00e48314a6cf561e9aab6caf79f"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000114.npy",
+        "sha256": "a42edb0fb8df2cae26f5af867fd4b6a5ef3e33cb918938829fc7f2878b9e9643"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000115.npy",
+        "sha256": "1cb70395c3ee7f6bb693600abfee6ae9d05e915edcc9f1a073984302f6080f9c"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000116.npy",
+        "sha256": "b9bb7d4c4d33b096b18108b4c16b6b8c863202858facd0cc4389f037b13bd610"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000117.npy",
+        "sha256": "e5faa7a5de897c45342c50a72ad5cc83672628e63be74ecdecd4112bfbeaeaf6"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000118.npy",
+        "sha256": "e77185c7e70ecd5f999c33d64d748a1967033d25e7b9e559ca2fba3e3f17081e"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000119.npy",
+        "sha256": "08e6f9c78c932536b146527fd6eee4e4915e97e33276a68a6eabd62b66fb7186"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000120.npy",
+        "sha256": "fe7d9a646e002867f79d17be06ca6793b31f8117076f10c9cd34baefb9fe9f91"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000121.npy",
+        "sha256": "b90c5488cbcda26f801549bccfeaa676cad005ffdb1472b879a82ec560b02374"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000122.npy",
+        "sha256": "0e968414754e5e33536e0c744565400d2e80473a45d8a90586bd4dff8bc3948d"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000123.npy",
+        "sha256": "3c4935dd8d32b047ed4c5ff7cde2eebda17c0071274d12013dde69b8810ce5cb"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000124.npy",
+        "sha256": "9ddaa0f24324f66c67d68ffa090ea40cff4680c44a888d5f78fd04470f7b69be"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000125.npy",
+        "sha256": "ee3f7ef7c1c417f1b2d8d853f6feae7c6e2b39f275ee146f5e94439cb38f94b5"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000126.npy",
+        "sha256": "8aba0cf289b4826e6ca3eb85cca0bc3ebf093259b3cf90a7eb3ff8a1495d7ca5"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000127.npy",
+        "sha256": "c7250102721559f99b2c2d5f31665909f606212b91e43735e9faabd9d152fc08"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000128.npy",
+        "sha256": "2e733d71ff982a86b8185b0c7ea1b1c41d0424a0c5810cd3b8b41e168aa62590"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000129.npy",
+        "sha256": "7aee5db014081f4c95c446c29566ec461ce9bd2fcd357e2baac1fc2634f1065c"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000130.npy",
+        "sha256": "dd8472d79c980c4ba17fd8d7b019699576ff834cef544d39f171e5fed49bd9bb"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000131.npy",
+        "sha256": "8cf622aa02765065f95abf7855b1ab0cae7991a5e8d55198b2710273e0590d69"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000132.npy",
+        "sha256": "59527bd9b25280d51db99eabe160ab2cef6b162b4ecc91de7dbd80d8192fa8e5"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000133.npy",
+        "sha256": "23cc83d83899e8b9c1573e3d48957613cabac3d6b79b4a2968a1b297f1dec35f"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000134.npy",
+        "sha256": "348d50a6a0d494dbbbb844f5c94a793e8154ab9081b94fd3754b22df4c360ef4"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000135.npy",
+        "sha256": "26e41b75a976e64a353e4ab8087e1d8152f33d570008278c77d0f673a83884e5"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000136.npy",
+        "sha256": "1fc043dddefc1f94b8819973e8af7e25484a4530ddb4930c56201de4e839e520"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000137.npy",
+        "sha256": "5e99b948f9c6921d8c9e3ea60c3f1ae3750b26159e087695e96a774ed674ad99"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000138.npy",
+        "sha256": "20152c1e4b22ab32670ec5fb1789cd795b047255171224dbb84b44844d90f868"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000139.npy",
+        "sha256": "b941e902929c11b027ee8cad7c571f83a83d5c0148864717fdb59d73b0cd0222"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000140.npy",
+        "sha256": "fface77e25d10504cfca2b3ad5bd481a415d55e26d455109c5cd863159f3eb80"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000141.npy",
+        "sha256": "6243b01d3e6ec89262791f65922c3443f6599e1756ca3193a3218dd84aae13c1"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000142.npy",
+        "sha256": "5f4dd4d2bf19f8dcdc5b1d3623e80f3260c2cc1d5e20a4e52a8bb779cd18a413"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000143.npy",
+        "sha256": "e7809960a3be2f421ddc4e0ce8a10810271ee22fbb6cec2fec5ebffa36a65973"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000144.npy",
+        "sha256": "a5ce94cf08085e05b23a6639939bc5b0363385e86cf17a89dfa7ca47eacc492d"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000145.npy",
+        "sha256": "f446fc2620d35825c7018f1013b31598079af2a97c96f3c249210e13473c72ef"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000146.npy",
+        "sha256": "9cb548aaab216e168a7dadb542837ebdcc6f3ba47755ba4335956648cfbf1d93"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000147.npy",
+        "sha256": "0c2df364057c7552f5f3315f21545ee44e03fc58be02296cf7f806b10f85501a"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000148.npy",
+        "sha256": "ef36912d1f5b82c479c9df8bab8c402616380ebe145d055d7992cec02c0638aa"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000149.npy",
+        "sha256": "0b6c3a8d828eb7a92981f68adf2ae70f19de761d3d7ab98d58a76d1b8d77cee0"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000150.npy",
+        "sha256": "6a26dacc2a1313061a252ff6a53d393536aeb3ace464f01d6943226c441b33e0"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000151.npy",
+        "sha256": "b124163d55c1b15527889434af82d511943b5ac195f9f43cad72292da76f0bc8"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000152.npy",
+        "sha256": "022dcb6f2556e24defb0a75661eb351aa8835e2e8e38c30877b9f72605377d5b"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000153.npy",
+        "sha256": "83ac154b75db146d4fe6f3be73138257fbdab89a7dce045d1ef221c6614b97e2"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000154.npy",
+        "sha256": "e3f374e196114ae87d110a58f907fae37fa75b7b7234b6d722111c3f1ba7f78d"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000155.npy",
+        "sha256": "df66b029bf353038a482195f72d3c9e0150e2de9a0bcbd6fbbf3922c2d5cd78b"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000156.npy",
+        "sha256": "cf53ac079d3b88da7ce0e07391647c4610cca24c8202d3e8090a7a77293ce31c"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000157.npy",
+        "sha256": "b6a8a108336fb69afb554aecb0ad3c114756665f19aa9afc795cbca96cb3f3d0"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000158.npy",
+        "sha256": "0fced5b3de971b9433470532fcc23b7d8f4b4c5dd89b357d16ec9c6d32dba782"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000159.npy",
+        "sha256": "bec3bbfe6341cbaf58b53f206b62ca4fe095ab13a634bdf51172569be23af908"
+      },
+      {
+        "authority_matches": true,
+        "bytes": 1572992,
+        "copy_matches": true,
+        "path": "restart/step_00000160.npy",
+        "sha256": "8da66da4fc76923bafa8e3dee1db553b880f03fd4c26f89cd2452624297510f4"
+      }
+    ]
+  },
+  "immutable_inputs_reverified_after_rendering": true,
+  "m1y_workspace": {
+    "branch": "dev/dimswe-learned-physics-framework",
+    "diff_stat_line_count": 11,
+    "diff_stat_sha256": "5b3ee0a9b8dd8551ff7e0163a86c06533835cc4140936da84a9c4381685e0ad7",
+    "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+    "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace",
+    "status_short_line_count": 146,
+    "status_short_sha256": "e2471de7df5d68ff1ff0912ac6ebcb84a1936e87a8a0ffdcbb073ac5fb7285ce"
+  },
+  "output_counts": {
+    "gallery_json": 13,
+    "gallery_pdf": 13,
+    "gallery_png": 13,
+    "map_json": 12,
+    "map_npz": 12,
+    "movie_gif": 12,
+    "movie_json": 12
+  },
+  "output_inventory": [
+    {
+      "bytes": 38584513,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repA_H1_maps.npz",
+      "sha256": "c1baf2f41a65c6a40ddda8e00623f38b49c012c98386c34f482a9f3aa9f59c4f"
+    },
+    {
+      "bytes": 38609921,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repA_H2_maps.npz",
+      "sha256": "2df91af27e1fc7da5748b08de27aa6b9adebf076f1fea12695bcdc4236e00713"
+    },
+    {
+      "bytes": 38604434,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repA_H5_maps.npz",
+      "sha256": "a60c6cd46d3f20884d4fe8bad116e066c5c379f3ee3313ae2f704a1705ecb837"
+    },
+    {
+      "bytes": 38786074,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repA_M1Y_maps.npz",
+      "sha256": "e49787f46136f491604854e192883ad32aadd50d18f171f2e41fdb59ae195b92"
+    },
+    {
+      "bytes": 50093664,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repB_H1_maps.npz",
+      "sha256": "ee8c627c9b3cd523ef42501ab02a035372f525fb0b5079f0de88bcae932bbf08"
+    },
+    {
+      "bytes": 50091601,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repB_H2_maps.npz",
+      "sha256": "aea531dff007c4ce9546fca7c53c631fbf7409838f9e0868c9838589fd7126f1"
+    },
+    {
+      "bytes": 50078774,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repB_H5_maps.npz",
+      "sha256": "ee60e2ad75a6576ab85376301c022f8ad10642a0b46451263ba8c8e8fbf6d34f"
+    },
+    {
+      "bytes": 51132430,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repB_M1Y_maps.npz",
+      "sha256": "0f97d3265ab189d9f9f9f58eb5dc04b7f3917ede49602d0abd2f5936b1becda6"
+    },
+    {
+      "bytes": 56685068,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repC_H1_maps.npz",
+      "sha256": "46eb8ed760cddffdc83d96b71f93e631d56089310c39cae8c9d65c44421ef427"
+    },
+    {
+      "bytes": 56432616,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repC_H2_maps.npz",
+      "sha256": "14c310f4263936b3bd153d3a33828c447836a21e9779bcaa10a47ea5ce9886dd"
+    },
+    {
+      "bytes": 56229644,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repC_H5_maps.npz",
+      "sha256": "0b69a4f12c895c77f06c3e7073af20bf0bf4dfb31ac796cf5458ab4a96b9b6ee"
+    },
+    {
+      "bytes": 59926545,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repC_M1Y_maps.npz",
+      "sha256": "fb4e5e5a54e52fbec4982cb48f5c32b4422d6070f09c54341d24d7a41e12165f"
+    },
+    {
+      "bytes": 9814,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repA_H1_maps.json",
+      "sha256": "dad5ddbeaa8c5395fca036cfb9e7fe66bb36081df7853b7a008f66700ccdaa41"
+    },
+    {
+      "bytes": 9815,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repA_H2_maps.json",
+      "sha256": "ad84b33ff3f4f4916320dd6acf31e867e82cf90ada961da45dfd8cd58895b7a7"
+    },
+    {
+      "bytes": 9814,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repA_H5_maps.json",
+      "sha256": "5b6e8c4e1aadbf0dcd0ec0ec1fbde96bedefa85e9ad0bac70029f4701c31fa24"
+    },
+    {
+      "bytes": 9883,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repA_M1Y_maps.json",
+      "sha256": "daedd08588b0c38355094cf0539e9f7007941b6bf01cca3188f96aebbc490290"
+    },
+    {
+      "bytes": 9814,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repB_H1_maps.json",
+      "sha256": "d467f0f08eacd146fac6e8d3b18111cac743ffa729ba724901e72d1f6c1a071f"
+    },
+    {
+      "bytes": 9812,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repB_H2_maps.json",
+      "sha256": "c9d1826a76e275cf2ff5eae3636c5aa745751e202051012c8559b4e0058042ca"
+    },
+    {
+      "bytes": 9812,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repB_H5_maps.json",
+      "sha256": "ab6a8b9e280924d12897e302c3aa72565f1d50883c17ccc9aa6cc8dd5b5f7e5c"
+    },
+    {
+      "bytes": 9879,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repB_M1Y_maps.json",
+      "sha256": "0086eedd481210e4d925f70b1a8ff0f5757f0b1634ffd9cb0b0a40ec697c6262"
+    },
+    {
+      "bytes": 10732,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repC_H1_maps.json",
+      "sha256": "357d59b8320c43d1003326028937da27e41f1ea128642dfcb14dd44edc5ac8d1"
+    },
+    {
+      "bytes": 10733,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repC_H2_maps.json",
+      "sha256": "65ca49f1df42cec66466c9110b8d881ef580f410914020d615995c23c78e6307"
+    },
+    {
+      "bytes": 10731,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repC_H5_maps.json",
+      "sha256": "b52f94825e6c399040eccaa87b4884161f1167c56b35149d1c4bd63ba4167b7f"
+    },
+    {
+      "bytes": 10803,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repC_M1Y_maps.json",
+      "sha256": "9985c41d7fc37ba6095ccaf67d1aa93c971c6d0550d3b4a46dc8493c3806940c"
+    },
+    {
+      "bytes": 146694,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_A/gallery_repA_H1.pdf",
+      "sha256": "7e6b257a27d9074b614d7f8d3e4bf54053157d89abac59b1a81e16fcdc8a2430"
+    },
+    {
+      "bytes": 146527,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_A/gallery_repA_H2.pdf",
+      "sha256": "01060fd72ef2b9123990f6fe9b9a0205df5562fefd2fc7b37bd4bbf4f64ee0c3"
+    },
+    {
+      "bytes": 146708,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_A/gallery_repA_H5.pdf",
+      "sha256": "cf2d46a4a9d979d986764d4e18cb8e3b2e303cfa21aac679fd81ccbd669250d4"
+    },
+    {
+      "bytes": 147084,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_A/gallery_repA_M1Y.pdf",
+      "sha256": "172cb71b4045505e5720f445231847c487ecb4991445c6e48fa69727ac86014c"
+    },
+    {
+      "bytes": 170916,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_B/gallery_repB_H1.pdf",
+      "sha256": "353daf8e2f3f193ed014a0f521d694e2fa2879bba2b001d9be147c9af775effc"
+    },
+    {
+      "bytes": 170898,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_B/gallery_repB_H2.pdf",
+      "sha256": "a30c903ab786590fda7ea0d7da8cb50c57a6889775b0d38132383585e3fd8241"
+    },
+    {
+      "bytes": 171071,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_B/gallery_repB_H5.pdf",
+      "sha256": "0053097c1f21593e18c929f49d8384a77e3c78288eafbb9c9b6ad4d3996cd9bb"
+    },
+    {
+      "bytes": 192770,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_B/gallery_repB_M1Y.pdf",
+      "sha256": "1f49212235bcfa5f4cdb3c2439103ebba8628d7c11264a75a9f9ea713d19807d"
+    },
+    {
+      "bytes": 158670,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_C/gallery_repC_H1.pdf",
+      "sha256": "684f7d7c48f78677926181ea92c876253b9d49677a574d138e465a32225c21ec"
+    },
+    {
+      "bytes": 160389,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_C/gallery_repC_H2.pdf",
+      "sha256": "71f6bfe505e89c913de0158c701c6e5c52398b00cb203e13b73858cef20126dc"
+    },
+    {
+      "bytes": 174645,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_C/gallery_repC_H5.pdf",
+      "sha256": "5c8197d33bded4f533a05a5733fab9bb8470cceb93922c0bfcdb717a53992001"
+    },
+    {
+      "bytes": 199976,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_C/gallery_repC_M1Y.pdf",
+      "sha256": "39365290c061734422355bfdf1fa25522fb3e34686733fe021cb0d98662aaaaa"
+    },
+    {
+      "bytes": 143637,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/truth/gallery_truth_reference_common_scale.pdf",
+      "sha256": "cd03ba1b3788d6be570d8f2470ab28b13f057dccfb1736f659030196dd83c58e"
+    },
+    {
+      "bytes": 540535,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_A/gallery_repA_H1.png",
+      "sha256": "4d0b0a064772d57fb68aab4bb60df2c240ed5f66aecea941f3ed47276a99589f"
+    },
+    {
+      "bytes": 543467,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_A/gallery_repA_H2.png",
+      "sha256": "2c748b3ef00b07c07424c1fb837c947749a4daec78cd3461f3df836b88dab232"
+    },
+    {
+      "bytes": 543020,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_A/gallery_repA_H5.png",
+      "sha256": "23470a3730a06a816e8c01f097bb54bb1283db8fea9c3063b66173310c73552f"
+    },
+    {
+      "bytes": 542168,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_A/gallery_repA_M1Y.png",
+      "sha256": "75be51f5332642a34cea9dd050c6f1c95c385923c35025bbc0aa8aee208166e8"
+    },
+    {
+      "bytes": 595565,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_B/gallery_repB_H1.png",
+      "sha256": "ee620ceae9436da67b0b1b2606232086742e3907b63ce0292f611863ce2b4c60"
+    },
+    {
+      "bytes": 596388,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_B/gallery_repB_H2.png",
+      "sha256": "271689dc4ab59fdff7ed4cf630ccbf7038e7b685c569408da3e6e0baa4171b23"
+    },
+    {
+      "bytes": 595833,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_B/gallery_repB_H5.png",
+      "sha256": "50f2138407e89c4edf5e30d7c425581a0654cec6ef49de7327d18c5add9b6e49"
+    },
+    {
+      "bytes": 657927,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_B/gallery_repB_M1Y.png",
+      "sha256": "b7899c75cff4fc80fa67f7c2bcbf423bd6fea87fb5ef31ffc7f2346fb2f7f85f"
+    },
+    {
+      "bytes": 574182,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_C/gallery_repC_H1.png",
+      "sha256": "35356b7ddf311bdf9e7b4a2e7f3a3a0b9c29abf978570a165a9c833d036fc4e7"
+    },
+    {
+      "bytes": 575483,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_C/gallery_repC_H2.png",
+      "sha256": "047fa14d13ea961c38c686f338b0c8a696ecf23c70783503da3801e91cb23680"
+    },
+    {
+      "bytes": 609136,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_C/gallery_repC_H5.png",
+      "sha256": "b0d4ee343ca4bac10b3b8d511c4c6658716b8b59e20f3ad31c88c05a3831043f"
+    },
+    {
+      "bytes": 679885,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_C/gallery_repC_M1Y.png",
+      "sha256": "2d163f2ee5f364c73f43c3e9a640930ef65cffb8eccb75772c941900964f1426"
+    },
+    {
+      "bytes": 533846,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/truth/gallery_truth_reference_common_scale.png",
+      "sha256": "9ffac72d3e6465279f47c7fa25c2d2e854022822d51f3d9f1e4d7bca31876ddc"
+    },
+    {
+      "bytes": 1969,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_A/gallery_repA_H1.json",
+      "sha256": "2052bf596a663ddb5708de0606354d960e1640795946f77bdd8b7a7f2087e186"
+    },
+    {
+      "bytes": 1969,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_A/gallery_repA_H2.json",
+      "sha256": "c53795b9203432ecead6ec09222c41a61f93e32d9790b2721bd39b64d327bdde"
+    },
+    {
+      "bytes": 1969,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_A/gallery_repA_H5.json",
+      "sha256": "2443b0c2ad337c7aa0f5ea9bd2e02ecbaf5b08d194611fe6cf478df3bdc27785"
+    },
+    {
+      "bytes": 1974,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_A/gallery_repA_M1Y.json",
+      "sha256": "e66ecfbec210a4d1470bd3c95d46161bdb5470631e27aae5935749f7f9f84f2e"
+    },
+    {
+      "bytes": 1969,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_B/gallery_repB_H1.json",
+      "sha256": "927b40507d51f588ff56a35f0f24700cec67f2155db26a03ca908ea896ae5235"
+    },
+    {
+      "bytes": 1969,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_B/gallery_repB_H2.json",
+      "sha256": "79d4c6c770c20cc1a0f9ba09b5aa7327bf695f969220d06bc533f9a2dfc23e47"
+    },
+    {
+      "bytes": 1969,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_B/gallery_repB_H5.json",
+      "sha256": "5f5e8dfd481735c8736ad708dbf799f19e06b7f1693bddcca989aa1b73ae2a01"
+    },
+    {
+      "bytes": 1974,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_B/gallery_repB_M1Y.json",
+      "sha256": "74ffc46716a0e2a43dfca0cd62db24fbfbb65ec0a1ec50fcd8408b69d015a0ec"
+    },
+    {
+      "bytes": 2021,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_C/gallery_repC_H1.json",
+      "sha256": "862a8d660d2d12e2033cdca5b947b7e1667dbb40d0af6c8750413ce37907d44d"
+    },
+    {
+      "bytes": 2021,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_C/gallery_repC_H2.json",
+      "sha256": "a14379712be18aef3a0cdf810d52e6e9ad235598c1274ce994f26041e37f2b20"
+    },
+    {
+      "bytes": 2021,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_C/gallery_repC_H5.json",
+      "sha256": "ea90b149e7a627377dd9baa4db0429aa87322c4a9df568af98843aadbb42f26e"
+    },
+    {
+      "bytes": 2026,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_C/gallery_repC_M1Y.json",
+      "sha256": "ee2ae52889a63dd76f68ed56513d47a0c491973cf8897fc4d12b2b4f20faae27"
+    },
+    {
+      "bytes": 1982,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/truth/gallery_truth_reference_common_scale.json",
+      "sha256": "cc3fe28e7e5f649b6154619f05a2e3e9b14d4e8c7466019f3ffea4de42d56117"
+    },
+    {
+      "bytes": 7744201,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_A/movie_repA_H1.gif",
+      "sha256": "da74c4332bab8a6ab3ad682bda8361f673d12ffd726c3b79182a04ccf14f58db"
+    },
+    {
+      "bytes": 7744719,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_A/movie_repA_H2.gif",
+      "sha256": "dbeb4ec378be34ac4b4282a6c189f18f4c713b3cc148c254e75aaa7e65da5b15"
+    },
+    {
+      "bytes": 7744654,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_A/movie_repA_H5.gif",
+      "sha256": "3bf783fbba5cee0905e7fcf101e2f163aa9c35cd4d8e08e7864618e1f039a444"
+    },
+    {
+      "bytes": 7787244,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_A/movie_repA_M1Y.gif",
+      "sha256": "debb2dd5d5ec5e4eaf2d578ac14a14674816b1d559563ee90bd0611810a7d3e3"
+    },
+    {
+      "bytes": 8322536,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_B/movie_repB_H1.gif",
+      "sha256": "540cdb88673883cd48782df61ee2f22aa4f398d8e13513ea2a29f0c69cfe0b75"
+    },
+    {
+      "bytes": 8323490,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_B/movie_repB_H2.gif",
+      "sha256": "21ac2b898eeb5c47aa35d8c14a4228ce1a2b6e0ed988636bf7d33dcd3fe9c217"
+    },
+    {
+      "bytes": 8319685,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_B/movie_repB_H5.gif",
+      "sha256": "e0c8e1ecf94d8c7642327096e3c265be127e05e8a45faf23923da3ff68267905"
+    },
+    {
+      "bytes": 8820326,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_B/movie_repB_M1Y.gif",
+      "sha256": "f2af63fcf2fac851971316d48b5d68ab3a002fb18d782ff209d2b2a67c08d392"
+    },
+    {
+      "bytes": 8033141,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_C/movie_repC_H1.gif",
+      "sha256": "b3086ec76cd4f4593e4d8141a57bfe0240778edd1b29bf8222b9ce28b38c8cdb"
+    },
+    {
+      "bytes": 8208650,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_C/movie_repC_H2.gif",
+      "sha256": "ecd866ddd26bae8bb6d091b7c590d28056cfc30a4a8c9773100a52dc7741d2e8"
+    },
+    {
+      "bytes": 8495573,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_C/movie_repC_H5.gif",
+      "sha256": "5f6c480ed9a65913e6edebc3f75db8764b76a8ec69fdd228261a1106c5a5ed38"
+    },
+    {
+      "bytes": 8832379,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_C/movie_repC_M1Y.gif",
+      "sha256": "b46cf18daa26034feda26fdfce687217aaf24c3fde8eca39cc4d3e9f32678a8c"
+    },
+    {
+      "bytes": 1661,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_A/movie_repA_H1.json",
+      "sha256": "04ba2cd2bd978b6b6d4e8fd495f23c07821f4d216f5dfd2436517379ae64385c"
+    },
+    {
+      "bytes": 1661,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_A/movie_repA_H2.json",
+      "sha256": "6873ce514b1bffa998ba6c8d54d39195fb2f3f2fc2b469089902bb48e169083d"
+    },
+    {
+      "bytes": 1661,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_A/movie_repA_H5.json",
+      "sha256": "6e62c24b1ca66566c2ef9503203d7beefa4a00ba3d5640a3c28d4d7c0b46e457"
+    },
+    {
+      "bytes": 1665,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_A/movie_repA_M1Y.json",
+      "sha256": "60ea986d8d864b4850745acc9e1050b673477e1ee0dcc59d44db81c85d167679"
+    },
+    {
+      "bytes": 1661,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_B/movie_repB_H1.json",
+      "sha256": "ff42c64f85ae7e5d8762e4fd5b6bcd89715e0b961e6c7ca87871e13f44ac8ec1"
+    },
+    {
+      "bytes": 1661,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_B/movie_repB_H2.json",
+      "sha256": "f1dabfa05d4018f3d649e56b40d2483394d138d2d84d55cd4fc5f33dd3520504"
+    },
+    {
+      "bytes": 1661,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_B/movie_repB_H5.json",
+      "sha256": "68eaf71269e97c84f9909a42f88609becedd5a47e62ffe9f818561ed9a658561"
+    },
+    {
+      "bytes": 1665,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_B/movie_repB_M1Y.json",
+      "sha256": "3fc9e1da7369edbfaea309bc5426139b0a1b389ec8fd9260344984a58a527497"
+    },
+    {
+      "bytes": 1690,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_C/movie_repC_H1.json",
+      "sha256": "98328c117cb38c72e8cb9e2b9e1ce89df63b965dd6101bd7104868143fdd6fe3"
+    },
+    {
+      "bytes": 1690,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_C/movie_repC_H2.json",
+      "sha256": "dc47045b077651e17a20a44e3a940e2537d1f6dfcfa2e14795292ad2a975b843"
+    },
+    {
+      "bytes": 1690,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_C/movie_repC_H5.json",
+      "sha256": "b60829c8c3a7f32328aefaf116b8dc3cc6984f27ff12151d94362cd01827f679"
+    },
+    {
+      "bytes": 1694,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/movies/representation_C/movie_repC_M1Y.json",
+      "sha256": "186ab9cd6a04be75d2a397e91b2a34b61739363596cc048944aab0824baf183a"
+    },
+    {
+      "bytes": 20452,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/COMMON_VISUAL_LIMITS.json",
+      "sha256": "c11b828d313170422c3602d849571cbc7c18d8d4d8b475f625786f8f64b6b4ac"
+    },
+    {
+      "bytes": 6953,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/REPLAY_VALIDATION.json",
+      "sha256": "cb3d2e51df02e59f9e77fb27bc3111ad54f56e2067cd6a8e04f173ba129ac251"
+    },
+    {
+      "bytes": 14437,
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/visual_audit/MOVIE_VISUAL_AUDIT.json",
+      "sha256": "f88c4abe39b39382fa406b1b19cc3c65597225eac57ba4759eb234c9eb38ca59"
+    }
+  ],
+  "planned_models": [
+    {
+      "method": "M1Y",
+      "representation": "A"
+    },
+    {
+      "method": "H1",
+      "representation": "A"
+    },
+    {
+      "method": "H2",
+      "representation": "A"
+    },
+    {
+      "method": "H5",
+      "representation": "A"
+    },
+    {
+      "method": "M1Y",
+      "representation": "B"
+    },
+    {
+      "method": "H1",
+      "representation": "B"
+    },
+    {
+      "method": "H2",
+      "representation": "B"
+    },
+    {
+      "method": "H5",
+      "representation": "B"
+    },
+    {
+      "method": "M1Y",
+      "representation": "C"
+    },
+    {
+      "method": "H1",
+      "representation": "C"
+    },
+    {
+      "method": "H2",
+      "representation": "C"
+    },
+    {
+      "method": "H5",
+      "representation": "C"
+    }
+  ],
+  "repository_fingerprints_unchanged": true,
+  "safety": {
+    "accepted_scalar_result_modified": false,
+    "authoritative_repository_modified": false,
+    "checkpoint_modified": false,
+    "m1y_workspace_modified": false,
+    "optimizer_instantiated": false,
+    "rendering_after_cache_creation": "cache only",
+    "solver_replays": 12,
+    "training_performed": false,
+    "truth_generated": false
+  },
+  "script_inventory": [
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/scripts/audit_rendered_movies.py",
+      "sha256": "9fa5f9a897590f0c10ce42eea7f3526071df1521a5334fee8622da4f7671e032"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/scripts/convert_gifs_to_mp4.sh",
+      "sha256": "eae03e3c3f4efb0b67b09eafffa39b6d7187d9cb339e301450fc2d66221a69f5"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/scripts/finalize_provenance.py",
+      "sha256": "dc6932a00881d6d53d4946ac84932c6442ba0f27cb87fbc59c886f718e29a4a3"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/scripts/finalize_replays_and_limits.py",
+      "sha256": "690bb7e3dc95497701b44fb4a5168c3de15bde155d9db18ddb3b1b2ada25aa76"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/scripts/preflight_provenance.py",
+      "sha256": "aff464e3f296bebac7f2f2c309c45e91f9be565f3874766b45314c129a6359ca"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/scripts/render_spatial_package.py",
+      "sha256": "c063af6ad7524852e92c2800b1d4312fbe3fb726c59384eda0068869e8bf0b33"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/scripts/replay_spatial_maps.py",
+      "sha256": "b836f4132c4dc4cb72a868c0ff7e8ece3450ebe878a30632c9e9a452409cd028"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/scripts/run_remaining_movies.py",
+      "sha256": "9c3abb192e58657b2dca60f13fa2805dd78379661e48f44721fd9fd22ca5c2b2"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/scripts/run_remaining_replays.py",
+      "sha256": "4d0b02d30563a4d6daeed1bd24eade319d121cb2fe26fe8935aaae93daabbf55"
+    }
+  ],
+  "status": "complete",
+  "timestamp_unix": 1788062406.679984
+}
