@@ -1,0 +1,79 @@
+{
+  "benchmark_stage": "Test2B M1-Y direct-regression campaign 20260828",
+  "format_version": 1,
+  "campaign_id": "m1y_test2b_20260828",
+  "scientific_change": "evaluate both frozen production features and analytical targets at Y_n*=P(X_n*) rather than X_n*",
+  "reference": {
+    "authoritative_repository": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615",
+    "branch": "dev/dimswe-learned-physics-framework",
+    "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+    "starting_status_sha256": "b4dbc351a8a4d4bcc18bb2b037888b69a38813a75fa7d85f1abb443cd1ebad22",
+    "starting_tracked_diff_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+  },
+  "historical": {
+    "configuration": "dimswe/configs/test2b_rain_active_learning.json",
+    "preparation": "external-results/test2b-rain-active-learning/preparation/fixed_learning_data.npz",
+    "preparation_sha256": "6e159015234fd94881b0b97888b7481eb049a02dcd96c571078920c0bedc901c",
+    "preparation_sidecar_sha256": "efeba6e0f80063a79ff47209aa1b8973565386e4d4e8844b4b4c2fb0281f0cae",
+    "truth_manifest": "external-results/test2b-rain-active-learning/preparation/truth_manifest.json",
+    "truth_manifest_sha256": "746ae7020093261a4c5292fb37f61c8b12b0c825d5e5fa76a560fc830f37fe40",
+    "support_audit": "external-results/test2b-rain-active-learning/preparation/learning_support_audit.json",
+    "support_audit_sha256": "e83edbfe67e90e04afd78b40249c04344948849a141fbb558c5eb3230b9d383d",
+    "truth_metadata_sha256": "744e728934c1e97a67a7bab232993c7444980b1d235b995a5887c7eeff5d1406",
+    "rain_audit_sha256": "0302d1cb3808e9543986665eaa05aa3bcd49b1ab70326c2cca9a4d5dc1861b5d",
+    "training_states": [0, 80],
+    "heldout_states": [81, 160],
+    "M1_X_results": {
+      "A": "external-results/test2b-rain-active-learning/production/representation-A/m1-seed0-m20-10k",
+      "B": "external-results/test2b-rain-active-learning/production/representation-B/m1-seed0-m20-10k",
+      "C": "external-results/test2b-rain-active-learning/production/representation-C/m1-seed0-m20-10k"
+    }
+  },
+  "M1_Y": {
+    "state_definition": "Y_n*=P(X_n*)=boundary_states[-2] from the accepted full analytical timestep replay",
+    "prefix_implementation": "case.helper.take_forward_step_cached(X_n*, n*dt, dt).boundary_states[-2]",
+    "training_states": [0, 80],
+    "sample_count_per_state": 65536,
+    "features": ["h", "S", "Qv", "Qc", "B"],
+    "features_evaluated_at": "Y_n*",
+    "targets_evaluated_at": "Y_n*",
+    "offline_precomputed": true,
+    "recursive_rollout": false,
+    "differentiate_through_prefix": false
+  },
+  "normalization": {
+    "fitted_at": "historical Test2B X-state support 0..80",
+    "refit_on_Y": false,
+    "input_offset": [749.6487720807651, 7376.434989735685, 1.4193153609575624, 0.06015957787413514, 0.0],
+    "input_scale": [16.913638066122523, 133.5602198531373, 0.21326095651874272, 0.012412402653357142, 1.0],
+    "sigma_A": 9.052258655848717e-08,
+    "sigma_R_active": 1.9902871261559996e-11,
+    "source_scales": [0.006671477765500949, 6.803353979030477e-05, 6.80335397581467e-05, 1.5076498196845062e-08],
+    "provenance_sha256": "794e074b2d3149f58025a7e6a74856374d86adab1e3ee518a64fe6f30ff0dd79"
+  },
+  "training": {
+    "representations": ["A", "B", "C"],
+    "architectures": {
+      "A": {"layers": [5, 32, 32, 1], "parameter_count": 1281, "seed0_parameter_sha256": "6d4ac7bafe775b90a70e2a199ef3305308c3d02333f7daeac1c870b6f18e0975"},
+      "B": {"layers": [5, 32, 32, 2], "parameter_count": 1314, "seed0_parameter_sha256": "cfadd9f3ee02a78c5b3a946b88c039d9f7ed34e719325ff22c92e1fe4afac056"},
+      "C": {"layers": [5, 32, 32, 4], "parameter_count": 1380, "seed0_parameter_sha256": "e52dd73e3f97d44adf4d55354b1c8d9a9b252186a17cae4ad09410270b86df1e"}
+    },
+    "activation": "tanh",
+    "output_activation": "linear",
+    "dtype": "float64",
+    "initialization": "seed-0 Problem-A Glorot-uniform per layer, zero bias",
+    "batching": "deterministic full batch",
+    "sample_weighting": "historical carrier mass weights, broadcast over states and outputs",
+    "optimizer": {
+      "library": "PyROL/ROL",
+      "method": "line-search L-BFGS",
+      "maximum_secant_storage": 20,
+      "gradient_tolerance": 1e-08,
+      "step_tolerance": 1e-12,
+      "accepted_iteration_limit": 10000,
+      "production_HVP": false
+    }
+  },
+  "output_root": "external-results/m1y-test2b-20260828",
+  "documentation_root": "docs/m1y_test2b_20260828"
+}
