@@ -1,0 +1,986 @@
+{
+  "campaign_id": "m1y_test2b_20260828",
+  "configuration": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/dimswe/configs/test2b_m1y_20260828.json",
+  "configuration_sha256": "d9836c3d28d7ab192f04da6fe6eab75018173c808296c262d1f20a95a55006d5",
+  "historical_preparation": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/test2b-rain-active-learning/preparation/fixed_learning_data.npz",
+  "historical_preparation_sha256": "6e159015234fd94881b0b97888b7481eb049a02dcd96c571078920c0bedc901c",
+  "historical_preparation_sidecar_sha256": "efeba6e0f80063a79ff47209aa1b8973565386e4d4e8844b4b4c2fb0281f0cae",
+  "rain_activity_audit_sha256": "0302d1cb3808e9543986665eaa05aa3bcd49b1ab70326c2cca9a4d5dc1861b5d",
+  "restart_count": 161,
+  "restart_files": [
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000000.npy",
+      "sha256": "a3dcad8a9f19b2afef5f24fb8115024c4b14f239e80d0104f5cce1780ea2f9c5",
+      "step": 0
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000001.npy",
+      "sha256": "698964a72fd916b36c4e51c96b5f3f326e1fd87ce9e9f088eb58a2f320c62995",
+      "step": 1
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000002.npy",
+      "sha256": "7fc783adc0ab1bdd711fcfdcfe2db060b4181e7af53b5fe040b715d448dfe9d6",
+      "step": 2
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000003.npy",
+      "sha256": "364f0666c1e4d2e60e804d51b0b6721fd58a9c1cf6133f35adfcf2b3d2e76acd",
+      "step": 3
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000004.npy",
+      "sha256": "cb198c2da91fd534113c8403383118140af19b76911ff4e9cdd1264456b96361",
+      "step": 4
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000005.npy",
+      "sha256": "cc0fd1b2a2025b73bf38a570dedb68bab07c83dcefd4dcdd76394a50352eb013",
+      "step": 5
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000006.npy",
+      "sha256": "503546fdf2ed41206c0957d76204a5ebc5276ad0e2d81012d73c4d86e1d53606",
+      "step": 6
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000007.npy",
+      "sha256": "f0a918f2042b85d3a20630b56f30183c3ab53d0244a40b00e4a35f7be2f80d52",
+      "step": 7
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000008.npy",
+      "sha256": "bffed68b9137bf233761f2674e4bdf92c7337528c20f67f7cd70333c2630651d",
+      "step": 8
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000009.npy",
+      "sha256": "8dc75be5520132585e673fd472e47445f44e43d7a3c1f50d95e776d6deeac602",
+      "step": 9
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000010.npy",
+      "sha256": "85fe7f5a6ca15d6a7f7d14253a3c12d86fa1dcb884d90aa08f3bfd8d76a581c3",
+      "step": 10
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000011.npy",
+      "sha256": "45c0f814b52bd3bf89b052d67f536f46c11b0bab32337e5c498be91a5f891e95",
+      "step": 11
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000012.npy",
+      "sha256": "d90c765adf10172cfb04c96a9b5d022092587b6c18feb2fa17b42c831d6397d1",
+      "step": 12
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000013.npy",
+      "sha256": "a45ee2c938c58f7796dc4af3b005b7bf054a4a8275e71538a7e4a3243dbaafcf",
+      "step": 13
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000014.npy",
+      "sha256": "1ddeb3faead81f2dbb705825d3c5db23534b46e5512e884723dedcefdf410222",
+      "step": 14
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000015.npy",
+      "sha256": "3c7264740dc9fb95da09bdfc3d4f647ea01ff4f23dc4b8b77369a610995a97de",
+      "step": 15
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000016.npy",
+      "sha256": "fe120e50d632bea2a0fbc1dcf1377a4f2f078993c8ba22dabb893e3492940453",
+      "step": 16
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000017.npy",
+      "sha256": "39bb254b7d9337e322a1e526db684107f9511394d6dad3bce05e29fef4e22e4a",
+      "step": 17
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000018.npy",
+      "sha256": "356f84a6b148d7ee1638257808b13d188fe41249822cac41e278a55f42f0e6d5",
+      "step": 18
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000019.npy",
+      "sha256": "1149d50763e2b2a20900e01d9d69ef4922e77a02de69f13d1ecd8d03d7994bb8",
+      "step": 19
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000020.npy",
+      "sha256": "27566c0fa77ef320a3e31d9516c87fb65eaac9704c3909a1f6478fe01c86b2c5",
+      "step": 20
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000021.npy",
+      "sha256": "d8193c6cf54e3aba25e0197af256221a1ea0581c3b4dcaf9d108bdbce03301ba",
+      "step": 21
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000022.npy",
+      "sha256": "0a77639863601dfe288850f8dc019f0bb42ebebb5fba506d9e7cfd2575a973b7",
+      "step": 22
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000023.npy",
+      "sha256": "15c3ea26f388d97cbe1861c2663d81d5dc122226af7e2091cd9093346322962e",
+      "step": 23
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000024.npy",
+      "sha256": "4d71fd9820bc2afc6fbdc0e4bd98c71e582f512398a851963c41b6a55cb00a4a",
+      "step": 24
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000025.npy",
+      "sha256": "2d4ae452f184b3540a0e1c3f03279da5d33a719404e0565c6edac893008e42fd",
+      "step": 25
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000026.npy",
+      "sha256": "a5beb4d30294f3e08cf0f0f42c9b29da0bb3f28deb4454ab815f60ced07614c5",
+      "step": 26
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000027.npy",
+      "sha256": "68c576c2945ebbcfc0e81757f8e3f5d01215025b09b0f99aedf9c96ea46c3460",
+      "step": 27
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000028.npy",
+      "sha256": "7cc199eb6627f12f55e23939d1d9a173d5364a2bea35f96c25800096d134bb2a",
+      "step": 28
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000029.npy",
+      "sha256": "b778328d8cfdbba0f6eb45b2eb279afa6748b20020e17fc384b5a50faa194f4b",
+      "step": 29
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000030.npy",
+      "sha256": "3a356dd8d5b84c95aeaa8b5772f2d75e4e149f795f1f04f987db0f875bfc5342",
+      "step": 30
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000031.npy",
+      "sha256": "ab3ba8a9a29723f229d0ff23b5f60902d9b0dab213708d334b05696f9de45cf5",
+      "step": 31
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000032.npy",
+      "sha256": "1b86521cca81d94cf29f94eb2f9f7dac028407a7c1234415e7f16281d589c695",
+      "step": 32
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000033.npy",
+      "sha256": "37ebf0fdc1d5f444979d713946d7c58addb0a921687ef33c620306e0fdeaf3a7",
+      "step": 33
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000034.npy",
+      "sha256": "326aff7a9b2913f6d64b35a58a1d70f64b269d7bbb59d390d3f489c462dcbd01",
+      "step": 34
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000035.npy",
+      "sha256": "ef5787d20bf26fc1edd3307b401e698a20c9d66a20f4f183fad46e5bc8e5c8d0",
+      "step": 35
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000036.npy",
+      "sha256": "31c7bcfd3fddfccc38fda1301c44f8b6ad4e76cb344f8617847c86434481715a",
+      "step": 36
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000037.npy",
+      "sha256": "32f872e59b03a6ce807aba413b11835dd428e34187fa9b2e43482b5a07c3d604",
+      "step": 37
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000038.npy",
+      "sha256": "a37491aaa8f9877e0b7bdc6ba68564378ca2f8093578b38d0afa124b7e18e43e",
+      "step": 38
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000039.npy",
+      "sha256": "6df4b53ab6a204128bcd08c3afffdb544a60cf33b9ee25c78a6fb6f5514aedc2",
+      "step": 39
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000040.npy",
+      "sha256": "046e77fff193872f2ff14868622f21998002c19992e93348e1d725a2bac2f8bb",
+      "step": 40
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000041.npy",
+      "sha256": "1b061a766433de615ed8d36811414359495de104f2e1cd99ba2e70bdcf10c5c0",
+      "step": 41
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000042.npy",
+      "sha256": "62dedcba632778823aa99ca8a824e2d2412458950095c62dd666ce83705b2a19",
+      "step": 42
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000043.npy",
+      "sha256": "28568f9574b11d09b114c2c336b2c653292ce1097a12f99f33a377cf243cd27e",
+      "step": 43
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000044.npy",
+      "sha256": "a80ef9650a668cdda813d497f70e9d4520d1d146bb0df940b6a2871e866bc71c",
+      "step": 44
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000045.npy",
+      "sha256": "213d8eac81a608164f8cfcd77b5abfc7ee11d3b0d2546eb61d0e8753d15ae49e",
+      "step": 45
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000046.npy",
+      "sha256": "3b88ec22930e53247d0191394209073b988723de568f8fbf0969599c198930f5",
+      "step": 46
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000047.npy",
+      "sha256": "de5e7dd69f398f57ac12c216090f84da1fe65ad8cf72d3d0ef2cfaae5313a99c",
+      "step": 47
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000048.npy",
+      "sha256": "e0a47c502e4d661b535272dd60bafb00c083e70aba07e491455b66b7a4250ef1",
+      "step": 48
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000049.npy",
+      "sha256": "957f54a7ac0109f991f70056df8d737597ea5b0fbfdabb66080392ed62ef5643",
+      "step": 49
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000050.npy",
+      "sha256": "3dd716b0bb88e774729c550ce47ea14e839b915368b1f228aa23db1a8c64b222",
+      "step": 50
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000051.npy",
+      "sha256": "237e473eed083988d26fbc22e9fff9e4156b3eaa787516ca18701119d9da1f5d",
+      "step": 51
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000052.npy",
+      "sha256": "9ac589f57cb601475d54a9a633a9c1ad4dad3bc8e63d9a35fbe61ce017b995e4",
+      "step": 52
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000053.npy",
+      "sha256": "9609f590574c0b5325f93553c90cdb968b364ede884b60b644c834ab3de4dfb3",
+      "step": 53
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000054.npy",
+      "sha256": "920007ca5bcdf2da7673b23b7d5b58c1bb9ce48c6883fcd9d81514fef66c2f5e",
+      "step": 54
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000055.npy",
+      "sha256": "d6c8e5a8d2c0f48601edb8fbbece653ec0d7480d70d9946a9d8f31c1000d9786",
+      "step": 55
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000056.npy",
+      "sha256": "4c64703ac484810c71b4a32bbcf4df92be60dbbc8d9938167092de5db4d89fc4",
+      "step": 56
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000057.npy",
+      "sha256": "4ba6a7ecdbf26a726cd6ee83c851785942822269a5b92c42a870da46f5fae852",
+      "step": 57
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000058.npy",
+      "sha256": "b914bfa0c1c8e70460f75d261e81d648c7a35a8face2620ad7ca650e373ce75c",
+      "step": 58
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000059.npy",
+      "sha256": "0b1bca8b743c021a47dcc633bd9d493c882787439773382978e78e66803f3906",
+      "step": 59
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000060.npy",
+      "sha256": "e821cf6aff775d61c0433e1eca02d53cadb3497fcecd16a48c7d56dab1d7b62f",
+      "step": 60
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000061.npy",
+      "sha256": "28c9be1259cef163850ff23792c614351fb69e04370978f4e88ac10173eea806",
+      "step": 61
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000062.npy",
+      "sha256": "d7328bd0b94e111f9d9452498cdb88efd1d64f7874b1f587fedfb3424f6401f3",
+      "step": 62
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000063.npy",
+      "sha256": "0c94d01ca1033a32f4d5c535d44d995a6184e43a8901af3f520cdfcd40164e87",
+      "step": 63
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000064.npy",
+      "sha256": "b5f46526d985131938a0fe16cc532165b02aa588157a52d5d532254a0a9124ef",
+      "step": 64
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000065.npy",
+      "sha256": "fc4743a767ed812e1809a122dfbf8e7ca16122c6ce7922c5749bfcd03046dc2c",
+      "step": 65
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000066.npy",
+      "sha256": "bb2f61e57ba90d97549ec2a3839744d5cf8a50224fd76645e22f851339397fc7",
+      "step": 66
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000067.npy",
+      "sha256": "78f7af8f9332009b3756b661856dc4a0326271ffd4db764971382cc963c8b775",
+      "step": 67
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000068.npy",
+      "sha256": "869b9fb8399a6e35293b9dad27321f21fed53e866cc30f50cd5df20129167809",
+      "step": 68
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000069.npy",
+      "sha256": "6a25828d11833df125cfd134912487c1a4c124107d4dc7204551916e68148041",
+      "step": 69
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000070.npy",
+      "sha256": "10939cac204560f72eb8fc2d281149a1afd4c6e242795e15c66554da9ef02804",
+      "step": 70
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000071.npy",
+      "sha256": "f0508eafc27c6a6a32af43cb612b1060bd0a369f282260e5bebbede716e813b6",
+      "step": 71
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000072.npy",
+      "sha256": "5d831872b3a04530f6ae7f8d0292c50b6a4f4abdbf0f18812cca4f4be9a9e202",
+      "step": 72
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000073.npy",
+      "sha256": "fd529be44a062cb2193e3af5b6a52e4bd380c3c5aaeafe56dfaee75238ce2f2f",
+      "step": 73
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000074.npy",
+      "sha256": "038c5964065cc68c84703ce62db558c51a20cbf511258cc0a5e0135b1a8619ae",
+      "step": 74
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000075.npy",
+      "sha256": "117bbb68372ca17425e02a5b301e0818636e5d60f9f05900c27e816f044540b8",
+      "step": 75
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000076.npy",
+      "sha256": "d9f259476e303a15b5497ab7a2a2cc1e64c7354f64f98343e44a183faa56ccf0",
+      "step": 76
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000077.npy",
+      "sha256": "d4fd69c38476a95ba4def82bc25404d3a41c5ce3379438432c6111530789054d",
+      "step": 77
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000078.npy",
+      "sha256": "5678c21bdf4d4f23716f55ef5a7d1cc094a8ab5c1909d1f61f73385580096804",
+      "step": 78
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000079.npy",
+      "sha256": "e2cbe02247b2680bd2e4cda08b52a9e47f575a80e5205f2c0ae5c5923e047fd2",
+      "step": 79
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000080.npy",
+      "sha256": "50f36bf4faebf79627c0fcc9dd1d668a3a298739047fd7c2c07d13b38554ce1d",
+      "step": 80
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000081.npy",
+      "sha256": "c8289d97b7658d71170c8e83ecbcc03059737d62e4e20e8a7e48982c301a64d8",
+      "step": 81
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000082.npy",
+      "sha256": "8135d3a419a56e3b53eba57be869fac6f05661819eac4595676e321d2ad3d4d5",
+      "step": 82
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000083.npy",
+      "sha256": "d49359e652b527b09fe454ef9710161ea91dfefe351c08f57230b6488a0f48c4",
+      "step": 83
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000084.npy",
+      "sha256": "09499ccd311ee28fc9f1f374780607210e62952388d3e81adae0ac584cb49c9f",
+      "step": 84
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000085.npy",
+      "sha256": "09e56e0c60ce2f706a9ab42748dbf81236f524cef4d874ca040605630ce6b3d7",
+      "step": 85
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000086.npy",
+      "sha256": "8a257b755394903821e1cf7a78a171a84bc32a704d462065a41629ebe3579d61",
+      "step": 86
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000087.npy",
+      "sha256": "adec6ce2e6d08b9d8b79dd5ce60c5f179fffc2953b016a9c94e3c12f1d4ad3f6",
+      "step": 87
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000088.npy",
+      "sha256": "b1d831c34ef0daa2c8d4da6f5d1958dd12fff4d7be8469ab4be895b1d522af03",
+      "step": 88
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000089.npy",
+      "sha256": "e4218e6b669d01db31cf2ad52d01ae3f3026eb90fa73a5a9182a1bf5897bfad7",
+      "step": 89
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000090.npy",
+      "sha256": "c1904d42056d143292a95d06b4c4eb3967c09ada1344b9cae826f264eaddd611",
+      "step": 90
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000091.npy",
+      "sha256": "b910ecf9c5bf39db4eacb5868a6f59148f3f76457b1e82a1269b621977fbb233",
+      "step": 91
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000092.npy",
+      "sha256": "c7abcf05e070c690081113028457e72fe851b50e7bd501e4f519217fdd030df6",
+      "step": 92
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000093.npy",
+      "sha256": "3550f8bf9749d61e37abb0f49b509d5bab0d4828df9fb6c66250e38ebc6a4adc",
+      "step": 93
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000094.npy",
+      "sha256": "21ff7a6da9be47d446ed495a8402505c31de63c3f396043eabd70afe51907c9b",
+      "step": 94
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000095.npy",
+      "sha256": "28521c84c819d9e52a3331e326ca16a3e43779a428f6a4dad84f2757fe56eeb6",
+      "step": 95
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000096.npy",
+      "sha256": "687159893b5dd89d081ba41ef63160bc1636380f93b4ae05970cc5c5bc563bf6",
+      "step": 96
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000097.npy",
+      "sha256": "ac80bff25fe97657b3b164d5234eb96f219063a0597d400b623b7c5b03bd15b2",
+      "step": 97
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000098.npy",
+      "sha256": "35684e3fcc91804cfb51c48adb5d12088ca350eac26064c070189f45bb7050bb",
+      "step": 98
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000099.npy",
+      "sha256": "29038d57df3a51988c614dcf5db71fedf96d9cbf305be261965d8b3ad1d74a7b",
+      "step": 99
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000100.npy",
+      "sha256": "e3ba7e749260aa89b528dd563befe1f8b87f152baca18520f1e97d10e6d39b44",
+      "step": 100
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000101.npy",
+      "sha256": "a14e0ebd16fa35624b037610454d50c49cd0b85a7f6641786c2df9d8c14ac2cc",
+      "step": 101
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000102.npy",
+      "sha256": "77f7fd06d1c295ad493e07d89836bce01c38c90fce6484122cda72af2f3b8c8b",
+      "step": 102
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000103.npy",
+      "sha256": "c5028602b49668409d2651f67692810e9b7fc990a5aba6b0183791858557cfa6",
+      "step": 103
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000104.npy",
+      "sha256": "c17ce98746cdee97cd007e6b2ac400e06bcd790822154b87f370122b20640cb1",
+      "step": 104
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000105.npy",
+      "sha256": "d45628012de06f07022532c8c04d2a760227c13bad6a5516a1c8ccc1618dd701",
+      "step": 105
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000106.npy",
+      "sha256": "84ae60658eedb086b31bc7dda98c2a5edf2e34163fdc5a1240fb24e0223b9373",
+      "step": 106
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000107.npy",
+      "sha256": "aacc2449e20f2ef4e6c68ddbf58169dbd3f924f3f59686ec37d15ae03f270f94",
+      "step": 107
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000108.npy",
+      "sha256": "e92a7b148e1fc907196f80a2b02b50d14790fbd9c2ad23850c1ea8eecad8e084",
+      "step": 108
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000109.npy",
+      "sha256": "5f28072e293d4560b16142f733da5e626f67750664c1347326436ca9930de047",
+      "step": 109
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000110.npy",
+      "sha256": "21373284b3a95b4502212d3f643f61e9c446e8f0e1a7bb884b9d5288d254d829",
+      "step": 110
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000111.npy",
+      "sha256": "1c6bea942ec6c06772b06224ab3b6d88ec46ca6e2aea1cffafe70427a1ac92ec",
+      "step": 111
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000112.npy",
+      "sha256": "037fe2ff566a49e3fa63c3ed4d412d6a85cbce79983866365414b8adbbaa189f",
+      "step": 112
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000113.npy",
+      "sha256": "81efc61af8015acc12f78b325d6ea405c563e00e48314a6cf561e9aab6caf79f",
+      "step": 113
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000114.npy",
+      "sha256": "a42edb0fb8df2cae26f5af867fd4b6a5ef3e33cb918938829fc7f2878b9e9643",
+      "step": 114
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000115.npy",
+      "sha256": "1cb70395c3ee7f6bb693600abfee6ae9d05e915edcc9f1a073984302f6080f9c",
+      "step": 115
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000116.npy",
+      "sha256": "b9bb7d4c4d33b096b18108b4c16b6b8c863202858facd0cc4389f037b13bd610",
+      "step": 116
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000117.npy",
+      "sha256": "e5faa7a5de897c45342c50a72ad5cc83672628e63be74ecdecd4112bfbeaeaf6",
+      "step": 117
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000118.npy",
+      "sha256": "e77185c7e70ecd5f999c33d64d748a1967033d25e7b9e559ca2fba3e3f17081e",
+      "step": 118
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000119.npy",
+      "sha256": "08e6f9c78c932536b146527fd6eee4e4915e97e33276a68a6eabd62b66fb7186",
+      "step": 119
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000120.npy",
+      "sha256": "fe7d9a646e002867f79d17be06ca6793b31f8117076f10c9cd34baefb9fe9f91",
+      "step": 120
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000121.npy",
+      "sha256": "b90c5488cbcda26f801549bccfeaa676cad005ffdb1472b879a82ec560b02374",
+      "step": 121
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000122.npy",
+      "sha256": "0e968414754e5e33536e0c744565400d2e80473a45d8a90586bd4dff8bc3948d",
+      "step": 122
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000123.npy",
+      "sha256": "3c4935dd8d32b047ed4c5ff7cde2eebda17c0071274d12013dde69b8810ce5cb",
+      "step": 123
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000124.npy",
+      "sha256": "9ddaa0f24324f66c67d68ffa090ea40cff4680c44a888d5f78fd04470f7b69be",
+      "step": 124
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000125.npy",
+      "sha256": "ee3f7ef7c1c417f1b2d8d853f6feae7c6e2b39f275ee146f5e94439cb38f94b5",
+      "step": 125
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000126.npy",
+      "sha256": "8aba0cf289b4826e6ca3eb85cca0bc3ebf093259b3cf90a7eb3ff8a1495d7ca5",
+      "step": 126
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000127.npy",
+      "sha256": "c7250102721559f99b2c2d5f31665909f606212b91e43735e9faabd9d152fc08",
+      "step": 127
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000128.npy",
+      "sha256": "2e733d71ff982a86b8185b0c7ea1b1c41d0424a0c5810cd3b8b41e168aa62590",
+      "step": 128
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000129.npy",
+      "sha256": "7aee5db014081f4c95c446c29566ec461ce9bd2fcd357e2baac1fc2634f1065c",
+      "step": 129
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000130.npy",
+      "sha256": "dd8472d79c980c4ba17fd8d7b019699576ff834cef544d39f171e5fed49bd9bb",
+      "step": 130
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000131.npy",
+      "sha256": "8cf622aa02765065f95abf7855b1ab0cae7991a5e8d55198b2710273e0590d69",
+      "step": 131
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000132.npy",
+      "sha256": "59527bd9b25280d51db99eabe160ab2cef6b162b4ecc91de7dbd80d8192fa8e5",
+      "step": 132
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000133.npy",
+      "sha256": "23cc83d83899e8b9c1573e3d48957613cabac3d6b79b4a2968a1b297f1dec35f",
+      "step": 133
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000134.npy",
+      "sha256": "348d50a6a0d494dbbbb844f5c94a793e8154ab9081b94fd3754b22df4c360ef4",
+      "step": 134
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000135.npy",
+      "sha256": "26e41b75a976e64a353e4ab8087e1d8152f33d570008278c77d0f673a83884e5",
+      "step": 135
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000136.npy",
+      "sha256": "1fc043dddefc1f94b8819973e8af7e25484a4530ddb4930c56201de4e839e520",
+      "step": 136
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000137.npy",
+      "sha256": "5e99b948f9c6921d8c9e3ea60c3f1ae3750b26159e087695e96a774ed674ad99",
+      "step": 137
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000138.npy",
+      "sha256": "20152c1e4b22ab32670ec5fb1789cd795b047255171224dbb84b44844d90f868",
+      "step": 138
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000139.npy",
+      "sha256": "b941e902929c11b027ee8cad7c571f83a83d5c0148864717fdb59d73b0cd0222",
+      "step": 139
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000140.npy",
+      "sha256": "fface77e25d10504cfca2b3ad5bd481a415d55e26d455109c5cd863159f3eb80",
+      "step": 140
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000141.npy",
+      "sha256": "6243b01d3e6ec89262791f65922c3443f6599e1756ca3193a3218dd84aae13c1",
+      "step": 141
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000142.npy",
+      "sha256": "5f4dd4d2bf19f8dcdc5b1d3623e80f3260c2cc1d5e20a4e52a8bb779cd18a413",
+      "step": 142
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000143.npy",
+      "sha256": "e7809960a3be2f421ddc4e0ce8a10810271ee22fbb6cec2fec5ebffa36a65973",
+      "step": 143
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000144.npy",
+      "sha256": "a5ce94cf08085e05b23a6639939bc5b0363385e86cf17a89dfa7ca47eacc492d",
+      "step": 144
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000145.npy",
+      "sha256": "f446fc2620d35825c7018f1013b31598079af2a97c96f3c249210e13473c72ef",
+      "step": 145
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000146.npy",
+      "sha256": "9cb548aaab216e168a7dadb542837ebdcc6f3ba47755ba4335956648cfbf1d93",
+      "step": 146
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000147.npy",
+      "sha256": "0c2df364057c7552f5f3315f21545ee44e03fc58be02296cf7f806b10f85501a",
+      "step": 147
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000148.npy",
+      "sha256": "ef36912d1f5b82c479c9df8bab8c402616380ebe145d055d7992cec02c0638aa",
+      "step": 148
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000149.npy",
+      "sha256": "0b6c3a8d828eb7a92981f68adf2ae70f19de761d3d7ab98d58a76d1b8d77cee0",
+      "step": 149
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000150.npy",
+      "sha256": "6a26dacc2a1313061a252ff6a53d393536aeb3ace464f01d6943226c441b33e0",
+      "step": 150
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000151.npy",
+      "sha256": "b124163d55c1b15527889434af82d511943b5ac195f9f43cad72292da76f0bc8",
+      "step": 151
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000152.npy",
+      "sha256": "022dcb6f2556e24defb0a75661eb351aa8835e2e8e38c30877b9f72605377d5b",
+      "step": 152
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000153.npy",
+      "sha256": "83ac154b75db146d4fe6f3be73138257fbdab89a7dce045d1ef221c6614b97e2",
+      "step": 153
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000154.npy",
+      "sha256": "e3f374e196114ae87d110a58f907fae37fa75b7b7234b6d722111c3f1ba7f78d",
+      "step": 154
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000155.npy",
+      "sha256": "df66b029bf353038a482195f72d3c9e0150e2de9a0bcbd6fbbf3922c2d5cd78b",
+      "step": 155
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000156.npy",
+      "sha256": "cf53ac079d3b88da7ce0e07391647c4610cca24c8202d3e8090a7a77293ce31c",
+      "step": 156
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000157.npy",
+      "sha256": "b6a8a108336fb69afb554aecb0ad3c114756665f19aa9afc795cbca96cb3f3d0",
+      "step": 157
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000158.npy",
+      "sha256": "0fced5b3de971b9433470532fcc23b7d8f4b4c5dd89b357d16ec9c6d32dba782",
+      "step": 158
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000159.npy",
+      "sha256": "bec3bbfe6341cbaf58b53f206b62ca4fe095ab13a634bdf51172569be23af908",
+      "step": 159
+    },
+    {
+      "bytes": 1572992,
+      "path": "restart/step_00000160.npy",
+      "sha256": "8da66da4fc76923bafa8e3dee1db553b880f03fd4c26f89cd2452624297510f4",
+      "step": 160
+    }
+  ],
+  "restart_inventory_sha256": "ef90f628dfe0b482a9549c055936c670175e82d1bc9d7f46ee7ff71f89a85ef6",
+  "restart_total_bytes": 253251712,
+  "source_head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+  "status": "complete",
+  "truth_manifest": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/test2b-rain-active-learning/preparation/truth_manifest.json",
+  "truth_manifest_sha256": "746ae7020093261a4c5292fb37f61c8b12b0c825d5e5fa76a560fc830f37fe40",
+  "truth_metadata_sha256": "744e728934c1e97a67a7bab232993c7444980b1d235b995a5887c7eeff5d1406",
+  "truth_root": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/test2b-rain-active-truth/production-n64-zeta-m0p06-dt100-t16000"
+}

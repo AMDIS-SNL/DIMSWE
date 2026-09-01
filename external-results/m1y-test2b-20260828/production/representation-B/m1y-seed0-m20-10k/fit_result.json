@@ -1,0 +1,190 @@
+{
+  "accepted_iterations": 10000,
+  "architecture": {
+    "activation": "tanh",
+    "dtype": "float64",
+    "features": [
+      "h",
+      "S",
+      "Qv",
+      "Qc",
+      "B"
+    ],
+    "layers": [
+      5,
+      32,
+      32,
+      2
+    ],
+    "outputs": [
+      "A",
+      "R"
+    ],
+    "parameter_count": 1314,
+    "representation": "B",
+    "seed": 0
+  },
+  "campaign_configuration": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/dimswe/configs/test2b_m1y_20260828.json",
+  "campaign_configuration_sha256": "d9836c3d28d7ab192f04da6fe6eab75018173c808296c262d1f20a95a55006d5",
+  "campaign_id": "m1y_test2b_20260828",
+  "checkpoint_readable": true,
+  "command": [
+    "/Users/arjunsharma/venvs/dimswe-firedrake-2026.4.1-py312/bin/python",
+    "-m",
+    "dimswe.test2b_m1y_campaign",
+    "train",
+    "--configuration",
+    "dimswe/configs/test2b_m1y_20260828.json",
+    "--preparation",
+    "external-results/m1y-test2b-20260828/preparation/m1y_learning_data.npz",
+    "--validation",
+    "external-results/m1y-test2b-20260828/preparation/pretraining_validation.json",
+    "--representation",
+    "B",
+    "--output-directory",
+    "external-results/m1y-test2b-20260828/production/representation-B/m1y-seed0-m20-10k"
+  ],
+  "differentiate_through_prefix": false,
+  "direct_training_support_metrics": {
+    "A": {
+      "correlation": 0.9999855578039795,
+      "cosine": 0.9999857362214426,
+      "maximum_absolute_error": 2.3531460513312582e-08,
+      "normalized_RMS_error": 0.005342753130992314,
+      "physical_RMS_error": 4.836398327608801e-10,
+      "relative_RMS_error": 0.005341153742954319,
+      "sample_count": 5308416,
+      "signed_mass_weighted_bias": -1.280161915297226e-13,
+      "target_RMS": 9.054969320043714e-08
+    },
+    "R": {
+      "activity_numerical_tolerance": 1.2119968976504772e-20,
+      "all_samples": {
+        "correlation": 0.9997080161700258,
+        "cosine": 0.9997095172906264,
+        "maximum_absolute_error": 2.4111126407302414e-12,
+        "normalized_RMS_error": 0.002080352813035849,
+        "physical_RMS_error": 4.1404994216476694e-14,
+        "relative_RMS_error": 0.02410416398848686,
+        "sample_count": 5308416,
+        "signed_mass_weighted_bias": -6.321034376692637e-16,
+        "target_RMS": 1.7177527599071024e-12
+      },
+      "false_negative_count": 0,
+      "false_negative_fraction_all_samples": 0.0,
+      "false_negative_rate_given_truth_active": 0.0,
+      "false_positive_count": 1473756,
+      "false_positive_fraction_all_samples": 0.27762632016782407,
+      "false_positive_rate_given_truth_inactive": 0.2797753832835957,
+      "maximum_predicted_R": 5.2514046273238795e-11,
+      "minimum_predicted_R": -5.582174781737687e-13,
+      "predicted_exact_negative_fraction": 0.7146919156298225,
+      "predicted_exact_positive_fraction": 0.28530808437017746,
+      "predicted_meaningful_negative_fraction": 0.7146915388695988,
+      "predicted_meaningful_positive_fraction": 0.2853077076099537,
+      "sample_count": 5308416,
+      "truth_active_sample_count": 40776,
+      "truth_active_sample_fraction": 0.007681387442129629,
+      "truth_active_samples": {
+        "correlation": 0.999533383754553,
+        "cosine": 0.9998677364717498,
+        "maximum_absolute_error": 2.4111126407302414e-12,
+        "normalized_RMS_error": 0.016274768180036123,
+        "physical_RMS_error": 3.2391461589899204e-13,
+        "relative_RMS_error": 0.016277812407164614,
+        "sample_count": 40776,
+        "signed_mass_weighted_bias": -5.625326446424391e-15,
+        "target_RMS": 1.9899149086914304e-11
+      }
+    }
+  },
+  "evaluation_state": "Y_n*=P(X_n*)",
+  "feature_order": [
+    "h",
+    "S",
+    "Qv",
+    "Qc",
+    "B"
+  ],
+  "final_objective": 3.261043519805744e-05,
+  "final_parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/production/representation-B/m1y-seed0-m20-10k/final_parameters.npz",
+  "final_parameter_npz_sha256": "3a829ffff2c2ee96946c197e18a7bd7d7495c255212c61bec1b3d24d788a71ee",
+  "final_parameter_pytree_sha256": "1adbd173137cbf10928ee4b25865258fc97f74b3c2c4c0a09cfd8629020566ab",
+  "final_parameter_sidecar_sha256": "a5c255a6de42bbeaadf1db20e8c664d29480c7a062a68e237cbcb8a426088dae",
+  "gradient_evaluations": 10001,
+  "gradient_norm_history_all_finite": true,
+  "initial_parameter_pytree_sha256": "cfadd9f3ee02a78c5b3a946b88c039d9f7ed34e719325ff22c92e1fe4afac056",
+  "initialization_convention": "Problem-A Glorot-uniform per layer, zero bias",
+  "maximum_objective_evaluated": 6.816151342284754,
+  "minimum_objective_evaluated": 3.261043519805744e-05,
+  "normalization": {
+    "R_scale_definition": "mass-weighted RMS over meaningful R>0 samples; all zero samples remain in every loss numerator",
+    "feature_order": [
+      "h",
+      "S",
+      "Qv",
+      "Qc",
+      "B"
+    ],
+    "fitted_truth_state_indices": [
+      0,
+      80
+    ],
+    "heldout_state_indices": [
+      81,
+      160
+    ],
+    "input_offset": [
+      749.6487720807651,
+      7376.434989735685,
+      1.4193153609575624,
+      0.06015957787413514,
+      0.0
+    ],
+    "input_scale": [
+      16.913638066122523,
+      133.5602198531373,
+      0.21326095651874272,
+      0.012412402653357142,
+      1.0
+    ],
+    "provenance_sha256": "794e074b2d3149f58025a7e6a74856374d86adab1e3ee518a64fe6f30ff0dd79",
+    "sigma_A_all_training_support": 9.052258655848717e-08,
+    "sigma_R_active_training_support": 1.9902871261559996e-11,
+    "source_order": [
+      "S",
+      "Qv",
+      "Qc",
+      "Qr"
+    ],
+    "source_scales": [
+      0.006671477765500949,
+      6.803353979030477e-05,
+      6.80335397581467e-05,
+      1.5076498196845062e-08
+    ]
+  },
+  "normalization_refitted_on_Y": false,
+  "objective_denominator": 2041296881127481.8,
+  "objective_evaluations": 20858,
+  "objective_history_all_finite": true,
+  "output_scales_refitted_on_Y": false,
+  "parameter_only_restart_restores_secant_history": false,
+  "preparation": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/preparation/m1y_learning_data.npz",
+  "preparation_sha256": "6f16e6db2c6ebdbd8c00a23cdae9b5318355384723a2f1276b2ea93d95145668",
+  "pretraining_validation": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/preparation/pretraining_validation.json",
+  "pretraining_validation_sha256": "bca0fc0c33108aafb4785ee4ae610013d83abc1c89ac723d1cd709f88d9f37b7",
+  "recursive_rollout": false,
+  "representation": "B",
+  "source_secant_history_reused": false,
+  "stage": "M1-Y",
+  "status": "complete",
+  "termination_reason": "EExitStatus.EXITSTATUS_MAXITER",
+  "total_sample_count": 5308416,
+  "training_state_count": 81,
+  "training_states": [
+    0,
+    80
+  ],
+  "wall_seconds": 9971.375665209023
+}

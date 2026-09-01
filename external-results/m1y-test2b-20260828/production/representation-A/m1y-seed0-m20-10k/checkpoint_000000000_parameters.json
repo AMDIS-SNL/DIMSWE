@@ -1,0 +1,48 @@
+{
+  "architecture": {
+    "activation": "tanh",
+    "dtype": "float64",
+    "features": [
+      "h",
+      "S",
+      "Qv",
+      "Qc",
+      "B"
+    ],
+    "layers": [
+      5,
+      32,
+      32,
+      1
+    ],
+    "outputs": [
+      "A"
+    ],
+    "parameter_count": 1281,
+    "representation": "A",
+    "seed": 0
+  },
+  "format_version": 1,
+  "initialization_convention": "Problem-A Glorot-uniform per layer, zero bias",
+  "metadata": {
+    "accepted_iteration": 0,
+    "campaign_configuration_sha256": "d9836c3d28d7ab192f04da6fe6eab75018173c808296c262d1f20a95a55006d5",
+    "campaign_id": "m1y_test2b_20260828",
+    "evaluation_state": "Y_n*=P(X_n*)",
+    "feature_order": [
+      "h",
+      "S",
+      "Qv",
+      "Qc",
+      "B"
+    ],
+    "normalization_provenance_sha256": "794e074b2d3149f58025a7e6a74856374d86adab1e3ee518a64fe6f30ff0dd79",
+    "preparation_npz_sha256": "6f16e6db2c6ebdbd8c00a23cdae9b5318355384723a2f1276b2ea93d95145668",
+    "stage": "M1-Y",
+    "training_states": [
+      0,
+      80
+    ]
+  },
+  "parameter_pytree_sha256": "6d4ac7bafe775b90a70e2a199ef3305308c3d02333f7daeac1c870b6f18e0975"
+}
