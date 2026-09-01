@@ -10,7 +10,7 @@
 | `dimswe/models.py` | DIMSWE model and forcing-term construction |
 | `dimswe/physics.py` | analytical `ThreeWayPhysics`, including exact `A`, `R`, and source form |
 | `dimswe/operators.py` | weak-form transport/forcing operators |
-| `dimswe/io.py`, `dimswe/diagnostics.py` | run output and diagnostics |
+| `dimswe/output.py`, `dimswe/diagnostics.py` | run output and diagnostics |
 
 ### MODIFIED_UPSTREAM
 
@@ -35,6 +35,8 @@
 | `dimswe/test2a_discrete_training.py` | cache/certification and fast M2-X objective |
 | `dimswe/test2a_trajectory.py` | H1/H2/H5 windows, forward tapes, exact reverse, PyROL adapter |
 | `dimswe/test2a_pyrol.py` | JAX pytree flattening and generic PyROL objective adapters |
+| `dimswe/test2b_m1y_campaign.py` | post-prefix Y-state cache, offline M1-Y objective, certification, and independent fits |
+| `dimswe/test2b_m1y_evaluation.py` | held-out Y-state cache and matched M1-X/M1-Y evaluation |
 | `dimswe/learned_physics/` | earlier generic learned-physics interfaces and historical objective vocabulary |
 
 ### EXPERIMENT_ONLY
@@ -71,7 +73,7 @@ dimswe/test2b_rain_learning_campaign.py:main/train
        -> JAXMoistEulerPrimal + JAXMoistEulerHVP
        -> ProductionMTSWESplitHVP
   -> objective selected by representation-independent objective axis
-       M1: OperatorObjective
+       M1-X: OperatorObjective on x_features/x_A/x_R
        M2-X: FixedObjective / fixed source-to-state matrices
        H1/H2/H5: NeuralTrajectoryObjective
   -> JAXPytreeObjective or TrajectoryPyROLObjective
@@ -86,6 +88,37 @@ The production campaign constructs objective choices at
 `dimswe/test2b_rain_learning_campaign.py:478-528` and invokes PyROL in
 `train` at lines 816--896. The same source/provider is used across objectives;
 the representation is not inferred from the objective name.
+
+## Canonical M1-Y execution path
+
+```text
+dimswe.test2b_m1y_campaign prepare
+  -> load historical truth and frozen normalization
+  -> _postprefix
+       -> ProductionMTSWESplitHVP.take_forward_step_cached(X*, t, dt)
+       -> select boundary_states[-2] = Y*=P(X*)
+  -> analytical provider at Y*
+  -> cache normalized (h,S,Qv,Qc,B), A*, R*, carrier weights
+
+dimswe.test2b_m1y_campaign train
+  -> load_m1y_preparation
+  -> initial_parameters(representation)          # independent seed zero
+  -> OperatorObjective(Y features, Y targets)
+  -> JAXPytreeObjective
+  -> PyROL Problem -> Solver (line-search L-BFGS)
+  -> checkpoints + final_parameters + fit_result
+
+dimswe.test2b_m1y_evaluation
+  -> prepare held-out Y* states 81--160
+  -> fixed-network A/B/C inference
+  -> matched M1-X/M1-Y direct and deployed diagnostics
+```
+
+The prefix runs only while preparing the immutable Y arrays. The M1-Y
+optimization hot loop has no Firedrake step, no recursive state, and no
+differentiate-through-prefix path. `dimswe/configs/test2b_m1y_20260828.json`
+freezes the contract and `tests/test_test2b_m1y_campaign.py` protects state
+location, features, target order, normalization, and initialization.
 
 ## One learned moist child in detail
 
@@ -124,7 +157,7 @@ runtime JAX hook into DIMSWE.
 For learned physics, `local_physics` must also be supplied. The accepted
 `physics_mode` values are checked at `jax_moist_adapter.py:165-190`.
 `ProductionMTSWESplitHVP._forward_child` passes explicit `neural_parameters`
-only to child six (`mtswe_split_hvp.py:889-918`).
+only to child six (`mtswe_split_hvp.py:885-914`).
 
 ## Theta ownership and flow
 
@@ -150,10 +183,18 @@ record (`test2b_rain_learning.py:283-330`).
 
 ## Objective and cache paths
 
-### M1
+### M1-X
 
 `OperatorObjective` operates entirely on fixed arrays and a pure JAX function.
-JAX `value_and_grad` provides the parameter gradient.
+The historical driver supplies X-state features/targets. JAX `value_and_grad`
+provides the parameter gradient.
+
+### M1-Y
+
+`prepare_m1y` computes truth-derived `Y*=P(X*)` once, then
+`m1y_objective` supplies Y-state features and Y-state analytical targets to
+the same fixed-array `OperatorObjective`. The accepted M1-Y A/B/C fits start
+from seed zero and do not continue the H1/H2/H5 ladder.
 
 ### M2-X
 
@@ -200,3 +241,28 @@ Forward tangents use the same graph in child order. HVPs differentiate the
 reverse: local JAX differentiated VJPs are composed with incremental Firedrake
 adjoints in `JAXMoistEulerHVP` and `ProductionMTSWESplitHVP`. The final campaign
 uses exact gradients with L-BFGS and does not request production HVPs.
+
+## Manuscript-facing evaluation path
+
+```text
+frozen checkpoints and cache sidecars
+  -> postprocessing/ml_results_20260829/scripts/
+  -> compact quantitative CSV/JSON
+  -> tables/{main,supplement}
+  -> figures/{main,supplement}
+
+frozen A/B/C models + truth restart states
+  -> postprocessing/deployed_hybrid_dynamics_20260830/scripts/replay_spatial_maps.py
+  -> external replay-map NPZ + versioned hash sidecar
+  -> render_spatial_package.py
+  -> accepted common-scale galleries / external movies
+
+accepted analytical truth
+  -> postprocessing/ground_truth_figures_20260829/scripts/
+  -> external truth-map caches + compact diagnostics
+  -> accepted deterministic manuscript figures
+```
+
+The path helpers in the two later packages use `DIMSWE_REPOSITORY` and
+documented optional external-root variables. Historical absolute paths remain
+only in immutable provenance records.

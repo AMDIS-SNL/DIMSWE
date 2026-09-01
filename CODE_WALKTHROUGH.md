@@ -40,15 +40,21 @@ A/B/C and the prepared constrained-rain variants where accepted by the provider.
 | `dimswe/test2a_operator.py:75` `MLPConfiguration` | dimensions/layers/activation/dtype/seed → validated config | network architecture | EXPERIMENT / Python | default Rep A 5-32-32-1, tanh, float64, seed 0; all Test2A objectives |
 | `dimswe/test2a_operator.py:149` `initialize_mlp` | config → parameter pytree | Glorot-uniform weights, zero biases | NEW / JAX+NumPy | creates theta; Test2A and reused by Test2B |
 | `dimswe/test2a_operator.py:184` `DenseMLP.__call__` | theta, normalized features → raw output | dense affine/activation composition | NEW / JAX | theta enters every layer; A/B/C/B+; all objectives |
-| `dimswe/test2a_operator.py:207` `NormalizationMetadata` | offsets/scales → normalized coordinates | `(z-mu)/sigma`, `A/sigma_A` | EXPERIMENT / JAX+NumPy | Rep A Test2A; M1/M2-X/H1/H2/H5 |
+| `dimswe/test2a_operator.py:207` `NormalizationMetadata` | offsets/scales → normalized coordinates | `(z-mu)/sigma`, `A/sigma_A` | EXPERIMENT / JAX+NumPy | Rep A Test2A; M1-X/M1-Y/M2-X/H1/H2/H5 |
 | `dimswe/test2a_operator.py:365` `LocalAFeatureMap` | packed state/context → five-vector | `(h,S,Qv,Qc,B)` | EXPERIMENT / JAX | Rep A; all Test2A objectives |
 | `dimswe/test2a_operator.py:383` `HybridAMoistOutputMap` | state/context/oracle/raw output → source | `G(A_theta,R_analytic)` | EXPERIMENT / JAX | theta through raw A; Rep A only |
 | `dimswe/test2b_rain_learning.py:67` `RainMLPConfiguration` | representation → fixed config | 5-32-32-d tanh network | EXPERIMENT / Python | A:1281, B/B+:1314, C:1380 parameters; all Test2B objectives |
 | `dimswe/test2b_rain_learning.py:113` `RainLearningNormalization` | frozen offsets/scales/provenance → scaling object | mass-weighted input/output scaling | EXPERIMENT / JAX+NumPy | all reps; fit only on truth 0--80 |
 | `dimswe/test2b_rain_learning.py:205` `bplus_physical_rates` | raw output, `h,Qc,qprecip`, scales → `A,R` | thresholded linear-exceedance + softplus rain | EXPERIMENT / JAX | B+ preparation only |
 | `dimswe/test2b_rain_learning.py:342` `RainActiveNeuralMoistPhysics` | rep, theta, normalization → local provider | feature → MLP → output map → `G_theta` | NEW/EXPERIMENT / JAX | owns frozen theta; A/B/C/B+; every Test2B objective and rollout |
-| `dimswe/test2b_rain_learning.py:466` `combined_with_parameters` | state/fields/physical params/theta → rates+source | explicit-parameter local source | NEW / JAX | optimization theta; M1/M2-X/H1/H2/H5 |
+| `dimswe/test2b_rain_learning.py:466` `combined_with_parameters` | state/fields/physical params/theta → rates+source | explicit-parameter local source | NEW / JAX | optimization theta; M1-X/M1-Y/M2-X/H1/H2/H5 |
 | `dimswe/test2b_rain_learning.py:469-493` parameter JVP/VJP/joint differentiated VJP | local primal/covectors/directions → pytree actions | `G_theta dtheta`, `G_theta^T lambda`, derivative of pullback | NEW / JAX | all reps; gradients and HVP infrastructure |
+
+The frozen Test 2B architecture contract is exactly 5-32-32-`d`, with
+`d=1,2,4` for A/B/C, tanh on both hidden layers, a linear output, float64,
+and seed-zero Problem-A Glorot-uniform weights with zero biases. The resulting
+parameter counts are 1281, 1314, and 1380. M1-X, M1-Y, M2-X, H1, H2, and H5
+do not change this architecture or the X-fitted normalization.
 
 ## Split derivatives and trajectory objectives
 
@@ -61,12 +67,12 @@ A/B/C and the prepared constrained-rain variants where accepted by the provider.
 | `dimswe/jax_moist_hvp.py:605` `take_adjoint_step_cached` | primal cache, output dual → reverse result | `F_x^T lambda` | NEW / Firedrake+JAX VJP | all reps; H2/H5 reverse |
 | `dimswe/jax_moist_hvp.py:664` `take_parameter_adjoint_step` | primal cache, output dual → state reverse + pytree | `F_theta^T lambda` | NEW / Firedrake+JAX VJP | theta gradient; M2-X/H1/H2/H5 |
 | `dimswe/jax_moist_hvp.py:680,753` incremental-adjoint methods | primal/tangent/covector directions → HVP terms | differentiated VJP | NEW / Firedrake+JAX JVP-of-VJP | all reps; second-order certification, not final L-BFGS HVP |
-| `dimswe/mtswe_split_hvp.py:749` `ProductionMTSWESplitHVP` | production Lie stepper → derivative composer | exact six-child discrete map | NEW / mixed | all reps; M2-X/H1/H2/H5 |
-| `dimswe/mtswe_split_hvp.py:921` `take_forward_step_cached` | state/time/dt/theta → six-child tape | `Phi_theta(X)` | NEW / mixed | explicit theta to child six; recursive objectives/autonomous evaluation |
-| `dimswe/mtswe_split_hvp.py:969` `take_fixed_prefix_cached` | truth state/time/dt → five-child cache | `P(X*)` | NEW / Firedrake-PETSc | theta-independent; H1 cache and first step of H2/H5 |
-| `dimswe/mtswe_split_hvp.py:1015` `take_forward_step_from_prefix` | prefix, theta → complete tape | `M_theta(P(X*))` | NEW / mixed | theta at child six; H1/H2/H5 first step |
-| `dimswe/mtswe_split_hvp.py:1061` `take_neural_parameter_tangent_step` | primal/state+theta directions → tangent | `Phi_x dx + Phi_theta dtheta` | NEW / mixed | all reps; derivative checks/HVP |
-| `dimswe/mtswe_split_hvp.py:1111` `take_neural_parameter_adjoint_step` | primal/output dual → state dual+pytree | complete-step VJP | NEW / mixed | all reps; H1/H2/H5 gradients |
+| `dimswe/mtswe_split_hvp.py:745` `ProductionMTSWESplitHVP` | production Lie stepper → derivative composer | exact six-child discrete map | NEW / mixed | all reps; M2-X/H1/H2/H5 |
+| `dimswe/mtswe_split_hvp.py:917` `take_forward_step_cached` | state/time/dt/theta → six-child tape | `Phi_theta(X)` | NEW / mixed | explicit theta to child six; recursive objectives/autonomous evaluation |
+| `dimswe/mtswe_split_hvp.py:965` `take_fixed_prefix_cached` | truth state/time/dt → five-child cache | `P(X*)` | NEW / Firedrake-PETSc | theta-independent; H1 cache and first step of H2/H5 |
+| `dimswe/mtswe_split_hvp.py:1011` `take_forward_step_from_prefix` | prefix, theta → complete tape | `M_theta(P(X*))` | NEW / mixed | theta at child six; H1/H2/H5 first step |
+| `dimswe/mtswe_split_hvp.py:1057` `take_neural_parameter_tangent_step` | primal/state+theta directions → tangent | `Phi_x dx + Phi_theta dtheta` | NEW / mixed | all reps; derivative checks/HVP |
+| `dimswe/mtswe_split_hvp.py:1107` `take_neural_parameter_adjoint_step` | primal/output dual → state dual+pytree | complete-step VJP | NEW / mixed | all reps; H1/H2/H5 gradients |
 | `dimswe/test2a_trajectory.py:123` `reset_windows` | starts, horizon, loss mode, weights → specs | truth-reset/non-overlap sampling | EXPERIMENT / Python | H1/H2/H5; reused by A/B/C campaigns |
 | `dimswe/test2a_trajectory.py:238` `GlobalMixedMassMetric` | helper, denominator → metric | global normalized mixed mass norm | EXPERIMENT / Firedrake-PETSc | all reps; H1/H2/H5 |
 | `dimswe/test2a_trajectory.py:289` `NeuralTrajectoryObjective` | case, truth, windows, metric → objective | accumulated fixed/recursive rollout loss | NEW/EXPERIMENT / mixed | explicit theta; H1/H2/H5, all reps |
@@ -82,12 +88,21 @@ A/B/C and the prepared constrained-rain variants where accepted by the provider.
 | `dimswe/test2a_discrete_training.py:350` `FastFixedDiscreteObjective` | cache/model config → objective | fixed JAX deployed-discrete loss | EXPERIMENT / JAX | theta explicit; M2-X/H1 |
 | `dimswe/test2a_horizon_curriculum.py:416` `prepare_h1_cache` | config, path → written certified cache | `Y_k=P(X_k*)` fixed data | EXPERIMENT / mixed | Rep A; H1/M2-Y |
 | `dimswe/test2a_h1_m2_equivalence.py:409` `run_equivalence_audit` | configs/caches/output → audit record | H1/M2-Y value/gradient equivalence | EXPERIMENT / mixed | Rep A; dedicated regression support |
+| `dimswe/test2b_m1y_campaign.py:158` `load_m1y_configuration` | config path → resolved source + frozen record | M1-Y state/support/architecture contract | EXPERIMENT / Python | no theta; A/B/C M1-Y |
+| `dimswe/test2b_m1y_campaign.py:367` `_postprefix` | analytical case, `X_k*`, step → `Y_k*` | `Y_k*=P(X_k*)` | EXPERIMENT / Firedrake-PETSc | no learned theta; M1-Y cache preparation only |
+| `dimswe/test2b_m1y_campaign.py:376` `prepare_m1y` | config, immutable manifest, output → certified NPZ/sidecar | fixed Y-state features and analytical A/R targets | EXPERIMENT / mixed | no optimization theta; A/B/C M1-Y |
+| `dimswe/test2b_m1y_campaign.py:340` `representation_target` | rep, normalized Y features, A*, R*, scales → target array | A: `A*`; B: `(A*,R*)`; C: exact four-source vector | EXPERIMENT / NumPy+JAX scaling | target axis for A/B/C M1-Y |
+| `dimswe/test2b_m1y_campaign.py:751` `m1y_objective` | config, cache, representation → `OperatorObjective` | offline `J_M1-Y` on Y features/targets | EXPERIMENT / JAX | theta explicit in fixed-array MLP; M1-Y only |
+| `dimswe/test2b_m1y_campaign.py:879` `train_m1y` | config/cache/validation/rep/output → fit record | independent seed-zero full-batch M1-Y optimization | EXPERIMENT / JAX+PyROL-ROL | creates theta; A/B/C M1-Y; no prefix/recursion in loop |
+| `dimswe/test2b_m1y_evaluation.py:108` `prepare_y_heldout` | config, training cache, output → held-out Y cache | truth-derived Y states 81--160 | EXPERIMENT / mixed | no training; matched M1-X/M1-Y evaluation |
+| `dimswe/test2b_m1y_evaluation.py:396` `evaluate_representation` | config/caches/rep/output → matched JSON | fixed-model cross-state direct/deployed metrics | EXPERIMENT / JAX+NumPy+accepted evaluation | frozen M1-X/M1-Y theta; A/B/C |
+| `dimswe/test2b_m1y_report.py:222` `build_results` | output directory → results CSV/JSON/manifest | compact M1-X/M1-Y synthesis | EXPERIMENT / Python | frozen theta hashes only; accepted A/B/C comparison |
 | `dimswe/test2a_pyrol.py:39` `PytreeVectorCodec` | initial pytree → flat codec | theta pytree ↔ ROL vector isomorphism | NEW / JAX+NumPy | all reps/objectives |
-| `dimswe/test2a_pyrol.py:90` `JAXPytreeObjective` | JAX objective + initial theta → ROL Objective | value/gradient/HVP adapter | NEW / JAX+PyROL | M1 and fixed JAX objectives |
+| `dimswe/test2a_pyrol.py:90` `JAXPytreeObjective` | JAX objective + initial theta → ROL Objective | value/gradient/HVP adapter | NEW / JAX+PyROL | M1-X, M1-Y, and fixed JAX objectives |
 | `dimswe/test2a_pyrol.py:213` `CallbackPytreeObjective` | value/gradient callbacks + theta → ROL Objective | external exact-gradient adapter | NEW / NumPy+PyROL | deployed discrete/trajectory callbacks |
 | `dimswe/test2a_trajectory.py:554` `TrajectoryPyROLObjective` | trajectory objective + theta → ROL Objective | cached value/gradient bridge | NEW / PyROL+mixed | H1/H2/H5 |
 | `dimswe/test2a_pyrol.py:294` `build_test2a_lbfgs_parameters` | optimizer config → ROL parameter list | line-search L-BFGS controls | EXPERIMENT / PyROL-ROL | all final campaigns; no production HVP |
-| `dimswe/test2b_rain_learning_campaign.py:478` `objectives` | preparation+representation → M1/M2-X objects | objective-axis factory | EXPERIMENT / JAX | A/B/C; M1 and M2-X |
+| `dimswe/test2b_rain_learning_campaign.py:478` `objectives` | preparation+representation → M1-X/M2-X objects | objective-axis factory | EXPERIMENT / JAX | A/B/C; historical M1-X and M2-X |
 | `dimswe/test2b_rain_learning_campaign.py:521` `trajectory_objective` | config/data/rep/theta/horizon → trajectory object | H1/H2/H5 factory | EXPERIMENT / mixed | A/B/C; H1/H2/H5 |
 | `dimswe/test2b_rain_learning_campaign.py:816` `train` | config/artifacts/rep/objective/limits → fit files | selected optimization campaign | EXPERIMENT / JAX+Firedrake+PyROL | A/B/C final fits; prepared variants have only partial evidence |
 | `dimswe/test2b_representation_[a,b,c]_postprocess.py` | configs + frozen fits → comparison JSON | cross-objective/autonomous evidence synthesis | EXPERIMENT / Python+mixed | one representation each; final Test2B reports |

@@ -90,3 +90,41 @@ The archived `archive/development-history/firedrake_hvp_prototype/`,
 `ode_adjoint/hvp.py`, Test 1A/1B material, and early Test 2 preparation remain
 useful derivative/provenance evidence but are not the primary final
 Representation A/B/C campaign.
+
+## Post-snapshot scientific correction
+
+The Aug-28 cleanup commit
+`24cc40a8bb4d23cde88844c401c850578fee5d09` preserved the accepted
+archaeological state but predates the completed state-location correction. The
+later work did not replace Chris's timestep or the cleaned learned-physics
+modules. It added a matched direct-regression baseline at the actual moist-law
+call site:
+
+- historical **M1-X** evaluates both features and analytical targets at
+  timestep-boundary truth `X*`;
+- current **M1-Y** evaluates both at post-prefix truth `Y*=P(X*)` and remains a
+  fixed-array, fully offline objective; and
+- the pre-existing recursive-model genealogy remains
+  `M1-X -> H1 -> H2 -> H5`. M1-Y is an independent seed-zero fit and initializes
+  none of those models.
+
+The additive implementation is `dimswe/test2b_m1y_campaign.py`,
+`dimswe/test2b_m1y_evaluation.py`, `dimswe/test2b_m1y_report.py`, the frozen
+`dimswe/configs/test2b_m1y_20260828.json`, and
+`tests/test_test2b_m1y_campaign.py`. Completed A/B/C models and compact
+evaluation evidence are under `external-results/m1y-test2b-20260828/`.
+
+Three evaluation-only collaborator packages were also added without changing
+the model, numerical method, objectives, or accepted configurations:
+
+- `postprocessing/ml_results_20260829/` traces frozen checkpoints to manuscript
+  tables and quantitative figures;
+- `postprocessing/deployed_hybrid_dynamics_20260830/` traces the twelve accepted
+  M1-Y/H1/H2/H5 × A/B/C models to replay sidecars and galleries; and
+- `postprocessing/ground_truth_figures_20260829/` preserves deterministic
+  analytical-case figure generation and accepted figures.
+
+No later workspace copy wholesale-replaced an existing collaborator source
+file. The cleaned Aug-28 version won every collision; only additive science and
+behavior-preserving path configuration were ported. The exact source-to-copy
+mapping is `docs/provenance/POST_SNAPSHOT_IMPORT.tsv`.

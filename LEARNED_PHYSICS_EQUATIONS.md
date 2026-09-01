@@ -21,7 +21,7 @@ One production step is a composition
 
 where `P` is the fixed five-child prefix and `M_theta` is the final explicit
 moist Euler child. `ProductionMTSWESplitHVP._child_specs` in
-`dimswe/mtswe_split_hvp.py:860-887` records the actual order:
+`dimswe/mtswe_split_hvp.py:856-883` records the actual order:
 
 1. dry RK4 half-step;
 2. dry RK4 half-step;
@@ -32,8 +32,8 @@ moist Euler child. `ProductionMTSWESplitHVP._child_specs` in
 
 The ordinary primal executes the same child ordering through
 `LieSplittingIntegrator.take_forward_step` in `dimswe/timestepping.py:991-1000`.
-`take_fixed_prefix_cached` (`mtswe_split_hvp.py:969-1013`) exposes `P`, and
-`take_forward_step_from_prefix` (lines 1015--1052) applies only `M_theta`.
+`take_fixed_prefix_cached` (`mtswe_split_hvp.py:965-1009`) exposes `P`, and
+`take_forward_step_from_prefix` (lines 1011--1048) applies only `M_theta`.
 
 ## 2. Analytical moist physics
 
@@ -140,7 +140,7 @@ It is implemented by `bplus_physical_rates` in
 `dimswe/test2b_rain_learning.py:205-230`. A related `BTP` variant uses a hard
 threshold and positive gate (`btp_physical_rates`, lines 236--253). These maps
 are prepared and derivative-certified. The evidence does not establish a
-completed B+ M1/M2-X/H1/H2/H5 campaign; BTP/BTPL M1-only files are retained as
+completed B+ M1-X/M2-X/H1/H2/H5 campaign; BTP/BTPL M1-X-only files are retained as
 uncertain partial evidence.
 
 ## 4. Training objectives
@@ -148,13 +148,50 @@ uncertain partial evidence.
 Physics representation chooses `G_theta`; objective chooses where and how it is
 evaluated.
 
-### M1: direct local regression
+### M1-X: direct local regression at boundary truth
 
-At fixed truth samples, M1 compares a learned rate or tendency to its analytical
-target. For A/B the loss is in normalized rate coordinates; for C it is in four
-normalized source coordinates. `OperatorObjective` in
-`dimswe/test2b_rain_learning_campaign.py:72-117` is the rain-active production
-implementation. No Firedrake timestep is inside the optimization loop.
+For timestep-boundary truth samples `X_k*`,
+
+\[
+J_{M1-X}(\theta)=\sum_k
+\left\|f_\theta(z(X_k^*))-t(X_k^*)\right\|_W^2.
+\]
+
+For A/B, `t` contains the analytical rate coordinates; for C it contains the
+four exact source-density coordinates. The historical Test 2B driver selects
+`x_features`, `x_A`, and `x_R` in
+`dimswe/test2b_rain_learning_campaign.py:478-503`. `OperatorObjective`
+performs pure fixed-array JAX regression, so no Firedrake timestep is inside
+the optimization loop. M1-X is retained as the historical state-location
+control.
+
+### M1-Y: direct local regression at the deployed call site
+
+Define the truth-derived pre-moist state
+
+\[
+Y_k^*=P(X_k^*).
+\]
+
+M1-Y evaluates both the inputs and analytical targets at that same state:
+
+\[
+J_{M1-Y}(\theta)=\sum_k
+\left\|f_\theta(z(Y_k^*))-t(Y_k^*)\right\|_W^2.
+\]
+
+`_postprefix` in `dimswe/test2b_m1y_campaign.py:367-373` obtains
+`boundary_states[-2]` from the accepted complete analytical replay.
+`prepare_m1y` (lines 376--544) freezes 81 states (0--80) as
+`m1y_features`, `m1y_A`, and `m1y_R`. `m1y_objective`
+(lines 751--765) passes those arrays to the same `OperatorObjective`; the
+prefix is not executed or differentiated during optimization.
+
+M1-Y is therefore fully offline and nonrecursive. It preserves the historical
+X-fitted input normalization, output scales, architecture, initialization,
+optimizer, support, and 10,000-iteration budget. Its single intended
+scientific change is `X*` versus `Y*` sampling. Representation C targets
+remain the exact vector `h[beta2 A, A, -(A+R), R]`.
 
 ### M2-X: deployed-discrete at boundary truth
 
@@ -208,6 +245,22 @@ model-generated-state feedback; H5 extends the same recursion.
 denominator and returns the dual derivative `2 w M(error)/D` (there is no hidden
 factor of one half).
 
+### Initialization is separate from objective semantics
+
+The accepted rain-active continuation script
+`scripts/run_test2b_rain_learning_representation.sh:50-61` establishes
+
+\[
+\mathrm{M1\!-!X}\longrightarrow H1\longrightarrow H2\longrightarrow H5.
+\]
+
+Each arrow transfers only the preceding final parameter vector; ROL/L-BFGS
+secant history is not transferred. M1-Y was fitted later from the representation
+specific seed-zero initialization in
+`dimswe/test2b_m1y_campaign.py:879-973`. It initializes none of H1, H2, or H5.
+Changing that genealogy would be a new experiment, not repository
+reconciliation.
+
 ## 5. Discrete derivatives
 
 For one child map `x+=F(x,theta)`, the tangent is
@@ -232,7 +285,7 @@ are `JAXMoistEulerHVP.take_tangent_step` (lines 491--547),
 adjoint methods (680--829) in `dimswe/jax_moist_hvp.py`.
 
 The complete split composes child tangents forward and child adjoints backward
-in `ProductionMTSWESplitHVP` (`dimswe/mtswe_split_hvp.py:921-1332`). Recursive
+in `ProductionMTSWESplitHVP` (`dimswe/mtswe_split_hvp.py:917-1328`). Recursive
 trajectory gradients reverse over each window in
 `NeuralTrajectoryObjective._gradient_window`,
 `dimswe/test2a_trajectory.py:486-518`.

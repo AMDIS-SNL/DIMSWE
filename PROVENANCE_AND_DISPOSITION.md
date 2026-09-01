@@ -114,6 +114,41 @@ and the checks actually run are in
 The authoritative checkout retains every item at its original location; the
 second pass changed only this independent collaborator repository.
 
+## Post-snapshot reconciliation
+
+The Codex hygiene result is frozen at
+`collaborator/track1-closeout` commit
+`24cc40a8bb4d23cde88844c401c850578fee5d09`. Later accepted science was
+reconciled on the separate branch
+`collaborator/track1-current-science-20260831`; the frozen branch was not
+modified or merged away.
+
+The reconciliation independently verified and then imported the completed
+M1-Y A/B/C campaign, selected ML-results audit records, canonical quantitative
+postprocessing, accepted deployed-hybrid replay/render evidence, and the
+deterministic ground-truth figure package. Existing files always retained the
+cleaned collaborator version unless a narrowly scoped, behavior-preserving
+portability change was required. No later checkout replaced this repository's
+active source wholesale.
+
+The scientific and file-level records are:
+
+- `docs/provenance/POST_SNAPSHOT_RECONCILIATION.md`: workstream decisions,
+  independent verification, exclusions, and collision policy;
+- `docs/provenance/POST_SNAPSHOT_IMPORT.tsv`: every imported source path and
+  source/destination SHA-256;
+- `docs/provenance/EXTERNAL_ARTIFACTS.md`: byte-exact transfer contract for
+  accepted caches and movies intentionally excluded from Git; and
+- `docs/provenance/POST_SNAPSHOT_VERIFICATION.md`: checks actually run after
+  integration and their environment limitations.
+
+The post-snapshot workspaces are not new authorities over the Aug-28
+archaeological checkout. They are separately mapped sources for later accepted
+work. Claude Code's three external reports were review inputs only; its branch
+was not merged. Codex independently checked the claims and reproduced the two
+verified documentation corrections. Report hashes and the seven-workstream
+disposition are recorded in `POST_SNAPSHOT_RECONCILIATION.md`.
+
 ## Distribution boundary
 
 Ordinary Git tracks the implementation, tests, configs, reports, manifests,
@@ -121,6 +156,13 @@ compact final parameter files, and compact canonical result JSON. Large HDF5,
 NumPy caches, VTK archives, truth trajectories, and raw/preparatory runs remain
 in the local snapshot under their original paths. Their hashes are the transfer
 contract for a future artifact store, release archive, or Git-LFS migration.
+
+The post-snapshot update follows the same boundary. Its approximately 1.4 GB
+cache/movie collection is not in Git. Each required file has an expected
+repository-relative path, byte size, SHA-256, producer, consumer, and
+regenerability classification in `docs/provenance/EXTERNAL_ARTIFACTS.md`.
+Missing data must fail or skip explicitly; a workflow must never substitute a
+similarly named artifact.
 
 BTP/BTPL M1-only outputs are classified `UNKNOWN`: they are preserved but are
 not promoted to a completed B+ campaign. Files explicitly under a
