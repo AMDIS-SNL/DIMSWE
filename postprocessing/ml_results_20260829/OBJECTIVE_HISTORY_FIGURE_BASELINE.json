@@ -1,0 +1,35 @@
+{
+  "objective_history_source": {
+    "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/objective_training_evaluation_histories.csv",
+    "sha256": "316f2d0b98c542b638efd72e85e4aef77ac3857fb334bccf0f87c230ea7864b4",
+    "size_bytes": 263720
+  },
+  "objective_history_source_sidecar": {
+    "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/objective_training_evaluation_histories.json",
+    "sha256": "ead0ef6e4f900bf593d34c78a722ad387c80f61828a4e70b640a6853bdf97938",
+    "size_bytes": 12129
+  },
+  "old_main_bundle": {
+    "csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_posthoc_direct_history_test2b.csv",
+      "sha256": "7111ca84a5b9a6e1947067fea12fb5a9406d0a015405d0ded4299b31b8c21601",
+      "size_bytes": 167797
+    },
+    "json": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_posthoc_direct_history_test2b.json",
+      "sha256": "762c4dec165e0c5c44f011b97ca80a733b12050283a0825ee71ddb043ee87634",
+      "size_bytes": 3412
+    },
+    "pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_posthoc_direct_history_test2b.pdf",
+      "sha256": "835fbdd3cb44895dad3ed9d25bcb412bc941736f7b1364caf34002a71c260522",
+      "size_bytes": 37774
+    },
+    "png": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_posthoc_direct_history_test2b.png",
+      "sha256": "75fc2f187caa292ffb0ba0780f954ad811a6bb5f9fad7b07d5971d2e4bb324b5",
+      "size_bytes": 432520
+    }
+  },
+  "purpose": "Freeze common-X ML-2 bundle before supplementary archival"
+}

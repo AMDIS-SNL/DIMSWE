@@ -1,0 +1,99 @@
+{
+  "command": [
+    "/Users/arjunsharma/venvs/dimswe-firedrake-2026.4.1-py312/bin/python",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/scripts/reconstruct_fixed_objectives.py",
+    "--output",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_training_objectives_fixed.csv"
+  ],
+  "excluded_reason": "cost gate: recursive checkpoint evaluation deferred",
+  "excluded_recursive_histories": [
+    "J_H2",
+    "J_H5"
+  ],
+  "final_endpoint_validation": [
+    {
+      "absolute_difference": 0.0,
+      "accepted": 1.864768212896724e-05,
+      "passed": true,
+      "reconstructed": 1.864768212896724e-05,
+      "run_id": "t2b-a-m2x-independent",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 1.4875848850968718e-05,
+      "passed": true,
+      "reconstructed": 1.4875848850968718e-05,
+      "run_id": "t2b-a-m2x-warm",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 3.001818343501887e-05,
+      "passed": true,
+      "reconstructed": 3.001818343501887e-05,
+      "run_id": "t2b-a-h1",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 1.863373258646678e-05,
+      "passed": true,
+      "reconstructed": 1.863373258646678e-05,
+      "run_id": "t2b-b-m2x-independent",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 1.4814244410556754e-05,
+      "passed": true,
+      "reconstructed": 1.4814244410556754e-05,
+      "run_id": "t2b-b-m2x-warm",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 2.2820014210665148e-05,
+      "passed": true,
+      "reconstructed": 2.2820014210665148e-05,
+      "run_id": "t2b-b-h1",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 1.538900036045785e-05,
+      "passed": true,
+      "reconstructed": 1.538900036045785e-05,
+      "run_id": "t2b-c-m2x-independent",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 1.4039537322282988e-05,
+      "passed": true,
+      "reconstructed": 1.4039537322282988e-05,
+      "run_id": "t2b-c-m2x-warm",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 3.426713133257584e-05,
+      "passed": true,
+      "reconstructed": 3.426713133257584e-05,
+      "run_id": "t2b-c-h1",
+      "tolerance": 2e-15
+    }
+  ],
+  "fixed_array_or_map_only": true,
+  "optimizer_instantiated": false,
+  "reconstructed_objectives": [
+    "J_M2_X",
+    "J_H1"
+  ],
+  "record_count": 84,
+  "run_count": 9,
+  "source_head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+  "status": "complete",
+  "timestep_integrated": false,
+  "wall_seconds": 64.85521100007463
+}

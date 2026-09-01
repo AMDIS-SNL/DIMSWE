@@ -1,0 +1,305 @@
+{
+  "complete_root_tables": {
+    "table1_data_supports.csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/tables/table1_data_supports.csv",
+      "sha256": "0657f2c6d208c7869b4e606c0ab7fc9203fa343eb8a089a73800eb8f412f8e53",
+      "size_bytes": 1758
+    },
+    "table1_data_supports.md": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/tables/table1_data_supports.md",
+      "sha256": "ac360b325448073ebb449ea6db529669b89d6db51ba10f6e9f76724ff222dbd8",
+      "size_bytes": 2151
+    },
+    "table1_data_supports.tex": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/tables/table1_data_supports.tex",
+      "sha256": "5378adc596f33f541af183d972bb5d00fbcb59d22634c6f14502158308ef1184",
+      "size_bytes": 2103
+    },
+    "table2_training_contracts.csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/tables/table2_training_contracts.csv",
+      "sha256": "1c84370c560caac7dc9afa3d5cee6f03887462300c4fe2db9ca7e8c4f647b883",
+      "size_bytes": 8526
+    },
+    "table2_training_contracts.md": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/tables/table2_training_contracts.md",
+      "sha256": "1c71dd5c96b2e825f5c0d98eb8ac6ce096330e008212f40fea39c013c2982ca3",
+      "size_bytes": 9464
+    },
+    "table2_training_contracts.tex": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/tables/table2_training_contracts.tex",
+      "sha256": "10821d160599800d3d645896ea2b5a0e4e14aef779c3eb1d18dacec9a7095dd4",
+      "size_bytes": 9365
+    },
+    "table2_training_contracts_provenance.csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/tables/table2_training_contracts_provenance.csv",
+      "sha256": "83af119126a9d57f3a763b2164021e8fff9a8437089e62b63414f6eb7a5195c3",
+      "size_bytes": 64464
+    },
+    "table3_final_direct_accuracy.csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/tables/table3_final_direct_accuracy.csv",
+      "sha256": "78f390d7db171daa9e11648ec2ffdad843cea086953e592a4a989ca6f1d50736",
+      "size_bytes": 119595
+    },
+    "table3_final_direct_accuracy.md": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/tables/table3_final_direct_accuracy.md",
+      "sha256": "ac2f8ddcdab957f2fbd1dc40f9b7c6025b3f44856123ce43879a205395485730",
+      "size_bytes": 4094
+    },
+    "table3_final_direct_accuracy.tex": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/tables/table3_final_direct_accuracy.tex",
+      "sha256": "ee0e28917f2f5eeab420f7aaf1f2579992017a28bdf200bbb66e9559200bc6c5",
+      "size_bytes": 3727
+    },
+    "table4_objective_matrix.csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/tables/table4_objective_matrix.csv",
+      "sha256": "a885526f6403c1d7282badc82cb9376cd615f3e80ae806a7546ccbdd01568348",
+      "size_bytes": 25819
+    },
+    "table4_objective_matrix.md": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/tables/table4_objective_matrix.md",
+      "sha256": "f0c8a97a766af7ec7984b9ade57e4a131208684e425fa2a1d851e43b611e8539",
+      "size_bytes": 3408
+    },
+    "table4_objective_matrix.tex": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/tables/table4_objective_matrix.tex",
+      "sha256": "9f89857c7d1cfb176237fd3dc1062b0c7fe2c70ea1d14d1c123f76d4120d76e0",
+      "size_bytes": 3299
+    },
+    "table5_rain_events.csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/tables/table5_rain_events.csv",
+      "sha256": "b54346f4be72303849137b223c36097c3ead35359abde6f979a2e897444dab6a",
+      "size_bytes": 10620
+    },
+    "table5_rain_events.md": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/tables/table5_rain_events.md",
+      "sha256": "4f3706861ee0f6aef29a95e08d3096d815ebd1467200f390424f94c86539b629",
+      "size_bytes": 3496
+    },
+    "table5_rain_events.tex": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/tables/table5_rain_events.tex",
+      "sha256": "fb10455968fc38473b8eaa90a544435284b16c5231b42703a4c695b215876b9b",
+      "size_bytes": 3304
+    },
+    "tableS3_test2a_training_support_accuracy.csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/tables/tableS3_test2a_training_support_accuracy.csv",
+      "sha256": "8ff00890f55bb251a57276dc92cb9049938e2be8b4f76955be95a01db07e2259",
+      "size_bytes": 28842
+    },
+    "tableS3_test2a_training_support_accuracy.md": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/tables/tableS3_test2a_training_support_accuracy.md",
+      "sha256": "2cf657ddf724fefd8e7628c7843390cd519714383b18746661e40d43ba57feee",
+      "size_bytes": 1392
+    },
+    "tableS3_test2a_training_support_accuracy.tex": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/tables/tableS3_test2a_training_support_accuracy.tex",
+      "sha256": "61c63fbd289cc164f8fa852e8972193641f60aaca5c60bd3122d61c56fb7b938",
+      "size_bytes": 1198
+    }
+  },
+  "numerical_sources": [
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML1_optimization_progress_test2b.csv",
+      "sha256": "2ca32793a3b39348925f5ac173ffd8d0b91028835f18e7177242aea620e53522",
+      "size_bytes": 61849
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_objective_training_evaluation_history_test2b.csv",
+      "sha256": "316f2d0b98c542b638efd72e85e4aef77ac3857fb334bccf0f87c230ea7864b4",
+      "size_bytes": 263720
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5_deployed_physical_diagnostics_test2b.csv",
+      "sha256": "401b018e6a070a9281453948ee4576144479621120b7103a1d289a266faaf18e",
+      "size_bytes": 17002
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/final_callsite_y_metrics.csv",
+      "sha256": "f04daf9bbfef35fdc92a01c58593e767cb7712284d5cc9ff4484fe86070edc34",
+      "size_bytes": 581724
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/final_callsite_y_metrics.json",
+      "sha256": "8efa736e2fe0c9746b38159950d1ed568eecaa73485b2286a7a3311aa1851c1d",
+      "size_bytes": 12809
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML6_global_trajectories_representation_A_all_models.csv",
+      "sha256": "2900f520ee675cc6c5f901b6e128ef111e0c3077673e79cf118c6fa8d5bf35b4",
+      "size_bytes": 2382033
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML6_global_trajectories_representation_B_all_models.csv",
+      "sha256": "a5bc3db61a69614480ac5eaf85b895f043cf67510053ab372d3697b6ef16f5c0",
+      "size_bytes": 2387078
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML6_global_trajectories_representation_C_all_models.csv",
+      "sha256": "89abe564c62a78f9707b230d86305c82817dc76568d7c9bc2372119c9996ad8f",
+      "size_bytes": 2380916
+    }
+  ],
+  "old_main_figure_bundle": {
+    "ML1_optimization_progress_test2b.csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML1_optimization_progress_test2b.csv",
+      "sha256": "2ca32793a3b39348925f5ac173ffd8d0b91028835f18e7177242aea620e53522",
+      "size_bytes": 61849
+    },
+    "ML1_optimization_progress_test2b.json": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML1_optimization_progress_test2b.json",
+      "sha256": "d8b5e5712e3cb9daf05061e1352836a24b15d77039532667d4f4c7e101debcdd",
+      "size_bytes": 2801
+    },
+    "ML1_optimization_progress_test2b.pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML1_optimization_progress_test2b.pdf",
+      "sha256": "aa08102e21c51233ef7e6900dfbf0cfd161657c56e0ed76e53eb22faf5276486",
+      "size_bytes": 29989
+    },
+    "ML1_optimization_progress_test2b.png": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML1_optimization_progress_test2b.png",
+      "sha256": "4b28a02bc7a5ef3ad1d1a438c51c26329e43870d945ec314b293c3a301abb220",
+      "size_bytes": 361894
+    },
+    "ML2_objective_training_evaluation_history_test2b.csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_objective_training_evaluation_history_test2b.csv",
+      "sha256": "316f2d0b98c542b638efd72e85e4aef77ac3857fb334bccf0f87c230ea7864b4",
+      "size_bytes": 263720
+    },
+    "ML2_objective_training_evaluation_history_test2b.json": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_objective_training_evaluation_history_test2b.json",
+      "sha256": "c62f4d9b6cb7f02c33d20b49138a806cd2808a041bf5cfa0b77f8f645a56dbd9",
+      "size_bytes": 10226
+    },
+    "ML2_objective_training_evaluation_history_test2b.pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_objective_training_evaluation_history_test2b.pdf",
+      "sha256": "21acafc3db2f31144c6a7d43b31b15d83f34fe136efab28c0d0296109c20cf41",
+      "size_bytes": 36128
+    },
+    "ML2_objective_training_evaluation_history_test2b.png": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_objective_training_evaluation_history_test2b.png",
+      "sha256": "f99766f06f5c37557c053fe14d3b4193cb3ca49fa319404fa95108c874090646",
+      "size_bytes": 402840
+    },
+    "ML3_m1x_m1y_cross_state_final.csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML3_m1x_m1y_cross_state_final.csv",
+      "sha256": "ea936095e82144ac00855ac1f4a164a97a423c7a5b896e7b1300f7bb605e4b1c",
+      "size_bytes": 17928
+    },
+    "ML3_m1x_m1y_cross_state_final.json": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML3_m1x_m1y_cross_state_final.json",
+      "sha256": "180c9f44dd73daec8ba8296cd509ffe46d51e78cebc4cb838c5ef9cb14541965",
+      "size_bytes": 3117
+    },
+    "ML3_m1x_m1y_cross_state_final.pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML3_m1x_m1y_cross_state_final.pdf",
+      "sha256": "51e5bfaf90e8bcb771ac3d403936fb1d752579fa33e339841b170e0d53343ea1",
+      "size_bytes": 18248
+    },
+    "ML3_m1x_m1y_cross_state_final.png": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML3_m1x_m1y_cross_state_final.png",
+      "sha256": "9d673fc6e9aa3ea897523e428b2358a921f994ca9924984ef2832027edba171a",
+      "size_bytes": 108646
+    },
+    "ML4_frozen_model_objective_matrix_test2b.csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML4_frozen_model_objective_matrix_test2b.csv",
+      "sha256": "cb5727061f6f27ed15cc6b8c57558742773b3002cf9681b37310f25fa1606d6a",
+      "size_bytes": 17620
+    },
+    "ML4_frozen_model_objective_matrix_test2b.json": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML4_frozen_model_objective_matrix_test2b.json",
+      "sha256": "e383ff9a464844db9e9a1bb3c3f25f60d42d25381c9fcb4c92e886fe4b87e6b8",
+      "size_bytes": 3402
+    },
+    "ML4_frozen_model_objective_matrix_test2b.pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML4_frozen_model_objective_matrix_test2b.pdf",
+      "sha256": "dfcc2d1146492ebe576922736b1d6eec8ada7d9cca9334a0c22923a3a390c411",
+      "size_bytes": 50473
+    },
+    "ML4_frozen_model_objective_matrix_test2b.png": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML4_frozen_model_objective_matrix_test2b.png",
+      "sha256": "2951a2028ea24fea4783a8c81dee7804ce808bef98de006f463428e1c5b6ca81",
+      "size_bytes": 461741
+    },
+    "ML5_deployed_physical_diagnostics_test2b.csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5_deployed_physical_diagnostics_test2b.csv",
+      "sha256": "401b018e6a070a9281453948ee4576144479621120b7103a1d289a266faaf18e",
+      "size_bytes": 17002
+    },
+    "ML5_deployed_physical_diagnostics_test2b.json": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5_deployed_physical_diagnostics_test2b.json",
+      "sha256": "980c3cffc1aa7636b90e3f8385fdc3d3bc9ab57bea156cf9a88a0d0a7623dfc5",
+      "size_bytes": 4594
+    },
+    "ML5_deployed_physical_diagnostics_test2b.pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5_deployed_physical_diagnostics_test2b.pdf",
+      "sha256": "d02339fe5ef37fa58791ee140cc634098812684cb6e3623190c51252bd1c3633",
+      "size_bytes": 24455
+    },
+    "ML5_deployed_physical_diagnostics_test2b.png": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5_deployed_physical_diagnostics_test2b.png",
+      "sha256": "f6ed5ff8a7c7c0fcb22292da92ff5b98cc52c60f15c25964d00f7f2b8024e2ed",
+      "size_bytes": 219622
+    },
+    "ML6_global_trajectories_representation_A.csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML6_global_trajectories_representation_A.csv",
+      "sha256": "520077f0dadf7f514bb3aa400cfe31483356a4f17fe2b7a5763577749300833f",
+      "size_bytes": 1352048
+    },
+    "ML6_global_trajectories_representation_A.json": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML6_global_trajectories_representation_A.json",
+      "sha256": "9c33f59d168680aa1d47edb67c67c6344cd5385913d735d7ae9e1079c3d1f9e5",
+      "size_bytes": 3909
+    },
+    "ML6_global_trajectories_representation_A.pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML6_global_trajectories_representation_A.pdf",
+      "sha256": "861f6f29f9d60846c4a5a9acbf253c088d4e66dda37f309ab95e650cbd165609",
+      "size_bytes": 30462
+    },
+    "ML6_global_trajectories_representation_A.png": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML6_global_trajectories_representation_A.png",
+      "sha256": "304697bdfc2a3ad61aa8322f2e0dd7e658c3a4a40adb19c8a26ed3bb0c20d355",
+      "size_bytes": 316434
+    },
+    "ML6_global_trajectories_representation_B.csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML6_global_trajectories_representation_B.csv",
+      "sha256": "5c5b1834fd5e4745c8bbaee35384a5a55675a4d4899eb79f62f6748a13f1125f",
+      "size_bytes": 1354838
+    },
+    "ML6_global_trajectories_representation_B.json": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML6_global_trajectories_representation_B.json",
+      "sha256": "3d2b6dc29ea56142de10a5099bed993af7b3df2e2261efbc45030bf32fe0aa69",
+      "size_bytes": 3909
+    },
+    "ML6_global_trajectories_representation_B.pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML6_global_trajectories_representation_B.pdf",
+      "sha256": "d1269ef6133a6328b44ad96b030245c0261d3f0765aa40056f43d25d1015fe39",
+      "size_bytes": 28814
+    },
+    "ML6_global_trajectories_representation_B.png": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML6_global_trajectories_representation_B.png",
+      "sha256": "2df11c14985a09f11a7f5f1c246ba209caf054b2b62f88d250e7013b980af61f",
+      "size_bytes": 294643
+    },
+    "ML6_global_trajectories_representation_C.csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML6_global_trajectories_representation_C.csv",
+      "sha256": "cf6ae20cb48fbd4eaaf69116d1fc697e33482aa098ece449b766c3478dfb2c52",
+      "size_bytes": 1351976
+    },
+    "ML6_global_trajectories_representation_C.json": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML6_global_trajectories_representation_C.json",
+      "sha256": "91100fe4bcb075ed25aea21627ed498d08d08a28dff775f75456981992d99996",
+      "size_bytes": 3909
+    },
+    "ML6_global_trajectories_representation_C.pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML6_global_trajectories_representation_C.pdf",
+      "sha256": "4149ad961467a7c3f29cab2451a68df7e9edc9e7e2e46d95c06d155d76eb9f2e",
+      "size_bytes": 27395
+    },
+    "ML6_global_trajectories_representation_C.png": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML6_global_trajectories_representation_C.png",
+      "sha256": "01fae1631cd886c80f59ed970f925795808f78dc767ed654b3e2af87365311ba",
+      "size_bytes": 317548
+    }
+  },
+  "purpose": "Freeze accepted inputs before the final main-paper subset reset",
+  "source_head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f"
+}

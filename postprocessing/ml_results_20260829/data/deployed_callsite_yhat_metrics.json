@@ -1,0 +1,65 @@
+{
+  "common_scalar_across_representations": false,
+  "coverage_uniform_for_all_12_main_models": true,
+  "note": "Coverage is uniform, but the learned quantity differs by representation; no cross-representation scalar is manufactured.",
+  "operations": {
+    "rollout_performed": false,
+    "stored_JSON_parsing_only": true
+  },
+  "output": {
+    "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/deployed_callsite_yhat_metrics.csv",
+    "sha256": "4126f20ff687742b8bbf53f8354d5a8c592d6b5d2cda5238cef88e73fa73a027",
+    "size_bytes": 11894
+  },
+  "representation_metrics": {
+    "A": [
+      "A"
+    ],
+    "B": [
+      "A",
+      "R all",
+      "R truth-active"
+    ],
+    "C": [
+      "S",
+      "Qv",
+      "Qc",
+      "Qr source components"
+    ]
+  },
+  "scope": "ALL 160 deployed moist-physics calls; 10,485,760 spatial samples per metric",
+  "sources": [
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/evaluation/representation_A_matched.json",
+      "sha256": "34db97a05f691298e445222de4bd7eebf55348e01e16aabdfa7ade8b65746fc7",
+      "size_bytes": 822366
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/evaluation/representation_B_matched.json",
+      "sha256": "4d11a81f32601a82ba018efca73e400d96e1fb8ea6b34d95bdd5123a75e3fa58",
+      "size_bytes": 1668991
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/evaluation/representation_C_matched.json",
+      "sha256": "7bd7adfc3834b7818a86d478228ad0176ab9f59c8e919d58e763eba4d01e8f79",
+      "size_bytes": 5628543
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-A/representation_a_final_comparison.json",
+      "sha256": "75506a833862b69437a29a7a2b30e64c361d35b8560342bf8abe93302daf5b7f",
+      "size_bytes": 2406801
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-B/representation_b_final_comparison.json",
+      "sha256": "6044c0fbd42484e3bd6f0ec53bef91d9a871fa315fc83c193c10f1879813aadd",
+      "size_bytes": 4843526
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-C/representation_c_final_comparison.json",
+      "sha256": "8bc1d9fad90d1d5907c3ff8bc4a5e396ae09ce34f4d887d1f77ad429dfbba926",
+      "size_bytes": 15681506
+    }
+  ],
+  "state": "model-generated pre-moist states Yhat_n=P(Xhat_n)",
+  "status": "complete"
+}

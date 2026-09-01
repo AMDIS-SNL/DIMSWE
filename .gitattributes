@@ -1,2 +1,5 @@
 # Preserve frozen CSV artifacts byte-for-byte, including historical CRLF endings.
 docs/m1y_test2b_20260828/M1Y_RESULTS.csv -whitespace
+postprocessing/**/*.csv -whitespace
+postprocessing/ml_results_20260829/captions/ML_RESULTS_CAPTION_DRAFTS.md -whitespace
+postprocessing/ml_results_audit_20260829/ML_RESULTS_AUDIT.md -whitespace

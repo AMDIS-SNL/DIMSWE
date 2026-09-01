@@ -1,0 +1,154 @@
+{
+  "definitions": {
+    "Qc_mass": "domain integral of conservative cloud water Qc",
+    "Qr_mass": "domain integral of conservative rain water Qr",
+    "kinetic_energy": "0.5 integral h |v|^2 dA; not total energy",
+    "mixed_state_error": "only final/max/regime summaries are stored; a time series is not available without rerollout",
+    "projected_relative_vorticity_squared": "0.5 integral zeta_h^2 dA for CG(3) L2-projected relative vorticity; not potential enstrophy",
+    "total_water_mass": "domain integral of Qv+Qc+Qr"
+  },
+  "model_count": 21,
+  "quantity_kind": "FINAL STORED DEPLOYMENT DIAGNOSTIC",
+  "record_count": 3381,
+  "rollout_performed": false,
+  "source_head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+  "state_indices": [
+    0,
+    160
+  ],
+  "status": "complete",
+  "time_seconds": [
+    0.0,
+    16000.0
+  ],
+  "truth_source": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/data/test2b_temporal_diagnostics.csv",
+  "truth_source_sha256": "860136a9daecd07123b6faf973dc6897c5024bf798e1b656687d5b1760aa0ba4",
+  "validation": [
+    {
+      "kinetic_truth_max_abs_difference": 0.0,
+      "run_id": "t2b-a-m1x",
+      "time_indices_match": true,
+      "vorticity_truth_max_abs_difference": 0.0
+    },
+    {
+      "kinetic_truth_max_abs_difference": 0.0,
+      "run_id": "t2b-a-m2x-independent",
+      "time_indices_match": true,
+      "vorticity_truth_max_abs_difference": 0.0
+    },
+    {
+      "kinetic_truth_max_abs_difference": 0.0,
+      "run_id": "t2b-a-m2x-warm",
+      "time_indices_match": true,
+      "vorticity_truth_max_abs_difference": 0.0
+    },
+    {
+      "kinetic_truth_max_abs_difference": 0.0,
+      "run_id": "t2b-a-h1",
+      "time_indices_match": true,
+      "vorticity_truth_max_abs_difference": 0.0
+    },
+    {
+      "kinetic_truth_max_abs_difference": 0.0,
+      "run_id": "t2b-a-h2",
+      "time_indices_match": true,
+      "vorticity_truth_max_abs_difference": 0.0
+    },
+    {
+      "kinetic_truth_max_abs_difference": 0.0,
+      "run_id": "t2b-a-h5",
+      "time_indices_match": true,
+      "vorticity_truth_max_abs_difference": 0.0
+    },
+    {
+      "kinetic_truth_max_abs_difference": 0.0,
+      "run_id": "t2b-a-m1y",
+      "time_indices_match": true,
+      "vorticity_truth_max_abs_difference": 0.0
+    },
+    {
+      "kinetic_truth_max_abs_difference": 0.0,
+      "run_id": "t2b-b-m1x",
+      "time_indices_match": true,
+      "vorticity_truth_max_abs_difference": 0.0
+    },
+    {
+      "kinetic_truth_max_abs_difference": 0.0,
+      "run_id": "t2b-b-m2x-independent",
+      "time_indices_match": true,
+      "vorticity_truth_max_abs_difference": 0.0
+    },
+    {
+      "kinetic_truth_max_abs_difference": 0.0,
+      "run_id": "t2b-b-m2x-warm",
+      "time_indices_match": true,
+      "vorticity_truth_max_abs_difference": 0.0
+    },
+    {
+      "kinetic_truth_max_abs_difference": 0.0,
+      "run_id": "t2b-b-h1",
+      "time_indices_match": true,
+      "vorticity_truth_max_abs_difference": 0.0
+    },
+    {
+      "kinetic_truth_max_abs_difference": 0.0,
+      "run_id": "t2b-b-h2",
+      "time_indices_match": true,
+      "vorticity_truth_max_abs_difference": 0.0
+    },
+    {
+      "kinetic_truth_max_abs_difference": 0.0,
+      "run_id": "t2b-b-h5",
+      "time_indices_match": true,
+      "vorticity_truth_max_abs_difference": 0.0
+    },
+    {
+      "kinetic_truth_max_abs_difference": 0.0,
+      "run_id": "t2b-b-m1y",
+      "time_indices_match": true,
+      "vorticity_truth_max_abs_difference": 0.0
+    },
+    {
+      "kinetic_truth_max_abs_difference": 0.0,
+      "run_id": "t2b-c-m1x",
+      "time_indices_match": true,
+      "vorticity_truth_max_abs_difference": 0.0
+    },
+    {
+      "kinetic_truth_max_abs_difference": 0.0,
+      "run_id": "t2b-c-m2x-independent",
+      "time_indices_match": true,
+      "vorticity_truth_max_abs_difference": 0.0
+    },
+    {
+      "kinetic_truth_max_abs_difference": 0.0,
+      "run_id": "t2b-c-m2x-warm",
+      "time_indices_match": true,
+      "vorticity_truth_max_abs_difference": 0.0
+    },
+    {
+      "kinetic_truth_max_abs_difference": 0.0,
+      "run_id": "t2b-c-h1",
+      "time_indices_match": true,
+      "vorticity_truth_max_abs_difference": 0.0
+    },
+    {
+      "kinetic_truth_max_abs_difference": 0.0,
+      "run_id": "t2b-c-h2",
+      "time_indices_match": true,
+      "vorticity_truth_max_abs_difference": 0.0
+    },
+    {
+      "kinetic_truth_max_abs_difference": 0.0,
+      "run_id": "t2b-c-h5",
+      "time_indices_match": true,
+      "vorticity_truth_max_abs_difference": 0.0
+    },
+    {
+      "kinetic_truth_max_abs_difference": 0.0,
+      "run_id": "t2b-c-m1y",
+      "time_indices_match": true,
+      "vorticity_truth_max_abs_difference": 0.0
+    }
+  ]
+}

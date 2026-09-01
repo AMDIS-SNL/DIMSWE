@@ -39,3 +39,4 @@ if ! command -v "$PYTHON" >/dev/null 2>&1; then
 fi
 
 export PYTHONPATH="$REPOSITORY${PYTHONPATH:+:$PYTHONPATH}"
+export DIMSWE_REPOSITORY="$REPOSITORY"

@@ -1,0 +1,88 @@
+{
+  "figures": [
+    {
+      "after": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML4_main_deployed_physical_diagnostics.csv",
+        "sha256": "ca79a2832862d5d12e688460ce15d06f6a7899bc4947db868cc3c9ed6396890d",
+        "size_bytes": 10036
+      },
+      "before": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML4_main_deployed_physical_diagnostics.csv",
+        "sha256": "567187c2f19f1028be6b1378fb949bb19fb2d97b2a521ef25a9eac6171772a86",
+        "size_bytes": 9997
+      },
+      "figure": "ML4_main_deployed_physical_diagnostics",
+      "operation": "string-preserving row filter; no numeric parsing",
+      "rows": 12,
+      "source": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML5_deployed_physical_diagnostics_test2b.csv",
+        "sha256": "401b018e6a070a9281453948ee4576144479621120b7103a1d289a266faaf18e",
+        "size_bytes": 17002
+      }
+    },
+    {
+      "after": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5A_main_global_trajectories.csv",
+        "sha256": "4b1e86aaac29c23b0471d972241068a8289a096caa0563aeda9edc0d821bb885",
+        "size_bytes": 1349854
+      },
+      "before": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5A_main_global_trajectories.csv",
+        "sha256": "51b3f6f8fafe1ed8c0c4fb7c0da5bd0611f99d79e591e7ab759872b38c436682",
+        "size_bytes": 1349763
+      },
+      "figure": "ML5A_main_global_trajectories",
+      "operation": "string-preserving row filter; no numeric parsing",
+      "rows": 4516,
+      "source": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML6_global_trajectories_representation_A_all_models.csv",
+        "sha256": "2900f520ee675cc6c5f901b6e128ef111e0c3077673e79cf118c6fa8d5bf35b4",
+        "size_bytes": 2382033
+      }
+    },
+    {
+      "after": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5B_main_global_trajectories.csv",
+        "sha256": "bea2b1831cce7d24440e7f2e71fd60513bc0b7c932c9a7d32a62d1cb9af27054",
+        "size_bytes": 1352879
+      },
+      "before": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5B_main_global_trajectories.csv",
+        "sha256": "a6a0b01ace4bfb588670077f5e842b0deb9d9115ff64e1429c4740bca467b259",
+        "size_bytes": 1352788
+      },
+      "figure": "ML5B_main_global_trajectories",
+      "operation": "string-preserving row filter; no numeric parsing",
+      "rows": 4516,
+      "source": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML6_global_trajectories_representation_B_all_models.csv",
+        "sha256": "a5bc3db61a69614480ac5eaf85b895f043cf67510053ab372d3697b6ef16f5c0",
+        "size_bytes": 2387078
+      }
+    },
+    {
+      "after": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5C_main_global_trajectories.csv",
+        "sha256": "e5e985dc33bbc25729cbf68cc3d38346f435944a2fc830970e9c1b20841026c9",
+        "size_bytes": 1349210
+      },
+      "before": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5C_main_global_trajectories.csv",
+        "sha256": "453a36dce3e4aac2120ee2ac6750b8c3f281eb7ee58872d9b9c5a3d5fb14ac52",
+        "size_bytes": 1349207
+      },
+      "figure": "ML5C_main_global_trajectories",
+      "operation": "string-preserving row filter; no numeric parsing",
+      "rows": 4516,
+      "source": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML6_global_trajectories_representation_C_all_models.csv",
+        "sha256": "89abe564c62a78f9707b230d86305c82817dc76568d7c9bc2372119c9996ad8f",
+        "size_bytes": 2380916
+      }
+    }
+  ],
+  "purpose": "remove pandas float-text round-trip drift from plotted CSV sidecars",
+  "rendered_PDF_PNG_changed": false,
+  "scientific_values_changed": false,
+  "status": "complete"
+}

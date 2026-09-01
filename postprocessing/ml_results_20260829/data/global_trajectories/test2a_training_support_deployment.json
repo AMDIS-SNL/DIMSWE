@@ -1,0 +1,22 @@
+{
+  "csv": {
+    "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/global_trajectories/test2a_training_support_deployment.csv",
+    "rows": 1944,
+    "sha256": "e70e9b2144d4c765f654edb091cd6214f02a9e3cf4ebd55c3e7d93196c1475a3"
+  },
+  "no_model_execution": true,
+  "source_sha256": {
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fair-longfit/comparison/fair_longfit_comparison.json": "c6ff386c987f0c6755c2a1fc14fb1323e2214f73ec8f5348a3efe8344ebe3d8c",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/postprocess/horizon_curriculum_report.json": "a0203f031558073effbbcf8c0da259eed972cf18a98dd073cc12332af64d2859",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/m1-to-m2-finetune/postprocess/autonomous/iter-50000/trajectory_metrics.json": "e0ac222a7ad7c5eb1c56a4ba6c608b7c1e8fc344e9e736d4ce44087b338c9540",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/problem_b_comparison.json": "c9bba696f957b34e40a1f95d29e645463bbdd4456144abd536b2fed4d24561d2"
+  },
+  "sources": [
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fair-longfit/comparison/fair_longfit_comparison.json",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/m1-to-m2-finetune/postprocess/autonomous/iter-50000/trajectory_metrics.json",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/postprocess/horizon_curriculum_report.json",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/problem_b_comparison.json"
+  ],
+  "support": "Test 2A training interval deployment only, states 0--80",
+  "terminology": "No held-out/test set is defined or created."
+}

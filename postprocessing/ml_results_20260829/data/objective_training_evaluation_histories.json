@@ -1,0 +1,365 @@
+{
+  "all_checkpoint_training_parity": [
+    {
+      "maximum_absolute_difference": 0.0,
+      "passed": true,
+      "run_id": "t2b-a-m1x"
+    },
+    {
+      "maximum_absolute_difference": 0.0,
+      "passed": true,
+      "run_id": "t2b-a-m1y"
+    },
+    {
+      "maximum_absolute_difference": 0.0,
+      "passed": true,
+      "run_id": "t2b-b-m1x"
+    },
+    {
+      "maximum_absolute_difference": 0.0,
+      "passed": true,
+      "run_id": "t2b-b-m1y"
+    },
+    {
+      "maximum_absolute_difference": 0.0,
+      "passed": true,
+      "run_id": "t2b-c-m1x"
+    },
+    {
+      "maximum_absolute_difference": 0.0,
+      "passed": true,
+      "run_id": "t2b-c-m1y"
+    }
+  ],
+  "command": [
+    "/Users/arjunsharma/venvs/dimswe-firedrake-2026.4.1-py312/bin/python",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/scripts/reconstruct_objective_consistent_histories.py"
+  ],
+  "denominator_convention": {
+    "H1_evaluation_increment_denominator": 778389283037.0262,
+    "H1_evaluation_source_equivalent": 77838928.30370262,
+    "H1_training_increment_denominator": 901944200525722.0,
+    "H1_training_source_equivalent": 90194420052.5722,
+    "M2-X_evaluation": 14256196.634496419,
+    "M2-X_training": 90147685409.58347,
+    "definition": "Each curve uses the same normalized-target energy formula as its training objective, evaluated on that curve's own state/window set.",
+    "newly_defined_evaluation_denominators": [
+      "M2-X",
+      "H1"
+    ],
+    "note": "The H1 implementation evaluates source error after canceling the common dt^2 factor from numerator and target increment denominator."
+  },
+  "excluded_models": [
+    "H2",
+    "H5"
+  ],
+  "excluded_reason": "recursive evaluation histories were not computed",
+  "final_training_objective_parity": [
+    {
+      "absolute_difference": 2.0328790734103208e-20,
+      "accepted": 2.9897337575707075e-05,
+      "passed": true,
+      "reconstructed_or_selected": 2.9897337575707054e-05,
+      "run_id": "t2b-a-m1x",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 1.864768212896724e-05,
+      "passed": true,
+      "reconstructed_or_selected": 1.864768212896724e-05,
+      "run_id": "t2b-a-m2x-independent",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 1.4875848850968718e-05,
+      "passed": true,
+      "reconstructed_or_selected": 1.4875848850968718e-05,
+      "run_id": "t2b-a-m2x-warm",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 3.001818343501887e-05,
+      "passed": true,
+      "reconstructed_or_selected": 3.001818343501887e-05,
+      "run_id": "t2b-a-h1",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 1.4230153513872246e-19,
+      "accepted": 4.072769317816356e-05,
+      "passed": true,
+      "reconstructed_or_selected": 4.0727693178163705e-05,
+      "run_id": "t2b-b-m1x",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 1.863373258646678e-05,
+      "passed": true,
+      "reconstructed_or_selected": 1.863373258646678e-05,
+      "run_id": "t2b-b-m2x-independent",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 1.4814244410556754e-05,
+      "passed": true,
+      "reconstructed_or_selected": 1.4814244410556754e-05,
+      "run_id": "t2b-b-m2x-warm",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 2.2820014210665148e-05,
+      "passed": true,
+      "reconstructed_or_selected": 2.2820014210665148e-05,
+      "run_id": "t2b-b-h1",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 1.0164395367051604e-19,
+      "accepted": 3.8697519765561936e-05,
+      "passed": true,
+      "reconstructed_or_selected": 3.869751976556204e-05,
+      "run_id": "t2b-c-m1x",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 1.538900036045785e-05,
+      "passed": true,
+      "reconstructed_or_selected": 1.538900036045785e-05,
+      "run_id": "t2b-c-m2x-independent",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 1.4039537322282988e-05,
+      "passed": true,
+      "reconstructed_or_selected": 1.4039537322282988e-05,
+      "run_id": "t2b-c-m2x-warm",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 3.426713133257584e-05,
+      "passed": true,
+      "reconstructed_or_selected": 3.426713133257584e-05,
+      "run_id": "t2b-c-h1",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 1.3552527156068805e-20,
+      "accepted": 2.4395096189055723e-05,
+      "passed": true,
+      "reconstructed_or_selected": 2.439509618905571e-05,
+      "run_id": "t2b-a-m1y",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 1.3552527156068805e-20,
+      "accepted": 3.261043519805744e-05,
+      "passed": true,
+      "reconstructed_or_selected": 3.261043519805743e-05,
+      "run_id": "t2b-b-m1y",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 1.0164395367051604e-19,
+      "accepted": 3.805860067388399e-05,
+      "passed": true,
+      "reconstructed_or_selected": 3.8058600673884094e-05,
+      "run_id": "t2b-c-m1y",
+      "tolerance": 2e-15
+    }
+  ],
+  "included_models": [
+    "M1-X",
+    "M1-Y",
+    "M2-X-independent",
+    "warm M2-X",
+    "H1"
+  ],
+  "inputs": [
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_hash_manifest.json",
+      "sha256": "8bea6544752cd5c7bdccfb09a8ed9c7e001dfa96994a796119720cb0cb1ad43b"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/test2b-rain-active-learning/preparation/fixed_learning_data.npz",
+      "sha256": "6e159015234fd94881b0b97888b7481eb049a02dcd96c571078920c0bedc901c"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/test2b-rain-active-learning/preparation/fixed_learning_data.json",
+      "sha256": "efeba6e0f80063a79ff47209aa1b8973565386e4d4e8844b4b4c2fb0281f0cae"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/heldout_x_test2b.npz",
+      "sha256": "fd55559e2eb3277228099106c8043d3c1d11848a83c77efb87a3f4373f03274f"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/heldout_x_test2b.json",
+      "sha256": "564925b039320e2fec60365b925f42101d6d86479446025ec56fe74f04ce38d3"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/evaluation/m1y_heldout_data.npz",
+      "sha256": "1ddfa2d2e28b6f8dc2a0fbe0a12d2fe7da42158745a70eb2e088706501c42d2f"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/evaluation/m1y_heldout_data.json",
+      "sha256": "4601a5dcdb5bef7ff5711b7c2273324640759e3248842cb0dc2d72e2da30c21e"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_direct_histories.csv",
+      "sha256": "72e26a260f1199e8f861bf685cf053d9434cc3933462c949402d37e4a4930c1a"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_training_objectives_operator.csv",
+      "sha256": "dba15ecdc96755e6cdc6e38643b9fc78dc96ceed2787ad1b04ba895678112af2"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_training_objectives_fixed.csv",
+      "sha256": "3ff41906d67add5a1ac519b04de0b31c8c599e22049d8ad007e047c2d4b5eb8c"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/m1_cross_state_final_metrics.csv",
+      "sha256": "1667691c50ab9986b9d420d5fd534a35894c79457988d29a704236672bf3cee6"
+    }
+  ],
+  "normalization": {
+    "input_offset": [
+      749.6487720807651,
+      7376.434989735685,
+      1.4193153609575624,
+      0.06015957787413514,
+      0.0
+    ],
+    "input_scale": [
+      16.913638066122523,
+      133.5602198531373,
+      0.21326095651874272,
+      0.012412402653357142,
+      1.0
+    ],
+    "output_scales": {
+      "A": [
+        9.052258655848717e-08
+      ],
+      "B": [
+        9.052258655848717e-08,
+        1.9902871261559996e-11
+      ],
+      "C": [
+        0.006671477765500949,
+        6.803353979030477e-05,
+        6.80335397581467e-05,
+        1.5076498196845062e-08
+      ]
+    },
+    "provenance_sha256": "794e074b2d3149f58025a7e6a74856374d86adab1e3ee518a64fe6f30ff0dd79",
+    "refitted": false
+  },
+  "operations": {
+    "checkpoint_inference": true,
+    "fixed_array_or_fixed_map_only": true,
+    "optimizer_instantiated": false,
+    "prefix_constructed": false,
+    "recursive_rollout": false,
+    "timestep_integrated": false
+  },
+  "output": {
+    "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/objective_training_evaluation_histories.csv",
+    "sha256": "316f2d0b98c542b638efd72e85e4aef77ac3857fb334bccf0f87c230ea7864b4"
+  },
+  "record_count": 288,
+  "representations": [
+    "A",
+    "B",
+    "C"
+  ],
+  "run_count": 15,
+  "source_head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+  "state_contracts": {
+    "H1 evaluation": {
+      "input": "Y*_81..159",
+      "next_truth_target": "X*_82..160"
+    },
+    "H1 training": {
+      "input": "Y*_0..79",
+      "next_truth_target": "X*_1..80"
+    },
+    "M1-X evaluation": {
+      "input_and_target": "X*_81..160"
+    },
+    "M1-X training": {
+      "input_and_target": "X*_0..80"
+    },
+    "M1-Y evaluation": {
+      "input_and_target": "Y*_81..160=P(X*_81..160)"
+    },
+    "M1-Y training": {
+      "input_and_target": "Y*_0..80=P(X*_0..80)"
+    },
+    "M2-X evaluation": {
+      "input_and_source_target": "X*_81..160"
+    },
+    "M2-X training": {
+      "input_and_source_target": "X*_0..80"
+    }
+  },
+  "status": "complete",
+  "stored_final_evaluation_availability": {
+    "M1-X/M1-Y": "six matching objective values available and exact",
+    "M2-X/H1": "no previously stored objective-consistent evaluation values"
+  },
+  "stored_final_evaluation_parity": [
+    {
+      "absolute_difference": 0.0,
+      "passed": true,
+      "run_id": "t2b-a-m1x"
+    },
+    {
+      "absolute_difference": 0.0,
+      "passed": true,
+      "run_id": "t2b-a-m1y"
+    },
+    {
+      "absolute_difference": 0.0,
+      "passed": true,
+      "run_id": "t2b-b-m1x"
+    },
+    {
+      "absolute_difference": 0.0,
+      "passed": true,
+      "run_id": "t2b-b-m1y"
+    },
+    {
+      "absolute_difference": 0.0,
+      "passed": true,
+      "run_id": "t2b-c-m1x"
+    },
+    {
+      "absolute_difference": 0.0,
+      "passed": true,
+      "run_id": "t2b-c-m1y"
+    }
+  ],
+  "validation_gates": {
+    "H1_evaluation_alignment_is_81_to_159_targeting_82_to_160": true,
+    "H2_H5_excluded": true,
+    "all_15_final_training_objectives_match": true,
+    "all_6_M1_final_evaluation_values_match_existing_cross_state_metrics": true,
+    "all_M1_training_checkpoint_values_match_existing_history": true,
+    "all_values_finite": true,
+    "coverage_complete_for_15_nonrecursive_runs": true,
+    "normalization_provenance_matches": true
+  },
+  "wall_seconds": 69.41947724996135,
+  "weighting": {
+    "M1-X/M1-Y": "frozen carrier-mass weights",
+    "M2-X/H1": "frozen S/Q finite-element mass and inverse-mass maps"
+  }
+}
