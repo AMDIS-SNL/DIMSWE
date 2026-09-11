@@ -246,7 +246,7 @@ class MetriplecticModel(Model):
             if parameters['model']['poisson_bracket'] == 'cf' and parameters['model']['hamiltonian'] in ['tswe', 'mtswe', 'ce']:
                 self.statistics = AdvDensStatistics_CF(self.spaces, hamiltonian, vars, self.initcond, parameters['timestepping']['num_steps'] // parameters['output']['stat_freq'] + 1)
                 self.diagnostics = AdvDensDiagnostics_CF(self.spaces, hamiltonian, vars, self.initcond, parameters['mesh']['dim'])
-            elif parameters['model']['poisson_bracket'] == 'cf' and parameters['model']['hamiltonian'] in ['tswe', 'mtswe', 'ce']:
+            elif parameters['model']['poisson_bracket'] == 'lp' and parameters['model']['hamiltonian'] in ['tswe', 'mtswe', 'ce']:
                 self.statistics = AdvDensStatistics_LP(self.spaces, hamiltonian, vars, self.initcond, parameters['timestepping']['num_steps'] // parameters['output']['stat_freq'] + 1)
                 self.diagnostics = AdvDensDiagnostics_LP(self.spaces, hamiltonian, vars, self.initcond, parameters['mesh']['dim'])
         forcing_terms = get_forcing_terms(parameters, vars, self.spaces, self.initcond)

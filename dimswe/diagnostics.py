@@ -186,7 +186,7 @@ class AdvDensDiagnostics_CF(AdvDensDiagnostics):
 class AdvDensDiagnostics_LP(AdvDensDiagnostics):
     def create_diagnostics(self, xn, t, coeff):
         AdvDensDiagnostics.create_diagnostics(self, xn, t, coeff)
-        total_dens = self.hamiltonian.vars.get_total_density_expr(self.xn)
+        self.total_dens = self.hamiltonian.vars.get_total_density_expr(self.xn)
 
         m = xn['m']
         v = m / self.total_dens

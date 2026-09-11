@@ -81,10 +81,11 @@ def CVLieDerivative(degree, dim, u, a, ahat, afac_edge, afac, v, alpha_s, n, ord
         raise NotImplementedError
     #volume forms
     elif degree == dim:
-        raise NotImplementedError
-        expr = (mtest('+')*inner(u('+'), n('+')) + mtest('-')*inner(u('-'), n('-')))*mtilde*self.dS
-        expr = expr - (u('+')*inner(mtest('+'), n('+')) + u('-')*inner(mtest('-'), n('-')))*mtilde*self.dS
-#
+        expr = (dot(ahat('+'),atilde)*inner(u('+'), n('+')) + dot(ahat('-'),atilde)*inner(u('-'), n('-')))*dS
+        expr = expr - (dot(u('+'),atilde)*inner(ahat('+'), n('+')) + dot(u('-'),atilde)*inner(ahat('-'), n('-')))*dS
+        if order >1:
+            expr = expr - inner(grad(ahat), outer(u,m))*dx
+            expr = expr + inner(grad(u), outer(ahat,m))*dx
 #PROBABLY NEED TO DISTINGUISH BETWEEN 1-FORMS AND N-1 FORMS HERE!
     #1-forms in 2D
     elif degree == 1 and dim == 2:
@@ -166,7 +167,11 @@ class DG1LimiterTransport(ForcingBase):
 
 
     def rhs(self, xvars, t, coeff, xhats):
-        v = xvars['v']
+        if 'v' in xvars.keys():
+            v = xvars['v']
+        elif 'u' in xvars.keys():
+            v = xvars['u']
+
         n = self.spaces.n
 
         rhs_expr = 0

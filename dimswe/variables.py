@@ -262,7 +262,7 @@ class ThermalShallowWaterVariables_LP(AdvDensVariables_LP, ThermalShallowWaterBa
 
 class MoistThermalShallowWaterVariables_CF(AdvDensVariables_CF, ThermalShallowWaterBase):
     def __init__(self, spaces, tracer_names, dg_tracer_names=[]):
-        AdvDensVariables_CF.__init__(self, spaces, ['h', 'S'], tracer_names, ['Qv', 'Qc', 'Qr'] + dg_tracer_names, 2)
+        AdvDensVariables_CF.__init__(self, spaces, ['h', 'S'], tracer_names+ ['Qv', 'Qc', 'Qr'], dg_tracer_names, 2)
         self.entropy_name = 'S'
 
 
@@ -273,7 +273,7 @@ class MoistThermalShallowWaterVariables_CF_H1(AdvDensVariables_CF_H1, ThermalSha
 
 class MoistThermalShallowWaterVariables_LP(AdvDensVariables_LP, ThermalShallowWaterBase):
     def __init__(self, spaces, tracer_names, dg_tracer_names=[]):
-        AdvDensVariables_LP.__init__(self, spaces, ['h', 'S'], tracer_names, ['Qv', 'Qc', 'Qr'] + dg_tracer_names, 2)
+        AdvDensVariables_LP.__init__(self, spaces, ['h', 'S'], tracer_names + ['Qv', 'Qc', 'Qr'], dg_tracer_names, 2)
         self.entropy_name = 'S'
 
 
