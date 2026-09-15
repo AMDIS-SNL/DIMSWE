@@ -108,12 +108,12 @@ class AdvDensDiagnostics():
             S = xn['S']
             Qv = xn['Qv']
             qv = Qv / h
-            s = S / h
+            sl = S / h
             rhhat = self.testvars['rh']
             rhtrial = self.trialvars['rh']
             qsathat = self.testvars['qsat']
             qsattrial = self.trialvars['qsat']
-            q_sat = qsat(h, s, self.bottom_topography, self.initcond.q0, self.initcond.H0, self.initcond.g)
+            q_sat = qsat(h, sl, self.bottom_topography, self.initcond.q0, self.initcond.H0, self.initcond.g)
             rh_expr = [inner(rhhat, rhtrial)*self.dx, inner(rhhat, qv/q_sat*100.)*self.dx]
             rh_problem = LinearVariationalProblem(rh_expr[0], rh_expr[1], self.vars['rh'])
             self.rh_solver = LinearVariationalSolver(rh_problem, solver_parameters=overall_solver_parameters['rhdiag'], options_prefix='rhdiag')

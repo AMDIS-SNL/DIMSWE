@@ -35,6 +35,10 @@ def plot_adv_dens(parameters):
 #NEED A WAY TO HANDLE REAL-SPACE COEFFICIENTS HERE IE SKIP THEM!
         #for var in model.get_coeff_list():
         #    animate_scalar2D(chkpoint_file, mesh, var, noutput, var + '-mov', var in vector_list)
+        if parameters['output']['output_aux_vars']:
+            for var in model.get_aux_var_list():
+                animate_scalar2D(chkpoint_file, mesh, var, noutput, var + '-mov', var in vector_list)
+
         for var in model.get_diagnostics_list():
             animate_scalar2D(chkpoint_file, mesh, var, noutput, var + '-mov', var in vector_list)
 

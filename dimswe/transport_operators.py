@@ -1,4 +1,4 @@
-from firedrake import inner, sign, dot, grad, div
+from firedrake import inner, sign, dot, grad, div, outer
 from firedrake import VertexBasedLimiter, FunctionSpace
 from .operators import ForcingBase
 
@@ -13,17 +13,20 @@ from .operators import ForcingBase
 def SVLieDerivative(degree, dim, u, a, ahat, afac_edge, afac, v, alpha_s, n, order, dx, dS):
     alpha = alpha_s * sign(dot(v('+'),n('+')))
     atilde = 0.5 * ((1. + alpha) * a('+') + (1. - alpha)*a('-'))
+#SHOULD WE BE USING UPWINDED U HERE?
+#THIS IS A CHOICE WE CAN MAKE...
+    uavg = (u('+') + u('-'))/2.0
     #0-forms
     if degree == 0:
         raise NotImplementedError
     #volume forms
     elif degree == dim:
 #MISSING BOUNDARY TERMS- ds
-        expr = (ahat('+')*inner(u('+'), n('+')) + ahat('-')*inner(u('-'), n('-')))*atilde/afac_edge*dS
+        expr = (ahat('+')*inner(uavg, n('+')) + ahat('-')*inner(uavg, n('-')))*atilde/afac_edge*dS
         if order > 1:
             expr = expr - inner(grad(ahat), a/ afac * u)*dx
 
-#PROBABLY NEED TO DISTINGUISH BETWEEN 1-FORMS AND N-1 FORMS HERE!
+#PROBABLY NEED TOu('-') DISTINGUISH BETWEEN 1-FORMS AND N-1 FORMS HERE!
     #1-forms in 2D
     elif degree == 1 and dim == 2:
         raise NotImplementedError
@@ -76,16 +79,20 @@ def VVLieDerivative(degree, dim, u, a, ahat, afac_edge, afac, v, alpha_s, n, ord
 def CVLieDerivative(degree, dim, u, a, ahat, afac_edge, afac, v, alpha_s, n, order, dx, dS):
     alpha = alpha_s * sign(dot(v('+'),n('+')))
     atilde = 0.5 * ((1. + alpha) * a('+') + (1. - alpha)*a('-'))
+    uavg = (u('+') + u('-'))/2.0
+    ahatavg = (ahat('+') + ahat('-'))/2.0
     #0-forms
     if degree == 0:
         raise NotImplementedError
     #volume forms
+#MISSING BOUNDARY TERMS!
     elif degree == dim:
-        expr = (dot(ahat('+'),atilde)*inner(u('+'), n('+')) + dot(ahat('-'),atilde)*inner(u('-'), n('-')))*dS
-        expr = expr - (dot(u('+'),atilde)*inner(ahat('+'), n('+')) + dot(u('-'),atilde)*inner(ahat('-'), n('-')))*dS
+        expr = (dot(ahat('+'),atilde/afac_edge)*inner(uavg, n('+')) + dot(ahat('-'),atilde/afac_edge)*inner(uavg, n('-')))*dS
+        expr = expr - (dot(u('+'),atilde/afac_edge)*inner(ahatavg, n('+')) + dot(u('-'),atilde/afac_edge)*inner(ahatavg, n('-')))*dS
+
         if order >1:
-            expr = expr - inner(grad(ahat), outer(u,m))*dx
-            expr = expr + inner(grad(u), outer(ahat,m))*dx
+            expr = expr - inner(outer(u,a/afac), grad(ahat))*dx
+            expr = expr + inner(outer(ahat,a/afac), grad(u))*dx
 #PROBABLY NEED TO DISTINGUISH BETWEEN 1-FORMS AND N-1 FORMS HERE!
     #1-forms in 2D
     elif degree == 1 and dim == 2:

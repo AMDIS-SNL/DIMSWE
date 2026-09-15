@@ -354,8 +354,8 @@ class GeneralRK(TimeStepper):
         self.dt.assign(dt)
         self.xk[0].assign(xn[0])
 #NEED SOME WAY OF DOING THIS FOR FULL SPACE, SINCE AUX INITIAL GUESS SHOULD GO IN FI...
-        #if len(self.xk) > 1:
-        #    self.Fi[0][0][1].assign(xn[1])
+        if len(self.xk) > 1:
+            self.Fi[0][0][1].assign(xn[1])
         #print('v', norm(self.xk[0].sub(0)))
         #print('h', norm(self.xk[0].sub(1)))
         #print('S', norm(self.xk[0].sub(2)))
@@ -380,7 +380,15 @@ class GeneralRK(TimeStepper):
 #THIS BREAKS A LITTLE FOR FULL SPACE VERSION
 #IE WE SHOULD JUST BE ASSIGNING THE X VARIABLES HERE
 #AND THEN DOING SOMETHING FOR THE AUX VARS
+
+#the general solution is to assign each variable separately using sub
+#this is maybe slower? probably not actually though...
         xnp1[0].assign(xn[0] + self.dt * sum(float(self.b[i]) * self.Fi[i][0][0] for i in range(self.nstages)))
+
+#this gives a good initial guess at least?
+        if len(xnp1) > 1:
+            xnp1[1].assign(self.Fi[-1][0][1])
+
         #print('xnp1', self.model.norm(xnp1[0]))
         #if len(xnp1) > 1:
 #IDEALLY THIS IS AUX VARS EVALUATED AT XNP1- provides a good initial guess at least?

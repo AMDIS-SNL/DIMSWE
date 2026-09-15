@@ -74,13 +74,13 @@ class ThreeWayPhysics(ForcingBase):
         qv = Qv / h
         qc = Qc / h
         qr = Qr / h
-        s = S/h
+        sl = S/h
 
         if self.treat_as_coeffs:
             beta2 = self.g * coeff['L']
         else:
             beta2 = self.g * self.L
-        q_sat = qsat(h, s, self.B, self.q0, self.H0, self.g)
+        q_sat = qsat(h, sl, self.B, self.q0, self.H0, self.g)
         gamma_v = 1./(1. + q_sat * 20. * beta2 / self.g)
         Dqv = ufl.max_value(0.0, gamma_v*(qv-q_sat)/self.tau_v)
         Dqc = ufl.min_value(qc/self.dt, ufl.max_value(0., gamma_v * (q_sat - qv)/self.tau_v))

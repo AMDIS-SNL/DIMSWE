@@ -66,7 +66,8 @@ class AdvDensStatistics():
 #probably for computing PV, etc. there will be
 class AdvDensStatistics_LP(AdvDensStatistics):
     pass
-#
+#ADD MOMENTUM CONS CHECK HERE!
+
 class AdvDensStatistics_CF(AdvDensStatistics):
     pass
 
