@@ -12,22 +12,25 @@ class OperatorBase():
     def post_step(self, statevars):
         pass
 
-    def get_coeff(self):
-        return None
-
     def has_coeff(self):
         return False
 
-    def set_default_coeffs(self, coeff):
+    def get_coeff_scaling_factors(self):
+        return []
+
+    def set_coeffs(self, parameters, coeff):
         pass
 
-    def get_varlist(self):
+    def get_coeff(self):
         return []
+
+    def get_coeff_bounds(self):
+        return [], []
 
     def get_spacelist(self):
         return []
 
-    def rhs(self, xvars, xhats):
+    def rhs(self, xvars, t, coeff, xhats):
         return 0.0
 
 #POSSIBLY FIX UP LINEAR RHS CALLING FORMAT?
@@ -35,6 +38,17 @@ class BracketBase(OperatorBase):
 
     def linear_rhs(self, const_state, dfdx_linear_vars, xhats):
         return 0.0
+
+    def compute_q_expressions(self, xvars, t, coeff, xhats, expressions):
+        pass
+        
+class FunctionalBase(OperatorBase):
+
+    def compute_dfdx_expressions(self, xvars, t, coeff, xhats, expressions):
+        pass
+
+    def compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars):
+        pass
 
 class ForcingBase(OperatorBase):
 

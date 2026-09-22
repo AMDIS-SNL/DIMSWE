@@ -108,12 +108,12 @@ class AdvDensDiagnostics():
             S = xn['S']
             Qv = xn['Qv']
             qv = Qv / h
-            s = S / h
+            sl = S / h
             rhhat = self.testvars['rh']
             rhtrial = self.trialvars['rh']
             qsathat = self.testvars['qsat']
             qsattrial = self.trialvars['qsat']
-            q_sat = qsat(h, s, self.bottom_topography, self.initcond.q0, self.initcond.H0, self.initcond.g)
+            q_sat = qsat(h, sl, self.bottom_topography, self.initcond.q0, self.initcond.H0, self.initcond.g)
             rh_expr = [inner(rhhat, rhtrial)*self.dx, inner(rhhat, qv/q_sat*100.)*self.dx]
             rh_problem = LinearVariationalProblem(rh_expr[0], rh_expr[1], self.vars['rh'])
             self.rh_solver = LinearVariationalSolver(rh_problem, solver_parameters=overall_solver_parameters['rhdiag'], options_prefix='rhdiag')
@@ -152,63 +152,62 @@ class AdvDensDiagnostics_CF_H1(AdvDensDiagnostics):
             self.eta_solver = LinearVariationalSolver(eta_problem, solver_parameters=overall_solver_parameters['etadiag'], options_prefix='etadiag')
             self.zeta_solver = LinearVariationalSolver(zeta_problem, solver_parameters=overall_solver_parameters['zetadiag'], options_prefix='zetadiag')
 
-#
-# class AdvDensDiagnostics_CF(AdvDensDiagnostics):
-#
-#     def create(self, xn, t, coeff):
-#         AdvDensDiagnostics.create(self, xn, t, coeff)
-#         self.total_dens = self.hamiltonian.vars.get_total_density_expr(self.xn)
-#
-#         v = xn['v']
-#         qhat = self.testvars['q']
-#         qtrial = self.trialvars['q']
-#
-# #MISSING BOUNDARY TERMS...
-#         if self.dim == 2:
-#             pv_expr = [inner(qhat, self.total_dens * qtrial)*self.dx, inner(-skewgrad(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
-#             eta_expr = [inner(qhat, qtrial)*self.dx, inner(-skewgrad(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
-#             zeta_expr = [inner(qhat, qtrial)*self.dx, inner(-skewgrad(qhat), v)*self.dx]
-#         if self.dim == 3:
-#             pv_expr = [inner(qhat, self.total_dens * qtrial)*self.dx, inner(-curl(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
-#             eta_expr = [inner(qhat, qtrial)*self.dx, inner(-curl(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
-#             zeta_expr = [inner(qhat, qtrial)*self.dx, inner(-curl(qhat), v)*self.dx]
-#         if self.dim >=2:
-#             pv_problem = LinearVariationalProblem(pv_expr[0], pv_expr[1], self.vars['q'])
-#             eta_problem = LinearVariationalProblem(eta_expr[0], eta_expr[1], self.vars['eta'])
-#             zeta_problem = LinearVariationalProblem(zeta_expr[0], zeta_expr[1], self.vars['zeta'])
-#             self.pv_solver = LinearVariationalSolver(pv_problem, solver_parameters=overall_solver_parameters['qdiag'], options_prefix='qdiag')
-#             self.eta_solver = LinearVariationalSolver(eta_problem, solver_parameters=overall_solver_parameters['etadiag'], options_prefix='etadiag')
-#             self.zeta_solver = LinearVariationalSolver(zeta_problem, solver_parameters=overall_solver_parameters['zetadiag'], options_prefix='zetadiag')
-#
+
+class AdvDensDiagnostics_CF(AdvDensDiagnostics):
+
+    def create_diagnostics(self, xn, t, coeff):
+        AdvDensDiagnostics.create_diagnostics(self, xn, t, coeff)
+        self.total_dens = self.hamiltonian.vars.get_total_density_expr(self.xn)
+
+        v = xn['v']
+        qhat = self.testvars['q']
+        qtrial = self.trialvars['q']
+
+#MISSING BOUNDARY TERMS...
+        if self.dim == 2:
+            pv_expr = [inner(qhat, self.total_dens * qtrial)*self.dx, inner(-skewgrad(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
+            eta_expr = [inner(qhat, qtrial)*self.dx, inner(-skewgrad(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
+            zeta_expr = [inner(qhat, qtrial)*self.dx, inner(-skewgrad(qhat), v)*self.dx]
+        if self.dim == 3:
+            pv_expr = [inner(qhat, self.total_dens * qtrial)*self.dx, inner(-curl(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
+            eta_expr = [inner(qhat, qtrial)*self.dx, inner(-curl(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
+            zeta_expr = [inner(qhat, qtrial)*self.dx, inner(-curl(qhat), v)*self.dx]
+        if self.dim >=2:
+            pv_problem = LinearVariationalProblem(pv_expr[0], pv_expr[1], self.vars['q'])
+            eta_problem = LinearVariationalProblem(eta_expr[0], eta_expr[1], self.vars['eta'])
+            zeta_problem = LinearVariationalProblem(zeta_expr[0], zeta_expr[1], self.vars['zeta'])
+            self.pv_solver = LinearVariationalSolver(pv_problem, solver_parameters=overall_solver_parameters['qdiag'], options_prefix='qdiag')
+            self.eta_solver = LinearVariationalSolver(eta_problem, solver_parameters=overall_solver_parameters['etadiag'], options_prefix='etadiag')
+            self.zeta_solver = LinearVariationalSolver(zeta_problem, solver_parameters=overall_solver_parameters['zetadiag'], options_prefix='zetadiag')
+
 
 #
 # #ADD M, U, V
-# class AdvDensDiagnostics_LP(AdvDensDiagnostics):
-#     def create(self, xn, t, coeff):
-#         AdvDensDiagnostics.create(self, xn, t, coeff)
-#         total_dens = self.hamiltonian.vars.get_total_density_expr(self.xn)
-#
-#         m = xn['m']
-#         v = m / self.total_dens
-#         qhat = self.testvars['q']
-#         qtrial = self.trialvars['q']
-#
-#
-#         if self.dim == 2:
-#             pv_expr = [inner(qhat, self.total_dens * qtrial)*self.dx, inner(-skewgrad(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
-#             eta_expr = [inner(qhat, qtrial)*self.dx, inner(-skewgrad(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
-#             zeta_expr = [inner(qhat, qtrial)*self.dx, inner(-skewgrad(qhat), v)*self.dx]
-#         if self.dim == 3:
-#             pv_expr = [inner(qhat, self.total_dens * qtrial)*self.dx, inner(-curl(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
-#             eta_expr = [inner(qhat, qtrial)*self.dx, inner(-curl(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
-#             zeta_expr = [inner(qhat, qtrial)*self.dx, inner(-curl(qhat), v)*self.dx]
-#         if self.dim >=2:
-#             pv_problem = LinearVariationalProblem(pv_expr[0], pv_expr[1], self.vars['q'])
-#             eta_problem = LinearVariationalProblem(eta_expr[0], eta_expr[1], self.vars['eta'])
-#             zeta_problem = LinearVariationalProblem(zeta_expr[0], zeta_expr[1], self.vars['zeta'])
-#             self.pv_solver = LinearVariationalSolver(pv_problem, solver_parameters=overall_solver_parameters['qdiag'], options_prefix='qdiag')
-#             self.eta_solver = LinearVariationalSolver(eta_problem, solver_parameters=overall_solver_parameters['etadiag'], options_prefix='etadiag')
-#             self.zeta_solver = LinearVariationalSolver(zeta_problem, solver_parameters=overall_solver_parameters['zetadiag'], options_prefix='zetadiag')
+class AdvDensDiagnostics_LP(AdvDensDiagnostics):
+    def create_diagnostics(self, xn, t, coeff):
+        AdvDensDiagnostics.create_diagnostics(self, xn, t, coeff)
+        self.total_dens = self.hamiltonian.vars.get_total_density_expr(self.xn)
+
+        m = xn['m']
+        v = m / self.total_dens
+        qhat = self.testvars['q']
+        qtrial = self.trialvars['q']
+
+        if self.dim == 2:
+            pv_expr = [inner(qhat, self.total_dens * qtrial)*self.dx, inner(-skewgrad(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
+            eta_expr = [inner(qhat, qtrial)*self.dx, inner(-skewgrad(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
+            zeta_expr = [inner(qhat, qtrial)*self.dx, inner(-skewgrad(qhat), v)*self.dx]
+        if self.dim == 3:
+            pv_expr = [inner(qhat, self.total_dens * qtrial)*self.dx, inner(-curl(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
+            eta_expr = [inner(qhat, qtrial)*self.dx, inner(-curl(qhat), v)*self.dx + inner(qhat, self.coriolis)*self.dx]
+            zeta_expr = [inner(qhat, qtrial)*self.dx, inner(-curl(qhat), v)*self.dx]
+        if self.dim >=2:
+            pv_problem = LinearVariationalProblem(pv_expr[0], pv_expr[1], self.vars['q'])
+            eta_problem = LinearVariationalProblem(eta_expr[0], eta_expr[1], self.vars['eta'])
+            zeta_problem = LinearVariationalProblem(zeta_expr[0], zeta_expr[1], self.vars['zeta'])
+            self.pv_solver = LinearVariationalSolver(pv_problem, solver_parameters=overall_solver_parameters['qdiag'], options_prefix='qdiag')
+            self.eta_solver = LinearVariationalSolver(eta_problem, solver_parameters=overall_solver_parameters['etadiag'], options_prefix='etadiag')
+            self.zeta_solver = LinearVariationalSolver(zeta_problem, solver_parameters=overall_solver_parameters['zetadiag'], options_prefix='zetadiag')
 
 # #add involution constraints
 # class MaxwellDiagnostics():

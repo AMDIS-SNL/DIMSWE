@@ -64,11 +64,12 @@ class AdvDensStatistics():
             self.statistics['total_water'][stat_step] = assemble(self.water_expression)
 #Unclear if there is anything that differs here
 #probably for computing PV, etc. there will be
-# class AdvDensStatistics_LP(AdvDensStatistics):
-#     pass
-#
-# class AdvDensStatistics_CF(AdvDensStatistics):
-#     pass
+class AdvDensStatistics_LP(AdvDensStatistics):
+    pass
+#ADD MOMENTUM CONS CHECK HERE!
+
+class AdvDensStatistics_CF(AdvDensStatistics):
+    pass
 
 class AdvDensStatistics_CF_H1(AdvDensStatistics):
     pass

@@ -1,6 +1,7 @@
 
 from firedrake import Function, exp, ln, TestFunction, dx, inner, derivative, TrialFunction, Constant
 import scipy as sp
+from .operators import FunctionalBase
 
 #THIS IS THE ABGRALL VERSION!
 class IdealGasThermo_Entropy():
@@ -47,24 +48,18 @@ def get_thermo(thermochoice):
     else:
         raise ValueError("thermo " + thermochoice + " is unknown")
 
-class Hamiltonian_Base():
-    def __init__(self, vars):
+class Hamiltonian_Base(FunctionalBase):
+    def __init__(self, vars, spaces):
+        self.spaces = spaces
         self.vars = vars
-        self.testvars = {}
-        self.trialvars = {}
-        if self.vars.spaces is not None:
-            for var, space in zip(self.vars.dhdx_var_list, self.vars.spacelist):
-                self.testvars[var] = TestFunction(space)
-                self.trialvars[var] = TrialFunction(space)
+    #def get_aux_vars_list(self):
+    #    return self.vars.dhdx_var_list
 
-    def get_aux_vars(self, vars):
-        for var, space in zip(self.vars.dhdx_var_list, self.vars.spacelist):
-            vars[var] = Function(space, name=var)
+    def get_spacelist(self):
+        return self.vars.get_spacelist()
 
     def get_aux_vars_list(self):
-        return self.vars.dhdx_var_list
-
-
+        return self.vars.get_dhdx_var_list()
 
 # class AdvDensHamiltonian_AdvectionOnly(Hamiltonian_Base):
 #     def __init__(self, vars, values):
@@ -85,53 +80,62 @@ class Hamiltonian_Base():
 
 class ThermalShallowWater_Hamiltonian_Base(Hamiltonian_Base):
 
-    def __init__(self, vars):
-        Hamiltonian_Base.__init__(self, vars)
-        if not vars.spaces is None:
+    def __init__(self, vars, spaces):
+        Hamiltonian_Base.__init__(self, vars, spaces)
+        if not spaces is None:
             self.bottom_topography = Function(vars.spaces.CG, name='topo')
 
     def initialize(self, varexpr):
         self.bottom_topography.interpolate(varexpr['bottom_topography'])
 
-# class ThermalShallowWater_Hamiltonian_LP(ThermalShallowWater_Hamiltonian_Base):
-#
-#     def compute_total_energy(self, state):
-#         m = state['m']
-#         h = state['h']
-#         S = state['S']
-#         return inner(m,m)/(2. * h) + inner(h,S)/2. + inner(h,self.bottom_topography)
-#
-#     def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
-#         m = xvars['m']
-#         h = xvars['h']
-#         S = xvars['S']
-#         mhat = self.testvars['u']
-#         hhat = self.testvars['B_h']
-#         Shat = self.testvars['B_S']
-#         mtrial = self.trialvars['u']
-#         htrial = self.trialvars['B_h']
-#         Strial = self.trialvars['B_S']
-#         expressions['u'] = [m / h, mtrial, mhat]
-#         expressions['B_h'] = [-inner(m,m)/(2.*inner(h,h)) + S/2. + self.bottom_topography, htrial, hhat]
-#         expressions['B_S'] = [h/2., Strial, Shat]
-#         # for tracer_name in self.vars.tracer_names:
-#         #     tracerhat = self.testvars['B_' + tracer_name]
-#         #     tracertrial = self.trialvars['B_' + tracer_name]
-#         #     expressions['B_' + tracer_name] = make_a_L(Constant(0), tracertrial, tracerhat)
-#
-#     def compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars):
-#
-#         H0 = const_state['h']
-#         S0 = const_state['S']
-#         m = xstar['m']
-#         h = xstar['h']
-#         S = xstar['S']
-#
-#         dfdx_linear_vars['u'] = m / H0
-#         dfdx_linear_vars['B_h'] = (S0 + S)/2. + self.bottom_topography
-#         dfdx_linear_vars['B_S'] = (H0 + H)/2.
-#         #for tracer_name in self.vars.tracer_names:
-#         #    dfdx_linear_vars['B_' + tracer_name] = 0.0
+class ThermalShallowWater_Hamiltonian_LP(ThermalShallowWater_Hamiltonian_Base):
+
+    def compute_total_energy(self, state):
+        m = state['m']
+        h = state['h']
+        S = state['S']
+        return inner(m,m)/(2. * h) + inner(h,S)/2. + inner(S,self.bottom_topography)
+
+    def compute_dfdx_expressions(self, xvars, t, coeff, xhats, expressions):
+        u = xvars['u']
+        B_h = xvars['B_h']
+        B_S = xvars['B_S']
+        uhat = xhats['u']
+        B_h_hat = xhats['B_h']
+        B_S_hat = xhats['B_S']
+        dfdx_expressions = {}
+        self.compute_raw_dfdx_expressions(xvars, t, coeff, dfdx_expressions)
+        expressions['u'] = [inner(uhat, u)*self.spaces.dx, inner(uhat, dfdx_expressions['u'])*self.spaces.dx]
+        expressions['B_h'] = [inner(B_h_hat, B_h)*self.spaces.dx, inner(B_h_hat, dfdx_expressions['B_h'])*self.spaces.dx]
+        expressions['B_S'] = [inner(B_S_hat, B_S)*self.spaces.dx, inner(B_S_hat, dfdx_expressions['B_S'])*self.spaces.dx]
+
+    def compute_raw_dfdx_expressions(self, xvars, t, coeff, expressions):
+
+        m = xvars['m']
+        h = xvars['h']
+        S = xvars['S']
+        expressions['u'] = m / h
+        expressions['B_h'] = -inner(m,m)/(2.*inner(h,h)) + S/2.
+        expressions['B_S'] = h/2. + self.bottom_topography
+        # # for tracer_name in self.vars.tracer_names:
+        # #     tracerhat = self.testvars['B_' + tracer_name]
+        # #     tracertrial = self.trialvars['B_' + tracer_name]
+        # #     expressions['B_' + tracer_name] = make_a_L(Constant(0), tracertrial, tracerhat)
+
+    def compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars):
+        raise NotImplementedError
+
+        # H0 = const_state['h']
+        # S0 = const_state['S']
+        # m = xstar['m']
+        # h = xstar['h']
+        # S = xstar['S']
+        #
+        # dfdx_linear_vars['u'] = m / H0
+        # dfdx_linear_vars['B_h'] = (S0 + S)/2. + self.bottom_topography
+        # dfdx_linear_vars['B_S'] = (H0 + H)/2.
+        # #for tracer_name in self.vars.tracer_names:
+        # #    dfdx_linear_vars['B_' + tracer_name] = 0.0
 
 class ThermalShallowWater_Hamiltonian_CF(ThermalShallowWater_Hamiltonian_Base):
 
@@ -142,34 +146,42 @@ class ThermalShallowWater_Hamiltonian_CF(ThermalShallowWater_Hamiltonian_Base):
         S = state['S']
         return h*inner(v,v)/2. + inner(h,S)/2. + inner(S,self.bottom_topography)
 
-    def compute_dfdx_expressions(self, xvars, t, coeff, expressions):
+    def compute_dfdx_expressions(self, xvars, t, coeff, xhats, expressions):
+        F = xvars['F']
+        B_h = xvars['B_h']
+        B_S = xvars['B_S']
+        Fhat = xhats['F']
+        B_h_hat = xhats['B_h']
+        B_S_hat = xhats['B_S']
+        dfdx_expressions = {}
+        self.compute_raw_dfdx_expressions(xvars, t, coeff, dfdx_expressions)
+        expressions['F'] = [inner(Fhat, F)*self.spaces.dx, inner(Fhat, dfdx_expressions['F'])*self.spaces.dx]
+        expressions['B_h'] = [inner(B_h_hat, B_h)*self.spaces.dx, inner(B_h_hat, dfdx_expressions['B_h'])*self.spaces.dx]
+        expressions['B_S'] = [inner(B_S_hat, B_S)*self.spaces.dx, inner(B_S_hat, dfdx_expressions['B_S'])*self.spaces.dx]
+
+    def compute_raw_dfdx_expressions(self, xvars, t, coeff, expressions):
         v = xvars['v']
         h = xvars['h']
         S = xvars['S']
-        vhat = self.testvars['F']
-        hhat = self.testvars['B_h']
-        Shat = self.testvars['B_S']
-        vtrial = self.trialvars['F']
-        htrial = self.trialvars['B_h']
-        Strial = self.trialvars['B_S']
-        expressions['F'] = [h*v, vtrial, vhat]
-        expressions['B_h'] = [inner(v,v)/2. + S/2., htrial, hhat]
-        expressions['B_S'] = [h/2. + self.bottom_topography, Strial, Shat]
+        expressions['F'] = h*v
+        expressions['B_h'] = inner(v,v)/2. + S/2.
+        expressions['B_S'] = h/2. + self.bottom_topography
         #for tracer_name in self.vars.tracer_names:
         #    tracerhat = self.testvars['B_' + tracer_name]
         #    tracertrial = self.trialvars['B_' + tracer_name]
         #    expressions['B_' + tracer_name] = make_a_L(Constant(0), tracertrial, tracerhat)
 
     def compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars):
-        H0 = const_state['h']
-        S0 = const_state['S']
-        v = xstar['v']
-        h = xstar['h']
-        S = xstar['S']
-
-        dfdx_linear_vars['F'] = H0 * v
-        dfdx_linear_vars['B_h'] = (S0 + S)/2.
-        dfdx_linear_vars['B_S'] = (H0 + h)/2. + self.bottom_topography
+        raise NotImplementedError
+        # H0 = const_state['h']
+        # S0 = const_state['S']
+        # v = xstar['v']
+        # h = xstar['h']
+        # S = xstar['S']
+        #
+        # dfdx_linear_vars['F'] = H0 * v
+        # dfdx_linear_vars['B_h'] = (S0 + S)/2.
+        # dfdx_linear_vars['B_S'] = (H0 + h)/2. + self.bottom_topography
         #for tracer_name in self.vars.tracer_names:
         #    dfdx_linear_vars['B_' + tracer_name] = 0.0
 

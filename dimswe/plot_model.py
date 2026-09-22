@@ -9,6 +9,9 @@ if __name__ == "__main__":
 #ADD METRIPLECTIC STUFF HERE
     if parameters['model']['type'] in ['advdens-cf-h1']:
         plot_adv_dens(parameters)
+    elif parameters['model']['type'] in ['metriplectic']:
+        if parameters['model']['hamiltonian'] in ['tswe', 'mtswe', 'ce']:
+            plot_adv_dens(parameters)
 #WRONG- ADD TO IT
     #elif parameters['model']['type'] == 'maxwell':
     #    plot_maxwell(parameters)

@@ -106,14 +106,14 @@ class DeRhamComplex():
                 self.Hcurl = None
                 self.CGV = self.CG
             if mesh.cell_dimension() == 2:
-                self.DGV = VectorFunctionSpace(mesh, 'DG', parameters['spatial-discretization']['order']-1) #TRY DQ?
-                self.CGV = VectorFunctionSpace(mesh, 'CG', parameters['spatial-discretization']['order']) #TRY Q?
+                self.DGV = VectorFunctionSpace(mesh, 'DG', parameters['spatial-discretization']['order']-1, variant="spectral") #TRY DQ?
+                self.CGV = VectorFunctionSpace(mesh, 'CG', parameters['spatial-discretization']['order'], variant="spectral") #TRY Q?
                 self.Hdiv = FunctionSpace(mesh, 'RTCF', parameters['spatial-discretization']['order'])
                 self.Hcurl = FunctionSpace(mesh, 'RTCE', parameters['spatial-discretization']['order'])
 #THIS IS NEEDED SINCE 3D HEXAHEDRA ARE NOT SUPPORTED YET
             if mesh.cell_dimension() == (2,1):
-                self.DGV = VectorFunctionSpace(mesh, 'DG', parameters['spatial-discretization']['order']-1) #TRY DQ?
-                self.CGV = VectorFunctionSpace(mesh, 'CG', parameters['spatial-discretization']['order']) #TRY DQ?
+                self.DGV = VectorFunctionSpace(mesh, 'DG', parameters['spatial-discretization']['order']-1, variant="spectral") #TRY DQ?
+                self.CGV = VectorFunctionSpace(mesh, 'CG', parameters['spatial-discretization']['order'], variant="spectral") #TRY DQ?
                 self.Hdiv = FunctionSpace(mesh, 'NCF', parameters['spatial-discretization']['order'])
                 self.Hcurl = FunctionSpace(mesh, 'NCE', parameters['spatial-discretization']['order'])
             if parameters['spatial-discretization']['lump_mass']:
