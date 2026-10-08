@@ -1,0 +1,55 @@
+{
+  "configuration": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/dimswe/configs/test2a_m1_to_m2_finetune_50k.json",
+  "deployment_contract": {
+    "checkpoint_selection_uses_autonomous_error": false,
+    "complete_steps": 80,
+    "states_after_80_accessed": false,
+    "trusted_initial_state": 0,
+    "truth_resets_after_initialization": 0
+  },
+  "entries": [
+    {
+      "accepted_iteration": 0,
+      "label": "iter-00000",
+      "output_directory": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/m1-to-m2-finetune/postprocess/autonomous/iter-00000",
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/m1-to-m2-finetune/operator-200k-to-discrete-m20-50k/parameters_iter_00000.npz",
+      "parameter_pytree_sha256": "f86ee79be3086028f21de10b947c0089147234f494c066f8bbbb2fffb3f8bef8"
+    },
+    {
+      "accepted_iteration": 1000,
+      "label": "iter-01000",
+      "output_directory": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/m1-to-m2-finetune/postprocess/autonomous/iter-01000",
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/m1-to-m2-finetune/operator-200k-to-discrete-m20-50k/parameters_iter_01000.npz",
+      "parameter_pytree_sha256": "50c697613d7a76661f28fa6135b674f78394b5041b9ab21929f0d30b2b74faac"
+    },
+    {
+      "accepted_iteration": 5000,
+      "label": "iter-05000",
+      "output_directory": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/m1-to-m2-finetune/postprocess/autonomous/iter-05000",
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/m1-to-m2-finetune/operator-200k-to-discrete-m20-50k/parameters_iter_05000.npz",
+      "parameter_pytree_sha256": "16b626bb87594910582b5e39bec1a66023986f01e3298efabc270c0b4f8597f6"
+    },
+    {
+      "accepted_iteration": 10000,
+      "label": "iter-10000",
+      "output_directory": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/m1-to-m2-finetune/postprocess/autonomous/iter-10000",
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/m1-to-m2-finetune/operator-200k-to-discrete-m20-50k/parameters_iter_10000.npz",
+      "parameter_pytree_sha256": "6997299353f07fb56c3de072f16feeb33f17b0f21553c8c39bbf3d9919668faf"
+    },
+    {
+      "accepted_iteration": 25000,
+      "label": "iter-25000",
+      "output_directory": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/m1-to-m2-finetune/postprocess/autonomous/iter-25000",
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/m1-to-m2-finetune/operator-200k-to-discrete-m20-50k/parameters_iter_25000.npz",
+      "parameter_pytree_sha256": "671f8c30e99792023cb111227a29c48e4dbabac2228c8853ed3d441a57a3b691"
+    },
+    {
+      "accepted_iteration": 50000,
+      "label": "iter-50000",
+      "output_directory": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/m1-to-m2-finetune/postprocess/autonomous/iter-50000",
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/m1-to-m2-finetune/operator-200k-to-discrete-m20-50k/parameters_iter_50000.npz",
+      "parameter_pytree_sha256": "e68110b18ea29748830b70683da321bb8e670aa69ddc94598692d72a6f278fc3"
+    }
+  ],
+  "status": "ready"
+}

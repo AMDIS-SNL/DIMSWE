@@ -1,0 +1,31 @@
+{
+  "authoritative_repository": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615",
+  "branch": "dev/dimswe-learned-physics-framework",
+  "branch_matches_start": true,
+  "checked_at_utc": "2026-08-29T15:23:45Z",
+  "expected_branch": "dev/dimswe-learned-physics-framework",
+  "expected_head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+  "expected_status_sha256": "b4dbc351a8a4d4bcc18bb2b037888b69a38813a75fa7d85f1abb443cd1ebad22",
+  "expected_tracked_diff_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd",
+  "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+  "head_matches_start": true,
+  "status_line_count": 6948,
+  "status_matches_start": true,
+  "status_sha256": "b4dbc351a8a4d4bcc18bb2b037888b69a38813a75fa7d85f1abb443cd1ebad22",
+  "tracked_diff_matches_start": true,
+  "tracked_diff_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd",
+  "tracked_diff_stat": {
+    "files_changed": 10,
+    "insertions": 819,
+    "deletions": 58
+  },
+  "authoritative_repository_untouched_by_campaign": true,
+  "verification_commands": [
+    "git branch --show-current",
+    "git rev-parse HEAD",
+    "git status --short --untracked-files=all | shasum -a 256",
+    "git diff --binary | shasum -a 256",
+    "git status --short --untracked-files=all | wc -l",
+    "git diff --stat"
+  ]
+}

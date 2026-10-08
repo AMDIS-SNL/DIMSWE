@@ -1,0 +1,11 @@
+{
+  "cache": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/data/test2b_truth_maps.npz",
+  "cache_sha256": "e9477a3ac4e54ebe4da73f9df5ffaafdf98c812afd7fe92b55820230db034de6",
+  "frame_count": 161,
+  "plot_grid_shape_yx": [128, 128],
+  "recomputed": false,
+  "role": "immutable accepted DoubleVortex truth-map reference",
+  "status": "complete",
+  "used_with_common_limits": "../../COMMON_VISUAL_LIMITS.json"
+}
+

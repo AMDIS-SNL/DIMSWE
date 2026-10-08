@@ -1,0 +1,72 @@
+{
+  "archive": {
+    "classification": "SUPPLEMENTARY / PROVENANCE",
+    "pre_reset_snapshot": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/FINAL_MAIN_RESET_BASELINE.json",
+      "sha256": "20bb91198cf015b045a3332a7b4a6d1ff4f063bfa2e99babc969a6b29cb4eac7",
+      "size_bytes": 20616
+    },
+    "reason": "Superseded in the main-paper subset by deployment-consistent M1-Y/H1/H2/H5 figures; numerical assets retained unchanged."
+  },
+  "draft_caption": "Global Test 2B trajectories for Representation A. Integrated cloud and rain water are shown in m^3 under the unit-reference-density convention. Kinetic energy is 0.5 integral h|v|^2 dA and is not total energy; projected relative-vorticity squared is 0.5 integral zeta_h^2 dA after CG(3) projection and is not potential enstrophy. Vertical guides mark first truth rain at 5100 s and peak integrated truth rain production at 12000 s. The last panel shows final and maximum state errors because a state-error time series is not available in the accepted records.",
+  "editorial_revision": {
+    "csv_sha256_unchanged": "520077f0dadf7f514bb3aa400cfe31483356a4f17fe2b7a5763577749300833f",
+    "data_source": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML6_global_trajectories_representation_A.csv",
+    "date": "2026-08-29",
+    "scope": "rendering and terminology only"
+  },
+  "figure_id": "ML6_global_trajectories_representation_A",
+  "files": {
+    "csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML6_global_trajectories_representation_A.csv",
+      "rows": 4516,
+      "sha256": "520077f0dadf7f514bb3aa400cfe31483356a4f17fe2b7a5763577749300833f",
+      "size_bytes": 1352048
+    },
+    "pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML6_global_trajectories_representation_A.pdf",
+      "sha256": "861f6f29f9d60846c4a5a9acbf253c088d4e66dda37f309ab95e650cbd165609",
+      "size_bytes": 30462
+    },
+    "png_300dpi": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML6_global_trajectories_representation_A.png",
+      "sha256": "304697bdfc2a3ad61aa8322f2e0dd7e658c3a4a40adb19c8a26ed3bb0c20d355",
+      "size_bytes": 316434
+    }
+  },
+  "metric_definitions": {
+    "M_c/M_r": "Domain integrals of conservative cloud/rain water variables.",
+    "kinetic energy": "0.5*integral(h*|v|^2) dA; not total Hamiltonian energy.",
+    "mixed-state endpoints": "Stored final and maximum relative mixed mass-norm errors; no time series was present.",
+    "projected relative-vorticity squared": "0.5*integral(zeta_h^2) dA after CG(3) L2 projection; not potential enstrophy.",
+    "total-water drift": "Relative change of integral(Qv+Qc+Qr) from its initial value."
+  },
+  "model_labels": [
+    "M1-X",
+    "H1",
+    "H5",
+    "M1-Y"
+  ],
+  "notes": [
+    "Truth and model time indices match at states 0--160.",
+    "A/B total-water fluctuations are at roundoff scale and reflect structural identities."
+  ],
+  "quantity_kind": "FINAL STORED DEPLOYMENT DIAGNOSTIC",
+  "representations": [
+    "A"
+  ],
+  "scientific_question": "Do deployed models reproduce the global physical evolution?",
+  "source_artifacts": [
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/evaluation/representation_A_matched.json",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/deployed_diagnostics.csv",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/global_trajectories/test2b_global_trajectories.csv",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-A/representation_a_final_comparison.json"
+  ],
+  "state_intervals": [],
+  "support_classification": "Test 2B deployed trajectories, states 0--160",
+  "units": {
+    "M_c/M_r": "m^3 under unit reference density",
+    "relative diagnostics": "dimensionless",
+    "time_s": "s"
+  }
+}

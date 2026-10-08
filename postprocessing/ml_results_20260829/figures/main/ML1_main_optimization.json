@@ -1,0 +1,53 @@
+{
+  "draft_caption": "Optimization of the Test 2B training objectives for the four main-paper methods. M1-Y and H1/M2-Y are shown at saved iterations. H2 and H5 are shown only at their initial and final stage endpoints; intermediate recursive objective values were not reconstructed. Objective normalizations differ across representations.",
+  "figure_id": "ML1_main_optimization",
+  "files": {
+    "csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML1_main_optimization.csv",
+      "rows": 69,
+      "sha256": "82e65bad4e734090deba4ee5d42ce3f9322224e590a148a53eceb1baf3350799",
+      "size_bytes": 25801
+    },
+    "pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML1_main_optimization.pdf",
+      "sha256": "e47a95518dc97cc8759925fb6fb828a90beb737776426245d7f928b99073ae9f",
+      "size_bytes": 27170
+    },
+    "png_300dpi": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML1_main_optimization.png",
+      "sha256": "ced8446e5c69f477b0b2b8d897c4618732c9c329587fab8a5533daeacd1032e4",
+      "size_bytes": 270207
+    }
+  },
+  "model_labels": [
+    "M1-Y",
+    "H1",
+    "H2",
+    "H5"
+  ],
+  "notes": [
+    "H2/H5 final endpoints correspond to their 20-iteration stages.",
+    "Objective magnitudes are not compared across representations."
+  ],
+  "quantity_kind": "TRAINING OBJECTIVE HISTORY OR STORED ENDPOINT",
+  "rendering": {
+    "date": "2026-08-29",
+    "numerical_values_recomputed": false,
+    "source_values_filtered_without_modification": true
+  },
+  "representations": [
+    "A",
+    "B",
+    "C"
+  ],
+  "scientific_question": "Did each main-paper training objective decrease under its fixed budget?",
+  "source_artifacts": [
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML1_optimization_progress_test2b.csv",
+      "sha256": "2ca32793a3b39348925f5ac173ffd8d0b91028835f18e7177242aea620e53522",
+      "size_bytes": 61849
+    }
+  ],
+  "state_contracts": {},
+  "support_classification": "Test 2B objective-specific training states or windows"
+}

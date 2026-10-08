@@ -1,0 +1,48 @@
+{
+  "format_version": 1,
+  "benchmark_stage": "Test2B rain-active truth preparation",
+  "scientific_identity": {
+    "case": "doublevortex",
+    "domain_m": [5000000.0, 5000000.0],
+    "boundary_conditions": "doubly periodic",
+    "initial_condition": "dimswe.initial_conditions.DoubleVortex",
+    "base_configuration": "dimswe/configs/resolved_hidden_c0_pilot.cfg",
+    "physical_parameters_unchanged_from_test2a": true
+  },
+  "production_candidate": {
+    "nx": 64,
+    "ny": 64,
+    "dt": 100.0,
+    "output_stride": 1,
+    "physical_output_stride": 100.0,
+    "diagnostic_comparison_stride": 1,
+    "c0": 0.14,
+    "s": 3.2,
+    "moist_backend": "ufl",
+    "seed": 0,
+    "spectral_nx": 128,
+    "spectral_ny": 128,
+    "high_wavenumber_fraction": 0.6666666666666666,
+    "first_segment_nsteps": 160,
+    "first_segment_final_time": 16000.0
+  },
+  "rain_activity": {
+    "exact_nonzero_contract": "R != 0.0 at a deployed child-6 GLL sample",
+    "float64_scale_multiplier": 64.0,
+    "physical_increment_relative_threshold": 1e-12,
+    "physical_contract": "abs(dt*h*R) > threshold * RMS(Qr) at the same deployed GLL state",
+    "sustained_candidate_status": "REQUIRES_EXPLICIT_SCIENTIFIC_APPROVAL",
+    "sustained_candidate": {
+      "consecutive_physical_output_duration": 1000.0,
+      "minimum_consecutive_saved_states": 10,
+      "minimum_space_time_fraction_above_1e-6_block_max": 0.0001,
+      "requires_positive_rain_mass_above_float64_floor": true
+    }
+  },
+  "provenance": {
+    "test2a_truth": "external-results/test1b-production/truth_c0_0.14",
+    "test2a_selected_plan": "dimswe/configs/test1b_selected_plan.json",
+    "hyperviscosity_stability": "external-results/test1b0-stability/euler_stability_n16_n32_n64.json",
+    "bounded_pilot": "external-results/test2b-preparation/bounded-n64-dt100-t8000"
+  }
+}

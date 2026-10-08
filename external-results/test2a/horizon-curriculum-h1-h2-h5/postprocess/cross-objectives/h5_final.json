@@ -1,0 +1,61 @@
+{
+  "J_M2_X": 0.000579287916931123,
+  "J_op": 0.0006148733782046905,
+  "autonomous_metrics_used_for_selection": false,
+  "direct_A_metrics": {
+    "correlation": 0.999692062400796,
+    "magnitude_strata": {
+      "abs_A_gt_1e-03_max_abs_A": {
+        "mae": 1.613550515981164e-10,
+        "relative_rms_error": 0.02426975411008704,
+        "rmse": 2.829011844532759e-10,
+        "sample_count": 213688,
+        "sample_fraction": 0.6440731095679012
+      },
+      "abs_A_gt_1e-06_max_abs_A": {
+        "mae": 1.1841640636638354e-10,
+        "relative_rms_error": 0.02447081515023877,
+        "rmse": 2.338771467879712e-10,
+        "sample_count": 317865,
+        "sample_fraction": 0.9580711082175926
+      }
+    },
+    "maximum_absolute_error": 6.349377528777513e-09,
+    "normalized_mse": 0.0006148733782046903,
+    "physical_mae_A": 1.1737268091906813e-10,
+    "physical_rmse_A": 2.3196959669624896e-10,
+    "relative_rms_error": 0.024796640462060385,
+    "sample_count": 331776,
+    "sign_accuracy": 0.8897330627782235,
+    "sign_accuracy_strata": {
+      "abs_A_gt_1e-01_max_abs_A": {
+        "accuracy": 1.0,
+        "sample_count": 35348,
+        "sample_fraction": 0.10654176311728394,
+        "threshold": 1.0805235023802465e-08
+      },
+      "abs_A_gt_1e-02_max_abs_A": {
+        "accuracy": 1.0,
+        "sample_count": 128146,
+        "sample_fraction": 0.3862425250771605,
+        "threshold": 1.0805235023802465e-09
+      },
+      "abs_A_gt_1e-03_max_abs_A": {
+        "accuracy": 0.9891617685597693,
+        "sample_count": 213688,
+        "sample_fraction": 0.6440731095679012,
+        "threshold": 1.0805235023802465e-10
+      }
+    },
+    "sign_accuracy_threshold": 1.0805235023802464e-13
+  },
+  "horizon_objectives": {
+    "H1": 0.0004606034021655412,
+    "H2": 0.0007356325443761752,
+    "H5": 0.0014847990297685324
+  },
+  "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/h5-from-h2/final_parameters.npz",
+  "parameter_pytree_sha256": "fe22c92e56b5b9421835a4ff9a973250c6a186e541356c033b7810521fa3c566",
+  "states_after_80_accessed": false,
+  "status": "complete"
+}

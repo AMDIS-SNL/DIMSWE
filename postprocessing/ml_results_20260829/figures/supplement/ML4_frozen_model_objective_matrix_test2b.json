@@ -1,0 +1,78 @@
+{
+  "archive": {
+    "classification": "SUPPLEMENTARY / PROVENANCE",
+    "pre_reset_snapshot": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/FINAL_MAIN_RESET_BASELINE.json",
+      "sha256": "20bb91198cf015b045a3332a7b4a6d1ff4f063bfa2e99babc969a6b29cb4eac7",
+      "size_bytes": 20616
+    },
+    "reason": "Superseded in the main-paper subset by deployment-consistent M1-Y/H1/H2/H5 figures; numerical assets retained unchanged."
+  },
+  "draft_caption": "Test 2B objective matrix for the final models. The red outline and asterisk mark the objective minimized for each row; all other populated cells evaluate that fixed model under a different objective. Each representation has an independent color scale, so colors should not be compared between panels.",
+  "editorial_revision": {
+    "csv_sha256_unchanged": "cb5727061f6f27ed15cc6b8c57558742773b3002cf9681b37310f25fa1606d6a",
+    "data_source": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML4_frozen_model_objective_matrix_test2b.csv",
+    "date": "2026-08-29",
+    "scope": "rendering and terminology only"
+  },
+  "figure_id": "ML4_frozen_model_objective_matrix_test2b",
+  "files": {
+    "csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML4_frozen_model_objective_matrix_test2b.csv",
+      "rows": 21,
+      "sha256": "cb5727061f6f27ed15cc6b8c57558742773b3002cf9681b37310f25fa1606d6a",
+      "size_bytes": 17620
+    },
+    "pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML4_frozen_model_objective_matrix_test2b.pdf",
+      "sha256": "dfcc2d1146492ebe576922736b1d6eec8ada7d9cca9334a0c22923a3a390c411",
+      "size_bytes": 50473
+    },
+    "png_300dpi": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML4_frozen_model_objective_matrix_test2b.png",
+      "sha256": "2951a2028ea24fea4783a8c81dee7804ce808bef98de006f463428e1c5b6ca81",
+      "size_bytes": 461741
+    }
+  },
+  "metric_definitions": {
+    "J_H1": "Frozen production definition of J_H1; see objective-matrix source paths.",
+    "J_H2": "Frozen production definition of J_H2; see objective-matrix source paths.",
+    "J_H5": "Frozen production definition of J_H5; see objective-matrix source paths.",
+    "J_M1_X": "Frozen production definition of J_M1_X; see objective-matrix source paths.",
+    "J_M1_Y": "Frozen production definition of J_M1_Y; see objective-matrix source paths.",
+    "J_M2_X": "Frozen production definition of J_M2_X; see objective-matrix source paths."
+  },
+  "model_labels": [
+    "M1-X",
+    "M1-Y",
+    "M2-X-independent",
+    "warm M2-X",
+    "H1",
+    "H2",
+    "H5"
+  ],
+  "notes": [
+    "Color scales are independent across representations."
+  ],
+  "quantity_kind": "FITTED FINAL OBJECTIVE and POST-HOC DIAGNOSTIC OBJECTIVE",
+  "representations": [
+    "A",
+    "B",
+    "C"
+  ],
+  "scientific_question": "How does each final model score under the other objectives?",
+  "source_artifacts": [
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/completed_objective_matrix.csv",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/j_m1y_diagnostics.csv"
+  ],
+  "state_intervals": [],
+  "support_classification": "Test 2B objective-specific training states 0--80",
+  "units": {
+    "J_H1": "dimensionless objective",
+    "J_H2": "dimensionless objective",
+    "J_H5": "dimensionless objective",
+    "J_M1_X": "dimensionless objective",
+    "J_M1_Y": "dimensionless objective",
+    "J_M2_X": "dimensionless objective"
+  }
+}

@@ -1,7 +1,6 @@
 from adjoint_timesteppers import RK4, Euler
 from ode_optimize import Lagrangian_ODEConstrainedOptimization, L2Objective
 from dynamics import LotkaVolterra, LogisticEquation
-import matplotlib.pyplot as plt
 import numpy as np
 
 def _test_gradients(dynamics,x,params,delta_params,delta_x,eps,t):

@@ -1,0 +1,57 @@
+{
+  "draft_caption": "Test 2A deployed diagnostics over training states 0--80. The figure uses the available state-error endpoints, kinetic energy, and projected relative-vorticity-squared diagnostics for the A/C model ladders. States 81--160 are not evaluated.",
+  "editorial_revision": {
+    "date": "2026-08-29",
+    "scope": "caption terminology only; rendered asset and CSV unchanged"
+  },
+  "figure_id": "ML_test2a_training_interval_deployment",
+  "files": {
+    "csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML_test2a_training_interval_deployment.csv",
+      "rows": 1944,
+      "sha256": "e70e9b2144d4c765f654edb091cd6214f02a9e3cf4ebd55c3e7d93196c1475a3"
+    },
+    "pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML_test2a_training_interval_deployment.pdf",
+      "sha256": "1f6c5e0620030aa577926a6ddb21a9ca489ff681cebabfc8c65e3ed61d8b5339"
+    },
+    "png_300dpi": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML_test2a_training_interval_deployment.png",
+      "sha256": "6c18f43c53280e4a2de4ba5209331518a3169caea8424a396760dff21dafb41b"
+    }
+  },
+  "metric_definitions": {
+    "kinetic energy": "0.5*integral(h*|v|^2) dA relative mismatch; not total energy.",
+    "mixed-state endpoints": "Stored final and maximum mixed-state relative mass-norm errors.",
+    "projected relative-vorticity squared": "Stored projected-vorticity-squared relative mismatch; not potential enstrophy."
+  },
+  "model_labels": [
+    "M1-X",
+    "M2-X-independent",
+    "warm M2-X",
+    "H1",
+    "H2",
+    "H5"
+  ],
+  "notes": [
+    "This figure does not create a Test 2A validation or test protocol."
+  ],
+  "quantity_kind": "FINAL STORED DEPLOYMENT DIAGNOSTIC",
+  "representations": [
+    "A",
+    "C"
+  ],
+  "scientific_question": "How do the accepted Test 2A precursor models behave over their recorded training interval?",
+  "source_artifacts": [
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fair-longfit/comparison/fair_longfit_comparison.json",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/postprocess/horizon_curriculum_report.json",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/m1-to-m2-finetune/postprocess/autonomous/iter-50000/trajectory_metrics.json",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/problem_b_comparison.json"
+  ],
+  "state_intervals": [],
+  "support_classification": "Test 2A training-interval deployment, states 0--80 only",
+  "units": {
+    "relative diagnostics": "dimensionless",
+    "time_s": "s"
+  }
+}

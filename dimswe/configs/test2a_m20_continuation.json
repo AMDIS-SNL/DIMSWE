@@ -1,0 +1,70 @@
+{
+  "additional_accepted_iteration_limit": 1500,
+  "benchmark_stage": "Test 2A-1 memory-20 L-BFGS continuation",
+  "checkpoint_additional_iterations": [
+    100,
+    250,
+    500,
+    1000,
+    1500
+  ],
+  "decision_diagnostics": {
+    "plateau_final_gradient_ratio_maximum": 0.1,
+    "plateau_final_relative_step_maximum": 1e-06,
+    "plateau_recent_100_relative_objective_decrease_maximum": 0.001,
+    "ready_active_1e-3_relative_rms_maximum": 0.3,
+    "ready_relative_rms_maximum": 0.25,
+    "ready_sign_accuracy_minimum": 0.9
+  },
+  "format_version": 1,
+  "frozen_problem": {
+    "architecture": "5 -> 32 -> 32 -> 1 tanh float64",
+    "dataset": "external-results/test2a/dataset/doublevortex_A_operator.npz",
+    "feature_order": [
+      "h",
+      "S",
+      "Qv",
+      "Qc",
+      "B"
+    ],
+    "normalization": "training mean/population standard deviation inputs; uncentered RMS(A) output scale",
+    "objective": "mean(((A_theta - A_truth) / RMS_training(A_truth))**2)",
+    "parameter_count": 1281,
+    "sample_count": 331776,
+    "target": "A"
+  },
+  "monitoring": {
+    "accepted_iterate_objective": "every accepted iterate",
+    "accepted_iterate_rol_gradient_norm": "every accepted iterate",
+    "physical_metrics_additional_iterations": [
+      0,
+      100,
+      250,
+      500,
+      1000,
+      1500
+    ],
+    "recent_objective_windows": [
+      50,
+      100
+    ]
+  },
+  "optimizer": {
+    "exact_JAX_gradients": true,
+    "gradient_tolerance": 1e-08,
+    "kind": "line_search_lbfgs",
+    "maximum_secant_storage": 20,
+    "method": "ROL line-search Limited-Memory BFGS",
+    "production_HVP": false,
+    "step_tolerance": 1e-12
+  },
+  "source": {
+    "accepted_iterations": 500,
+    "final_gradient_norm": 0.9221656692481056,
+    "final_objective": 0.25394245655540487,
+    "parameter_file": "external-results/test2a/optimizer-study/rol_lbfgs_m20_i500_parameters.npz",
+    "parameter_npz_sha256": "81e37295e262c92673729d2c5e7785256e1f82131b066a2478c73b64060b923e",
+    "parameter_pytree_sha256": "baa8d12f649c3ecccb538b5ba5c6f9544defc8bd6dcf0151098cb07f9bb3b988",
+    "result_file": "external-results/test2a/optimizer-study/rol_lbfgs_m20_i500.json"
+  }
+}

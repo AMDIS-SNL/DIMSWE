@@ -1,0 +1,146 @@
+{
+  "checkpoint_schedule": [
+    0,
+    10,
+    25,
+    50,
+    75,
+    100,
+    500,
+    1000,
+    5000,
+    10000,
+    25000,
+    50000,
+    100000,
+    150000,
+    200000
+  ],
+  "checkpoints": [
+    {
+      "accepted_iteration": 0,
+      "objective": 1.2144329998546857,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/m1-seed0-m20-200k/checkpoint_000000000_parameters.npz",
+      "parameter_pytree_sha256": "e52dd73e3f97d44adf4d55354b1c8d9a9b252186a17cae4ad09410270b86df1e"
+    },
+    {
+      "accepted_iteration": 10,
+      "objective": 0.9979042460211529,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/m1-seed0-m20-200k/checkpoint_000000010_parameters.npz",
+      "parameter_pytree_sha256": "a40a2b904a5f684c95a78b6b27580791d46af3a730db81ad302c7e6afb1be290"
+    },
+    {
+      "accepted_iteration": 25,
+      "objective": 0.9799551662878777,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/m1-seed0-m20-200k/checkpoint_000000025_parameters.npz",
+      "parameter_pytree_sha256": "f598f68749886c594d26cf8e4dca536d80693da6db0faed781897f8b3c0e9a5e"
+    },
+    {
+      "accepted_iteration": 50,
+      "objective": 0.9417983263826607,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/m1-seed0-m20-200k/checkpoint_000000050_parameters.npz",
+      "parameter_pytree_sha256": "6737b861e0e5e1063fc9f6b286f40d6da37468b874c2b6f6d69b21223f54295b"
+    },
+    {
+      "accepted_iteration": 75,
+      "objective": 0.9229405977856397,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/m1-seed0-m20-200k/checkpoint_000000075_parameters.npz",
+      "parameter_pytree_sha256": "475826097cbb339f9b2c0816be5e057e1aed25057e3759d3e345d172aec8a7fc"
+    },
+    {
+      "accepted_iteration": 100,
+      "objective": 0.9063533622732415,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/m1-seed0-m20-200k/checkpoint_000000100_parameters.npz",
+      "parameter_pytree_sha256": "c57eac18f7bfd1ac9e3d9735188711c79eadcb32f056372fd8ffd97549f1e3a2"
+    },
+    {
+      "accepted_iteration": 500,
+      "objective": 0.3701079263177526,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/m1-seed0-m20-200k/checkpoint_000000500_parameters.npz",
+      "parameter_pytree_sha256": "c8501cd43e3a04f457f87e32e4e87d2f2b7305ad3f737371793ada55bbc2d66f"
+    },
+    {
+      "accepted_iteration": 1000,
+      "objective": 0.1671785051672431,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/m1-seed0-m20-200k/checkpoint_000001000_parameters.npz",
+      "parameter_pytree_sha256": "96d552621563debe71431a625a6ee4ab220e80f65d34ec82c5f1dd25a2b2dcb3"
+    },
+    {
+      "accepted_iteration": 5000,
+      "objective": 0.030957564508412073,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/m1-seed0-m20-200k/checkpoint_000005000_parameters.npz",
+      "parameter_pytree_sha256": "dc642d5028d171e645aae40ae56ffa8f0e55b8b31d2edd0e90c92a33d1c69477"
+    },
+    {
+      "accepted_iteration": 10000,
+      "objective": 0.012708846544329125,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/m1-seed0-m20-200k/checkpoint_000010000_parameters.npz",
+      "parameter_pytree_sha256": "b1fb4d206f453831f7f23a16b1dc2cbe0442405d00b76b29ac0ee263cbf5318b"
+    },
+    {
+      "accepted_iteration": 25000,
+      "objective": 0.004144260306573078,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/m1-seed0-m20-200k/checkpoint_000025000_parameters.npz",
+      "parameter_pytree_sha256": "e91a41fc683dcca393db8cd7262d3fce99ac00f66e5ecaede8bf2a73bdc4ec73"
+    },
+    {
+      "accepted_iteration": 50000,
+      "objective": 0.0019432044032295995,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/m1-seed0-m20-200k/checkpoint_000050000_parameters.npz",
+      "parameter_pytree_sha256": "cd178c670b4a19edcd781cabe404959065cb70c4fa22d6d281899cc65407063e"
+    },
+    {
+      "accepted_iteration": 100000,
+      "objective": 0.000866981979192398,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/m1-seed0-m20-200k/checkpoint_000100000_parameters.npz",
+      "parameter_pytree_sha256": "fea9adde9414cf844d346020b5b1c64b479b942d8b402224539bf5727a67e2f2"
+    },
+    {
+      "accepted_iteration": 150000,
+      "objective": 0.0006439949687075547,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/m1-seed0-m20-200k/checkpoint_000150000_parameters.npz",
+      "parameter_pytree_sha256": "e3e74a713bcd51f40c1f6ff593e8b4e9013ef802247627d8a33f53cabc802366"
+    },
+    {
+      "accepted_iteration": 200000,
+      "objective": 0.0005517974380792215,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/m1-seed0-m20-200k/checkpoint_000200000_parameters.npz",
+      "parameter_pytree_sha256": "ed8fb21167bf5f0b56c59201c7dc771473d5d946d6d304cd26b57ac983a56516"
+    }
+  ],
+  "configuration_sha256": "355f037241c42bead4592d5046ae77fcda8e2aeb7d43bb5d2db9293fbffb54a7",
+  "final_objective": 0.0005517974380792215,
+  "final_parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/m1-seed0-m20-200k/final_parameters.npz",
+  "final_parameter_pytree_sha256": "ed8fb21167bf5f0b56c59201c7dc771473d5d946d6d304cd26b57ac983a56516",
+  "initial_objective": 1.2144329998546857,
+  "initialization": {
+    "initial_parameter_pytree_sha256": "e52dd73e3f97d44adf4d55354b1c8d9a9b252186a17cae4ad09410270b86df1e",
+    "kind": "canonical_seed0",
+    "new_optimizer_process": true,
+    "source_optimizer_secant_history_reused": false,
+    "source_parameter_file": null
+  },
+  "optimizer": {
+    "HVP_evaluations": 0,
+    "accepted_iterations": 200000,
+    "gradient_evaluations": 200001,
+    "gradient_tolerance": 1e-08,
+    "iteration_limit": 200000,
+    "library": "PyROL/ROL",
+    "maximum_secant_storage": 20,
+    "method": "line-search L-BFGS",
+    "objective_evaluations": 416425,
+    "step_tolerance": 1e-12,
+    "termination_reason": "EExitStatus.EXITSTATUS_MAXITER"
+  },
+  "parameter_only_restart_restores_secant_history": false,
+  "preparation_npz_sha256": "a869d1dd6801fd06d6f4e981f1ad36bab6f285204c259a1bfe9c19b6d4eb839b",
+  "stage": "M1",
+  "states_after_80_accessed": false,
+  "status": "complete",
+  "truth_state_indices": [
+    0,
+    80
+  ],
+  "wall_seconds": 11840.624630708015
+}

@@ -1,0 +1,76 @@
+{
+  "arrays": {
+    "heldout_y_A": {
+      "dtype": "float64",
+      "sha256": "b5bd8b39d7b82e372d593bd53ec803bf014c295b42aa6d14afd762b4be244529",
+      "shape": [
+        80,
+        65536
+      ]
+    },
+    "heldout_y_Qr": {
+      "dtype": "float64",
+      "sha256": "bc3c86864123c666823424a9982bfb10cbd18929ac58eb909c2fcfa4568ec0fe",
+      "shape": [
+        80,
+        65536
+      ]
+    },
+    "heldout_y_R": {
+      "dtype": "float64",
+      "sha256": "0c6ecc8e86bfba5a6f0a7676d86a6032596cb8f3d9964618a0c5477fbe6c0d57",
+      "shape": [
+        80,
+        65536
+      ]
+    },
+    "heldout_y_features": {
+      "dtype": "float64",
+      "sha256": "084522386210c264396dd01f0c76dad77a164dd12125fa9b50298a4a4d04e105",
+      "shape": [
+        80,
+        65536,
+        5
+      ]
+    }
+  },
+  "campaign_id": "m1y_test2b_20260828",
+  "carrier_weights_sha256": "92f774ccfbd1661c8766f1523f04b758bbd6c00a039585c2cc55246bb69d3700",
+  "command": [
+    "/Users/arjunsharma/venvs/dimswe-firedrake-2026.4.1-py312/bin/python",
+    "-m",
+    "dimswe.test2b_m1y_evaluation",
+    "prepare-heldout",
+    "--configuration",
+    "dimswe/configs/test2b_m1y_20260828.json",
+    "--preparation",
+    "external-results/m1y-test2b-20260828/preparation/m1y_learning_data.npz",
+    "--output",
+    "external-results/m1y-test2b-20260828/evaluation/m1y_heldout_data.npz"
+  ],
+  "configuration": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/dimswe/configs/test2b_m1y_20260828.json",
+  "configuration_sha256": "d9836c3d28d7ab192f04da6fe6eab75018173c808296c262d1f20a95a55006d5",
+  "evaluation_only": true,
+  "feature_state": "Y_n*=P(X_n*)",
+  "heldout_npz_sha256": "1ddfa2d2e28b6f8dc2a0fbe0a12d2fe7da42158745a70eb2e088706501c42d2f",
+  "normalization_provenance_sha256": "794e074b2d3149f58025a7e6a74856374d86adab1e3ee518a64fe6f30ff0dd79",
+  "normalization_refitted_on_Y": false,
+  "prefix_implementation": "case.helper.take_forward_step_cached(X_n*, n*dt, dt).boundary_states[-2]",
+  "samples_per_state": 65536,
+  "source_head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+  "state_count": 80,
+  "status": "complete",
+  "target_state": "Y_n*=P(X_n*)",
+  "training_preparation": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/preparation/m1y_learning_data.npz",
+  "training_preparation_sha256": "6f16e6db2c6ebdbd8c00a23cdae9b5318355384723a2f1276b2ea93d95145668",
+  "training_preparation_state_indices": [
+    0,
+    80
+  ],
+  "truth_state_indices": [
+    81,
+    160
+  ],
+  "used_for_training_or_model_selection": false,
+  "wall_seconds": 37.1227245409973
+}

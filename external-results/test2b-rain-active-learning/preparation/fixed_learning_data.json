@@ -1,0 +1,285 @@
+{
+  "architecture": {
+    "A": {
+      "activation": "tanh",
+      "dtype": "float64",
+      "features": [
+        "h",
+        "S",
+        "Qv",
+        "Qc",
+        "B"
+      ],
+      "layers": [
+        5,
+        32,
+        32,
+        1
+      ],
+      "outputs": [
+        "A"
+      ],
+      "parameter_count": 1281,
+      "representation": "A",
+      "seed": 0
+    },
+    "B": {
+      "activation": "tanh",
+      "dtype": "float64",
+      "features": [
+        "h",
+        "S",
+        "Qv",
+        "Qc",
+        "B"
+      ],
+      "layers": [
+        5,
+        32,
+        32,
+        2
+      ],
+      "outputs": [
+        "A",
+        "R"
+      ],
+      "parameter_count": 1314,
+      "representation": "B",
+      "seed": 0
+    },
+    "C": {
+      "activation": "tanh",
+      "dtype": "float64",
+      "features": [
+        "h",
+        "S",
+        "Qv",
+        "Qc",
+        "B"
+      ],
+      "layers": [
+        5,
+        32,
+        32,
+        4
+      ],
+      "outputs": [
+        "S",
+        "Qv",
+        "Qc",
+        "Qr"
+      ],
+      "parameter_count": 1380,
+      "representation": "C",
+      "seed": 0
+    }
+  },
+  "carrier_mass_audit": {
+    "carrier_dimension": 65536,
+    "diagonal_acceptance_tolerance": 0.00024093381610788974,
+    "maximum_offdiagonal_absolute": 0.0,
+    "packed_weight_sum": 24999999999999.984
+  },
+  "common_horizon_denominator": 901944200525722.0,
+  "denominator_fingerprints": {
+    "H1-H2-H5": "30d5e71613485f7bd08ca8d996fcf241771dfb5f7f6aee28cd495bdbbb173912",
+    "M2-X": "fb6d1628b18a641f1077f40e6dfcb1464d7401590ab5b8660e148cebd853b664"
+  },
+  "heldout_states_accessed": false,
+  "m2x_denominator": 90147685409.58347,
+  "mass_inverse_audit": {
+    "Q": {
+      "connected_component_count": 4096,
+      "inverse_nonzeros": 65536,
+      "maximum_absolute_M_Minv_minus_I": 1.5222918398512608e-33,
+      "maximum_absolute_Minv_minus_Minv_transpose": 2.8698592549372254e-42,
+      "maximum_component_size": 4,
+      "shape": [
+        16384,
+        16384
+      ],
+      "transpose_action_certified": true,
+      "weak_nonzeros": 262144,
+      "weak_shape": [
+        16384,
+        65536
+      ]
+    },
+    "S": {
+      "action_certification": {
+        "maximum_relative_l2_error": 4.0705386059358936e-16,
+        "probe_count": 3,
+        "probes": [
+          {
+            "inverse_action_vs_PETSc_LU": {
+              "absolute_l2_error": 3.0210523188178394e-23,
+              "maximum_absolute_component_error": 6.203854594147708e-25,
+              "reference_l2_norm": 2.8766748455494503e-07,
+              "relative_l2_error": 1.0501890137120494e-16
+            },
+            "mass_action": {
+              "absolute_l2_error": 3.419296557560315e-05,
+              "maximum_absolute_component_error": 5.960464477539062e-07,
+              "reference_l2_norm": 84590058586.9327,
+              "relative_l2_error": 4.0421967009826865e-16
+            },
+            "probe": 0,
+            "transpose_inverse_action_vs_PETSc_LU": {
+              "absolute_l2_error": 3.0210523188178394e-23,
+              "maximum_absolute_component_error": 6.203854594147708e-25,
+              "reference_l2_norm": 2.8766748455494503e-07,
+              "relative_l2_error": 1.0501890137120494e-16
+            }
+          },
+          {
+            "inverse_action_vs_PETSc_LU": {
+              "absolute_l2_error": 5.137769183800856e-23,
+              "maximum_absolute_component_error": 2.481541837659083e-24,
+              "reference_l2_norm": 5.008596289509822e-07,
+              "relative_l2_error": 1.0257902387863797e-16
+            },
+            "mass_action": {
+              "absolute_l2_error": 5.903332868636968e-05,
+              "maximum_absolute_component_error": 1.9073486328125e-06,
+              "reference_l2_norm": 145025841544.12363,
+              "relative_l2_error": 4.0705386059358936e-16
+            },
+            "probe": 1,
+            "transpose_inverse_action_vs_PETSc_LU": {
+              "absolute_l2_error": 5.137769183800856e-23,
+              "maximum_absolute_component_error": 2.481541837659083e-24,
+              "reference_l2_norm": 5.008596289509822e-07,
+              "relative_l2_error": 1.0257902387863797e-16
+            }
+          },
+          {
+            "inverse_action_vs_PETSc_LU": {
+              "absolute_l2_error": 3.6868144686231873e-23,
+              "maximum_absolute_component_error": 6.203854594147708e-25,
+              "reference_l2_norm": 3.5313757780372955e-07,
+              "relative_l2_error": 1.0440164684689215e-16
+            },
+            "mass_action": {
+              "absolute_l2_error": 4.1722012360023674e-05,
+              "maximum_absolute_component_error": 5.960464477539062e-07,
+              "reference_l2_norm": 103632994442.1899,
+              "relative_l2_error": 4.025939092524984e-16
+            },
+            "probe": 2,
+            "transpose_inverse_action_vs_PETSc_LU": {
+              "absolute_l2_error": 3.6868144686231873e-23,
+              "maximum_absolute_component_error": 6.203854594147708e-25,
+              "reference_l2_norm": 3.5313757780372955e-07,
+              "relative_l2_error": 1.0440164684689215e-16
+            }
+          }
+        ],
+        "production_reference": "assembled Firedrake matrix and PETSc preonly/LU",
+        "relative_tolerance": 1e-11,
+        "transpose_action_certified": true
+      },
+      "dense_global_mass_inverse_formed": false,
+      "diagnosis": "periodic seam-identified CG coordinate interpolation is not a global nodal-coordinate map; cell topology supplies the bijection",
+      "global_space_dimension": 36864,
+      "grid_shape": [
+        192,
+        192
+      ],
+      "indexing": "cell-topology-aware periodic tensor ordering",
+      "interpolated_coordinate_cartesian_product": 57519,
+      "interpolated_coordinates_form_complete_grid": false,
+      "interpolated_global_coordinate_unique_counts": [
+        231,
+        249
+      ],
+      "local_tensor_axis_nodes": 4,
+      "maximum_factor_inverse_residual": 0.0,
+      "maximum_global_dof_occurrences": 4,
+      "minimum_global_dof_occurrences": 1,
+      "periodic_cell_shape": [
+        64,
+        64
+      ],
+      "periodic_grid_shape": [
+        192,
+        192
+      ],
+      "polynomial_degree": 3,
+      "shape": [
+        36864,
+        36864
+      ],
+      "tensor_factorization_relative_residual": 4.500000000000002e-16,
+      "weak_nonzeros": 1048576,
+      "weak_shape": [
+        36864,
+        65536
+      ]
+    }
+  },
+  "normalization": {
+    "R_scale_definition": "mass-weighted RMS over meaningful R>0 samples; all zero samples remain in every loss numerator",
+    "feature_order": [
+      "h",
+      "S",
+      "Qv",
+      "Qc",
+      "B"
+    ],
+    "fitted_truth_state_indices": [
+      0,
+      80
+    ],
+    "heldout_state_indices": [
+      81,
+      160
+    ],
+    "input_offset": [
+      749.6487720807651,
+      7376.434989735685,
+      1.4193153609575624,
+      0.06015957787413514,
+      0.0
+    ],
+    "input_scale": [
+      16.913638066122523,
+      133.5602198531373,
+      0.21326095651874272,
+      0.012412402653357142,
+      1.0
+    ],
+    "provenance_sha256": "794e074b2d3149f58025a7e6a74856374d86adab1e3ee518a64fe6f30ff0dd79",
+    "sigma_A_all_training_support": 9.052258655848717e-08,
+    "sigma_R_active_training_support": 1.9902871261559996e-11,
+    "source_order": [
+      "S",
+      "Qv",
+      "Qc",
+      "Qr"
+    ],
+    "source_scales": [
+      0.006671477765500949,
+      6.803353979030477e-05,
+      6.80335397581467e-05,
+      1.5076498196845062e-08
+    ]
+  },
+  "operator_denominators": {
+    "A": 2024999999999998.8,
+    "B": 2040103827582464.2,
+    "C": 6090103827582461.0
+  },
+  "preparation_npz_sha256": "6e159015234fd94881b0b97888b7481eb049a02dcd96c571078920c0bedc901c",
+  "seed0_parameter_sha256": {
+    "A": "6d4ac7bafe775b90a70e2a199ef3305308c3d02333f7daeac1c870b6f18e0975",
+    "B": "cfadd9f3ee02a78c5b3a946b88c039d9f7ed34e719325ff22c92e1fe4afac056",
+    "C": "e52dd73e3f97d44adf4d55354b1c8d9a9b252186a17cae4ad09410270b86df1e"
+  },
+  "status": "complete",
+  "support_audit_sha256": "e83edbfe67e90e04afd78b40249c04344948849a141fbb558c5eb3230b9d383d",
+  "truth_manifest_sha256": "746ae7020093261a4c5292fb37f61c8b12b0c825d5e5fa76a560fc830f37fe40",
+  "truth_states": [
+    0,
+    80
+  ]
+}

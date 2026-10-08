@@ -1,0 +1,59 @@
+{
+  "draft_caption": "Test 2A objective matrix on training states. A red outline and asterisk mark the objective minimized for each row; other values evaluate that fixed model under another objective. M1-Y was not part of Test 2A.",
+  "editorial_revision": {
+    "date": "2026-08-29",
+    "scope": "caption terminology only; rendered asset and CSV unchanged"
+  },
+  "figure_id": "ML4_frozen_model_objective_matrix_test2a",
+  "files": {
+    "csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML4_frozen_model_objective_matrix_test2a.csv",
+      "rows": 12,
+      "sha256": "cb63bdef9818de8e129b096a01f71239a8b9333414be935b97740728f56e0723"
+    },
+    "pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML4_frozen_model_objective_matrix_test2a.pdf",
+      "sha256": "fa80c87c2fcedecdd4f1494848815aedb1e342a4e8d8978626b7e360c1931e3a"
+    },
+    "png_300dpi": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML4_frozen_model_objective_matrix_test2a.png",
+      "sha256": "0a5741d05036f66fae709c81bb65144c702470e032133a7c55d06d9ee74fc86c"
+    }
+  },
+  "metric_definitions": {
+    "J_H1": "Frozen production definition of J_H1.",
+    "J_H2": "Frozen production definition of J_H2.",
+    "J_H5": "Frozen production definition of J_H5.",
+    "J_M1_X": "Frozen production definition of J_M1_X.",
+    "J_M2_X": "Frozen production definition of J_M2_X."
+  },
+  "model_labels": [
+    "M1-X",
+    "M2-X-independent",
+    "warm M2-X",
+    "H1",
+    "H2",
+    "H5"
+  ],
+  "notes": [
+    "Blank cells were not evaluated; Test 2A has no M1-Y column."
+  ],
+  "quantity_kind": "FITTED FINAL OBJECTIVE and POST-HOC DIAGNOSTIC OBJECTIVE",
+  "representations": [
+    "A",
+    "C"
+  ],
+  "scientific_question": "Which cross-objective endpoint evaluations exist for Test 2A?",
+  "source_artifacts": [
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/completed_objective_matrix.csv"
+  ],
+  "state_intervals": [],
+  "support_classification": "Test 2A training support 0--80 only",
+  "units": {
+    "J_H1": "dimensionless normalized objective",
+    "J_H2": "dimensionless normalized objective",
+    "J_H5": "dimensionless normalized objective",
+    "J_M1_X": "dimensionless normalized objective",
+    "J_M2_X": "dimensionless normalized objective"
+  }
+}

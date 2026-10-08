@@ -1,0 +1,1227 @@
+{
+  "check_count": 138,
+  "checks": [
+    {
+      "detail": {
+        "actual": "e780ce5076de285c0b26d2f30ba8b9e51e91f9193cf1d037294f6499613757be",
+        "expected": "e780ce5076de285c0b26d2f30ba8b9e51e91f9193cf1d037294f6499613757be"
+      },
+      "name": "scientific artifact unchanged: .DS_Store",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "dac110aba0733006318fa21d6b7f8d930c104d6a78824959c13c5236bf408b36",
+        "expected": "dac110aba0733006318fa21d6b7f8d930c104d6a78824959c13c5236bf408b36"
+      },
+      "name": "scientific artifact unchanged: assembled_data_validation.json",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "72e26a260f1199e8f861bf685cf053d9434cc3933462c949402d37e4a4930c1a",
+        "expected": "72e26a260f1199e8f861bf685cf053d9434cc3933462c949402d37e4a4930c1a"
+      },
+      "name": "scientific artifact unchanged: checkpoint_direct_histories.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "c30752deafe3c25ee563cca4db22c8fbaff4e0a1ade035fa68da31cf599af75f",
+        "expected": "c30752deafe3c25ee563cca4db22c8fbaff4e0a1ade035fa68da31cf599af75f"
+      },
+      "name": "scientific artifact unchanged: checkpoint_direct_histories.json",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "8bea6544752cd5c7bdccfb09a8ed9c7e001dfa96994a796119720cb0cb1ad43b",
+        "expected": "8bea6544752cd5c7bdccfb09a8ed9c7e001dfa96994a796119720cb0cb1ad43b"
+      },
+      "name": "scientific artifact unchanged: checkpoint_hash_manifest.json",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "e2f28b5770f81bd803df80762ea0289e20ebffeca16203a9207cf309b7a6561a",
+        "expected": "e2f28b5770f81bd803df80762ea0289e20ebffeca16203a9207cf309b7a6561a"
+      },
+      "name": "scientific artifact unchanged: checkpoint_history_coverage.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "cfed8c9d119f4bde0324cb81091f3332f54d22f7e1c2994e97b3f71d1f22e564",
+        "expected": "cfed8c9d119f4bde0324cb81091f3332f54d22f7e1c2994e97b3f71d1f22e564"
+      },
+      "name": "scientific artifact unchanged: checkpoint_training_objectives.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "3ff41906d67add5a1ac519b04de0b31c8c599e22049d8ad007e047c2d4b5eb8c",
+        "expected": "3ff41906d67add5a1ac519b04de0b31c8c599e22049d8ad007e047c2d4b5eb8c"
+      },
+      "name": "scientific artifact unchanged: checkpoint_training_objectives_fixed.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "2be15941412d8c9652fc7cf932654224075a6bed14429dc005389ff9508d7fcc",
+        "expected": "2be15941412d8c9652fc7cf932654224075a6bed14429dc005389ff9508d7fcc"
+      },
+      "name": "scientific artifact unchanged: checkpoint_training_objectives_fixed.json",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "dba15ecdc96755e6cdc6e38643b9fc78dc96ceed2787ad1b04ba895678112af2",
+        "expected": "dba15ecdc96755e6cdc6e38643b9fc78dc96ceed2787ad1b04ba895678112af2"
+      },
+      "name": "scientific artifact unchanged: checkpoint_training_objectives_operator.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "bc42eac927d884925e0d0d65f560ad43a3f0306c2069ec9ea7dd0d122d8e3ad8",
+        "expected": "bc42eac927d884925e0d0d65f560ad43a3f0306c2069ec9ea7dd0d122d8e3ad8"
+      },
+      "name": "scientific artifact unchanged: completed_objective_matrix.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "a5f061fbcb6f9a1c95b2c7e3f0d518df092a1808d5a7ec016fa47e4c59984ed5",
+        "expected": "a5f061fbcb6f9a1c95b2c7e3f0d518df092a1808d5a7ec016fa47e4c59984ed5"
+      },
+      "name": "scientific artifact unchanged: deployed_diagnostics.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "f4001628488383b2cf7797932c4fc07f5823e59f35189559c83ae90eb1cec1f1",
+        "expected": "f4001628488383b2cf7797932c4fc07f5823e59f35189559c83ae90eb1cec1f1"
+      },
+      "name": "scientific artifact unchanged: direct_history_validation.json",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "fe731abe3af3894398fa49ca4be3cd2f2dded262b164bd2fdda0afa7b2a6eb3a",
+        "expected": "fe731abe3af3894398fa49ca4be3cd2f2dded262b164bd2fdda0afa7b2a6eb3a"
+      },
+      "name": "scientific artifact unchanged: final_direct_metrics.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "e70e9b2144d4c765f654edb091cd6214f02a9e3cf4ebd55c3e7d93196c1475a3",
+        "expected": "e70e9b2144d4c765f654edb091cd6214f02a9e3cf4ebd55c3e7d93196c1475a3"
+      },
+      "name": "scientific artifact unchanged: test2a_training_support_deployment.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "b3049801ae29f34cde1669853f48bc47d2f27c22366329bd0186c08142be60be",
+        "expected": "b3049801ae29f34cde1669853f48bc47d2f27c22366329bd0186c08142be60be"
+      },
+      "name": "scientific artifact unchanged: test2a_training_support_deployment.json",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "b0147d721f7ba8f5880411f2822b4a0fd41e542e7457cc92b18bcfa6f4f8ecbb",
+        "expected": "b0147d721f7ba8f5880411f2822b4a0fd41e542e7457cc92b18bcfa6f4f8ecbb"
+      },
+      "name": "scientific artifact unchanged: test2b_global_trajectories.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "0d091364fcf6532e01e8f7ed7bb332cc7ea4dcedbe6e38cec030f58c90ac1b1d",
+        "expected": "0d091364fcf6532e01e8f7ed7bb332cc7ea4dcedbe6e38cec030f58c90ac1b1d"
+      },
+      "name": "scientific artifact unchanged: test2b_global_trajectories.json",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "564925b039320e2fec60365b925f42101d6d86479446025ec56fe74f04ce38d3",
+        "expected": "564925b039320e2fec60365b925f42101d6d86479446025ec56fe74f04ce38d3"
+      },
+      "name": "scientific artifact unchanged: heldout_x_test2b.json",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "fd55559e2eb3277228099106c8043d3c1d11848a83c77efb87a3f4373f03274f",
+        "expected": "fd55559e2eb3277228099106c8043d3c1d11848a83c77efb87a3f4373f03274f"
+      },
+      "name": "scientific artifact unchanged: heldout_x_test2b.npz",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "023456c6e768d6eb7701709c400c109048d77013690c9b0227a12dde84057b78",
+        "expected": "023456c6e768d6eb7701709c400c109048d77013690c9b0227a12dde84057b78"
+      },
+      "name": "scientific artifact unchanged: j_m1y_diagnostics.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "6e89c97c44f5e605d5d9b1a3f4fedf0e17ff81d53c30ec30f1667b164f302f22",
+        "expected": "6e89c97c44f5e605d5d9b1a3f4fedf0e17ff81d53c30ec30f1667b164f302f22"
+      },
+      "name": "scientific artifact unchanged: j_m1y_diagnostics.json",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "1667691c50ab9986b9d420d5fd534a35894c79457988d29a704236672bf3cee6",
+        "expected": "1667691c50ab9986b9d420d5fd534a35894c79457988d29a704236672bf3cee6"
+      },
+      "name": "scientific artifact unchanged: m1_cross_state_final_metrics.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "4840c84e485c8b4f33a5a0dbe94091b76fae724d3ed9ad2e11da148dab1f2876",
+        "expected": "4840c84e485c8b4f33a5a0dbe94091b76fae724d3ed9ad2e11da148dab1f2876"
+      },
+      "name": "scientific artifact unchanged: rain_event_diagnostics.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "f8d61fc350a3e8951bee64c60b9b64ad08d632f351f0eb420b88de5cb27041fe",
+        "expected": "f8d61fc350a3e8951bee64c60b9b64ad08d632f351f0eb420b88de5cb27041fe"
+      },
+      "name": "scientific artifact unchanged: recursive_objective_endpoints.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "36af7781726189890387f6e8972ecc7ab63d8abc849a030c56221b54624a0b6a",
+        "expected": "36af7781726189890387f6e8972ecc7ab63d8abc849a030c56221b54624a0b6a"
+      },
+      "name": "scientific artifact unchanged: training_x_carriers_test2b.json",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "0c6bf9378fd38eace300d0b2a6b8d6efdcfc865493a910b12e7b1a4a25a69bf4",
+        "expected": "0c6bf9378fd38eace300d0b2a6b8d6efdcfc865493a910b12e7b1a4a25a69bf4"
+      },
+      "name": "scientific artifact unchanged: training_x_carriers_test2b.npz",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "2ca32793a3b39348925f5ac173ffd8d0b91028835f18e7177242aea620e53522",
+        "expected": "2ca32793a3b39348925f5ac173ffd8d0b91028835f18e7177242aea620e53522"
+      },
+      "name": "scientific artifact unchanged: ML1_optimization_progress_test2b.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "7111ca84a5b9a6e1947067fea12fb5a9406d0a015405d0ded4299b31b8c21601",
+        "expected": "7111ca84a5b9a6e1947067fea12fb5a9406d0a015405d0ded4299b31b8c21601"
+      },
+      "name": "scientific artifact unchanged: ML2_posthoc_direct_history_test2b.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "ea936095e82144ac00855ac1f4a164a97a423c7a5b896e7b1300f7bb605e4b1c",
+        "expected": "ea936095e82144ac00855ac1f4a164a97a423c7a5b896e7b1300f7bb605e4b1c"
+      },
+      "name": "scientific artifact unchanged: ML3_m1x_m1y_cross_state_final.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "cb5727061f6f27ed15cc6b8c57558742773b3002cf9681b37310f25fa1606d6a",
+        "expected": "cb5727061f6f27ed15cc6b8c57558742773b3002cf9681b37310f25fa1606d6a"
+      },
+      "name": "scientific artifact unchanged: ML4_frozen_model_objective_matrix_test2b.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "401b018e6a070a9281453948ee4576144479621120b7103a1d289a266faaf18e",
+        "expected": "401b018e6a070a9281453948ee4576144479621120b7103a1d289a266faaf18e"
+      },
+      "name": "scientific artifact unchanged: ML5_deployed_physical_diagnostics_test2b.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "520077f0dadf7f514bb3aa400cfe31483356a4f17fe2b7a5763577749300833f",
+        "expected": "520077f0dadf7f514bb3aa400cfe31483356a4f17fe2b7a5763577749300833f"
+      },
+      "name": "scientific artifact unchanged: ML6_global_trajectories_representation_A.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "5c5b1834fd5e4745c8bbaee35384a5a55675a4d4899eb79f62f6748a13f1125f",
+        "expected": "5c5b1834fd5e4745c8bbaee35384a5a55675a4d4899eb79f62f6748a13f1125f"
+      },
+      "name": "scientific artifact unchanged: ML6_global_trajectories_representation_B.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "cf6ae20cb48fbd4eaaf69116d1fc697e33482aa098ece449b766c3478dfb2c52",
+        "expected": "cf6ae20cb48fbd4eaaf69116d1fc697e33482aa098ece449b766c3478dfb2c52"
+      },
+      "name": "scientific artifact unchanged: ML6_global_trajectories_representation_C.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "27bc0bfcdcf2b9040b5f6b5b78e64258bcaf90ace77973bf23c7e138efdb322f",
+        "expected": "27bc0bfcdcf2b9040b5f6b5b78e64258bcaf90ace77973bf23c7e138efdb322f"
+      },
+      "name": "scientific artifact unchanged: ML1_test2a_recorded_optimization_progress.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "bd8ef944d9ebdfce3f6f949744689eaa889ed7be1271edb6e54a92be9d1ec608",
+        "expected": "bd8ef944d9ebdfce3f6f949744689eaa889ed7be1271edb6e54a92be9d1ec608"
+      },
+      "name": "scientific artifact unchanged: ML2_posthoc_direct_history_test2b_all_models.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "5e843b07ace4aa72077cc8f7550645fe0822005992a3e8f0eb658b77d326d6dd",
+        "expected": "5e843b07ace4aa72077cc8f7550645fe0822005992a3e8f0eb658b77d326d6dd"
+      },
+      "name": "scientific artifact unchanged: ML3_m1x_m1y_cross_state_checkpoint_history.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "cb63bdef9818de8e129b096a01f71239a8b9333414be935b97740728f56e0723",
+        "expected": "cb63bdef9818de8e129b096a01f71239a8b9333414be935b97740728f56e0723"
+      },
+      "name": "scientific artifact unchanged: ML4_frozen_model_objective_matrix_test2a.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "0c0b604ee998aeb28075a330c819b802c8e64d1139ff09501aa087409fb72326",
+        "expected": "0c0b604ee998aeb28075a330c819b802c8e64d1139ff09501aa087409fb72326"
+      },
+      "name": "scientific artifact unchanged: ML5_representation_c_source_structure.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "2900f520ee675cc6c5f901b6e128ef111e0c3077673e79cf118c6fa8d5bf35b4",
+        "expected": "2900f520ee675cc6c5f901b6e128ef111e0c3077673e79cf118c6fa8d5bf35b4"
+      },
+      "name": "scientific artifact unchanged: ML6_global_trajectories_representation_A_all_models.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "a5bc3db61a69614480ac5eaf85b895f043cf67510053ab372d3697b6ef16f5c0",
+        "expected": "a5bc3db61a69614480ac5eaf85b895f043cf67510053ab372d3697b6ef16f5c0"
+      },
+      "name": "scientific artifact unchanged: ML6_global_trajectories_representation_B_all_models.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "89abe564c62a78f9707b230d86305c82817dc76568d7c9bc2372119c9996ad8f",
+        "expected": "89abe564c62a78f9707b230d86305c82817dc76568d7c9bc2372119c9996ad8f"
+      },
+      "name": "scientific artifact unchanged: ML6_global_trajectories_representation_C_all_models.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "e70e9b2144d4c765f654edb091cd6214f02a9e3cf4ebd55c3e7d93196c1475a3",
+        "expected": "e70e9b2144d4c765f654edb091cd6214f02a9e3cf4ebd55c3e7d93196c1475a3"
+      },
+      "name": "scientific artifact unchanged: ML_test2a_training_interval_deployment.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "0657f2c6d208c7869b4e606c0ab7fc9203fa343eb8a089a73800eb8f412f8e53",
+        "expected": "0657f2c6d208c7869b4e606c0ab7fc9203fa343eb8a089a73800eb8f412f8e53"
+      },
+      "name": "scientific artifact unchanged: table1_data_supports.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "ac360b325448073ebb449ea6db529669b89d6db51ba10f6e9f76724ff222dbd8",
+        "expected": "ac360b325448073ebb449ea6db529669b89d6db51ba10f6e9f76724ff222dbd8"
+      },
+      "name": "scientific artifact unchanged: table1_data_supports.md",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "5378adc596f33f541af183d972bb5d00fbcb59d22634c6f14502158308ef1184",
+        "expected": "5378adc596f33f541af183d972bb5d00fbcb59d22634c6f14502158308ef1184"
+      },
+      "name": "scientific artifact unchanged: table1_data_supports.tex",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "1c84370c560caac7dc9afa3d5cee6f03887462300c4fe2db9ca7e8c4f647b883",
+        "expected": "1c84370c560caac7dc9afa3d5cee6f03887462300c4fe2db9ca7e8c4f647b883"
+      },
+      "name": "scientific artifact unchanged: table2_training_contracts.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "1c71dd5c96b2e825f5c0d98eb8ac6ce096330e008212f40fea39c013c2982ca3",
+        "expected": "1c71dd5c96b2e825f5c0d98eb8ac6ce096330e008212f40fea39c013c2982ca3"
+      },
+      "name": "scientific artifact unchanged: table2_training_contracts.md",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "10821d160599800d3d645896ea2b5a0e4e14aef779c3eb1d18dacec9a7095dd4",
+        "expected": "10821d160599800d3d645896ea2b5a0e4e14aef779c3eb1d18dacec9a7095dd4"
+      },
+      "name": "scientific artifact unchanged: table2_training_contracts.tex",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "83af119126a9d57f3a763b2164021e8fff9a8437089e62b63414f6eb7a5195c3",
+        "expected": "83af119126a9d57f3a763b2164021e8fff9a8437089e62b63414f6eb7a5195c3"
+      },
+      "name": "scientific artifact unchanged: table2_training_contracts_provenance.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "78f390d7db171daa9e11648ec2ffdad843cea086953e592a4a989ca6f1d50736",
+        "expected": "78f390d7db171daa9e11648ec2ffdad843cea086953e592a4a989ca6f1d50736"
+      },
+      "name": "scientific artifact unchanged: table3_final_direct_accuracy.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "ac2f8ddcdab957f2fbd1dc40f9b7c6025b3f44856123ce43879a205395485730",
+        "expected": "ac2f8ddcdab957f2fbd1dc40f9b7c6025b3f44856123ce43879a205395485730"
+      },
+      "name": "scientific artifact unchanged: table3_final_direct_accuracy.md",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "ee0e28917f2f5eeab420f7aaf1f2579992017a28bdf200bbb66e9559200bc6c5",
+        "expected": "ee0e28917f2f5eeab420f7aaf1f2579992017a28bdf200bbb66e9559200bc6c5"
+      },
+      "name": "scientific artifact unchanged: table3_final_direct_accuracy.tex",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "a885526f6403c1d7282badc82cb9376cd615f3e80ae806a7546ccbdd01568348",
+        "expected": "a885526f6403c1d7282badc82cb9376cd615f3e80ae806a7546ccbdd01568348"
+      },
+      "name": "scientific artifact unchanged: table4_objective_matrix.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "f0c8a97a766af7ec7984b9ade57e4a131208684e425fa2a1d851e43b611e8539",
+        "expected": "f0c8a97a766af7ec7984b9ade57e4a131208684e425fa2a1d851e43b611e8539"
+      },
+      "name": "scientific artifact unchanged: table4_objective_matrix.md",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "9f89857c7d1cfb176237fd3dc1062b0c7fe2c70ea1d14d1c123f76d4120d76e0",
+        "expected": "9f89857c7d1cfb176237fd3dc1062b0c7fe2c70ea1d14d1c123f76d4120d76e0"
+      },
+      "name": "scientific artifact unchanged: table4_objective_matrix.tex",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "b54346f4be72303849137b223c36097c3ead35359abde6f979a2e897444dab6a",
+        "expected": "b54346f4be72303849137b223c36097c3ead35359abde6f979a2e897444dab6a"
+      },
+      "name": "scientific artifact unchanged: table5_rain_events.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "4f3706861ee0f6aef29a95e08d3096d815ebd1467200f390424f94c86539b629",
+        "expected": "4f3706861ee0f6aef29a95e08d3096d815ebd1467200f390424f94c86539b629"
+      },
+      "name": "scientific artifact unchanged: table5_rain_events.md",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "fb10455968fc38473b8eaa90a544435284b16c5231b42703a4c695b215876b9b",
+        "expected": "fb10455968fc38473b8eaa90a544435284b16c5231b42703a4c695b215876b9b"
+      },
+      "name": "scientific artifact unchanged: table5_rain_events.tex",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "8ff00890f55bb251a57276dc92cb9049938e2be8b4f76955be95a01db07e2259",
+        "expected": "8ff00890f55bb251a57276dc92cb9049938e2be8b4f76955be95a01db07e2259"
+      },
+      "name": "scientific artifact unchanged: tableS3_test2a_training_support_accuracy.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "2cf657ddf724fefd8e7628c7843390cd519714383b18746661e40d43ba57feee",
+        "expected": "2cf657ddf724fefd8e7628c7843390cd519714383b18746661e40d43ba57feee"
+      },
+      "name": "scientific artifact unchanged: tableS3_test2a_training_support_accuracy.md",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "61c63fbd289cc164f8fa852e8972193641f60aaca5c60bd3122d61c56fb7b938",
+        "expected": "61c63fbd289cc164f8fa852e8972193641f60aaca5c60bd3122d61c56fb7b938"
+      },
+      "name": "scientific artifact unchanged: tableS3_test2a_training_support_accuracy.tex",
+      "passed": true
+    },
+    {
+      "detail": "only caption/terminology/units/render hashes may differ",
+      "name": "sidecar scientific payload unchanged: ML1_optimization_progress_test2b",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML1_optimization_progress_test2b.csv",
+        "rows": 156,
+        "sha256": "2ca32793a3b39348925f5ac173ffd8d0b91028835f18e7177242aea620e53522"
+      },
+      "name": "sidecar CSV hash: ML1_optimization_progress_test2b",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML1_optimization_progress_test2b.pdf",
+        "sha256": "aa08102e21c51233ef7e6900dfbf0cfd161657c56e0ed76e53eb22faf5276486"
+      },
+      "name": "sidecar PDF hash: ML1_optimization_progress_test2b",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML1_optimization_progress_test2b.png",
+        "sha256": "4b28a02bc7a5ef3ad1d1a438c51c26329e43870d945ec314b293c3a301abb220"
+      },
+      "name": "sidecar PNG hash: ML1_optimization_progress_test2b",
+      "passed": true
+    },
+    {
+      "detail": 29989,
+      "name": "PDF signature: ML1_optimization_progress_test2b",
+      "passed": true
+    },
+    {
+      "detail": [
+        2194,
+        2164
+      ],
+      "name": "PNG resolution: ML1_optimization_progress_test2b",
+      "passed": true
+    },
+    {
+      "detail": [
+        299.9994,
+        299.9994
+      ],
+      "name": "PNG DPI: ML1_optimization_progress_test2b",
+      "passed": true
+    },
+    {
+      "detail": "only caption/terminology/units/render hashes may differ",
+      "name": "sidecar scientific payload unchanged: ML2_posthoc_direct_history_test2b",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_posthoc_direct_history_test2b.csv",
+        "rows": 344,
+        "sha256": "7111ca84a5b9a6e1947067fea12fb5a9406d0a015405d0ded4299b31b8c21601"
+      },
+      "name": "sidecar CSV hash: ML2_posthoc_direct_history_test2b",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_posthoc_direct_history_test2b.pdf",
+        "sha256": "835fbdd3cb44895dad3ed9d25bcb412bc941736f7b1364caf34002a71c260522"
+      },
+      "name": "sidecar PDF hash: ML2_posthoc_direct_history_test2b",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_posthoc_direct_history_test2b.png",
+        "sha256": "75fc2f187caa292ffb0ba0780f954ad811a6bb5f9fad7b07d5971d2e4bb324b5"
+      },
+      "name": "sidecar PNG hash: ML2_posthoc_direct_history_test2b",
+      "passed": true
+    },
+    {
+      "detail": 37774,
+      "name": "PDF signature: ML2_posthoc_direct_history_test2b",
+      "passed": true
+    },
+    {
+      "detail": [
+        2151,
+        2171
+      ],
+      "name": "PNG resolution: ML2_posthoc_direct_history_test2b",
+      "passed": true
+    },
+    {
+      "detail": [
+        299.9994,
+        299.9994
+      ],
+      "name": "PNG DPI: ML2_posthoc_direct_history_test2b",
+      "passed": true
+    },
+    {
+      "detail": "only caption/terminology/units/render hashes may differ",
+      "name": "sidecar scientific payload unchanged: ML3_m1x_m1y_cross_state_final",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML3_m1x_m1y_cross_state_final.csv",
+        "rows": 32,
+        "sha256": "ea936095e82144ac00855ac1f4a164a97a423c7a5b896e7b1300f7bb605e4b1c"
+      },
+      "name": "sidecar CSV hash: ML3_m1x_m1y_cross_state_final",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML3_m1x_m1y_cross_state_final.pdf",
+        "sha256": "51e5bfaf90e8bcb771ac3d403936fb1d752579fa33e339841b170e0d53343ea1"
+      },
+      "name": "sidecar PDF hash: ML3_m1x_m1y_cross_state_final",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML3_m1x_m1y_cross_state_final.png",
+        "sha256": "9d673fc6e9aa3ea897523e428b2358a921f994ca9924984ef2832027edba171a"
+      },
+      "name": "sidecar PNG hash: ML3_m1x_m1y_cross_state_final",
+      "passed": true
+    },
+    {
+      "detail": 18248,
+      "name": "PDF signature: ML3_m1x_m1y_cross_state_final",
+      "passed": true
+    },
+    {
+      "detail": [
+        2228,
+        1646
+      ],
+      "name": "PNG resolution: ML3_m1x_m1y_cross_state_final",
+      "passed": true
+    },
+    {
+      "detail": [
+        299.9994,
+        299.9994
+      ],
+      "name": "PNG DPI: ML3_m1x_m1y_cross_state_final",
+      "passed": true
+    },
+    {
+      "detail": "only caption/terminology/units/render hashes may differ",
+      "name": "sidecar scientific payload unchanged: ML4_frozen_model_objective_matrix_test2b",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML4_frozen_model_objective_matrix_test2b.csv",
+        "rows": 21,
+        "sha256": "cb5727061f6f27ed15cc6b8c57558742773b3002cf9681b37310f25fa1606d6a"
+      },
+      "name": "sidecar CSV hash: ML4_frozen_model_objective_matrix_test2b",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML4_frozen_model_objective_matrix_test2b.pdf",
+        "sha256": "dfcc2d1146492ebe576922736b1d6eec8ada7d9cca9334a0c22923a3a390c411"
+      },
+      "name": "sidecar PDF hash: ML4_frozen_model_objective_matrix_test2b",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML4_frozen_model_objective_matrix_test2b.png",
+        "sha256": "2951a2028ea24fea4783a8c81dee7804ce808bef98de006f463428e1c5b6ca81"
+      },
+      "name": "sidecar PNG hash: ML4_frozen_model_objective_matrix_test2b",
+      "passed": true
+    },
+    {
+      "detail": 50473,
+      "name": "PDF signature: ML4_frozen_model_objective_matrix_test2b",
+      "passed": true
+    },
+    {
+      "detail": [
+        2194,
+        2434
+      ],
+      "name": "PNG resolution: ML4_frozen_model_objective_matrix_test2b",
+      "passed": true
+    },
+    {
+      "detail": [
+        299.9994,
+        299.9994
+      ],
+      "name": "PNG DPI: ML4_frozen_model_objective_matrix_test2b",
+      "passed": true
+    },
+    {
+      "detail": "only caption/terminology/units/render hashes may differ",
+      "name": "sidecar scientific payload unchanged: ML5_deployed_physical_diagnostics_test2b",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5_deployed_physical_diagnostics_test2b.csv",
+        "rows": 21,
+        "sha256": "401b018e6a070a9281453948ee4576144479621120b7103a1d289a266faaf18e"
+      },
+      "name": "sidecar CSV hash: ML5_deployed_physical_diagnostics_test2b",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5_deployed_physical_diagnostics_test2b.pdf",
+        "sha256": "d02339fe5ef37fa58791ee140cc634098812684cb6e3623190c51252bd1c3633"
+      },
+      "name": "sidecar PDF hash: ML5_deployed_physical_diagnostics_test2b",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5_deployed_physical_diagnostics_test2b.png",
+        "sha256": "f6ed5ff8a7c7c0fcb22292da92ff5b98cc52c60f15c25964d00f7f2b8024e2ed"
+      },
+      "name": "sidecar PNG hash: ML5_deployed_physical_diagnostics_test2b",
+      "passed": true
+    },
+    {
+      "detail": 24455,
+      "name": "PDF signature: ML5_deployed_physical_diagnostics_test2b",
+      "passed": true
+    },
+    {
+      "detail": [
+        2248,
+        1635
+      ],
+      "name": "PNG resolution: ML5_deployed_physical_diagnostics_test2b",
+      "passed": true
+    },
+    {
+      "detail": [
+        299.9994,
+        299.9994
+      ],
+      "name": "PNG DPI: ML5_deployed_physical_diagnostics_test2b",
+      "passed": true
+    },
+    {
+      "detail": "only caption/terminology/units/render hashes may differ",
+      "name": "sidecar scientific payload unchanged: ML6_global_trajectories_representation_A",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML6_global_trajectories_representation_A.csv",
+        "rows": 4516,
+        "sha256": "520077f0dadf7f514bb3aa400cfe31483356a4f17fe2b7a5763577749300833f"
+      },
+      "name": "sidecar CSV hash: ML6_global_trajectories_representation_A",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML6_global_trajectories_representation_A.pdf",
+        "sha256": "861f6f29f9d60846c4a5a9acbf253c088d4e66dda37f309ab95e650cbd165609"
+      },
+      "name": "sidecar PDF hash: ML6_global_trajectories_representation_A",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML6_global_trajectories_representation_A.png",
+        "sha256": "304697bdfc2a3ad61aa8322f2e0dd7e658c3a4a40adb19c8a26ed3bb0c20d355"
+      },
+      "name": "sidecar PNG hash: ML6_global_trajectories_representation_A",
+      "passed": true
+    },
+    {
+      "detail": 30462,
+      "name": "PDF signature: ML6_global_trajectories_representation_A",
+      "passed": true
+    },
+    {
+      "detail": [
+        2226,
+        1719
+      ],
+      "name": "PNG resolution: ML6_global_trajectories_representation_A",
+      "passed": true
+    },
+    {
+      "detail": [
+        299.9994,
+        299.9994
+      ],
+      "name": "PNG DPI: ML6_global_trajectories_representation_A",
+      "passed": true
+    },
+    {
+      "detail": "only caption/terminology/units/render hashes may differ",
+      "name": "sidecar scientific payload unchanged: ML6_global_trajectories_representation_B",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML6_global_trajectories_representation_B.csv",
+        "rows": 4516,
+        "sha256": "5c5b1834fd5e4745c8bbaee35384a5a55675a4d4899eb79f62f6748a13f1125f"
+      },
+      "name": "sidecar CSV hash: ML6_global_trajectories_representation_B",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML6_global_trajectories_representation_B.pdf",
+        "sha256": "d1269ef6133a6328b44ad96b030245c0261d3f0765aa40056f43d25d1015fe39"
+      },
+      "name": "sidecar PDF hash: ML6_global_trajectories_representation_B",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML6_global_trajectories_representation_B.png",
+        "sha256": "2df11c14985a09f11a7f5f1c246ba209caf054b2b62f88d250e7013b980af61f"
+      },
+      "name": "sidecar PNG hash: ML6_global_trajectories_representation_B",
+      "passed": true
+    },
+    {
+      "detail": 28814,
+      "name": "PDF signature: ML6_global_trajectories_representation_B",
+      "passed": true
+    },
+    {
+      "detail": [
+        2288,
+        1719
+      ],
+      "name": "PNG resolution: ML6_global_trajectories_representation_B",
+      "passed": true
+    },
+    {
+      "detail": [
+        299.9994,
+        299.9994
+      ],
+      "name": "PNG DPI: ML6_global_trajectories_representation_B",
+      "passed": true
+    },
+    {
+      "detail": "only caption/terminology/units/render hashes may differ",
+      "name": "sidecar scientific payload unchanged: ML6_global_trajectories_representation_C",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML6_global_trajectories_representation_C.csv",
+        "rows": 4516,
+        "sha256": "cf6ae20cb48fbd4eaaf69116d1fc697e33482aa098ece449b766c3478dfb2c52"
+      },
+      "name": "sidecar CSV hash: ML6_global_trajectories_representation_C",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML6_global_trajectories_representation_C.pdf",
+        "sha256": "4149ad961467a7c3f29cab2451a68df7e9edc9e7e2e46d95c06d155d76eb9f2e"
+      },
+      "name": "sidecar PDF hash: ML6_global_trajectories_representation_C",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML6_global_trajectories_representation_C.png",
+        "sha256": "01fae1631cd886c80f59ed970f925795808f78dc767ed654b3e2af87365311ba"
+      },
+      "name": "sidecar PNG hash: ML6_global_trajectories_representation_C",
+      "passed": true
+    },
+    {
+      "detail": 27395,
+      "name": "PDF signature: ML6_global_trajectories_representation_C",
+      "passed": true
+    },
+    {
+      "detail": [
+        2288,
+        1682
+      ],
+      "name": "PNG resolution: ML6_global_trajectories_representation_C",
+      "passed": true
+    },
+    {
+      "detail": [
+        299.9994,
+        299.9994
+      ],
+      "name": "PNG DPI: ML6_global_trajectories_representation_C",
+      "passed": true
+    },
+    {
+      "detail": "inventory and sidecar agree",
+      "name": "inventory render hashes: ML1_optimization_progress_test2b",
+      "passed": true
+    },
+    {
+      "detail": "inventory and sidecar agree",
+      "name": "inventory render hashes: ML2_posthoc_direct_history_test2b",
+      "passed": true
+    },
+    {
+      "detail": "inventory and sidecar agree",
+      "name": "inventory render hashes: ML3_m1x_m1y_cross_state_final",
+      "passed": true
+    },
+    {
+      "detail": "inventory and sidecar agree",
+      "name": "inventory render hashes: ML4_frozen_model_objective_matrix_test2b",
+      "passed": true
+    },
+    {
+      "detail": "inventory and sidecar agree",
+      "name": "inventory render hashes: ML5_deployed_physical_diagnostics_test2b",
+      "passed": true
+    },
+    {
+      "detail": "inventory and sidecar agree",
+      "name": "inventory render hashes: ML6_global_trajectories_representation_A",
+      "passed": true
+    },
+    {
+      "detail": "inventory and sidecar agree",
+      "name": "inventory render hashes: ML6_global_trajectories_representation_B",
+      "passed": true
+    },
+    {
+      "detail": "inventory and sidecar agree",
+      "name": "inventory render hashes: ML6_global_trajectories_representation_C",
+      "passed": true
+    },
+    {
+      "detail": [],
+      "name": "caption terminology",
+      "passed": true
+    },
+    {
+      "detail": "present",
+      "name": "ML-2 X-state qualification",
+      "passed": true
+    },
+    {
+      "detail": "present",
+      "name": "structural conservation qualification",
+      "passed": true
+    },
+    {
+      "detail": {
+        "branch": "dev/dimswe-learned-physics-framework",
+        "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615",
+        "status_short_all_line_count": 6948,
+        "status_short_all_sha256": "b4dbc351a8a4d4bcc18bb2b037888b69a38813a75fa7d85f1abb443cd1ebad22",
+        "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+      },
+      "name": "authoritative branch",
+      "passed": true
+    },
+    {
+      "detail": {
+        "branch": "dev/dimswe-learned-physics-framework",
+        "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615",
+        "status_short_all_line_count": 6948,
+        "status_short_all_sha256": "b4dbc351a8a4d4bcc18bb2b037888b69a38813a75fa7d85f1abb443cd1ebad22",
+        "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+      },
+      "name": "authoritative HEAD",
+      "passed": true
+    },
+    {
+      "detail": {
+        "branch": "dev/dimswe-learned-physics-framework",
+        "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615",
+        "status_short_all_line_count": 6948,
+        "status_short_all_sha256": "b4dbc351a8a4d4bcc18bb2b037888b69a38813a75fa7d85f1abb443cd1ebad22",
+        "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+      },
+      "name": "authoritative status fingerprint",
+      "passed": true
+    },
+    {
+      "detail": {
+        "branch": "dev/dimswe-learned-physics-framework",
+        "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615",
+        "status_short_all_line_count": 6948,
+        "status_short_all_sha256": "b4dbc351a8a4d4bcc18bb2b037888b69a38813a75fa7d85f1abb443cd1ebad22",
+        "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+      },
+      "name": "authoritative diff fingerprint",
+      "passed": true
+    },
+    {
+      "detail": {
+        "branch": "dev/dimswe-learned-physics-framework",
+        "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace",
+        "status_short_all_line_count": 7050,
+        "status_short_all_sha256": "a74dc38151e0d5b3cb1eabe275c3c80a534dea9623ceb6327894aeb8c9a893de",
+        "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+      },
+      "name": "m1y_workspace branch",
+      "passed": true
+    },
+    {
+      "detail": {
+        "branch": "dev/dimswe-learned-physics-framework",
+        "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace",
+        "status_short_all_line_count": 7050,
+        "status_short_all_sha256": "a74dc38151e0d5b3cb1eabe275c3c80a534dea9623ceb6327894aeb8c9a893de",
+        "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+      },
+      "name": "m1y_workspace HEAD",
+      "passed": true
+    },
+    {
+      "detail": {
+        "branch": "dev/dimswe-learned-physics-framework",
+        "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace",
+        "status_short_all_line_count": 7050,
+        "status_short_all_sha256": "a74dc38151e0d5b3cb1eabe275c3c80a534dea9623ceb6327894aeb8c9a893de",
+        "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+      },
+      "name": "m1y_workspace status fingerprint",
+      "passed": true
+    },
+    {
+      "detail": {
+        "branch": "dev/dimswe-learned-physics-framework",
+        "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace",
+        "status_short_all_line_count": 7050,
+        "status_short_all_sha256": "a74dc38151e0d5b3cb1eabe275c3c80a534dea9623ceb6327894aeb8c9a893de",
+        "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+      },
+      "name": "m1y_workspace diff fingerprint",
+      "passed": true
+    }
+  ],
+  "date": "2026-08-29",
+  "figure_checks": [
+    {
+      "csv_sha256": "2ca32793a3b39348925f5ac173ffd8d0b91028835f18e7177242aea620e53522",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "figure": "ML1_optimization_progress_test2b",
+      "pdf_sha256": "aa08102e21c51233ef7e6900dfbf0cfd161657c56e0ed76e53eb22faf5276486",
+      "pixels": [
+        2194,
+        2164
+      ],
+      "png_sha256": "4b28a02bc7a5ef3ad1d1a438c51c26329e43870d945ec314b293c3a301abb220"
+    },
+    {
+      "csv_sha256": "7111ca84a5b9a6e1947067fea12fb5a9406d0a015405d0ded4299b31b8c21601",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "figure": "ML2_posthoc_direct_history_test2b",
+      "pdf_sha256": "835fbdd3cb44895dad3ed9d25bcb412bc941736f7b1364caf34002a71c260522",
+      "pixels": [
+        2151,
+        2171
+      ],
+      "png_sha256": "75fc2f187caa292ffb0ba0780f954ad811a6bb5f9fad7b07d5971d2e4bb324b5"
+    },
+    {
+      "csv_sha256": "ea936095e82144ac00855ac1f4a164a97a423c7a5b896e7b1300f7bb605e4b1c",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "figure": "ML3_m1x_m1y_cross_state_final",
+      "pdf_sha256": "51e5bfaf90e8bcb771ac3d403936fb1d752579fa33e339841b170e0d53343ea1",
+      "pixels": [
+        2228,
+        1646
+      ],
+      "png_sha256": "9d673fc6e9aa3ea897523e428b2358a921f994ca9924984ef2832027edba171a"
+    },
+    {
+      "csv_sha256": "cb5727061f6f27ed15cc6b8c57558742773b3002cf9681b37310f25fa1606d6a",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "figure": "ML4_frozen_model_objective_matrix_test2b",
+      "pdf_sha256": "dfcc2d1146492ebe576922736b1d6eec8ada7d9cca9334a0c22923a3a390c411",
+      "pixels": [
+        2194,
+        2434
+      ],
+      "png_sha256": "2951a2028ea24fea4783a8c81dee7804ce808bef98de006f463428e1c5b6ca81"
+    },
+    {
+      "csv_sha256": "401b018e6a070a9281453948ee4576144479621120b7103a1d289a266faaf18e",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "figure": "ML5_deployed_physical_diagnostics_test2b",
+      "pdf_sha256": "d02339fe5ef37fa58791ee140cc634098812684cb6e3623190c51252bd1c3633",
+      "pixels": [
+        2248,
+        1635
+      ],
+      "png_sha256": "f6ed5ff8a7c7c0fcb22292da92ff5b98cc52c60f15c25964d00f7f2b8024e2ed"
+    },
+    {
+      "csv_sha256": "520077f0dadf7f514bb3aa400cfe31483356a4f17fe2b7a5763577749300833f",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "figure": "ML6_global_trajectories_representation_A",
+      "pdf_sha256": "861f6f29f9d60846c4a5a9acbf253c088d4e66dda37f309ab95e650cbd165609",
+      "pixels": [
+        2226,
+        1719
+      ],
+      "png_sha256": "304697bdfc2a3ad61aa8322f2e0dd7e658c3a4a40adb19c8a26ed3bb0c20d355"
+    },
+    {
+      "csv_sha256": "5c5b1834fd5e4745c8bbaee35384a5a55675a4d4899eb79f62f6748a13f1125f",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "figure": "ML6_global_trajectories_representation_B",
+      "pdf_sha256": "d1269ef6133a6328b44ad96b030245c0261d3f0765aa40056f43d25d1015fe39",
+      "pixels": [
+        2288,
+        1719
+      ],
+      "png_sha256": "2df11c14985a09f11a7f5f1c246ba209caf054b2b62f88d250e7013b980af61f"
+    },
+    {
+      "csv_sha256": "cf6ae20cb48fbd4eaaf69116d1fc697e33482aa098ece449b766c3478dfb2c52",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "figure": "ML6_global_trajectories_representation_C",
+      "pdf_sha256": "4149ad961467a7c3f29cab2451a68df7e9edc9e7e2e46d95c06d155d76eb9f2e",
+      "pixels": [
+        2288,
+        1682
+      ],
+      "png_sha256": "01fae1631cd886c80f59ed970f925795808f78dc767ed654b3e2af87365311ba"
+    }
+  ],
+  "main_figure_count": 8,
+  "main_figures_visually_inspected": [
+    "ML1_optimization_progress_test2b",
+    "ML2_posthoc_direct_history_test2b",
+    "ML3_m1x_m1y_cross_state_final",
+    "ML4_frozen_model_objective_matrix_test2b",
+    "ML5_deployed_physical_diagnostics_test2b",
+    "ML6_global_trajectories_representation_A",
+    "ML6_global_trajectories_representation_B",
+    "ML6_global_trajectories_representation_C"
+  ],
+  "operations_not_performed": [
+    "metric recomputation",
+    "checkpoint inference",
+    "model training or optimization",
+    "truth generation",
+    "history reconstruction",
+    "prefix, timestep, hybrid, autonomous, or spatial rollout",
+    "scientific CSV/JSON/NPZ/table mutation",
+    "authoritative repository mutation"
+  ],
+  "repository_fingerprints": {
+    "authoritative": {
+      "branch": "dev/dimswe-learned-physics-framework",
+      "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615",
+      "status_short_all_line_count": 6948,
+      "status_short_all_sha256": "b4dbc351a8a4d4bcc18bb2b037888b69a38813a75fa7d85f1abb443cd1ebad22",
+      "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+    },
+    "m1y_workspace": {
+      "branch": "dev/dimswe-learned-physics-framework",
+      "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace",
+      "status_short_all_line_count": 7050,
+      "status_short_all_sha256": "a74dc38151e0d5b3cb1eabe275c3c80a534dea9623ceb6327894aeb8c9a893de",
+      "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+    }
+  },
+  "scientific_artifact_count": 63,
+  "scientific_artifacts_byte_identical": true,
+  "scope": "visual/editorial only",
+  "status": "passed",
+  "visual_inspection_result": "passed after widening the Representation C total-water-drift linear region"
+}

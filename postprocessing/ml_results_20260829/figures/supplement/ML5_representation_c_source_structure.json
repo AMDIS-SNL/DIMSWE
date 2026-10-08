@@ -1,0 +1,54 @@
+{
+  "draft_caption": "Representation C source-identity defects after Test 2B deployment. The water and thermodynamic source identities are imposed by construction in Representations A and B and are therefore not shown as learned quantities.",
+  "editorial_revision": {
+    "date": "2026-08-29",
+    "scope": "caption terminology only; rendered asset and CSV unchanged"
+  },
+  "figure_id": "ML5_representation_c_source_structure",
+  "files": {
+    "csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML5_representation_c_source_structure.csv",
+      "rows": 7,
+      "sha256": "0c0b604ee998aeb28075a330c819b802c8e64d1139ff09501aa087409fb72326"
+    },
+    "pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML5_representation_c_source_structure.pdf",
+      "sha256": "518ae68a01e2a4d283fc7cff535f98afbdbae54c9f20c3f9bd83229f6c44d6b3"
+    },
+    "png_300dpi": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML5_representation_c_source_structure.png",
+      "sha256": "9e4c1d54cf5ba20f62c299d98640fc125c0b7f7347321ed19c9d2d00817b6d16"
+    }
+  },
+  "metric_definitions": {
+    "S_minus_beta2_Qv_source_defect_RMS": "RMS of source_S-beta2*source_Qv.",
+    "water_source_defect_RMS": "RMS of source_Qv+source_Qc+source_Qr."
+  },
+  "model_labels": [
+    "M1-X",
+    "M1-Y",
+    "M2-X-independent",
+    "warm M2-X",
+    "H1",
+    "H2",
+    "H5"
+  ],
+  "notes": [
+    "A/B values are algebraic identities up to roundoff and are not learned degrees of freedom."
+  ],
+  "quantity_kind": "LEARNED / NOT ENFORCED DEPLOYMENT DIAGNOSTIC",
+  "representations": [
+    "C"
+  ],
+  "scientific_question": "How far do unconstrained C sources depart from the analytical source identities after deployment?",
+  "source_artifacts": [
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/evaluation/representation_C_matched.json",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/deployed_diagnostics.csv",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-C/representation_c_final_comparison.json"
+  ],
+  "state_intervals": [],
+  "support_classification": "Test 2B deployed autonomous trajectories, states 0--160",
+  "units": {
+    "defects": "physical source units"
+  }
+}

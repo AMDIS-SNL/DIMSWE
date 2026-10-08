@@ -1,0 +1,120 @@
+{
+  "accepted_iteration_offset": 0,
+  "final_objective": 1.1683387014148496e-06,
+  "final_parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/stage2/h2/final_parameters.npz",
+  "final_parameter_pytree_sha256": "46cc90d55f31ddaee93e231223f519ada6a4f438a217bb469c724c85bd7ea093",
+  "initial_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+  "method": "FIML-H2 offline Stage 2",
+  "optimizer": {
+    "HVP_evaluations": 0,
+    "accepted_iterations": 50000,
+    "cumulative_accepted_iterations": 50000,
+    "gradient_evaluations": 50001,
+    "new_optimizer_process": true,
+    "objective_evaluations": 104564,
+    "source_secant_history_reused": false,
+    "termination_reason": "EExitStatus.EXITSTATUS_MAXITER",
+    "wall_time_seconds": 3163.4016979578882
+  },
+  "parameter_only_resume_restored_secant_history": false,
+  "pseudo_label_dataset": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/pseudo-labels/h2/fiml_pseudo_labels.npz",
+  "pseudo_label_dataset_npz_sha256": "cbe1dadfb5d00a28335889fd63d021af562951e9bea996ac8f6e0acb7afb998e",
+  "pseudo_label_regression_metrics": {
+    "correlation": 0.9999995103782965,
+    "magnitude_strata": {
+      "abs_A_gt_1e-03_max_abs_A": {
+        "mae": 5.888125472714876e-12,
+        "relative_rms_error": 0.0009333095388760642,
+        "rmse": 1.1811538267389639e-11,
+        "sample_count": 216274,
+        "sample_fraction": 0.660015869140625
+      },
+      "abs_A_gt_1e-06_max_abs_A": {
+        "mae": 4.783894718254981e-12,
+        "relative_rms_error": 0.0009833592048787841,
+        "rmse": 1.0114850963876176e-11,
+        "sample_count": 327396,
+        "sample_fraction": 0.99913330078125
+      }
+    },
+    "maximum_absolute_error": 2.386412359078321e-10,
+    "normalized_mse": 9.672242406985213e-07,
+    "physical_mae_A": 4.782366317343521e-12,
+    "physical_rmse_A": 1.0111663391525499e-11,
+    "relative_rms_error": 0.0009834755923247517,
+    "sample_count": 327680,
+    "sign_accuracy": 0.9914537746337768,
+    "sign_accuracy_strata": {
+      "abs_A_gt_1e-01_max_abs_A": {
+        "accuracy": 1.0,
+        "sample_count": 45080,
+        "sample_fraction": 0.1375732421875,
+        "threshold": 1.0814583580881779e-08
+      },
+      "abs_A_gt_1e-02_max_abs_A": {
+        "accuracy": 1.0,
+        "sample_count": 136506,
+        "sample_fraction": 0.416583251953125,
+        "threshold": 1.081458358088178e-09
+      },
+      "abs_A_gt_1e-03_max_abs_A": {
+        "accuracy": 1.0,
+        "sample_count": 216274,
+        "sample_fraction": 0.660015869140625,
+        "threshold": 1.0814583580881779e-10
+      }
+    },
+    "sign_accuracy_threshold": 1.0814583580881778e-13
+  },
+  "solver_calls": 0,
+  "states_after_80_accessed": false,
+  "status": "complete",
+  "true_A_metrics_on_FI_states": {
+    "correlation": 0.9997354839958771,
+    "magnitude_strata": {
+      "abs_A_gt_1e-03_max_abs_A": {
+        "mae": 1.6420229609765864e-10,
+        "relative_rms_error": 0.022552387780031456,
+        "rmse": 2.822116146488778e-10,
+        "sample_count": 221846,
+        "sample_fraction": 0.677020263671875
+      },
+      "abs_A_gt_1e-06_max_abs_A": {
+        "mae": 1.2384491203672809e-10,
+        "relative_rms_error": 0.022849538467729004,
+        "rmse": 2.3648369064671947e-10,
+        "sample_count": 324318,
+        "sample_fraction": 0.989739990234375
+      }
+    },
+    "maximum_absolute_error": 6.511609229730314e-09,
+    "normalized_mse": 0.00052450836424158,
+    "physical_mae_A": 1.2330454412260131e-10,
+    "physical_rmse_A": 2.35809083543239e-10,
+    "relative_rms_error": 0.022902147590162368,
+    "sample_count": 327680,
+    "sign_accuracy": 0.8792820626668887,
+    "sign_accuracy_strata": {
+      "abs_A_gt_1e-01_max_abs_A": {
+        "accuracy": 1.0,
+        "sample_count": 44696,
+        "sample_fraction": 0.1364013671875,
+        "threshold": 1.090045691829071e-08
+      },
+      "abs_A_gt_1e-02_max_abs_A": {
+        "accuracy": 1.0,
+        "sample_count": 135752,
+        "sample_fraction": 0.4142822265625,
+        "threshold": 1.090045691829071e-09
+      },
+      "abs_A_gt_1e-03_max_abs_A": {
+        "accuracy": 0.9912281492566916,
+        "sample_count": 221846,
+        "sample_fraction": 0.677020263671875,
+        "threshold": 1.090045691829071e-10
+      }
+    },
+    "sign_accuracy_threshold": 1.090045691829071e-13
+  },
+  "true_A_used_by_stage2_objective": false
+}

@@ -1,0 +1,535 @@
+{
+  "benchmark_stage": "Test 2A horizon curriculum production stage",
+  "checkpoint_diagnostics": [
+    {
+      "J_H1_M2_Y": 0.0004524129543487752,
+      "J_M2_X": 0.0005656311359179476,
+      "J_active": 0.0014982479662056928,
+      "J_op": 0.0006021622844867796,
+      "accepted_iteration": 0,
+      "active_horizon": 5,
+      "direct_A_metrics": {
+        "correlation": 0.999698362157559,
+        "magnitude_strata": {
+          "abs_A_gt_1e-03_max_abs_A": {
+            "mae": 1.5914415581592556e-10,
+            "relative_rms_error": 0.024008865264922546,
+            "rmse": 2.798601250765347e-10,
+            "sample_count": 213688,
+            "sample_fraction": 0.6440731095679012
+          },
+          "abs_A_gt_1e-06_max_abs_A": {
+            "mae": 1.1704498423818474e-10,
+            "relative_rms_error": 0.024208552476239514,
+            "rmse": 2.3137059988598412e-10,
+            "sample_count": 317865,
+            "sample_fraction": 0.9580711082175926
+          }
+        },
+        "maximum_absolute_error": 6.408794696064394e-09,
+        "normalized_mse": 0.0006021622844867797,
+        "physical_mae_A": 1.1606622653584177e-10,
+        "physical_rmse_A": 2.2955935600014413e-10,
+        "relative_rms_error": 0.02453899518087038,
+        "sample_count": 331776,
+        "sign_accuracy": 0.8913847073443129,
+        "sign_accuracy_strata": {
+          "abs_A_gt_1e-01_max_abs_A": {
+            "accuracy": 1.0,
+            "sample_count": 35348,
+            "sample_fraction": 0.10654176311728394,
+            "threshold": 1.0805235023802465e-08
+          },
+          "abs_A_gt_1e-02_max_abs_A": {
+            "accuracy": 1.0,
+            "sample_count": 128146,
+            "sample_fraction": 0.3862425250771605,
+            "threshold": 1.0805235023802465e-09
+          },
+          "abs_A_gt_1e-03_max_abs_A": {
+            "accuracy": 0.9901445097525364,
+            "sample_count": 213688,
+            "sample_fraction": 0.6440731095679012,
+            "threshold": 1.0805235023802465e-10
+          }
+        },
+        "sign_accuracy_threshold": 1.0805235023802464e-13
+      },
+      "elapsed_wall_seconds_this_process": 0.0,
+      "gradient_evaluations_this_process": 0,
+      "gradient_norm_active": 0.04493849361872345,
+      "objective_evaluations_this_process": 0,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/h5-from-h2/parameters_iter_000000.npz",
+      "parameter_npz_sha256": "051c84d466d45253e70b7a338df9e06f24185e5d3d603623fbe597690b8d4d6a",
+      "parameter_pytree_sha256": "92241e66a93e063af2bfc56a22b5cdb7e154e21b936ad2d80d89dce115bf1fab"
+    },
+    {
+      "J_H1_M2_Y": 0.00045342035372000853,
+      "J_M2_X": 0.0005665731038384515,
+      "J_active": 0.0014969233596624312,
+      "J_op": 0.0006042008671161713,
+      "accepted_iteration": 5,
+      "active_horizon": 5,
+      "direct_A_metrics": {
+        "correlation": 0.9996972980541932,
+        "magnitude_strata": {
+          "abs_A_gt_1e-03_max_abs_A": {
+            "mae": 1.5932137233047695e-10,
+            "relative_rms_error": 0.024054327072320778,
+            "rmse": 2.8039005212490976e-10,
+            "sample_count": 213688,
+            "sample_fraction": 0.6440731095679012
+          },
+          "abs_A_gt_1e-06_max_abs_A": {
+            "mae": 1.1725020211077128e-10,
+            "relative_rms_error": 0.024249819518459143,
+            "rmse": 2.3176500514103796e-10,
+            "sample_count": 317865,
+            "sample_fraction": 0.9580711082175926
+          }
+        },
+        "maximum_absolute_error": 6.402700972062996e-09,
+        "normalized_mse": 0.0006042008671161712,
+        "physical_mae_A": 1.1630032156605931e-10,
+        "physical_rmse_A": 2.2994760707549917e-10,
+        "relative_rms_error": 0.024580497698707633,
+        "sample_count": 331776,
+        "sign_accuracy": 0.8923253582495714,
+        "sign_accuracy_strata": {
+          "abs_A_gt_1e-01_max_abs_A": {
+            "accuracy": 1.0,
+            "sample_count": 35348,
+            "sample_fraction": 0.10654176311728394,
+            "threshold": 1.0805235023802465e-08
+          },
+          "abs_A_gt_1e-02_max_abs_A": {
+            "accuracy": 1.0,
+            "sample_count": 128146,
+            "sample_fraction": 0.3862425250771605,
+            "threshold": 1.0805235023802465e-09
+          },
+          "abs_A_gt_1e-03_max_abs_A": {
+            "accuracy": 0.9903036202313653,
+            "sample_count": 213688,
+            "sample_fraction": 0.6440731095679012,
+            "threshold": 1.0805235023802465e-10
+          }
+        },
+        "sign_accuracy_threshold": 1.0805235023802464e-13
+      },
+      "elapsed_wall_seconds_this_process": 289.24069524998777,
+      "gradient_evaluations_this_process": 5,
+      "gradient_norm_active": 0.03030972569448917,
+      "objective_evaluations_this_process": 14,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/h5-from-h2/parameters_iter_000005.npz",
+      "parameter_npz_sha256": "64335ad659c6ea36266c192e06ed0859bdd5953875c539168b6aa2de693a7e95",
+      "parameter_pytree_sha256": "832b4b1870dbd3221dc270cd0e2f3ee2e028149e4f271e7b9cc2dc127e143f88"
+    },
+    {
+      "J_H1_M2_Y": 0.0004537468428930024,
+      "J_M2_X": 0.0005679287760688996,
+      "J_active": 0.0014961332883892697,
+      "J_op": 0.0006045953802338846,
+      "accepted_iteration": 10,
+      "active_horizon": 5,
+      "direct_A_metrics": {
+        "correlation": 0.9996970577520813,
+        "magnitude_strata": {
+          "abs_A_gt_1e-03_max_abs_A": {
+            "mae": 1.5958498139836396e-10,
+            "relative_rms_error": 0.024060429567027256,
+            "rmse": 2.8046118605452235e-10,
+            "sample_count": 213688,
+            "sample_fraction": 0.6440731095679012
+          },
+          "abs_A_gt_1e-06_max_abs_A": {
+            "mae": 1.173141604642951e-10,
+            "relative_rms_error": 0.024256852251694327,
+            "rmse": 2.3183221972187916e-10,
+            "sample_count": 317865,
+            "sample_fraction": 0.9580711082175926
+          }
+        },
+        "maximum_absolute_error": 6.404825184563381e-09,
+        "normalized_mse": 0.0006045953802338845,
+        "physical_mae_A": 1.1633354808034376e-10,
+        "physical_rmse_A": 2.3002266700065662e-10,
+        "relative_rms_error": 0.024588521310438424,
+        "sample_count": 331776,
+        "sign_accuracy": 0.8910732543689931,
+        "sign_accuracy_strata": {
+          "abs_A_gt_1e-01_max_abs_A": {
+            "accuracy": 1.0,
+            "sample_count": 35348,
+            "sample_fraction": 0.10654176311728394,
+            "threshold": 1.0805235023802465e-08
+          },
+          "abs_A_gt_1e-02_max_abs_A": {
+            "accuracy": 1.0,
+            "sample_count": 128146,
+            "sample_fraction": 0.3862425250771605,
+            "threshold": 1.0805235023802465e-09
+          },
+          "abs_A_gt_1e-03_max_abs_A": {
+            "accuracy": 0.990359776870952,
+            "sample_count": 213688,
+            "sample_fraction": 0.6440731095679012,
+            "threshold": 1.0805235023802465e-10
+          }
+        },
+        "sign_accuracy_threshold": 1.0805235023802464e-13
+      },
+      "elapsed_wall_seconds_this_process": 611.2516112911981,
+      "gradient_evaluations_this_process": 10,
+      "gradient_norm_active": 0.026281982592523106,
+      "objective_evaluations_this_process": 24,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/h5-from-h2/parameters_iter_000010.npz",
+      "parameter_npz_sha256": "68efb3c21f5a7c045f219cc348c04a441bf6b45bdd9fa1ce9546b10c4f2225d2",
+      "parameter_pytree_sha256": "9d53113df0f254c230ff0b8c9882b8976782c894d4b5e25736b1a12fe676d1cf"
+    },
+    {
+      "J_H1_M2_Y": 0.00045801615345880865,
+      "J_M2_X": 0.0005747979625679062,
+      "J_active": 0.001492870385392397,
+      "J_op": 0.000610757488915697,
+      "accepted_iteration": 25,
+      "active_horizon": 5,
+      "direct_A_metrics": {
+        "correlation": 0.9996940027376681,
+        "magnitude_strata": {
+          "abs_A_gt_1e-03_max_abs_A": {
+            "mae": 1.6025557367863502e-10,
+            "relative_rms_error": 0.024185187244856552,
+            "rmse": 2.819154280162437e-10,
+            "sample_count": 213688,
+            "sample_fraction": 0.6440731095679012
+          },
+          "abs_A_gt_1e-06_max_abs_A": {
+            "mae": 1.1771494117051108e-10,
+            "relative_rms_error": 0.024383035043952055,
+            "rmse": 2.3303819799623546e-10,
+            "sample_count": 317865,
+            "sample_fraction": 0.9580711082175926
+          }
+        },
+        "maximum_absolute_error": 6.4047282344790646e-09,
+        "normalized_mse": 0.000610757488915697,
+        "physical_mae_A": 1.1669398022902624e-10,
+        "physical_rmse_A": 2.3119190461616528e-10,
+        "relative_rms_error": 0.02471350822760089,
+        "sample_count": 331776,
+        "sign_accuracy": 0.8895474493888915,
+        "sign_accuracy_strata": {
+          "abs_A_gt_1e-01_max_abs_A": {
+            "accuracy": 1.0,
+            "sample_count": 35348,
+            "sample_fraction": 0.10654176311728394,
+            "threshold": 1.0805235023802465e-08
+          },
+          "abs_A_gt_1e-02_max_abs_A": {
+            "accuracy": 1.0,
+            "sample_count": 128146,
+            "sample_fraction": 0.3862425250771605,
+            "threshold": 1.0805235023802465e-09
+          },
+          "abs_A_gt_1e-03_max_abs_A": {
+            "accuracy": 0.9897982104750852,
+            "sample_count": 213688,
+            "sample_fraction": 0.6440731095679012,
+            "threshold": 1.0805235023802465e-10
+          }
+        },
+        "sign_accuracy_threshold": 1.0805235023802464e-13
+      },
+      "elapsed_wall_seconds_this_process": 1492.8081933329813,
+      "gradient_evaluations_this_process": 25,
+      "gradient_norm_active": 0.01051627304559868,
+      "objective_evaluations_this_process": 55,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/h5-from-h2/parameters_iter_000025.npz",
+      "parameter_npz_sha256": "ef5e3fbe4dddcfce4f68a19182af18b2cc3fe0937368c34eb039c5c656afbc99",
+      "parameter_pytree_sha256": "b6884098fd4b90c9b2d5a82e2eaaaf578aa1f8dbf756229080aec06f8c082fde"
+    },
+    {
+      "J_H1_M2_Y": 0.0004594708752529466,
+      "J_M2_X": 0.0005778982813251116,
+      "J_active": 0.0014901575452551687,
+      "J_op": 0.0006149719097521308,
+      "accepted_iteration": 50,
+      "active_horizon": 5,
+      "direct_A_metrics": {
+        "correlation": 0.9996919969773788,
+        "magnitude_strata": {
+          "abs_A_gt_1e-03_max_abs_A": {
+            "mae": 1.6118270186403064e-10,
+            "relative_rms_error": 0.024275469062074666,
+            "rmse": 2.829678009784808e-10,
+            "sample_count": 213688,
+            "sample_fraction": 0.6440731095679012
+          },
+          "abs_A_gt_1e-06_max_abs_A": {
+            "mae": 1.1827309436021726e-10,
+            "relative_rms_error": 0.02447303066894264,
+            "rmse": 2.3389832136633875e-10,
+            "sample_count": 317865,
+            "sample_fraction": 0.9580711082175926
+          }
+        },
+        "maximum_absolute_error": 6.396481700775276e-09,
+        "normalized_mse": 0.0006149719097521308,
+        "physical_mae_A": 1.1721201952461592e-10,
+        "physical_rmse_A": 2.3198818215509418e-10,
+        "relative_rms_error": 0.024798627174747612,
+        "sample_count": 331776,
+        "sign_accuracy": 0.8904125965425573,
+        "sign_accuracy_strata": {
+          "abs_A_gt_1e-01_max_abs_A": {
+            "accuracy": 1.0,
+            "sample_count": 35348,
+            "sample_fraction": 0.10654176311728394,
+            "threshold": 1.0805235023802465e-08
+          },
+          "abs_A_gt_1e-02_max_abs_A": {
+            "accuracy": 1.0,
+            "sample_count": 128146,
+            "sample_fraction": 0.3862425250771605,
+            "threshold": 1.0805235023802465e-09
+          },
+          "abs_A_gt_1e-03_max_abs_A": {
+            "accuracy": 0.9896952566358429,
+            "sample_count": 213688,
+            "sample_fraction": 0.6440731095679012,
+            "threshold": 1.0805235023802465e-10
+          }
+        },
+        "sign_accuracy_threshold": 1.0805235023802464e-13
+      },
+      "elapsed_wall_seconds_this_process": 3089.911025749985,
+      "gradient_evaluations_this_process": 50,
+      "gradient_norm_active": 0.06078896289878186,
+      "objective_evaluations_this_process": 106,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/h5-from-h2/parameters_iter_000050.npz",
+      "parameter_npz_sha256": "91c512b8a4b8a05cd8521043a898140099e36879878bd1d39924dd385211e42d",
+      "parameter_pytree_sha256": "19a4cd3a175978212372cf1eb771cdb76ed97579eebcb0b798664206ab16ca7d"
+    },
+    {
+      "J_H1_M2_Y": 0.0004621501010942615,
+      "J_M2_X": 0.0005814347041278208,
+      "J_active": 0.001486339234300817,
+      "J_op": 0.0006168369830797799,
+      "accepted_iteration": 75,
+      "active_horizon": 5,
+      "direct_A_metrics": {
+        "correlation": 0.9996910501800621,
+        "magnitude_strata": {
+          "abs_A_gt_1e-03_max_abs_A": {
+            "mae": 1.6171155112268006e-10,
+            "relative_rms_error": 0.024304279860329125,
+            "rmse": 2.8330363499287834e-10,
+            "sample_count": 213688,
+            "sample_fraction": 0.6440731095679012
+          },
+          "abs_A_gt_1e-06_max_abs_A": {
+            "mae": 1.1878667399090338e-10,
+            "relative_rms_error": 0.024506151866509954,
+            "rmse": 2.3421487359958825e-10,
+            "sample_count": 317865,
+            "sample_fraction": 0.9580711082175926
+          }
+        },
+        "maximum_absolute_error": 6.368690052818059e-09,
+        "normalized_mse": 0.0006168369830797796,
+        "physical_mae_A": 1.177917114773129e-10,
+        "physical_rmse_A": 2.3233970017464314e-10,
+        "relative_rms_error": 0.024836203072929237,
+        "sample_count": 331776,
+        "sign_accuracy": 0.890827867176317,
+        "sign_accuracy_strata": {
+          "abs_A_gt_1e-01_max_abs_A": {
+            "accuracy": 1.0,
+            "sample_count": 35348,
+            "sample_fraction": 0.10654176311728394,
+            "threshold": 1.0805235023802465e-08
+          },
+          "abs_A_gt_1e-02_max_abs_A": {
+            "accuracy": 1.0,
+            "sample_count": 128146,
+            "sample_fraction": 0.3862425250771605,
+            "threshold": 1.0805235023802465e-09
+          },
+          "abs_A_gt_1e-03_max_abs_A": {
+            "accuracy": 0.9891149713601138,
+            "sample_count": 213688,
+            "sample_fraction": 0.6440731095679012,
+            "threshold": 1.0805235023802465e-10
+          }
+        },
+        "sign_accuracy_threshold": 1.0805235023802464e-13
+      },
+      "elapsed_wall_seconds_this_process": 4619.532590500079,
+      "gradient_evaluations_this_process": 75,
+      "gradient_norm_active": 0.010543779532529971,
+      "objective_evaluations_this_process": 158,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/h5-from-h2/parameters_iter_000075.npz",
+      "parameter_npz_sha256": "d2279a401d9fafaba910b532a10c175dda1318429c430570732feb5f72d0a5d8",
+      "parameter_pytree_sha256": "8e009e10ca826296b9ec17ce6128c934d620c5eb609344f33f1a266c22bc3a84"
+    },
+    {
+      "J_H1_M2_Y": 0.0004606034021655412,
+      "J_M2_X": 0.000579287916931123,
+      "J_active": 0.0014847990297685324,
+      "J_op": 0.0006148733782046905,
+      "accepted_iteration": 100,
+      "active_horizon": 5,
+      "direct_A_metrics": {
+        "correlation": 0.999692062400796,
+        "magnitude_strata": {
+          "abs_A_gt_1e-03_max_abs_A": {
+            "mae": 1.613550515981164e-10,
+            "relative_rms_error": 0.02426975411008704,
+            "rmse": 2.829011844532759e-10,
+            "sample_count": 213688,
+            "sample_fraction": 0.6440731095679012
+          },
+          "abs_A_gt_1e-06_max_abs_A": {
+            "mae": 1.1841640636638354e-10,
+            "relative_rms_error": 0.02447081515023877,
+            "rmse": 2.338771467879712e-10,
+            "sample_count": 317865,
+            "sample_fraction": 0.9580711082175926
+          }
+        },
+        "maximum_absolute_error": 6.349377528777513e-09,
+        "normalized_mse": 0.0006148733782046903,
+        "physical_mae_A": 1.1737268091906813e-10,
+        "physical_rmse_A": 2.3196959669624896e-10,
+        "relative_rms_error": 0.024796640462060385,
+        "sample_count": 331776,
+        "sign_accuracy": 0.8897330627782235,
+        "sign_accuracy_strata": {
+          "abs_A_gt_1e-01_max_abs_A": {
+            "accuracy": 1.0,
+            "sample_count": 35348,
+            "sample_fraction": 0.10654176311728394,
+            "threshold": 1.0805235023802465e-08
+          },
+          "abs_A_gt_1e-02_max_abs_A": {
+            "accuracy": 1.0,
+            "sample_count": 128146,
+            "sample_fraction": 0.3862425250771605,
+            "threshold": 1.0805235023802465e-09
+          },
+          "abs_A_gt_1e-03_max_abs_A": {
+            "accuracy": 0.9891617685597693,
+            "sample_count": 213688,
+            "sample_fraction": 0.6440731095679012,
+            "threshold": 1.0805235023802465e-10
+          }
+        },
+        "sign_accuracy_threshold": 1.0805235023802464e-13
+      },
+      "gradient_norm_active": 0.013796908701621069,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/h5-from-h2/final_parameters.npz",
+      "parameter_npz_sha256": "38fcc5616266e274829b6834e0c617b774ba156188a9e6733b6d63a2c58fd62f",
+      "parameter_pytree_sha256": "fe22c92e56b5b9421835a4ff9a973250c6a186e541356c033b7810521fa3c566"
+    }
+  ],
+  "common_denominator_sha256": "10bda77bf2e003802c560ef1218fe28b17531da6b30e3f97cf22fa04a62d4753",
+  "common_denominator_state_mass_D": 4090171967662.3027,
+  "configuration_sha256": "24ec81704a672c5f19883591c079360475278d786abd1ea16bbcf4b8757e77e0",
+  "final_diagnostics": {
+    "J_H1_M2_Y": 0.0004606034021655412,
+    "J_M2_X": 0.000579287916931123,
+    "J_active": 0.0014847990297685324,
+    "J_op": 0.0006148733782046905,
+    "accepted_iteration": 100,
+    "active_horizon": 5,
+    "direct_A_metrics": {
+      "correlation": 0.999692062400796,
+      "magnitude_strata": {
+        "abs_A_gt_1e-03_max_abs_A": {
+          "mae": 1.613550515981164e-10,
+          "relative_rms_error": 0.02426975411008704,
+          "rmse": 2.829011844532759e-10,
+          "sample_count": 213688,
+          "sample_fraction": 0.6440731095679012
+        },
+        "abs_A_gt_1e-06_max_abs_A": {
+          "mae": 1.1841640636638354e-10,
+          "relative_rms_error": 0.02447081515023877,
+          "rmse": 2.338771467879712e-10,
+          "sample_count": 317865,
+          "sample_fraction": 0.9580711082175926
+        }
+      },
+      "maximum_absolute_error": 6.349377528777513e-09,
+      "normalized_mse": 0.0006148733782046903,
+      "physical_mae_A": 1.1737268091906813e-10,
+      "physical_rmse_A": 2.3196959669624896e-10,
+      "relative_rms_error": 0.024796640462060385,
+      "sample_count": 331776,
+      "sign_accuracy": 0.8897330627782235,
+      "sign_accuracy_strata": {
+        "abs_A_gt_1e-01_max_abs_A": {
+          "accuracy": 1.0,
+          "sample_count": 35348,
+          "sample_fraction": 0.10654176311728394,
+          "threshold": 1.0805235023802465e-08
+        },
+        "abs_A_gt_1e-02_max_abs_A": {
+          "accuracy": 1.0,
+          "sample_count": 128146,
+          "sample_fraction": 0.3862425250771605,
+          "threshold": 1.0805235023802465e-09
+        },
+        "abs_A_gt_1e-03_max_abs_A": {
+          "accuracy": 0.9891617685597693,
+          "sample_count": 213688,
+          "sample_fraction": 0.6440731095679012,
+          "threshold": 1.0805235023802465e-10
+        }
+      },
+      "sign_accuracy_threshold": 1.0805235023802464e-13
+    },
+    "gradient_norm_active": 0.013796908701621069,
+    "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/h5-from-h2/final_parameters.npz",
+    "parameter_npz_sha256": "38fcc5616266e274829b6834e0c617b774ba156188a9e6733b6d63a2c58fd62f",
+    "parameter_pytree_sha256": "fe22c92e56b5b9421835a4ff9a973250c6a186e541356c033b7810521fa3c566"
+  },
+  "final_parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/h5-from-h2/final_parameters.npz",
+  "final_parameter_npz_sha256": "38fcc5616266e274829b6834e0c617b774ba156188a9e6733b6d63a2c58fd62f",
+  "final_parameter_pytree_sha256": "fe22c92e56b5b9421835a4ff9a973250c6a186e541356c033b7810521fa3c566",
+  "h1_cache_npz_sha256": "b30bb0fd2c919734ca0ecba44e32a2c9bd40b491fb7abce0a0aa011a5ea99b89",
+  "horizon": 5,
+  "initialization": {
+    "new_optimizer_process": true,
+    "source_optimizer_secant_history_reused": false,
+    "source_parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/h2-from-h1/final_parameters.npz",
+    "source_parameter_pytree_sha256": "92241e66a93e063af2bfc56a22b5cdb7e154e21b936ad2d80d89dce115bf1fab",
+    "source_stage": "H2_recursive"
+  },
+  "optimizer": {
+    "HVP_evaluations": 0,
+    "accepted_iterations": 100,
+    "actual_ROL_termination_reason": "EExitStatus.EXITSTATUS_MAXITER",
+    "exact_gradients": true,
+    "gradient_evaluations": 101,
+    "gradient_tolerance": 1e-08,
+    "library": "PyROL/ROL",
+    "maximum_secant_storage": 20,
+    "method": "line-search L-BFGS",
+    "new_process_and_empty_secant_history_each_stage": true,
+    "objective_evaluations": 213,
+    "parameter_checkpoint_resume_restores_secant_history": false,
+    "production_HVP": false,
+    "secant_history_restored_on_parameter_resume": false,
+    "step_tolerance": 1e-12,
+    "wall_time_seconds": 6271.449261375237
+  },
+  "scientific_name": "recursive horizon-5",
+  "states_after_80_accessed": false,
+  "status": "complete",
+  "truth_state_access": [
+    0,
+    80
+  ]
+}

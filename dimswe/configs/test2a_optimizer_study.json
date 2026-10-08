@@ -1,0 +1,75 @@
+{
+  "benchmark_stage": "Test 2A-1 controlled optimizer study",
+  "format_version": 1,
+  "frozen_problem": {
+    "architecture": "5 -> 32 -> 32 -> 1 tanh float64",
+    "batch_policy": "deterministic full batch",
+    "dataset": "external-results/test2a/dataset/doublevortex_A_operator.npz",
+    "features": [
+      "h",
+      "S",
+      "Qv",
+      "Qc",
+      "B"
+    ],
+    "initialization": "Glorot uniform seed 0; identical parameter pytree for every method",
+    "normalization": "training mean/population standard deviation inputs; uncentered RMS(A) output scale",
+    "objective": "mean(((A_theta - A_truth) / RMS_training(A_truth))**2)",
+    "parameter_count": 1281,
+    "sample_count": 331776,
+    "target": "A"
+  },
+  "full_bfgs_availability_audit": {
+    "dense_inverse_storage_estimate_bytes": 13127688,
+    "disposition": "not run: installed ROL SecantFactory does not expose dense full BFGS",
+    "installed_secant_types": [
+      "Limited-Memory BFGS",
+      "Limited-Memory DFP",
+      "Limited-Memory SR1",
+      "Barzilai-Borwein",
+      "User-Defined"
+    ],
+    "memory_feasibility": "a 1281x1281 float64 matrix is about 13.1 MB and is reasonable, but method availability—not storage—is the blocker",
+    "source": "installed pyrol/include/ROL_Types.hpp and ROL_SecantFactory.hpp"
+  },
+  "methods": [
+    {
+      "gradient_tolerance": 1e-08,
+      "iteration_limit": 500,
+      "kind": "line_search_lbfgs",
+      "maximum_secant_storage": 10,
+      "name": "rol_lbfgs_m10_i500",
+      "step_tolerance": 1e-12
+    },
+    {
+      "gradient_tolerance": 1e-08,
+      "iteration_limit": 500,
+      "kind": "line_search_lbfgs",
+      "maximum_secant_storage": 20,
+      "name": "rol_lbfgs_m20_i500",
+      "step_tolerance": 1e-12
+    },
+    {
+      "gradient_tolerance": 1e-08,
+      "initial_radius": 10.0,
+      "iteration_limit": 100,
+      "kind": "trust_region_truncated_cg_exact_hvp",
+      "krylov_absolute_tolerance": 1e-08,
+      "krylov_iteration_limit": 50,
+      "krylov_relative_tolerance": 0.01,
+      "maximum_radius": 5000.0,
+      "name": "rol_trust_region_tcg_exact_hvp_i100",
+      "step_tolerance": 1e-12
+    }
+  ],
+  "reference_100_iteration_lbfgs": {
+    "correlation": 0.5729159162,
+    "final_gradient_norm": 0.136,
+    "final_objective": 0.6701423514,
+    "initial_objective": 0.9135568694,
+    "maximum_secant_storage": 10,
+    "relative_rms_error": 0.8186222275,
+    "sign_accuracy": 0.540720117,
+    "termination_reason": "MAXITER"
+  }
+}

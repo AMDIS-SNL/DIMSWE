@@ -1,0 +1,22 @@
+{
+  "architecture": {
+    "activation": "tanh",
+    "dtype": "float64",
+    "hidden_layers": [
+      32,
+      32
+    ],
+    "input_dimension": 5,
+    "output_dimension": 4,
+    "parameter_count": 1380,
+    "seed": 0
+  },
+  "format_version": 1,
+  "initialization_convention": "Problem-A Glorot-uniform per layer, zero bias",
+  "metadata": {
+    "artifact_kind": "final",
+    "scientific": true,
+    "stage": "M1-to-M2-X"
+  },
+  "parameter_pytree_sha256": "db7631e1fd885bc24a25412e9c7c056c52268dca054d35f21c8d17b7f9dd522d"
+}

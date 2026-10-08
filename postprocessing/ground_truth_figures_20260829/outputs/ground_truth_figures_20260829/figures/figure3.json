@@ -1,0 +1,86 @@
+{
+  "color_limits": {
+    "R_ug_kg-1_h-1": [
+      0.0,
+      180.0
+    ],
+    "specific_cloud_g_kg-1": [
+      0.0,
+      0.11
+    ],
+    "specific_rain_ug_kg-1": [
+      0.0,
+      130.0
+    ],
+    "supersaturation_percent": [
+      -2.5,
+      6.1
+    ]
+  },
+  "coordinate_units": "km",
+  "deterministic_rendering": {
+    "backend": "Agg",
+    "fixed_pdf_date": "2026-08-29T00:00:00Z",
+    "font": "DejaVu Sans",
+    "png_dpi": 300
+  },
+  "display_clipping": "negative numerical Qc/Qr undershoots clipped to zero in nonnegative water panels; raw values retained in cache",
+  "figure_id": "figure3",
+  "format_version": 1,
+  "outputs": [
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/figures/figure3_test2b_event_gallery.png",
+      "sha256": "046cf303148e3011c8516d738508dc241e8be28ddb7dc28017fb7d438fe6c905"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/figures/figure3_test2b_event_gallery.pdf",
+      "sha256": "70e81e42e24f31fefb113cc7ffc44b6f2a69526a55a45b802f0bb304070078c2"
+    }
+  ],
+  "overlay": {
+    "levels": [
+      -8.0,
+      -4.0,
+      4.0,
+      8.0,
+      12.0
+    ],
+    "variable": "relative_vorticity_1e5_s-1"
+  },
+  "script": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/scripts/ground_truth_figures_20260829/make_ground_truth_figures.py",
+  "script_sha256": "f4e61a0b6911b8a7818cb8f40bfda6e8b6da67680d9662f197b6692e779fdf65",
+  "source_caches": [
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/data/test2a_truth_maps.npz",
+      "sha256": "0cbc5fac8a15c110701ba63e5051f214330532df7ef3435c784129ef405f36ea"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/data/test2b_truth_maps.npz",
+      "sha256": "e9477a3ac4e54ebe4da73f9df5ffaafdf98c812afd7fe92b55820230db034de6"
+    }
+  ],
+  "source_truth_paths": [
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test1b-production/truth_c0_0.14",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-truth/production-n64-zeta-m0p06-dt100-t16000"
+  ],
+  "state_indices": [
+    0,
+    50,
+    61,
+    120,
+    160
+  ],
+  "times_s": [
+    0.0,
+    5000.0,
+    6100.0,
+    12000.0,
+    16000.0
+  ],
+  "variables_units": {
+    "R_ug_kg-1_h-1": "$R$ ($\\mu$g kg$^{-1}$ h$^{-1}$)",
+    "specific_cloud_g_kg-1": "$q_c$ (g kg$^{-1}$)",
+    "specific_rain_ug_kg-1": "$q_r$ ($\\mu$g kg$^{-1}$)",
+    "supersaturation_percent": "$100(q_v/q_{sat}-1)$ (%)"
+  }
+}

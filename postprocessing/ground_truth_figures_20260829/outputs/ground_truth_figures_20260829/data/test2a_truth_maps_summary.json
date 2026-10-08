@@ -1,0 +1,77 @@
+{
+  "cache": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/data/test2a_truth_maps.npz",
+  "cache_sha256": "0cbc5fac8a15c110701ba63e5051f214330532df7ef3435c784129ef405f36ea",
+  "conservation": {
+    "initial_total_water_mass": 34893278484426.496,
+    "maximum_absolute_total_water_drift": 0.109375,
+    "maximum_source_invariant_residuals": {
+      "S_minus_beta2_Qv_maximum_absolute": 1.734723475976807e-18,
+      "S_minus_beta2_Qv_rms": 1.660289533757572e-19,
+      "water_maximum_absolute": 0.0,
+      "water_rms": 0.0
+    },
+    "relative_maximum_total_water_drift": 3.1345578504128253e-15
+  },
+  "events": {
+    "final": {
+      "step": 160,
+      "time_s": 16000.0
+    },
+    "first_certifiable_rain": null,
+    "initial": {
+      "step": 0,
+      "time_s": 0.0
+    },
+    "last_clearly_pre_rain": {
+      "step": 160,
+      "time_s": 16000.0
+    },
+    "mature_rain_state": null,
+    "peak_integrated_cloud_water": {
+      "step": 160,
+      "time_s": 16000.0
+    },
+    "peak_integrated_rain_production_rate": null,
+    "peak_local_rain_rate": null,
+    "peak_local_specific_cloud_water": {
+      "step": 85,
+      "time_s": 8500.0
+    },
+    "sustained_rain": null
+  },
+  "format_version": 1,
+  "frame_count": 161,
+  "plot_grid": {
+    "definition": "two interior GLL nodes per coordinate per quadrilateral cell; cell-boundary duplicates excluded",
+    "rate_source": "exact split replay through children 1--5 followed by the deployed analytical moist law at child-6 input",
+    "shape_yx": [
+      32,
+      32
+    ],
+    "state_source": "saved restart arrays"
+  },
+  "source_audit": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/data/test2a_truth_fresh_audit.json",
+  "source_audit_sha256": "9c1be864a52fd38372a30168cf202f6b1dcdbfa6f83ab2bd46f260670611e3ba",
+  "source_configuration_sha256": "b03172d3e049b92209da2b0ab99ebc335d6fbaae0f480344a31c29e8b5f2f115",
+  "source_metadata": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test1b-production/truth_c0_0.14/metadata.json",
+  "source_metadata_sha256": "5c5b47736362ccace69944df7c226f83238a3eb453b63717035040dc27b60545",
+  "source_truth": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test1b-production/truth_c0_0.14",
+  "source_truth_modified": false,
+  "status": "complete",
+  "steps": [
+    0,
+    160
+  ],
+  "truth_cadence_s": 100.0,
+  "truth_git_checkpoint": "2543681af71a02dd8892694f0fef9e5f2eb806fc",
+  "variables": {
+    "A_g_kg-1_h-1": "3.6e6*A at exact post-prefix state",
+    "R_ug_kg-1_h-1": "3.6e12*R at exact post-prefix state",
+    "height_anomaly_m": "h - H0 at saved state",
+    "relative_vorticity_1e5_s-1": "repository curl2D(v) times 1e5",
+    "specific_cloud_g_kg-1": "1000*Qc/h at saved state",
+    "specific_rain_ug_kg-1": "1e9*Qr/h at saved state",
+    "supersaturation_percent": "100*(qv/qsat - 1) at saved state"
+  },
+  "wall_seconds": 34.89697841601446
+}

@@ -1,0 +1,631 @@
+{
+  "frame_count_per_source": 161,
+  "model_specific_autoscaling": false,
+  "negative_values_clipped": false,
+  "observed_extrema": {
+    "A_g_kg-1_h-1": {
+      "global_maximum": 0.4061713218688965,
+      "global_minimum": -3.070838451385498,
+      "maximum_source": "repA_M1Y",
+      "minimum_source": "repB_M1Y",
+      "negative_fraction": 0.6653804861069637,
+      "per_source": {
+        "repA_H1": {
+          "maximum": 0.09796471148729324,
+          "minimum": -3.070324420928955,
+          "negative_fraction": 0.7653782056725543,
+          "zero_fraction": 0.0
+        },
+        "repA_H2": {
+          "maximum": 0.09791550040245056,
+          "minimum": -3.070138454437256,
+          "negative_fraction": 0.7653986770914208,
+          "zero_fraction": 0.0
+        },
+        "repA_H5": {
+          "maximum": 0.09872408956289291,
+          "minimum": -3.0702874660491943,
+          "negative_fraction": 0.7654043635966615,
+          "zero_fraction": 0.0
+        },
+        "repA_M1Y": {
+          "maximum": 0.4061713218688965,
+          "minimum": -3.0705153942108154,
+          "negative_fraction": 0.7652076105153338,
+          "zero_fraction": 0.0
+        },
+        "repB_H1": {
+          "maximum": 0.08573846518993378,
+          "minimum": -3.0705666542053223,
+          "negative_fraction": 0.7642685789499224,
+          "zero_fraction": 0.0
+        },
+        "repB_H2": {
+          "maximum": 0.08574949204921722,
+          "minimum": -3.070258378982544,
+          "negative_fraction": 0.7642700953513198,
+          "zero_fraction": 0.0
+        },
+        "repB_H5": {
+          "maximum": 0.08575813472270966,
+          "minimum": -3.070452928543091,
+          "negative_fraction": 0.7642060273922748,
+          "zero_fraction": 0.0
+        },
+        "repB_M1Y": {
+          "maximum": 0.09116385132074356,
+          "minimum": -3.070838451385498,
+          "negative_fraction": 0.7638034228212345,
+          "zero_fraction": 0.0
+        },
+        "repC_H1": {
+          "maximum": 0.08578868210315704,
+          "minimum": -3.0490636825561523,
+          "negative_fraction": 0.6337086932259317,
+          "zero_fraction": 0.0
+        },
+        "repC_H2": {
+          "maximum": 0.08572927862405777,
+          "minimum": -3.0499494075775146,
+          "negative_fraction": 0.30337202178765527,
+          "zero_fraction": 0.0
+        },
+        "repC_H5": {
+          "maximum": 0.38609790802001953,
+          "minimum": -3.047563076019287,
+          "negative_fraction": 0.14820169958268634,
+          "zero_fraction": 0.0
+        },
+        "repC_M1Y": {
+          "maximum": 0.09532629698514938,
+          "minimum": -3.0700273513793945,
+          "negative_fraction": 0.6882536514945652,
+          "zero_fraction": 0.0
+        },
+        "truth": {
+          "maximum": 0.08483943343162537,
+          "minimum": -3.0702128410339355,
+          "negative_fraction": 0.7584732719089674,
+          "zero_fraction": 0.0
+        }
+      },
+      "sample_count": 34291712,
+      "zero_fraction": 0.0
+    },
+    "R_ug_kg-1_h-1": {
+      "global_maximum": 183.63705444335938,
+      "global_minimum": -20.7392578125,
+      "maximum_source": "repA_H1",
+      "minimum_source": "repC_H5",
+      "negative_fraction": 0.3464337971810798,
+      "per_source": {
+        "repA_H1": {
+          "maximum": 183.63705444335938,
+          "minimum": 0.0,
+          "negative_fraction": 0.0,
+          "zero_fraction": 0.9591117527173914
+        },
+        "repA_H2": {
+          "maximum": 183.58154296875,
+          "minimum": 0.0,
+          "negative_fraction": 0.0,
+          "zero_fraction": 0.9591079617138976
+        },
+        "repA_H5": {
+          "maximum": 183.33102416992188,
+          "minimum": 0.0,
+          "negative_fraction": 0.0,
+          "zero_fraction": 0.9591481463509317
+        },
+        "repA_M1Y": {
+          "maximum": 171.6171875,
+          "minimum": 0.0,
+          "negative_fraction": 0.0,
+          "zero_fraction": 0.9599632121020962
+        },
+        "repB_H1": {
+          "maximum": 92.2421646118164,
+          "minimum": -8.287230491638184,
+          "negative_fraction": 0.18179074873835405,
+          "zero_fraction": 0.0
+        },
+        "repB_H2": {
+          "maximum": 92.32429504394531,
+          "minimum": -8.28978157043457,
+          "negative_fraction": 0.1817983307453416,
+          "zero_fraction": 0.0
+        },
+        "repB_H5": {
+          "maximum": 91.31871795654297,
+          "minimum": -8.284929275512695,
+          "negative_fraction": 0.18179453974184784,
+          "zero_fraction": 0.0
+        },
+        "repB_M1Y": {
+          "maximum": 157.7311553955078,
+          "minimum": -2.008023262023926,
+          "negative_fraction": 0.72265018439441,
+          "zero_fraction": 0.0
+        },
+        "repC_H1": {
+          "maximum": 8.641175270080566,
+          "minimum": -17.233516693115234,
+          "negative_fraction": 0.9992918405473602,
+          "zero_fraction": 0.0
+        },
+        "repC_H2": {
+          "maximum": 8.803400993347168,
+          "minimum": -17.661231994628906,
+          "negative_fraction": 0.9992660617236024,
+          "zero_fraction": 0.0
+        },
+        "repC_H5": {
+          "maximum": 9.157291412353516,
+          "minimum": -20.7392578125,
+          "negative_fraction": 0.9992122294739907,
+          "zero_fraction": 0.0
+        },
+        "repC_M1Y": {
+          "maximum": 142.1298828125,
+          "minimum": -2.9464330673217773,
+          "negative_fraction": 0.23783542798913043,
+          "zero_fraction": 0.0
+        },
+        "truth": {
+          "maximum": 174.5413360595703,
+          "minimum": 0.0,
+          "negative_fraction": 0.0,
+          "zero_fraction": 0.9603946282996895
+        }
+      },
+      "sample_count": 34291712,
+      "zero_fraction": 0.36905582316800045
+    },
+    "relative_vorticity_1e5_s-1": {
+      "global_maximum": 16.853097915649414,
+      "global_minimum": -4.5973005294799805,
+      "maximum_source": "truth",
+      "minimum_source": "repA_M1Y",
+      "negative_fraction": 0.7527638748394947,
+      "per_source": {
+        "repA_H1": {
+          "maximum": 16.853097915649414,
+          "minimum": -4.597219944000244,
+          "negative_fraction": 0.7526730365634705,
+          "zero_fraction": 0.0
+        },
+        "repA_H2": {
+          "maximum": 16.853097915649414,
+          "minimum": -4.597219944000244,
+          "negative_fraction": 0.7526734156638198,
+          "zero_fraction": 0.0
+        },
+        "repA_H5": {
+          "maximum": 16.853097915649414,
+          "minimum": -4.597220420837402,
+          "negative_fraction": 0.7526730365634705,
+          "zero_fraction": 0.0
+        },
+        "repA_M1Y": {
+          "maximum": 16.853097915649414,
+          "minimum": -4.5973005294799805,
+          "negative_fraction": 0.7526684873592779,
+          "zero_fraction": 0.0
+        },
+        "repB_H1": {
+          "maximum": 16.853097915649414,
+          "minimum": -4.597253322601318,
+          "negative_fraction": 0.7526753111655667,
+          "zero_fraction": 0.0
+        },
+        "repB_H2": {
+          "maximum": 16.853097915649414,
+          "minimum": -4.597253322601318,
+          "negative_fraction": 0.7526753111655667,
+          "zero_fraction": 0.0
+        },
+        "repB_H5": {
+          "maximum": 16.853097915649414,
+          "minimum": -4.597253799438477,
+          "negative_fraction": 0.7526753111655667,
+          "zero_fraction": 0.0
+        },
+        "repB_M1Y": {
+          "maximum": 16.853097915649414,
+          "minimum": -4.597236156463623,
+          "negative_fraction": 0.7526643172554348,
+          "zero_fraction": 0.0
+        },
+        "repC_H1": {
+          "maximum": 16.853097915649414,
+          "minimum": -4.596479892730713,
+          "negative_fraction": 0.7525513453513198,
+          "zero_fraction": 0.0
+        },
+        "repC_H2": {
+          "maximum": 16.853097915649414,
+          "minimum": -4.596582412719727,
+          "negative_fraction": 0.7527958650766693,
+          "zero_fraction": 0.0
+        },
+        "repC_H5": {
+          "maximum": 16.853097915649414,
+          "minimum": -4.5970306396484375,
+          "negative_fraction": 0.7538372537364131,
+          "zero_fraction": 0.0
+        },
+        "repC_M1Y": {
+          "maximum": 16.853097915649414,
+          "minimum": -4.597245216369629,
+          "negative_fraction": 0.7526897169788431,
+          "zero_fraction": 0.0
+        },
+        "truth": {
+          "maximum": 16.853097915649414,
+          "minimum": -4.597247123718262,
+          "negative_fraction": 0.7526779648680124,
+          "zero_fraction": 0.0
+        }
+      },
+      "sample_count": 34291712,
+      "zero_fraction": 0.0
+    },
+    "specific_cloud_g_kg-1": {
+      "global_maximum": 0.10586602985858917,
+      "global_minimum": -0.03274819999933243,
+      "maximum_source": "repC_M1Y",
+      "minimum_source": "repC_H5",
+      "negative_fraction": 0.004364611483964405,
+      "per_source": {
+        "repA_H1": {
+          "maximum": 0.10510193556547165,
+          "minimum": -0.0025519707705825567,
+          "negative_fraction": 0.0022988645186335405,
+          "zero_fraction": 0.006211180124223602
+        },
+        "repA_H2": {
+          "maximum": 0.10510039329528809,
+          "minimum": -0.002595533849671483,
+          "negative_fraction": 0.0023845411975931675,
+          "zero_fraction": 0.006211180124223602
+        },
+        "repA_H5": {
+          "maximum": 0.10509343445301056,
+          "minimum": -0.0025495069567114115,
+          "negative_fraction": 0.0023633115780279505,
+          "zero_fraction": 0.006211180124223602
+        },
+        "repA_M1Y": {
+          "maximum": 0.10476797819137573,
+          "minimum": -0.0005983682349324226,
+          "negative_fraction": 0.0014693929541925465,
+          "zero_fraction": 0.006211180124223602
+        },
+        "repB_H1": {
+          "maximum": 0.10535189509391785,
+          "minimum": -0.0018051662482321262,
+          "negative_fraction": 0.002053207492236025,
+          "zero_fraction": 0.006211180124223602
+        },
+        "repB_H2": {
+          "maximum": 0.10535503178834915,
+          "minimum": -0.001799537567421794,
+          "negative_fraction": 0.002058514897127329,
+          "zero_fraction": 0.006211180124223602
+        },
+        "repB_H5": {
+          "maximum": 0.10531587153673172,
+          "minimum": -0.0018014759989455342,
+          "negative_fraction": 0.002168453998447205,
+          "zero_fraction": 0.006211180124223602
+        },
+        "repB_M1Y": {
+          "maximum": 0.10440985858440399,
+          "minimum": -0.0006907109636813402,
+          "negative_fraction": 0.0014997209821428572,
+          "zero_fraction": 0.006211180124223602
+        },
+        "repC_H1": {
+          "maximum": 0.09499353170394897,
+          "minimum": -0.027363553643226624,
+          "negative_fraction": 0.01099997573757764,
+          "zero_fraction": 0.006211180124223602
+        },
+        "repC_H2": {
+          "maximum": 0.09218953549861908,
+          "minimum": -0.02888823114335537,
+          "negative_fraction": 0.01205766571234472,
+          "zero_fraction": 0.006211180124223602
+        },
+        "repC_H5": {
+          "maximum": 0.08421442657709122,
+          "minimum": -0.03274819999933243,
+          "negative_fraction": 0.014458129124611802,
+          "zero_fraction": 0.006211180124223602
+        },
+        "repC_M1Y": {
+          "maximum": 0.10586602985858917,
+          "minimum": -0.0007063673692755401,
+          "negative_fraction": 0.0008924022224378882,
+          "zero_fraction": 0.006211180124223602
+        },
+        "truth": {
+          "maximum": 0.10484879463911057,
+          "minimum": -9.074617992155254e-05,
+          "negative_fraction": 0.0020357688761645965,
+          "zero_fraction": 0.00621876213121118
+        }
+      },
+      "sample_count": 34291712,
+      "zero_fraction": 0.006211763355530339
+    },
+    "specific_rain_ug_kg-1": {
+      "global_maximum": 133.59251403808594,
+      "global_minimum": -76.15233612060547,
+      "maximum_source": "repA_H1",
+      "minimum_source": "repC_H5",
+      "negative_fraction": 0.4077142021955626,
+      "per_source": {
+        "repA_H1": {
+          "maximum": 133.59251403808594,
+          "minimum": -1.8462193012237549,
+          "negative_fraction": 0.18150718167701863,
+          "zero_fraction": 0.5602792301533385
+        },
+        "repA_H2": {
+          "maximum": 133.5657958984375,
+          "minimum": -1.844985008239746,
+          "negative_fraction": 0.18150642347631987,
+          "zero_fraction": 0.5602906031638198
+        },
+        "repA_H5": {
+          "maximum": 133.32989501953125,
+          "minimum": -1.841614842414856,
+          "negative_fraction": 0.1814806446525621,
+          "zero_fraction": 0.5603618740295031
+        },
+        "repA_M1Y": {
+          "maximum": 125.38670349121094,
+          "minimum": -1.896195650100708,
+          "negative_fraction": 0.1819765079095497,
+          "zero_fraction": 0.5600510117430124
+        },
+        "repB_H1": {
+          "maximum": 65.391845703125,
+          "minimum": -4.115187644958496,
+          "negative_fraction": 0.16027377110830746,
+          "zero_fraction": 0.006211180124223602
+        },
+        "repB_H2": {
+          "maximum": 65.46355438232422,
+          "minimum": -4.111505508422852,
+          "negative_fraction": 0.16027756211180125,
+          "zero_fraction": 0.006211180124223602
+        },
+        "repB_H5": {
+          "maximum": 64.8313217163086,
+          "minimum": -4.105962753295898,
+          "negative_fraction": 0.1602457176824534,
+          "zero_fraction": 0.006211180124223602
+        },
+        "repB_M1Y": {
+          "maximum": 121.38362121582031,
+          "minimum": -1.6677143573760986,
+          "negative_fraction": 0.6854619565217391,
+          "zero_fraction": 0.006211180124223602
+        },
+        "repC_H1": {
+          "maximum": 0.23647183179855347,
+          "minimum": -69.35994720458984,
+          "negative_fraction": 0.9930836932259317,
+          "zero_fraction": 0.006211180124223602
+        },
+        "repC_H2": {
+          "maximum": 0.24099750816822052,
+          "minimum": -70.53644561767578,
+          "negative_fraction": 0.9930556398000776,
+          "zero_fraction": 0.006211180124223602
+        },
+        "repC_H5": {
+          "maximum": 0.2508617639541626,
+          "minimum": -76.15233612060547,
+          "negative_fraction": 0.9930063567546584,
+          "zero_fraction": 0.006211180124223602
+        },
+        "repC_M1Y": {
+          "maximum": 118.93008422851562,
+          "minimum": -2.214139938354492,
+          "negative_fraction": 0.24631514460403728,
+          "zero_fraction": 0.006211180124223602
+        },
+        "truth": {
+          "maximum": 125.59049224853516,
+          "minimum": -1.8920623064041138,
+          "negative_fraction": 0.18209402901785715,
+          "zero_fraction": 0.5596317267565993
+        }
+      },
+      "sample_count": 34291712,
+      "zero_fraction": 0.21925414514154323
+    },
+    "supersaturation_percent": {
+      "global_maximum": 6.0620527267456055,
+      "global_minimum": -6.573812961578369,
+      "maximum_source": "truth",
+      "minimum_source": "repC_H5",
+      "negative_fraction": 0.5953327147970915,
+      "per_source": {
+        "repA_H1": {
+          "maximum": 6.0620527267456055,
+          "minimum": -2.427360773086548,
+          "negative_fraction": 0.8826608598602484,
+          "zero_fraction": 0.0
+        },
+        "repA_H2": {
+          "maximum": 6.0620527267456055,
+          "minimum": -2.4222846031188965,
+          "negative_fraction": 0.8830210051921584,
+          "zero_fraction": 0.0
+        },
+        "repA_H5": {
+          "maximum": 6.0620527267456055,
+          "minimum": -2.4183666706085205,
+          "negative_fraction": 0.8823257351513976,
+          "zero_fraction": 0.0
+        },
+        "repA_M1Y": {
+          "maximum": 6.0620527267456055,
+          "minimum": -2.415560483932495,
+          "negative_fraction": 0.7958900972923136,
+          "zero_fraction": 0.0
+        },
+        "repB_H1": {
+          "maximum": 6.0620527267456055,
+          "minimum": -2.400360345840454,
+          "negative_fraction": 0.45549892638781053,
+          "zero_fraction": 0.0
+        },
+        "repB_H2": {
+          "maximum": 6.0620527267456055,
+          "minimum": -2.4000658988952637,
+          "negative_fraction": 0.4507268111898292,
+          "zero_fraction": 0.0
+        },
+        "repB_H5": {
+          "maximum": 6.0620527267456055,
+          "minimum": -2.396906614303589,
+          "negative_fraction": 0.4330660423136646,
+          "zero_fraction": 0.0
+        },
+        "repB_M1Y": {
+          "maximum": 6.0620527267456055,
+          "minimum": -2.4086391925811768,
+          "negative_fraction": 0.839214443420031,
+          "zero_fraction": 0.0
+        },
+        "repC_H1": {
+          "maximum": 6.0620527267456055,
+          "minimum": -4.905948162078857,
+          "negative_fraction": 0.18480308011451863,
+          "zero_fraction": 0.0
+        },
+        "repC_H2": {
+          "maximum": 6.0620527267456055,
+          "minimum": -5.336844444274902,
+          "negative_fraction": 0.31232864664208076,
+          "zero_fraction": 0.0
+        },
+        "repC_H5": {
+          "maximum": 6.0620527267456055,
+          "minimum": -6.573812961578369,
+          "negative_fraction": 0.2268604728746118,
+          "zero_fraction": 0.0
+        },
+        "repC_M1Y": {
+          "maximum": 6.0620527267456055,
+          "minimum": -2.251199960708618,
+          "negative_fraction": 0.5777496906541149,
+          "zero_fraction": 0.0
+        },
+        "truth": {
+          "maximum": 6.0620527267456055,
+          "minimum": -2.421625852584839,
+          "negative_fraction": 0.81517948126941,
+          "zero_fraction": 0.0
+        }
+      },
+      "sample_count": 34291712,
+      "zero_fraction": 0.0
+    }
+  },
+  "rationale": {
+    "linear_two_slope": "vorticity, saturation departure, cloud water, and rain water fit readable common finite ranges; zero is explicit and signed undershoots/failures are retained",
+    "symmetric_log": "A and R span both signs and multiple orders near zero; common SymLogNorm preserves zeros, weak activity, and full outlier ranges without model-specific rescaling"
+  },
+  "relative_vorticity_contour_levels_1e5_s-1": [
+    -8.0,
+    -4.0,
+    4.0,
+    8.0,
+    12.0
+  ],
+  "representation_c_source_manifold_residual": {
+    "H1": {
+      "RMS": 0.027932497707638723,
+      "maximum": 0.38010191917419434,
+      "minimum": 5.773826705990359e-05
+    },
+    "H2": {
+      "RMS": 0.04036998582998947,
+      "maximum": 0.36842289566993713,
+      "minimum": 6.304328417172655e-05
+    },
+    "H5": {
+      "RMS": 0.1098441627137192,
+      "maximum": 0.3726196885108948,
+      "minimum": 0.005694378167390823
+    },
+    "M1Y": {
+      "RMS": 0.0019102326578072139,
+      "maximum": 0.033836495131254196,
+      "minimum": 2.2373045283075044e-07
+    }
+  },
+  "scope": "truth plus all 12 deployed models at all 161 times",
+  "source_count": 13,
+  "status": "complete",
+  "variables": {
+    "A_g_kg-1_h-1": {
+      "base": 10.0,
+      "cmap": "RdBu_r",
+      "label": "$A$ (g kg$^{-1}$ h$^{-1}$)",
+      "linscale": 1.0,
+      "linthresh": 0.002,
+      "normalization": "SymLogNorm",
+      "vmax": 0.42,
+      "vmin": -3.1
+    },
+    "R_ug_kg-1_h-1": {
+      "base": 10.0,
+      "cmap": "PuOr_r",
+      "label": "$R$ ($\\mu$g kg$^{-1}$ h$^{-1}$)",
+      "linscale": 1.0,
+      "linthresh": 0.1,
+      "normalization": "SymLogNorm",
+      "vmax": 190.0,
+      "vmin": -22.0
+    },
+    "relative_vorticity_1e5_s-1": {
+      "cmap": "RdBu_r",
+      "label": "relative vorticity ($10^{-5}$ s$^{-1}$)",
+      "normalization": "TwoSlopeNorm",
+      "vcenter": 0.0,
+      "vmax": 17.0,
+      "vmin": -17.0
+    },
+    "specific_cloud_g_kg-1": {
+      "cmap": "BrBG",
+      "label": "$q_c$ (g kg$^{-1}$)",
+      "normalization": "TwoSlopeNorm",
+      "vcenter": 0.0,
+      "vmax": 0.11,
+      "vmin": -0.035
+    },
+    "specific_rain_ug_kg-1": {
+      "cmap": "PuOr_r",
+      "label": "$q_r$ ($\\mu$g kg$^{-1}$)",
+      "normalization": "TwoSlopeNorm",
+      "vcenter": 0.0,
+      "vmax": 140.0,
+      "vmin": -80.0
+    },
+    "supersaturation_percent": {
+      "cmap": "RdBu_r",
+      "label": "$100(q_v/q_{sat}-1)$ (%)",
+      "normalization": "TwoSlopeNorm",
+      "vcenter": 0.0,
+      "vmax": 6.6,
+      "vmin": -6.6
+    }
+  }
+}

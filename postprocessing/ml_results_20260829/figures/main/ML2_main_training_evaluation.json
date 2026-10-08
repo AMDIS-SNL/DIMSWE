@@ -1,0 +1,60 @@
+{
+  "draft_caption": "Training and evaluation histories of the fitted nonrecursive objectives. Solid curves show training states or windows; dashed curves with open markers show the later evaluation states or windows. M1-Y is evaluated on truth-derived pre-moist states Y*=P(X*). H1/M2-Y uses fixed one-step pairs from Y* to the corresponding next truth state. Evaluation values were calculated from saved networks and did not influence training.",
+  "figure_id": "ML2_main_training_evaluation",
+  "files": {
+    "csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_main_training_evaluation.csv",
+      "rows": 114,
+      "sha256": "4e2c1df3e002a6cebf77d5b8b8945070f20308813dda29f5f4c0f7e31345aea7",
+      "size_bytes": 106845
+    },
+    "pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_main_training_evaluation.pdf",
+      "sha256": "1898b7a59aeaad62ede94061abdbc51a444ba926e294631b8144cf6e88dd3075",
+      "size_bytes": 26264
+    },
+    "png_300dpi": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_main_training_evaluation.png",
+      "sha256": "137b0487709793e08bb7ef39110190117837c68facd22cb764a9550aef47a457",
+      "size_bytes": 264086
+    }
+  },
+  "model_labels": [
+    "M1-Y",
+    "H1"
+  ],
+  "notes": [
+    "M1-Y: Y*_0..80 and Y*_81..160.",
+    "H1: Y*_0..79 to X*_1..80 and Y*_81..159 to X*_82..160.",
+    "H2/H5 are excluded because recursive evaluation histories were not computed."
+  ],
+  "quantity_kind": "OBJECTIVE-CONSISTENT SAVED-NETWORK EVALUATION",
+  "rendering": {
+    "date": "2026-08-29",
+    "numerical_values_recomputed": false,
+    "source_values_filtered_without_modification": true
+  },
+  "representations": [
+    "A",
+    "B",
+    "C"
+  ],
+  "scientific_question": "Does each fitted objective remain accurate over the later evaluation interval?",
+  "source_artifacts": [
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/objective_training_evaluation_histories.csv",
+      "sha256": "316f2d0b98c542b638efd72e85e4aef77ac3857fb334bccf0f87c230ea7864b4",
+      "size_bytes": 263720
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/objective_training_evaluation_histories.json",
+      "sha256": "ead0ef6e4f900bf593d34c78a722ad387c80f61828a4e70b640a6853bdf97938",
+      "size_bytes": 12129
+    }
+  ],
+  "state_contracts": {
+    "H1": "Y* starts 0..79/81..159 with next truth targets 1..80/82..160",
+    "M1-Y": "Y* at states 0..80 and 81..160"
+  },
+  "support_classification": "Test 2B training and evaluation states/windows"
+}

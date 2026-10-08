@@ -1,0 +1,61 @@
+{
+  "draft_caption": "Final-model direct physical-law errors at truth-derived pre-moist states Y*=P(X*). Filled points show training states 0--80 and open points show evaluation states 81--160. Representation A reports A; Representation B reports A and both all-sample and truth-active R errors; Representation C reports the normalized source-vector error. Detailed C source-component and B activation metrics are retained in the supplementary data and main accuracy table.",
+  "figure_id": "ML3_main_callsite_physical_accuracy",
+  "files": {
+    "csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML3_main_callsite_physical_accuracy.csv",
+      "rows": 40,
+      "sha256": "4289c8a0c1ad6bc5ea7f2b8d101ba1798f933e33952a4e239e812ad64c453a7e",
+      "size_bytes": 19583
+    },
+    "pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML3_main_callsite_physical_accuracy.pdf",
+      "sha256": "fead24e1ae720f53f5dc1d5469357012e97e3b10e7c965ade7499666ed124c55",
+      "size_bytes": 23282
+    },
+    "png_300dpi": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML3_main_callsite_physical_accuracy.png",
+      "sha256": "e81fc70629550e87c57ea05356a4b5b99a2749bde574d0cba9d4b7b3d47bee33",
+      "size_bytes": 136376
+    }
+  },
+  "model_labels": [
+    "M1-Y",
+    "H1",
+    "H2",
+    "H5"
+  ],
+  "notes": [
+    "All features and analytical targets are evaluated at Y*.",
+    "Representation-B active R uses the accepted meaningful-activity mask.",
+    "Evaluation states did not influence training."
+  ],
+  "quantity_kind": "FINAL FROZEN-NETWORK DIRECT PHYSICAL-LAW ERROR",
+  "rendering": {
+    "date": "2026-08-29",
+    "numerical_values_recomputed": false,
+    "source_values_filtered_without_modification": true
+  },
+  "representations": [
+    "A",
+    "B",
+    "C"
+  ],
+  "scientific_question": "How accurately does each final model reproduce local moist physics at its truth-derived call site?",
+  "source_artifacts": [
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/final_callsite_y_metrics.csv",
+      "sha256": "f04daf9bbfef35fdc92a01c58593e767cb7712284d5cc9ff4484fe86070edc34",
+      "size_bytes": 581724
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/final_callsite_y_metrics.json",
+      "sha256": "8efa736e2fe0c9746b38159950d1ed568eecaa73485b2286a7a3311aa1851c1d",
+      "size_bytes": 12809
+    }
+  ],
+  "state_contracts": {
+    "all panels": "truth-derived Y*=P(X*)"
+  },
+  "support_classification": "Test 2B training states 0--80 and evaluation states 81--160 at Y*=P(X*)"
+}

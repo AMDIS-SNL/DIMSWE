@@ -1,0 +1,21 @@
+Test 2A-2 frozen neural-A embedding manifest
+==============================================
+
+dimswe/configs/test2a_embedded_neural_a.json
+dimswe/test2a_embedded_moist.py
+dimswe/jax_moist_adapter.py
+dimswe/jax_moist_hvp.py
+dimswe/moist_backend.py
+dimswe/mtswe_split_hvp.py
+dimswe/timestepping.py
+tests/test_test2a_embedded_moist.py
+tests/test_test2a_embedded_moist_firedrake.py
+docs/TEST2A_EMBEDDED_NEURAL_A.md
+docs/LEARNED_PHYSICS_EXPERIMENTS.md
+docs/TEST2A_OPERATOR_LEARNING.md
+docs/manifests/TEST2A_1_FILES.txt
+docs/manifests/TEST2A_2_FILES.txt
+
+The frozen parameters, training dataset/metadata, parity JSON, and external
+Firedrake certification outputs remain under external-results and are not
+tracked. Test 2A-2 performs no training and accesses no truth state after 80.

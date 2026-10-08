@@ -1,0 +1,1939 @@
+{
+  "authoritative_repository_unchanged": true,
+  "check_count": 191,
+  "checks": [
+    {
+      "detail": [
+        "ML1_main_optimization",
+        "ML2_main_training_evaluation",
+        "ML3_main_callsite_physical_accuracy",
+        "ML4_main_deployed_physical_diagnostics",
+        "ML5A_main_global_trajectories",
+        "ML5B_main_global_trajectories",
+        "ML5C_main_global_trajectories"
+      ],
+      "name": "exact main figure set",
+      "passed": true
+    },
+    {
+      "detail": "ML1_main_optimization",
+      "name": "figure id: ML1_main_optimization",
+      "passed": true
+    },
+    {
+      "detail": [
+        "M1-Y",
+        "H1",
+        "H2",
+        "H5"
+      ],
+      "name": "main model contract: ML1_main_optimization",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML1_optimization_progress_test2b.csv",
+      "name": "source exists: ML1_main_optimization: ML1_optimization_progress_test2b.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML1_optimization_progress_test2b.csv",
+        "sha256": "2ca32793a3b39348925f5ac173ffd8d0b91028835f18e7177242aea620e53522",
+        "size_bytes": 61849
+      },
+      "name": "source hash: ML1_main_optimization: ML1_optimization_progress_test2b.csv",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML1_main_optimization.csv",
+      "name": "render exists: ML1_main_optimization: csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML1_main_optimization.csv",
+        "rows": 69,
+        "sha256": "82e65bad4e734090deba4ee5d42ce3f9322224e590a148a53eceb1baf3350799",
+        "size_bytes": 25801
+      },
+      "name": "render hash: ML1_main_optimization: csv",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML1_main_optimization.pdf",
+      "name": "render exists: ML1_main_optimization: pdf",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML1_main_optimization.pdf",
+        "sha256": "e47a95518dc97cc8759925fb6fb828a90beb737776426245d7f928b99073ae9f",
+        "size_bytes": 27170
+      },
+      "name": "render hash: ML1_main_optimization: pdf",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML1_main_optimization.png",
+      "name": "render exists: ML1_main_optimization: png_300dpi",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML1_main_optimization.png",
+        "sha256": "ced8446e5c69f477b0b2b8d897c4618732c9c329587fab8a5533daeacd1032e4",
+        "size_bytes": 270207
+      },
+      "name": "render hash: ML1_main_optimization: png_300dpi",
+      "passed": true
+    },
+    {
+      "detail": 27170,
+      "name": "PDF signature: ML1_main_optimization",
+      "passed": true
+    },
+    {
+      "detail": [
+        299.9994,
+        299.9994
+      ],
+      "name": "PNG 300 dpi: ML1_main_optimization",
+      "passed": true
+    },
+    {
+      "detail": [
+        2179,
+        2127
+      ],
+      "name": "publication pixel dimensions: ML1_main_optimization",
+      "passed": true
+    },
+    {
+      "detail": "ML2_main_training_evaluation",
+      "name": "figure id: ML2_main_training_evaluation",
+      "passed": true
+    },
+    {
+      "detail": [
+        "M1-Y",
+        "H1"
+      ],
+      "name": "main model contract: ML2_main_training_evaluation",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/objective_training_evaluation_histories.csv",
+      "name": "source exists: ML2_main_training_evaluation: objective_training_evaluation_histories.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/objective_training_evaluation_histories.csv",
+        "sha256": "316f2d0b98c542b638efd72e85e4aef77ac3857fb334bccf0f87c230ea7864b4",
+        "size_bytes": 263720
+      },
+      "name": "source hash: ML2_main_training_evaluation: objective_training_evaluation_histories.csv",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/objective_training_evaluation_histories.json",
+      "name": "source exists: ML2_main_training_evaluation: objective_training_evaluation_histories.json",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/objective_training_evaluation_histories.json",
+        "sha256": "ead0ef6e4f900bf593d34c78a722ad387c80f61828a4e70b640a6853bdf97938",
+        "size_bytes": 12129
+      },
+      "name": "source hash: ML2_main_training_evaluation: objective_training_evaluation_histories.json",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_main_training_evaluation.csv",
+      "name": "render exists: ML2_main_training_evaluation: csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_main_training_evaluation.csv",
+        "rows": 114,
+        "sha256": "4e2c1df3e002a6cebf77d5b8b8945070f20308813dda29f5f4c0f7e31345aea7",
+        "size_bytes": 106845
+      },
+      "name": "render hash: ML2_main_training_evaluation: csv",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_main_training_evaluation.pdf",
+      "name": "render exists: ML2_main_training_evaluation: pdf",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_main_training_evaluation.pdf",
+        "sha256": "1898b7a59aeaad62ede94061abdbc51a444ba926e294631b8144cf6e88dd3075",
+        "size_bytes": 26264
+      },
+      "name": "render hash: ML2_main_training_evaluation: pdf",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_main_training_evaluation.png",
+      "name": "render exists: ML2_main_training_evaluation: png_300dpi",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_main_training_evaluation.png",
+        "sha256": "137b0487709793e08bb7ef39110190117837c68facd22cb764a9550aef47a457",
+        "size_bytes": 264086
+      },
+      "name": "render hash: ML2_main_training_evaluation: png_300dpi",
+      "passed": true
+    },
+    {
+      "detail": 26264,
+      "name": "PDF signature: ML2_main_training_evaluation",
+      "passed": true
+    },
+    {
+      "detail": [
+        299.9994,
+        299.9994
+      ],
+      "name": "PNG 300 dpi: ML2_main_training_evaluation",
+      "passed": true
+    },
+    {
+      "detail": [
+        2200,
+        2120
+      ],
+      "name": "publication pixel dimensions: ML2_main_training_evaluation",
+      "passed": true
+    },
+    {
+      "detail": "ML3_main_callsite_physical_accuracy",
+      "name": "figure id: ML3_main_callsite_physical_accuracy",
+      "passed": true
+    },
+    {
+      "detail": [
+        "M1-Y",
+        "H1",
+        "H2",
+        "H5"
+      ],
+      "name": "main model contract: ML3_main_callsite_physical_accuracy",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/final_callsite_y_metrics.csv",
+      "name": "source exists: ML3_main_callsite_physical_accuracy: final_callsite_y_metrics.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/final_callsite_y_metrics.csv",
+        "sha256": "f04daf9bbfef35fdc92a01c58593e767cb7712284d5cc9ff4484fe86070edc34",
+        "size_bytes": 581724
+      },
+      "name": "source hash: ML3_main_callsite_physical_accuracy: final_callsite_y_metrics.csv",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/final_callsite_y_metrics.json",
+      "name": "source exists: ML3_main_callsite_physical_accuracy: final_callsite_y_metrics.json",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/final_callsite_y_metrics.json",
+        "sha256": "8efa736e2fe0c9746b38159950d1ed568eecaa73485b2286a7a3311aa1851c1d",
+        "size_bytes": 12809
+      },
+      "name": "source hash: ML3_main_callsite_physical_accuracy: final_callsite_y_metrics.json",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML3_main_callsite_physical_accuracy.csv",
+      "name": "render exists: ML3_main_callsite_physical_accuracy: csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML3_main_callsite_physical_accuracy.csv",
+        "rows": 40,
+        "sha256": "4289c8a0c1ad6bc5ea7f2b8d101ba1798f933e33952a4e239e812ad64c453a7e",
+        "size_bytes": 19583
+      },
+      "name": "render hash: ML3_main_callsite_physical_accuracy: csv",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML3_main_callsite_physical_accuracy.pdf",
+      "name": "render exists: ML3_main_callsite_physical_accuracy: pdf",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML3_main_callsite_physical_accuracy.pdf",
+        "sha256": "fead24e1ae720f53f5dc1d5469357012e97e3b10e7c965ade7499666ed124c55",
+        "size_bytes": 23282
+      },
+      "name": "render hash: ML3_main_callsite_physical_accuracy: pdf",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML3_main_callsite_physical_accuracy.png",
+      "name": "render exists: ML3_main_callsite_physical_accuracy: png_300dpi",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML3_main_callsite_physical_accuracy.png",
+        "sha256": "e81fc70629550e87c57ea05356a4b5b99a2749bde574d0cba9d4b7b3d47bee33",
+        "size_bytes": 136376
+      },
+      "name": "render hash: ML3_main_callsite_physical_accuracy: png_300dpi",
+      "passed": true
+    },
+    {
+      "detail": 23282,
+      "name": "PDF signature: ML3_main_callsite_physical_accuracy",
+      "passed": true
+    },
+    {
+      "detail": [
+        299.9994,
+        299.9994
+      ],
+      "name": "PNG 300 dpi: ML3_main_callsite_physical_accuracy",
+      "passed": true
+    },
+    {
+      "detail": [
+        2131,
+        2190
+      ],
+      "name": "publication pixel dimensions: ML3_main_callsite_physical_accuracy",
+      "passed": true
+    },
+    {
+      "detail": "ML4_main_deployed_physical_diagnostics",
+      "name": "figure id: ML4_main_deployed_physical_diagnostics",
+      "passed": true
+    },
+    {
+      "detail": [
+        "M1-Y",
+        "H1",
+        "H2",
+        "H5"
+      ],
+      "name": "main model contract: ML4_main_deployed_physical_diagnostics",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML5_deployed_physical_diagnostics_test2b.csv",
+      "name": "source exists: ML4_main_deployed_physical_diagnostics: ML5_deployed_physical_diagnostics_test2b.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML5_deployed_physical_diagnostics_test2b.csv",
+        "sha256": "401b018e6a070a9281453948ee4576144479621120b7103a1d289a266faaf18e",
+        "size_bytes": 17002
+      },
+      "name": "source hash: ML4_main_deployed_physical_diagnostics: ML5_deployed_physical_diagnostics_test2b.csv",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML4_main_deployed_physical_diagnostics.csv",
+      "name": "render exists: ML4_main_deployed_physical_diagnostics: csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML4_main_deployed_physical_diagnostics.csv",
+        "rows": 12,
+        "sha256": "ca79a2832862d5d12e688460ce15d06f6a7899bc4947db868cc3c9ed6396890d",
+        "size_bytes": 10036
+      },
+      "name": "render hash: ML4_main_deployed_physical_diagnostics: csv",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML4_main_deployed_physical_diagnostics.pdf",
+      "name": "render exists: ML4_main_deployed_physical_diagnostics: pdf",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML4_main_deployed_physical_diagnostics.pdf",
+        "sha256": "c2aee68a1b914fdb866fd4f9daa9a2e5d43f951951175f43f49e6522f2477603",
+        "size_bytes": 22677
+      },
+      "name": "render hash: ML4_main_deployed_physical_diagnostics: pdf",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML4_main_deployed_physical_diagnostics.png",
+      "name": "render exists: ML4_main_deployed_physical_diagnostics: png_300dpi",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML4_main_deployed_physical_diagnostics.png",
+        "sha256": "40ef7cea2195b3eb708dcd8264c8cdbde5da32e63c10de8c9d65f0745475b2ad",
+        "size_bytes": 169006
+      },
+      "name": "render hash: ML4_main_deployed_physical_diagnostics: png_300dpi",
+      "passed": true
+    },
+    {
+      "detail": 22677,
+      "name": "PDF signature: ML4_main_deployed_physical_diagnostics",
+      "passed": true
+    },
+    {
+      "detail": [
+        299.9994,
+        299.9994
+      ],
+      "name": "PNG 300 dpi: ML4_main_deployed_physical_diagnostics",
+      "passed": true
+    },
+    {
+      "detail": [
+        2248,
+        1635
+      ],
+      "name": "publication pixel dimensions: ML4_main_deployed_physical_diagnostics",
+      "passed": true
+    },
+    {
+      "detail": "ML5A_main_global_trajectories",
+      "name": "figure id: ML5A_main_global_trajectories",
+      "passed": true
+    },
+    {
+      "detail": [
+        "M1-Y",
+        "H1",
+        "H2",
+        "H5"
+      ],
+      "name": "main model contract: ML5A_main_global_trajectories",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML6_global_trajectories_representation_A_all_models.csv",
+      "name": "source exists: ML5A_main_global_trajectories: ML6_global_trajectories_representation_A_all_models.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML6_global_trajectories_representation_A_all_models.csv",
+        "sha256": "2900f520ee675cc6c5f901b6e128ef111e0c3077673e79cf118c6fa8d5bf35b4",
+        "size_bytes": 2382033
+      },
+      "name": "source hash: ML5A_main_global_trajectories: ML6_global_trajectories_representation_A_all_models.csv",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5A_main_global_trajectories.csv",
+      "name": "render exists: ML5A_main_global_trajectories: csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5A_main_global_trajectories.csv",
+        "rows": 4516,
+        "sha256": "4b1e86aaac29c23b0471d972241068a8289a096caa0563aeda9edc0d821bb885",
+        "size_bytes": 1349854
+      },
+      "name": "render hash: ML5A_main_global_trajectories: csv",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5A_main_global_trajectories.pdf",
+      "name": "render exists: ML5A_main_global_trajectories: pdf",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5A_main_global_trajectories.pdf",
+        "sha256": "d7164be1e91fc7f0b4872f816827a4b2b453224e58490d3fd53ed413eb211a79",
+        "size_bytes": 30118
+      },
+      "name": "render hash: ML5A_main_global_trajectories: pdf",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5A_main_global_trajectories.png",
+      "name": "render exists: ML5A_main_global_trajectories: png_300dpi",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5A_main_global_trajectories.png",
+        "sha256": "cca3474f78397bd1b4100b16d27336a825616fbcf30c7c4068533f0d2a5ec769",
+        "size_bytes": 305459
+      },
+      "name": "render hash: ML5A_main_global_trajectories: png_300dpi",
+      "passed": true
+    },
+    {
+      "detail": 30118,
+      "name": "PDF signature: ML5A_main_global_trajectories",
+      "passed": true
+    },
+    {
+      "detail": [
+        299.9994,
+        299.9994
+      ],
+      "name": "PNG 300 dpi: ML5A_main_global_trajectories",
+      "passed": true
+    },
+    {
+      "detail": [
+        2226,
+        1710
+      ],
+      "name": "publication pixel dimensions: ML5A_main_global_trajectories",
+      "passed": true
+    },
+    {
+      "detail": "ML5B_main_global_trajectories",
+      "name": "figure id: ML5B_main_global_trajectories",
+      "passed": true
+    },
+    {
+      "detail": [
+        "M1-Y",
+        "H1",
+        "H2",
+        "H5"
+      ],
+      "name": "main model contract: ML5B_main_global_trajectories",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML6_global_trajectories_representation_B_all_models.csv",
+      "name": "source exists: ML5B_main_global_trajectories: ML6_global_trajectories_representation_B_all_models.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML6_global_trajectories_representation_B_all_models.csv",
+        "sha256": "a5bc3db61a69614480ac5eaf85b895f043cf67510053ab372d3697b6ef16f5c0",
+        "size_bytes": 2387078
+      },
+      "name": "source hash: ML5B_main_global_trajectories: ML6_global_trajectories_representation_B_all_models.csv",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5B_main_global_trajectories.csv",
+      "name": "render exists: ML5B_main_global_trajectories: csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5B_main_global_trajectories.csv",
+        "rows": 4516,
+        "sha256": "bea2b1831cce7d24440e7f2e71fd60513bc0b7c932c9a7d32a62d1cb9af27054",
+        "size_bytes": 1352879
+      },
+      "name": "render hash: ML5B_main_global_trajectories: csv",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5B_main_global_trajectories.pdf",
+      "name": "render exists: ML5B_main_global_trajectories: pdf",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5B_main_global_trajectories.pdf",
+        "sha256": "4af9da2406ae76882bdc66fc8439af8d73d750657d2f0b833489dc9c00bb9a62",
+        "size_bytes": 30059
+      },
+      "name": "render hash: ML5B_main_global_trajectories: pdf",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5B_main_global_trajectories.png",
+      "name": "render exists: ML5B_main_global_trajectories: png_300dpi",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5B_main_global_trajectories.png",
+        "sha256": "cdd6216115d13bfb026687479eee11b96cdb58e3c6031f1a0cbdbf30a9bd3bc0",
+        "size_bytes": 312727
+      },
+      "name": "render hash: ML5B_main_global_trajectories: png_300dpi",
+      "passed": true
+    },
+    {
+      "detail": 30059,
+      "name": "PDF signature: ML5B_main_global_trajectories",
+      "passed": true
+    },
+    {
+      "detail": [
+        299.9994,
+        299.9994
+      ],
+      "name": "PNG 300 dpi: ML5B_main_global_trajectories",
+      "passed": true
+    },
+    {
+      "detail": [
+        2226,
+        1710
+      ],
+      "name": "publication pixel dimensions: ML5B_main_global_trajectories",
+      "passed": true
+    },
+    {
+      "detail": "ML5C_main_global_trajectories",
+      "name": "figure id: ML5C_main_global_trajectories",
+      "passed": true
+    },
+    {
+      "detail": [
+        "M1-Y",
+        "H1",
+        "H2",
+        "H5"
+      ],
+      "name": "main model contract: ML5C_main_global_trajectories",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML6_global_trajectories_representation_C_all_models.csv",
+      "name": "source exists: ML5C_main_global_trajectories: ML6_global_trajectories_representation_C_all_models.csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML6_global_trajectories_representation_C_all_models.csv",
+        "sha256": "89abe564c62a78f9707b230d86305c82817dc76568d7c9bc2372119c9996ad8f",
+        "size_bytes": 2380916
+      },
+      "name": "source hash: ML5C_main_global_trajectories: ML6_global_trajectories_representation_C_all_models.csv",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5C_main_global_trajectories.csv",
+      "name": "render exists: ML5C_main_global_trajectories: csv",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5C_main_global_trajectories.csv",
+        "rows": 4516,
+        "sha256": "e5e985dc33bbc25729cbf68cc3d38346f435944a2fc830970e9c1b20841026c9",
+        "size_bytes": 1349210
+      },
+      "name": "render hash: ML5C_main_global_trajectories: csv",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5C_main_global_trajectories.pdf",
+      "name": "render exists: ML5C_main_global_trajectories: pdf",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5C_main_global_trajectories.pdf",
+        "sha256": "78c9280b2065de110832d1f91eb41baa54005f8303f87d4cd11dcc1b5df00094",
+        "size_bytes": 27096
+      },
+      "name": "render hash: ML5C_main_global_trajectories: pdf",
+      "passed": true
+    },
+    {
+      "detail": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5C_main_global_trajectories.png",
+      "name": "render exists: ML5C_main_global_trajectories: png_300dpi",
+      "passed": true
+    },
+    {
+      "detail": {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5C_main_global_trajectories.png",
+        "sha256": "2747ce0498ce46953d30a3e881b45237997cfde5db695bb2a583545f4f5a4e14",
+        "size_bytes": 324349
+      },
+      "name": "render hash: ML5C_main_global_trajectories: png_300dpi",
+      "passed": true
+    },
+    {
+      "detail": 27096,
+      "name": "PDF signature: ML5C_main_global_trajectories",
+      "passed": true
+    },
+    {
+      "detail": [
+        299.9994,
+        299.9994
+      ],
+      "name": "PNG 300 dpi: ML5C_main_global_trajectories",
+      "passed": true
+    },
+    {
+      "detail": [
+        2288,
+        1674
+      ],
+      "name": "publication pixel dimensions: ML5C_main_global_trajectories",
+      "passed": true
+    },
+    {
+      "detail": 69,
+      "name": "ML-1 values are an exact filtered subset",
+      "passed": true
+    },
+    {
+      "detail": {
+        "('A', 'H2')": 2,
+        "('A', 'H5')": 2,
+        "('B', 'H2')": 2,
+        "('B', 'H5')": 2,
+        "('C', 'H2')": 2,
+        "('C', 'H5')": 2
+      },
+      "name": "H2/H5 show endpoints only",
+      "passed": true
+    },
+    {
+      "detail": 114,
+      "name": "ML-2 values are an exact filtered subset",
+      "passed": true
+    },
+    {
+      "detail": [
+        "H1",
+        "M1-Y"
+      ],
+      "name": "ML-2 models",
+      "passed": true
+    },
+    {
+      "detail": "Y*",
+      "name": "M1-Y evaluated only at Y*",
+      "passed": true
+    },
+    {
+      "detail": "Y*=P(X*)",
+      "name": "H1 evaluated only from Y*",
+      "passed": true
+    },
+    {
+      "detail": "all false",
+      "name": "evaluation curves did not influence optimization",
+      "passed": true
+    },
+    {
+      "detail": [
+        {
+          "absolute_difference": 0.0,
+          "accepted": 3.001818343501887e-05,
+          "passed": true,
+          "reconstructed_or_selected": 3.001818343501887e-05,
+          "run_id": "t2b-a-h1",
+          "tolerance": 2e-15
+        },
+        {
+          "absolute_difference": 0.0,
+          "accepted": 2.2820014210665148e-05,
+          "passed": true,
+          "reconstructed_or_selected": 2.2820014210665148e-05,
+          "run_id": "t2b-b-h1",
+          "tolerance": 2e-15
+        },
+        {
+          "absolute_difference": 0.0,
+          "accepted": 3.426713133257584e-05,
+          "passed": true,
+          "reconstructed_or_selected": 3.426713133257584e-05,
+          "run_id": "t2b-c-h1",
+          "tolerance": 2e-15
+        },
+        {
+          "absolute_difference": 1.3552527156068805e-20,
+          "accepted": 2.4395096189055723e-05,
+          "passed": true,
+          "reconstructed_or_selected": 2.439509618905571e-05,
+          "run_id": "t2b-a-m1y",
+          "tolerance": 2e-15
+        },
+        {
+          "absolute_difference": 1.3552527156068805e-20,
+          "accepted": 3.261043519805744e-05,
+          "passed": true,
+          "reconstructed_or_selected": 3.261043519805743e-05,
+          "run_id": "t2b-b-m1y",
+          "tolerance": 2e-15
+        },
+        {
+          "absolute_difference": 1.0164395367051604e-19,
+          "accepted": 3.805860067388399e-05,
+          "passed": true,
+          "reconstructed_or_selected": 3.8058600673884094e-05,
+          "run_id": "t2b-c-m1y",
+          "tolerance": 2e-15
+        }
+      ],
+      "name": "M1-Y/H1 final-objective parity",
+      "passed": true
+    },
+    {
+      "detail": [
+        "Y"
+      ],
+      "name": "final Y* metric state",
+      "passed": true
+    },
+    {
+      "detail": [
+        "H1",
+        "H2",
+        "H5",
+        "M1-Y"
+      ],
+      "name": "final Y* metric models",
+      "passed": true
+    },
+    {
+      "detail": 1192,
+      "name": "final Y* metric model count",
+      "passed": true
+    },
+    {
+      "detail": "794e074b2d3149f58025a7e6a74856374d86adab1e3ee518a64fe6f30ff0dd79",
+      "name": "normalization not refit",
+      "passed": true
+    },
+    {
+      "detail": [
+        "h",
+        "S",
+        "Qv",
+        "Qc",
+        "B"
+      ],
+      "name": "frozen feature order",
+      "passed": true
+    },
+    {
+      "detail": {
+        "accepted_M1_Y_evaluation_groups_reused": 3,
+        "accepted_training_Y_groups_reused": 12,
+        "new_H1_H2_H5_evaluation_groups": 9,
+        "no_accepted_value_recomputed_or_changed": true,
+        "source_direct_history_validation_status": "passed"
+      },
+      "name": "accepted overlap unchanged",
+      "passed": true
+    },
+    {
+      "detail": "{'a7f98ffe462a89a00d9d2dedd4efb4531cd0feea6e1d64de0b5359bae5e31db4'}",
+      "name": "one expected checkpoint hash: checkpoint_000010000_parameters.npz",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "a7f98ffe462a89a00d9d2dedd4efb4531cd0feea6e1d64de0b5359bae5e31db4",
+        "expected": "a7f98ffe462a89a00d9d2dedd4efb4531cd0feea6e1d64de0b5359bae5e31db4"
+      },
+      "name": "checkpoint hash: t2b-a-m1y",
+      "passed": true
+    },
+    {
+      "detail": "{'3a829ffff2c2ee96946c197e18a7bd7d7495c255212c61bec1b3d24d788a71ee'}",
+      "name": "one expected checkpoint hash: checkpoint_000010000_parameters.npz",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "3a829ffff2c2ee96946c197e18a7bd7d7495c255212c61bec1b3d24d788a71ee",
+        "expected": "3a829ffff2c2ee96946c197e18a7bd7d7495c255212c61bec1b3d24d788a71ee"
+      },
+      "name": "checkpoint hash: t2b-b-m1y",
+      "passed": true
+    },
+    {
+      "detail": "{'169eadab27a39916e37a875c27708873595f133cb4ea39e9f23eab14e86d49ee'}",
+      "name": "one expected checkpoint hash: checkpoint_000010000_parameters.npz",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "169eadab27a39916e37a875c27708873595f133cb4ea39e9f23eab14e86d49ee",
+        "expected": "169eadab27a39916e37a875c27708873595f133cb4ea39e9f23eab14e86d49ee"
+      },
+      "name": "checkpoint hash: t2b-c-m1y",
+      "passed": true
+    },
+    {
+      "detail": "{'a6a7667217ce26fa3b392cacc5e70f087db97622804db0cdcf123f7e532516c1'}",
+      "name": "one expected checkpoint hash: checkpoint_000005000_parameters.npz",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "a6a7667217ce26fa3b392cacc5e70f087db97622804db0cdcf123f7e532516c1",
+        "expected": "a6a7667217ce26fa3b392cacc5e70f087db97622804db0cdcf123f7e532516c1"
+      },
+      "name": "checkpoint hash: t2b-a-h1",
+      "passed": true
+    },
+    {
+      "detail": "{'2158c1e48bb422d13ea077cea9617be77aad1be76a5945ec0a5201a796a04ed3'}",
+      "name": "one expected checkpoint hash: checkpoint_000000020_parameters.npz",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "2158c1e48bb422d13ea077cea9617be77aad1be76a5945ec0a5201a796a04ed3",
+        "expected": "2158c1e48bb422d13ea077cea9617be77aad1be76a5945ec0a5201a796a04ed3"
+      },
+      "name": "checkpoint hash: t2b-a-h2",
+      "passed": true
+    },
+    {
+      "detail": "{'07b3a84734679abf8849b5afb1f30f87568482e221a2a759a143f29a0cfc5ff1'}",
+      "name": "one expected checkpoint hash: checkpoint_000000020_parameters.npz",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "07b3a84734679abf8849b5afb1f30f87568482e221a2a759a143f29a0cfc5ff1",
+        "expected": "07b3a84734679abf8849b5afb1f30f87568482e221a2a759a143f29a0cfc5ff1"
+      },
+      "name": "checkpoint hash: t2b-a-h5",
+      "passed": true
+    },
+    {
+      "detail": "{'bc622626887cc65acf215c03bf3281eb0fe97447723528415fbc5f8345eccf8e'}",
+      "name": "one expected checkpoint hash: checkpoint_000005000_parameters.npz",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "bc622626887cc65acf215c03bf3281eb0fe97447723528415fbc5f8345eccf8e",
+        "expected": "bc622626887cc65acf215c03bf3281eb0fe97447723528415fbc5f8345eccf8e"
+      },
+      "name": "checkpoint hash: t2b-b-h1",
+      "passed": true
+    },
+    {
+      "detail": "{'b3257a8821b80b90359bce7ca22759e0a48f1785f01b468c60a90c8bf9f41bcc'}",
+      "name": "one expected checkpoint hash: checkpoint_000000020_parameters.npz",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "b3257a8821b80b90359bce7ca22759e0a48f1785f01b468c60a90c8bf9f41bcc",
+        "expected": "b3257a8821b80b90359bce7ca22759e0a48f1785f01b468c60a90c8bf9f41bcc"
+      },
+      "name": "checkpoint hash: t2b-b-h2",
+      "passed": true
+    },
+    {
+      "detail": "{'575d26dacc4eddd4ef84c564725a8b8beb521dc279fb797eaece34e4de842f74'}",
+      "name": "one expected checkpoint hash: checkpoint_000000020_parameters.npz",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "575d26dacc4eddd4ef84c564725a8b8beb521dc279fb797eaece34e4de842f74",
+        "expected": "575d26dacc4eddd4ef84c564725a8b8beb521dc279fb797eaece34e4de842f74"
+      },
+      "name": "checkpoint hash: t2b-b-h5",
+      "passed": true
+    },
+    {
+      "detail": "{'be3fac690063191ee78df7a8515b580d17842a34083835c73232ab1bb3995c6b'}",
+      "name": "one expected checkpoint hash: checkpoint_000005000_parameters.npz",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "be3fac690063191ee78df7a8515b580d17842a34083835c73232ab1bb3995c6b",
+        "expected": "be3fac690063191ee78df7a8515b580d17842a34083835c73232ab1bb3995c6b"
+      },
+      "name": "checkpoint hash: t2b-c-h1",
+      "passed": true
+    },
+    {
+      "detail": "{'cce0fff0c49ad9577a5cfe6b1e8176eb45af8e1d1dbac6e98029d75e3dce1657'}",
+      "name": "one expected checkpoint hash: checkpoint_000000020_parameters.npz",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "cce0fff0c49ad9577a5cfe6b1e8176eb45af8e1d1dbac6e98029d75e3dce1657",
+        "expected": "cce0fff0c49ad9577a5cfe6b1e8176eb45af8e1d1dbac6e98029d75e3dce1657"
+      },
+      "name": "checkpoint hash: t2b-c-h2",
+      "passed": true
+    },
+    {
+      "detail": "{'ecb28ef27fbb4663970da2e4f72f9adbcf0c67ab966e80e65bb21f17ada63985'}",
+      "name": "one expected checkpoint hash: checkpoint_000000020_parameters.npz",
+      "passed": true
+    },
+    {
+      "detail": {
+        "actual": "ecb28ef27fbb4663970da2e4f72f9adbcf0c67ab966e80e65bb21f17ada63985",
+        "expected": "ecb28ef27fbb4663970da2e4f72f9adbcf0c67ab966e80e65bb21f17ada63985"
+      },
+      "name": "checkpoint hash: t2b-c-h5",
+      "passed": true
+    },
+    {
+      "detail": 40,
+      "name": "ML-3 values are an exact Y* subset",
+      "passed": true
+    },
+    {
+      "detail": 12,
+      "name": "ML-4 values are an exact filtered subset",
+      "passed": true
+    },
+    {
+      "detail": 4516,
+      "name": "ML-5A values are an exact filtered subset",
+      "passed": true
+    },
+    {
+      "detail": {
+        "H1": 161,
+        "H2": 161,
+        "H5": 161,
+        "M1-Y": 161
+      },
+      "name": "ML-5A time count: kinetic_energy_relative_error",
+      "passed": true
+    },
+    {
+      "detail": {
+        "H1": 161,
+        "H2": 161,
+        "H5": 161,
+        "M1-Y": 161
+      },
+      "name": "ML-5A time count: model_Qc_mass",
+      "passed": true
+    },
+    {
+      "detail": {
+        "H1": 161,
+        "H2": 161,
+        "H5": 161,
+        "M1-Y": 161
+      },
+      "name": "ML-5A time count: model_Qr_mass",
+      "passed": true
+    },
+    {
+      "detail": {
+        "H1": 161,
+        "H2": 161,
+        "H5": 161,
+        "M1-Y": 161
+      },
+      "name": "ML-5A time count: model_relative_total_water_drift",
+      "passed": true
+    },
+    {
+      "detail": {
+        "H1": 161,
+        "H2": 161,
+        "H5": 161,
+        "M1-Y": 161
+      },
+      "name": "ML-5A time count: projected_relative_vorticity_squared_relative_error",
+      "passed": true
+    },
+    {
+      "detail": {
+        "H1": 161,
+        "H2": 161,
+        "H5": 161,
+        "M1-Y": 161
+      },
+      "name": "ML-5A time count: truth_Qc_mass",
+      "passed": true
+    },
+    {
+      "detail": {
+        "H1": 161,
+        "H2": 161,
+        "H5": 161,
+        "M1-Y": 161
+      },
+      "name": "ML-5A time count: truth_Qr_mass",
+      "passed": true
+    },
+    {
+      "detail": 4516,
+      "name": "ML-5B values are an exact filtered subset",
+      "passed": true
+    },
+    {
+      "detail": {
+        "H1": 161,
+        "H2": 161,
+        "H5": 161,
+        "M1-Y": 161
+      },
+      "name": "ML-5B time count: kinetic_energy_relative_error",
+      "passed": true
+    },
+    {
+      "detail": {
+        "H1": 161,
+        "H2": 161,
+        "H5": 161,
+        "M1-Y": 161
+      },
+      "name": "ML-5B time count: model_Qc_mass",
+      "passed": true
+    },
+    {
+      "detail": {
+        "H1": 161,
+        "H2": 161,
+        "H5": 161,
+        "M1-Y": 161
+      },
+      "name": "ML-5B time count: model_Qr_mass",
+      "passed": true
+    },
+    {
+      "detail": {
+        "H1": 161,
+        "H2": 161,
+        "H5": 161,
+        "M1-Y": 161
+      },
+      "name": "ML-5B time count: model_relative_total_water_drift",
+      "passed": true
+    },
+    {
+      "detail": {
+        "H1": 161,
+        "H2": 161,
+        "H5": 161,
+        "M1-Y": 161
+      },
+      "name": "ML-5B time count: projected_relative_vorticity_squared_relative_error",
+      "passed": true
+    },
+    {
+      "detail": {
+        "H1": 161,
+        "H2": 161,
+        "H5": 161,
+        "M1-Y": 161
+      },
+      "name": "ML-5B time count: truth_Qc_mass",
+      "passed": true
+    },
+    {
+      "detail": {
+        "H1": 161,
+        "H2": 161,
+        "H5": 161,
+        "M1-Y": 161
+      },
+      "name": "ML-5B time count: truth_Qr_mass",
+      "passed": true
+    },
+    {
+      "detail": 4516,
+      "name": "ML-5C values are an exact filtered subset",
+      "passed": true
+    },
+    {
+      "detail": {
+        "H1": 161,
+        "H2": 161,
+        "H5": 161,
+        "M1-Y": 161
+      },
+      "name": "ML-5C time count: kinetic_energy_relative_error",
+      "passed": true
+    },
+    {
+      "detail": {
+        "H1": 161,
+        "H2": 161,
+        "H5": 161,
+        "M1-Y": 161
+      },
+      "name": "ML-5C time count: model_Qc_mass",
+      "passed": true
+    },
+    {
+      "detail": {
+        "H1": 161,
+        "H2": 161,
+        "H5": 161,
+        "M1-Y": 161
+      },
+      "name": "ML-5C time count: model_Qr_mass",
+      "passed": true
+    },
+    {
+      "detail": {
+        "H1": 161,
+        "H2": 161,
+        "H5": 161,
+        "M1-Y": 161
+      },
+      "name": "ML-5C time count: model_relative_total_water_drift",
+      "passed": true
+    },
+    {
+      "detail": {
+        "H1": 161,
+        "H2": 161,
+        "H5": 161,
+        "M1-Y": 161
+      },
+      "name": "ML-5C time count: projected_relative_vorticity_squared_relative_error",
+      "passed": true
+    },
+    {
+      "detail": {
+        "H1": 161,
+        "H2": 161,
+        "H5": 161,
+        "M1-Y": 161
+      },
+      "name": "ML-5C time count: truth_Qc_mass",
+      "passed": true
+    },
+    {
+      "detail": {
+        "H1": 161,
+        "H2": 161,
+        "H5": 161,
+        "M1-Y": 161
+      },
+      "name": "ML-5C time count: truth_Qr_mass",
+      "passed": true
+    },
+    {
+      "detail": "complete",
+      "name": "prior main archive complete",
+      "passed": true
+    },
+    {
+      "detail": {
+        "ML1_optimization_progress_test2b.csv": true,
+        "ML1_optimization_progress_test2b.pdf": true,
+        "ML1_optimization_progress_test2b.png": true,
+        "ML2_objective_training_evaluation_history_test2b.csv": true,
+        "ML2_objective_training_evaluation_history_test2b.pdf": true,
+        "ML2_objective_training_evaluation_history_test2b.png": true,
+        "ML3_m1x_m1y_cross_state_final.csv": true,
+        "ML3_m1x_m1y_cross_state_final.pdf": true,
+        "ML3_m1x_m1y_cross_state_final.png": true,
+        "ML4_frozen_model_objective_matrix_test2b.csv": true,
+        "ML4_frozen_model_objective_matrix_test2b.pdf": true,
+        "ML4_frozen_model_objective_matrix_test2b.png": true,
+        "ML5_deployed_physical_diagnostics_test2b.csv": true,
+        "ML5_deployed_physical_diagnostics_test2b.pdf": true,
+        "ML5_deployed_physical_diagnostics_test2b.png": true,
+        "ML6_global_trajectories_representation_A.csv": true,
+        "ML6_global_trajectories_representation_A.pdf": true,
+        "ML6_global_trajectories_representation_A.png": true,
+        "ML6_global_trajectories_representation_B.csv": true,
+        "ML6_global_trajectories_representation_B.pdf": true,
+        "ML6_global_trajectories_representation_B.png": true,
+        "ML6_global_trajectories_representation_C.csv": true,
+        "ML6_global_trajectories_representation_C.pdf": true,
+        "ML6_global_trajectories_representation_C.png": true
+      },
+      "name": "prior numerical/render assets byte-identical",
+      "passed": true
+    },
+    {
+      "detail": [
+        "ML1_optimization_progress_test2b",
+        "ML2_objective_training_evaluation_history_test2b",
+        "ML3_m1x_m1y_cross_state_final",
+        "ML4_frozen_model_objective_matrix_test2b",
+        "ML5_deployed_physical_diagnostics_test2b",
+        "ML6_global_trajectories_representation_A",
+        "ML6_global_trajectories_representation_B",
+        "ML6_global_trajectories_representation_C"
+      ],
+      "name": "all prior main stems now supplementary",
+      "passed": true
+    },
+    {
+      "detail": [
+        "ML1_optimization_progress_test2b",
+        "ML2_objective_training_evaluation_history_test2b",
+        "ML3_m1x_m1y_cross_state_final",
+        "ML4_frozen_model_objective_matrix_test2b",
+        "ML5_deployed_physical_diagnostics_test2b",
+        "ML6_global_trajectories_representation_A",
+        "ML6_global_trajectories_representation_B",
+        "ML6_global_trajectories_representation_C"
+      ],
+      "name": "no prior main stems remain in main",
+      "passed": true
+    },
+    {
+      "detail": 32,
+      "name": "uniform deployed Yhat coverage",
+      "passed": true
+    },
+    {
+      "detail": {
+        "A": [
+          "A"
+        ],
+        "B": [
+          "A",
+          "R all",
+          "R truth-active"
+        ],
+        "C": [
+          "S",
+          "Qv",
+          "Qc",
+          "Qr source components"
+        ]
+      },
+      "name": "no manufactured cross-representation scalar",
+      "passed": true
+    },
+    {
+      "detail": {
+        "rollout_performed": false,
+        "stored_JSON_parsing_only": true
+      },
+      "name": "deployed Yhat extraction used no rollout",
+      "passed": true
+    },
+    {
+      "detail": 12,
+      "name": "main Table 2 models",
+      "passed": true
+    },
+    {
+      "detail": 24,
+      "name": "main Table 3 models",
+      "passed": true
+    },
+    {
+      "detail": [
+        "evaluation",
+        "training"
+      ],
+      "name": "main Table 3 Y* source",
+      "passed": true
+    },
+    {
+      "detail": [
+        "H1",
+        "H2",
+        "H5",
+        "M1-Y",
+        "Truth"
+      ],
+      "name": "main Table 5 models",
+      "passed": true
+    },
+    {
+      "detail": 7,
+      "name": "figure inventory main count",
+      "passed": true
+    },
+    {
+      "detail": 26,
+      "name": "figure inventory total count",
+      "passed": true
+    },
+    {
+      "detail": [
+        {
+          "class": "main",
+          "csv_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML1_main_optimization.csv",
+          "csv_sha256": "82e65bad4e734090deba4ee5d42ce3f9322224e590a148a53eceb1baf3350799",
+          "draft_caption": "Optimization of the Test 2B training objectives for the four main-paper methods. M1-Y and H1/M2-Y are shown at saved iterations. H2 and H5 are shown only at their initial and final stage endpoints; intermediate recursive objective values were not reconstructed. Objective normalizations differ across representations.",
+          "figure_id": "ML1_main_optimization",
+          "json_sidecar_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML1_main_optimization.json",
+          "model_labels": "M1-Y; H1; H2; H5",
+          "pdf_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML1_main_optimization.pdf",
+          "pdf_sha256": "e47a95518dc97cc8759925fb6fb828a90beb737776426245d7f928b99073ae9f",
+          "png_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML1_main_optimization.png",
+          "png_sha256": "ced8446e5c69f477b0b2b8d897c4618732c9c329587fab8a5533daeacd1032e4",
+          "quantity_kind": "TRAINING OBJECTIVE HISTORY OR STORED ENDPOINT",
+          "representations": "A; B; C",
+          "scientific_question": "Did each main-paper training objective decrease under its fixed budget?",
+          "support_classification": "Test 2B objective-specific training states or windows"
+        }
+      ],
+      "name": "inventory row: ML1_main_optimization",
+      "passed": true
+    },
+    {
+      "detail": [
+        {
+          "class": "main",
+          "csv_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_main_training_evaluation.csv",
+          "csv_sha256": "4e2c1df3e002a6cebf77d5b8b8945070f20308813dda29f5f4c0f7e31345aea7",
+          "draft_caption": "Training and evaluation histories of the fitted nonrecursive objectives. Solid curves show training states or windows; dashed curves with open markers show the later evaluation states or windows. M1-Y is evaluated on truth-derived pre-moist states Y*=P(X*). H1/M2-Y uses fixed one-step pairs from Y* to the corresponding next truth state. Evaluation values were calculated from saved networks and did not influence training.",
+          "figure_id": "ML2_main_training_evaluation",
+          "json_sidecar_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_main_training_evaluation.json",
+          "model_labels": "M1-Y; H1",
+          "pdf_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_main_training_evaluation.pdf",
+          "pdf_sha256": "1898b7a59aeaad62ede94061abdbc51a444ba926e294631b8144cf6e88dd3075",
+          "png_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_main_training_evaluation.png",
+          "png_sha256": "137b0487709793e08bb7ef39110190117837c68facd22cb764a9550aef47a457",
+          "quantity_kind": "OBJECTIVE-CONSISTENT SAVED-NETWORK EVALUATION",
+          "representations": "A; B; C",
+          "scientific_question": "Does each fitted objective remain accurate over the later evaluation interval?",
+          "support_classification": "Test 2B training and evaluation states/windows"
+        }
+      ],
+      "name": "inventory row: ML2_main_training_evaluation",
+      "passed": true
+    },
+    {
+      "detail": [
+        {
+          "class": "main",
+          "csv_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML3_main_callsite_physical_accuracy.csv",
+          "csv_sha256": "4289c8a0c1ad6bc5ea7f2b8d101ba1798f933e33952a4e239e812ad64c453a7e",
+          "draft_caption": "Final-model direct physical-law errors at truth-derived pre-moist states Y*=P(X*). Filled points show training states 0--80 and open points show evaluation states 81--160. Representation A reports A; Representation B reports A and both all-sample and truth-active R errors; Representation C reports the normalized source-vector error. Detailed C source-component and B activation metrics are retained in the supplementary data and main accuracy table.",
+          "figure_id": "ML3_main_callsite_physical_accuracy",
+          "json_sidecar_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML3_main_callsite_physical_accuracy.json",
+          "model_labels": "M1-Y; H1; H2; H5",
+          "pdf_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML3_main_callsite_physical_accuracy.pdf",
+          "pdf_sha256": "fead24e1ae720f53f5dc1d5469357012e97e3b10e7c965ade7499666ed124c55",
+          "png_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML3_main_callsite_physical_accuracy.png",
+          "png_sha256": "e81fc70629550e87c57ea05356a4b5b99a2749bde574d0cba9d4b7b3d47bee33",
+          "quantity_kind": "FINAL FROZEN-NETWORK DIRECT PHYSICAL-LAW ERROR",
+          "representations": "A; B; C",
+          "scientific_question": "How accurately does each final model reproduce local moist physics at its truth-derived call site?",
+          "support_classification": "Test 2B training states 0--80 and evaluation states 81--160 at Y*=P(X*)"
+        }
+      ],
+      "name": "inventory row: ML3_main_callsite_physical_accuracy",
+      "passed": true
+    },
+    {
+      "detail": [
+        {
+          "class": "main",
+          "csv_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML4_main_deployed_physical_diagnostics.csv",
+          "csv_sha256": "ca79a2832862d5d12e688460ce15d06f6a7899bc4947db868cc3c9ed6396890d",
+          "draft_caption": "Physical diagnostics after deploying the four main-paper models in Test 2B. Points denote distinct frozen models and are not connected. Representations A and B impose the water and thermodynamic source identities algebraically; Representation C must approximate them. Moisture minima are finite-element coefficient minima rather than a pointwise positivity proof.",
+          "figure_id": "ML4_main_deployed_physical_diagnostics",
+          "json_sidecar_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML4_main_deployed_physical_diagnostics.json",
+          "model_labels": "M1-Y; H1; H2; H5",
+          "pdf_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML4_main_deployed_physical_diagnostics.pdf",
+          "pdf_sha256": "c2aee68a1b914fdb866fd4f9daa9a2e5d43f951951175f43f49e6522f2477603",
+          "png_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML4_main_deployed_physical_diagnostics.png",
+          "png_sha256": "40ef7cea2195b3eb708dcd8264c8cdbde5da32e63c10de8c9d65f0745475b2ad",
+          "quantity_kind": "FINAL STORED DEPLOYMENT DIAGNOSTIC",
+          "representations": "A; B; C",
+          "scientific_question": "Which physical properties remain accurate after deployment?",
+          "support_classification": "Test 2B deployed trajectories, states 0--160"
+        }
+      ],
+      "name": "inventory row: ML4_main_deployed_physical_diagnostics",
+      "passed": true
+    },
+    {
+      "detail": [
+        {
+          "class": "main",
+          "csv_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5A_main_global_trajectories.csv",
+          "csv_sha256": "4b1e86aaac29c23b0471d972241068a8289a096caa0563aeda9edc0d821bb885",
+          "draft_caption": "Global Test 2B trajectories for Representation A and the four main-paper models. Integrated cloud and rain water use m^3 under the unit-reference-density convention. Kinetic energy is not total energy, and projected relative-vorticity squared is not potential enstrophy. Vertical guides mark first truth rain at 5100 s and peak integrated truth rain production at 12000 s.",
+          "figure_id": "ML5A_main_global_trajectories",
+          "json_sidecar_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5A_main_global_trajectories.json",
+          "model_labels": "M1-Y; H1; H2; H5",
+          "pdf_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5A_main_global_trajectories.pdf",
+          "pdf_sha256": "d7164be1e91fc7f0b4872f816827a4b2b453224e58490d3fd53ed413eb211a79",
+          "png_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5A_main_global_trajectories.png",
+          "png_sha256": "cca3474f78397bd1b4100b16d27336a825616fbcf30c7c4068533f0d2a5ec769",
+          "quantity_kind": "FINAL STORED DEPLOYMENT DIAGNOSTIC TIME SERIES",
+          "representations": "A",
+          "scientific_question": "Do the deployed main-paper models reproduce the global physical evolution?",
+          "support_classification": "Test 2B deployed trajectories, states 0--160"
+        }
+      ],
+      "name": "inventory row: ML5A_main_global_trajectories",
+      "passed": true
+    },
+    {
+      "detail": [
+        {
+          "class": "main",
+          "csv_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5B_main_global_trajectories.csv",
+          "csv_sha256": "bea2b1831cce7d24440e7f2e71fd60513bc0b7c932c9a7d32a62d1cb9af27054",
+          "draft_caption": "Global Test 2B trajectories for Representation B and the four main-paper models. Integrated cloud and rain water use m^3 under the unit-reference-density convention. Kinetic energy is not total energy, and projected relative-vorticity squared is not potential enstrophy. Vertical guides mark first truth rain at 5100 s and peak integrated truth rain production at 12000 s.",
+          "figure_id": "ML5B_main_global_trajectories",
+          "json_sidecar_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5B_main_global_trajectories.json",
+          "model_labels": "M1-Y; H1; H2; H5",
+          "pdf_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5B_main_global_trajectories.pdf",
+          "pdf_sha256": "4af9da2406ae76882bdc66fc8439af8d73d750657d2f0b833489dc9c00bb9a62",
+          "png_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5B_main_global_trajectories.png",
+          "png_sha256": "cdd6216115d13bfb026687479eee11b96cdb58e3c6031f1a0cbdbf30a9bd3bc0",
+          "quantity_kind": "FINAL STORED DEPLOYMENT DIAGNOSTIC TIME SERIES",
+          "representations": "B",
+          "scientific_question": "Do the deployed main-paper models reproduce the global physical evolution?",
+          "support_classification": "Test 2B deployed trajectories, states 0--160"
+        }
+      ],
+      "name": "inventory row: ML5B_main_global_trajectories",
+      "passed": true
+    },
+    {
+      "detail": [
+        {
+          "class": "main",
+          "csv_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5C_main_global_trajectories.csv",
+          "csv_sha256": "e5e985dc33bbc25729cbf68cc3d38346f435944a2fc830970e9c1b20841026c9",
+          "draft_caption": "Global Test 2B trajectories for Representation C and the four main-paper models. Integrated cloud and rain water use m^3 under the unit-reference-density convention. Kinetic energy is not total energy, and projected relative-vorticity squared is not potential enstrophy. Vertical guides mark first truth rain at 5100 s and peak integrated truth rain production at 12000 s.",
+          "figure_id": "ML5C_main_global_trajectories",
+          "json_sidecar_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5C_main_global_trajectories.json",
+          "model_labels": "M1-Y; H1; H2; H5",
+          "pdf_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5C_main_global_trajectories.pdf",
+          "pdf_sha256": "78c9280b2065de110832d1f91eb41baa54005f8303f87d4cd11dcc1b5df00094",
+          "png_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML5C_main_global_trajectories.png",
+          "png_sha256": "2747ce0498ce46953d30a3e881b45237997cfde5db695bb2a583545f4f5a4e14",
+          "quantity_kind": "FINAL STORED DEPLOYMENT DIAGNOSTIC TIME SERIES",
+          "representations": "C",
+          "scientific_question": "Do the deployed main-paper models reproduce the global physical evolution?",
+          "support_classification": "Test 2B deployed trajectories, states 0--160"
+        }
+      ],
+      "name": "inventory row: ML5C_main_global_trajectories",
+      "passed": true
+    },
+    {
+      "detail": [],
+      "name": "plain main-caption terminology",
+      "passed": true
+    },
+    {
+      "detail": {
+        "branch": "dev/dimswe-learned-physics-framework",
+        "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615",
+        "status_short_all_line_count": 6948,
+        "status_short_all_sha256": "b4dbc351a8a4d4bcc18bb2b037888b69a38813a75fa7d85f1abb443cd1ebad22",
+        "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+      },
+      "name": "authoritative branch",
+      "passed": true
+    },
+    {
+      "detail": {
+        "branch": "dev/dimswe-learned-physics-framework",
+        "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615",
+        "status_short_all_line_count": 6948,
+        "status_short_all_sha256": "b4dbc351a8a4d4bcc18bb2b037888b69a38813a75fa7d85f1abb443cd1ebad22",
+        "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+      },
+      "name": "authoritative HEAD",
+      "passed": true
+    },
+    {
+      "detail": {
+        "branch": "dev/dimswe-learned-physics-framework",
+        "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615",
+        "status_short_all_line_count": 6948,
+        "status_short_all_sha256": "b4dbc351a8a4d4bcc18bb2b037888b69a38813a75fa7d85f1abb443cd1ebad22",
+        "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+      },
+      "name": "authoritative status line count",
+      "passed": true
+    },
+    {
+      "detail": {
+        "branch": "dev/dimswe-learned-physics-framework",
+        "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615",
+        "status_short_all_line_count": 6948,
+        "status_short_all_sha256": "b4dbc351a8a4d4bcc18bb2b037888b69a38813a75fa7d85f1abb443cd1ebad22",
+        "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+      },
+      "name": "authoritative status fingerprint",
+      "passed": true
+    },
+    {
+      "detail": {
+        "branch": "dev/dimswe-learned-physics-framework",
+        "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615",
+        "status_short_all_line_count": 6948,
+        "status_short_all_sha256": "b4dbc351a8a4d4bcc18bb2b037888b69a38813a75fa7d85f1abb443cd1ebad22",
+        "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+      },
+      "name": "authoritative tracked diff fingerprint",
+      "passed": true
+    },
+    {
+      "detail": {
+        "branch": "dev/dimswe-learned-physics-framework",
+        "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace",
+        "status_short_all_line_count": 7050,
+        "status_short_all_sha256": "a74dc38151e0d5b3cb1eabe275c3c80a534dea9623ceb6327894aeb8c9a893de",
+        "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+      },
+      "name": "m1y_workspace branch",
+      "passed": true
+    },
+    {
+      "detail": {
+        "branch": "dev/dimswe-learned-physics-framework",
+        "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace",
+        "status_short_all_line_count": 7050,
+        "status_short_all_sha256": "a74dc38151e0d5b3cb1eabe275c3c80a534dea9623ceb6327894aeb8c9a893de",
+        "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+      },
+      "name": "m1y_workspace HEAD",
+      "passed": true
+    },
+    {
+      "detail": {
+        "branch": "dev/dimswe-learned-physics-framework",
+        "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace",
+        "status_short_all_line_count": 7050,
+        "status_short_all_sha256": "a74dc38151e0d5b3cb1eabe275c3c80a534dea9623ceb6327894aeb8c9a893de",
+        "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+      },
+      "name": "m1y_workspace status line count",
+      "passed": true
+    },
+    {
+      "detail": {
+        "branch": "dev/dimswe-learned-physics-framework",
+        "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace",
+        "status_short_all_line_count": 7050,
+        "status_short_all_sha256": "a74dc38151e0d5b3cb1eabe275c3c80a534dea9623ceb6327894aeb8c9a893de",
+        "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+      },
+      "name": "m1y_workspace status fingerprint",
+      "passed": true
+    },
+    {
+      "detail": {
+        "branch": "dev/dimswe-learned-physics-framework",
+        "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace",
+        "status_short_all_line_count": 7050,
+        "status_short_all_sha256": "a74dc38151e0d5b3cb1eabe275c3c80a534dea9623ceb6327894aeb8c9a893de",
+        "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+      },
+      "name": "m1y_workspace tracked diff fingerprint",
+      "passed": true
+    }
+  ],
+  "date": "2026-08-29",
+  "deployed_callsite_yhat": {
+    "common_scalar_across_representations": false,
+    "model_representation_groups": 12,
+    "row_count": 32,
+    "source": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/deployed_callsite_yhat_metrics.csv",
+      "sha256": "4126f20ff687742b8bbf53f8354d5a8c592d6b5d2cda5238cef88e73fa73a027",
+      "size_bytes": 11894
+    },
+    "uniform_coverage": true
+  },
+  "figure_checks": [
+    {
+      "csv_sha256": "82e65bad4e734090deba4ee5d42ce3f9322224e590a148a53eceb1baf3350799",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "figure": "ML1_main_optimization",
+      "pdf_sha256": "e47a95518dc97cc8759925fb6fb828a90beb737776426245d7f928b99073ae9f",
+      "pixels": [
+        2179,
+        2127
+      ],
+      "png_sha256": "ced8446e5c69f477b0b2b8d897c4618732c9c329587fab8a5533daeacd1032e4"
+    },
+    {
+      "csv_sha256": "4e2c1df3e002a6cebf77d5b8b8945070f20308813dda29f5f4c0f7e31345aea7",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "figure": "ML2_main_training_evaluation",
+      "pdf_sha256": "1898b7a59aeaad62ede94061abdbc51a444ba926e294631b8144cf6e88dd3075",
+      "pixels": [
+        2200,
+        2120
+      ],
+      "png_sha256": "137b0487709793e08bb7ef39110190117837c68facd22cb764a9550aef47a457"
+    },
+    {
+      "csv_sha256": "4289c8a0c1ad6bc5ea7f2b8d101ba1798f933e33952a4e239e812ad64c453a7e",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "figure": "ML3_main_callsite_physical_accuracy",
+      "pdf_sha256": "fead24e1ae720f53f5dc1d5469357012e97e3b10e7c965ade7499666ed124c55",
+      "pixels": [
+        2131,
+        2190
+      ],
+      "png_sha256": "e81fc70629550e87c57ea05356a4b5b99a2749bde574d0cba9d4b7b3d47bee33"
+    },
+    {
+      "csv_sha256": "ca79a2832862d5d12e688460ce15d06f6a7899bc4947db868cc3c9ed6396890d",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "figure": "ML4_main_deployed_physical_diagnostics",
+      "pdf_sha256": "c2aee68a1b914fdb866fd4f9daa9a2e5d43f951951175f43f49e6522f2477603",
+      "pixels": [
+        2248,
+        1635
+      ],
+      "png_sha256": "40ef7cea2195b3eb708dcd8264c8cdbde5da32e63c10de8c9d65f0745475b2ad"
+    },
+    {
+      "csv_sha256": "4b1e86aaac29c23b0471d972241068a8289a096caa0563aeda9edc0d821bb885",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "figure": "ML5A_main_global_trajectories",
+      "pdf_sha256": "d7164be1e91fc7f0b4872f816827a4b2b453224e58490d3fd53ed413eb211a79",
+      "pixels": [
+        2226,
+        1710
+      ],
+      "png_sha256": "cca3474f78397bd1b4100b16d27336a825616fbcf30c7c4068533f0d2a5ec769"
+    },
+    {
+      "csv_sha256": "bea2b1831cce7d24440e7f2e71fd60513bc0b7c932c9a7d32a62d1cb9af27054",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "figure": "ML5B_main_global_trajectories",
+      "pdf_sha256": "4af9da2406ae76882bdc66fc8439af8d73d750657d2f0b833489dc9c00bb9a62",
+      "pixels": [
+        2226,
+        1710
+      ],
+      "png_sha256": "cdd6216115d13bfb026687479eee11b96cdb58e3c6031f1a0cbdbf30a9bd3bc0"
+    },
+    {
+      "csv_sha256": "e5e985dc33bbc25729cbf68cc3d38346f435944a2fc830970e9c1b20841026c9",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "figure": "ML5C_main_global_trajectories",
+      "pdf_sha256": "78c9280b2065de110832d1f91eb41baa54005f8303f87d4cd11dcc1b5df00094",
+      "pixels": [
+        2288,
+        1674
+      ],
+      "png_sha256": "2747ce0498ce46953d30a3e881b45237997cfde5db695bb2a583545f4f5a4e14"
+    }
+  ],
+  "final_callsite_y_metrics": {
+    "checkpoint_count": 12,
+    "checkpoint_hashes_verified": [
+      {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/production/representation-A/m1y-seed0-m20-10k/checkpoint_000010000_parameters.npz",
+        "run_id": "t2b-a-m1y",
+        "sha256": "a7f98ffe462a89a00d9d2dedd4efb4531cd0feea6e1d64de0b5359bae5e31db4"
+      },
+      {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/production/representation-B/m1y-seed0-m20-10k/checkpoint_000010000_parameters.npz",
+        "run_id": "t2b-b-m1y",
+        "sha256": "3a829ffff2c2ee96946c197e18a7bd7d7495c255212c61bec1b3d24d788a71ee"
+      },
+      {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/production/representation-C/m1y-seed0-m20-10k/checkpoint_000010000_parameters.npz",
+        "run_id": "t2b-c-m1y",
+        "sha256": "169eadab27a39916e37a875c27708873595f133cb4ea39e9f23eab14e86d49ee"
+      },
+      {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-A/h1-from-m1-m20-5k/checkpoint_000005000_parameters.npz",
+        "run_id": "t2b-a-h1",
+        "sha256": "a6a7667217ce26fa3b392cacc5e70f087db97622804db0cdcf123f7e532516c1"
+      },
+      {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-A/h2-from-h1-m20-20/checkpoint_000000020_parameters.npz",
+        "run_id": "t2b-a-h2",
+        "sha256": "2158c1e48bb422d13ea077cea9617be77aad1be76a5945ec0a5201a796a04ed3"
+      },
+      {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-A/h5-from-h2-m20-20/checkpoint_000000020_parameters.npz",
+        "run_id": "t2b-a-h5",
+        "sha256": "07b3a84734679abf8849b5afb1f30f87568482e221a2a759a143f29a0cfc5ff1"
+      },
+      {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-B/h1-from-m1-m20-5k/checkpoint_000005000_parameters.npz",
+        "run_id": "t2b-b-h1",
+        "sha256": "bc622626887cc65acf215c03bf3281eb0fe97447723528415fbc5f8345eccf8e"
+      },
+      {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-B/h2-from-h1-m20-20/checkpoint_000000020_parameters.npz",
+        "run_id": "t2b-b-h2",
+        "sha256": "b3257a8821b80b90359bce7ca22759e0a48f1785f01b468c60a90c8bf9f41bcc"
+      },
+      {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-B/h5-from-h2-m20-20/checkpoint_000000020_parameters.npz",
+        "run_id": "t2b-b-h5",
+        "sha256": "575d26dacc4eddd4ef84c564725a8b8beb521dc279fb797eaece34e4de842f74"
+      },
+      {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-C/h1-from-m1-m20-5k/checkpoint_000005000_parameters.npz",
+        "run_id": "t2b-c-h1",
+        "sha256": "be3fac690063191ee78df7a8515b580d17842a34083835c73232ab1bb3995c6b"
+      },
+      {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-C/h2-from-h1-m20-20/checkpoint_000000020_parameters.npz",
+        "run_id": "t2b-c-h2",
+        "sha256": "cce0fff0c49ad9577a5cfe6b1e8176eb45af8e1d1dbac6e98029d75e3dce1657"
+      },
+      {
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-learning/production/representation-C/h5-from-h2-m20-20/checkpoint_000000020_parameters.npz",
+        "run_id": "t2b-c-h5",
+        "sha256": "ecb28ef27fbb4663970da2e4f72f9adbcf0c67ab966e80e65bb21f17ada63985"
+      }
+    ],
+    "evaluation_states": [
+      81,
+      160
+    ],
+    "models": [
+      "M1-Y",
+      "H1",
+      "H2",
+      "H5"
+    ],
+    "representations": [
+      "A",
+      "B",
+      "C"
+    ],
+    "source": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/final_callsite_y_metrics.csv",
+      "sha256": "f04daf9bbfef35fdc92a01c58593e767cb7712284d5cc9ff4484fe86070edc34",
+      "size_bytes": 581724
+    },
+    "state": "truth-derived pre-moist Y*=P(X*)",
+    "training_states": [
+      0,
+      80
+    ]
+  },
+  "m1y_workspace_unchanged": true,
+  "main_figure_count": 7,
+  "main_figure_sequence": [
+    "ML1_main_optimization",
+    "ML2_main_training_evaluation",
+    "ML3_main_callsite_physical_accuracy",
+    "ML4_main_deployed_physical_diagnostics",
+    "ML5A_main_global_trajectories",
+    "ML5B_main_global_trajectories",
+    "ML5C_main_global_trajectories"
+  ],
+  "main_figures_visually_inspected": [
+    "ML1_main_optimization",
+    "ML2_main_training_evaluation",
+    "ML3_main_callsite_physical_accuracy",
+    "ML4_main_deployed_physical_diagnostics",
+    "ML5A_main_global_trajectories",
+    "ML5B_main_global_trajectories",
+    "ML5C_main_global_trajectories"
+  ],
+  "objective_history": {
+    "H2_H5_recursive_histories_reconstructed": false,
+    "available_for_all_representations": true,
+    "final_training_objective_maximum_absolute_parity_difference": 1.0164395367051604e-19,
+    "models": [
+      "M1-Y",
+      "H1"
+    ]
+  },
+  "operations": {
+    "accepted_checkpoint_mutation": false,
+    "accepted_scientific_data_mutation": false,
+    "autonomous_or_spatial_rerun": false,
+    "figure_rendering_and_table_filtering": true,
+    "fixed_array_final_Y_evaluations": 9,
+    "prefix_or_timestep_integration": false,
+    "recursive_checkpoint_history": false,
+    "stored_autonomous_JSON_parsing": true,
+    "training_or_optimization": false,
+    "truth_generation": false
+  },
+  "prior_full_campaign_assets": {
+    "archived_stems": [
+      "ML1_optimization_progress_test2b",
+      "ML2_objective_training_evaluation_history_test2b",
+      "ML3_m1x_m1y_cross_state_final",
+      "ML4_frozen_model_objective_matrix_test2b",
+      "ML5_deployed_physical_diagnostics_test2b",
+      "ML6_global_trajectories_representation_A",
+      "ML6_global_trajectories_representation_B",
+      "ML6_global_trajectories_representation_C"
+    ],
+    "manifest": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/PRIOR_MAIN_ARCHIVE.json",
+      "sha256": "2bca1db6c26bab3d7ea0cdaa3bda65196edc3cec15b98485c61d176e078f69e3",
+      "size_bytes": 25348
+    },
+    "retained_in_supplement": true
+  },
+  "repository_fingerprints": {
+    "authoritative": {
+      "branch": "dev/dimswe-learned-physics-framework",
+      "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615",
+      "status_short_all_line_count": 6948,
+      "status_short_all_sha256": "b4dbc351a8a4d4bcc18bb2b037888b69a38813a75fa7d85f1abb443cd1ebad22",
+      "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+    },
+    "m1y_workspace": {
+      "branch": "dev/dimswe-learned-physics-framework",
+      "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace",
+      "status_short_all_line_count": 7050,
+      "status_short_all_sha256": "a74dc38151e0d5b3cb1eabe275c3c80a534dea9623ceb6327894aeb8c9a893de",
+      "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+    }
+  },
+  "scope": "deployment-consistent main-paper ML subset",
+  "status": "passed",
+  "supplement_figure_count": 19,
+  "visual_inspection_result": "passed; the only revision was removal of the crowded 5k tick from 10k M1-Y axes; plotted CSV hashes remained unchanged"
+}

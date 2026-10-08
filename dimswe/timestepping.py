@@ -9,7 +9,14 @@ class DummySolver():
     def solve(self):
         pass
 
-def get_time_integrator(name, parameters, solver_parameters):
+def get_time_integrator(
+    name,
+    parameters,
+    solver_parameters,
+    *,
+    moist_backend="ufl",
+    jax_moist_local_physics=None,
+):
     if name == 'RK4':
         return RK4
     elif name == 'Euler':
@@ -23,12 +30,38 @@ def get_time_integrator(name, parameters, solver_parameters):
         termlist = parameters['timestepping']['termlist']
         subcycle_list = parameters['timestepping']['subcycle_list']
 
-        return lambda model, logger, coeffs: LieSplittingIntegrator(model, logger, timestepper_list, termlist, subcycle_list, solver_parameters)
+        return lambda model, logger, coeffs: LieSplittingIntegrator(
+            model,
+            logger,
+            timestepper_list,
+            termlist,
+            subcycle_list,
+            solver_parameters,
+            moist_backend=moist_backend,
+            jax_moist_local_physics=jax_moist_local_physics,
+        )
     else:
         raise ValueError("time step method " + name + " is unknown")
 
-def get_timestepper(parameters, model, logger, solver_parameters):
-    return get_time_integrator(parameters['timestepping']['method'], parameters, solver_parameters)(model, logger, solver_parameters)
+def get_timestepper(
+    parameters,
+    model,
+    logger,
+    solver_parameters,
+    *,
+    moist_backend="ufl",
+    jax_moist_local_physics=None,
+):
+    from .moist_backend import validate_moist_backend
+
+    backend = validate_moist_backend(moist_backend)
+    return get_time_integrator(
+        parameters['timestepping']['method'],
+        parameters,
+        solver_parameters,
+        moist_backend=backend,
+        jax_moist_local_physics=jax_moist_local_physics,
+    )(model, logger, solver_parameters)
 
 
 def create_linear_solver_from_residual(residual, var, trialvar, constant_jacobian=False, solver_parameters={}, options_prefix=''):
@@ -153,10 +186,12 @@ class GeneralRK(TimeStepper):
         #construct residuals for F and aux
         residuals_F = []
         residuals_aux = []
+        stage_rhs_forms = []
         for i in range(nstages):
         #this sign is due to writing things as dxdt + F(x) = 0
             rhs_Fi = -model.rhs(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
             rhs_Fi = replace(rhs_Fi, xi_splits[i])
+            stage_rhs_forms.append(rhs_Fi)
             residual_F = inner(xhat[0], self.Fi[i][0][0])*self.dx - rhs_Fi
             #print('resF', i, residual_F)
             #print('xisplits', xi_splits[i])
@@ -239,6 +274,17 @@ class GeneralRK(TimeStepper):
 
             residuals_mu.append(residual_mu)
             residuals_muaux.append(residual_muaux)
+
+        # Read-only references to the exact forms already built by the
+        # deployed GeneralRK constructor.  Retaining these objects does not
+        # alter the legacy solves.  The dry-HVP path differentiates these same
+        # stage graphs, and its audit compares their coefficient identities
+        # and integral/quadrature metadata with any reconstructed comparator.
+        self.production_stage_rhs_forms = tuple(stage_rhs_forms)
+        self.production_stage_residuals = tuple(residuals_F)
+        self.production_reverse_stage_residuals = tuple(residuals_mu)
+        self.production_stage_state_substitutions = tuple(xi_splits)
+        self.production_stage_base_state = self.xk[0]
 
 
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF
@@ -347,6 +393,224 @@ class GeneralRK(TimeStepper):
             if self.model.has_aux():
                 self.mui[i][0][1].assign(0)
                 self.Fi[i][0][1].assign(0)
+
+    def _get_hyperviscosity_hvp_helper(self):
+        """Return the narrow cached-HVP helper after semantic validation.
+
+        Construction is lazy so every existing GeneralRK instance and legacy
+        method remains independent of the new certification path.
+        """
+        if not hasattr(self, '_hyperviscosity_hvp_helper'):
+            from .hyperviscosity_hvp import ProductionHyperviscosityEulerHVP
+            self._hyperviscosity_hvp_helper = ProductionHyperviscosityEulerHVP(self)
+        return self._hyperviscosity_hvp_helper
+
+    def take_forward_step_cached(self, xn, tn, dt):
+        """Cache one production Euler/hyperviscosity child step.
+
+        This API deliberately rejects every other tableau and term set.  It is
+        separate from, and does not alter, ``take_forward_step``.
+        """
+        return self._get_hyperviscosity_hvp_helper().take_forward_step_cached(
+            xn, tn, dt
+        )
+
+    def take_tangent_step(self, primal_cache, delta_xn, delta_c0):
+        """Apply the exact physical-c0 tangent of a cached child step."""
+        return self._get_hyperviscosity_hvp_helper().take_tangent_step(
+            primal_cache, delta_xn, delta_c0
+        )
+
+    def take_adjoint_step_cached(self, primal_cache, lambda_plus_star):
+        """Apply the dual-native ordinary reverse of a cached child step."""
+        return self._get_hyperviscosity_hvp_helper().take_adjoint_step_cached(
+            primal_cache, lambda_plus_star
+        )
+
+    def take_incremental_adjoint_step(
+        self, tangent_cache, lambda_plus_star, mu_plus_star
+    ):
+        """Apply the exact dual-native incremental reverse of one child."""
+        return self._get_hyperviscosity_hvp_helper().take_incremental_adjoint_step(
+            tangent_cache, lambda_plus_star, mu_plus_star
+        )
+
+    def hyperviscosity_state_mass_map(self, value):
+        """Apply the production mixed L2 mass map for dual-native tests/APIs."""
+        return self._get_hyperviscosity_hvp_helper().state_mass_map(value)
+
+    def hyperviscosity_state_riesz_representative(self, dual):
+        """Explicitly solve for a mixed primal L2 Riesz representative."""
+        return self._get_hyperviscosity_hvp_helper().state_riesz_representative(
+            dual
+        )
+
+    def hyperviscosity_dual_pairing(self, dual, primal):
+        """Evaluate the natural mixed dual/primal pairing."""
+        return self._get_hyperviscosity_hvp_helper().dual_pairing(dual, primal)
+
+    def _get_dry_rk4_hvp_helper(self):
+        """Return the narrowly certified production dry-RK4 HVP helper."""
+        if not hasattr(self, '_dry_rk4_hvp_helper'):
+            from .dry_lie_hvp import ProductionDryRK4HVP
+            self._dry_rk4_hvp_helper = ProductionDryRK4HVP(self)
+        return self._dry_rk4_hvp_helper
+
+    def take_dry_forward_step_cached(self, xn, tn, dt):
+        """Cache one exact production dry RK4 child step."""
+        return self._get_dry_rk4_hvp_helper().take_forward_step_cached(
+            xn, tn, dt
+        )
+
+    def take_dry_tangent_step(self, primal_cache, delta_xn):
+        """Propagate an incoming state direction through cached dry RK4."""
+        return self._get_dry_rk4_hvp_helper().take_tangent_step(
+            primal_cache, delta_xn
+        )
+
+    def take_dry_adjoint_step_cached(self, primal_cache, lambda_plus_star):
+        """Apply the dual-native ordinary reverse of cached dry RK4."""
+        return self._get_dry_rk4_hvp_helper().take_adjoint_step_cached(
+            primal_cache, lambda_plus_star
+        )
+
+    def take_dry_incremental_adjoint_step(
+        self, tangent_cache, lambda_plus_star, mu_plus_star
+    ):
+        """Apply the exact state-curvature incremental dry RK4 reverse."""
+        return self._get_dry_rk4_hvp_helper().take_incremental_adjoint_step(
+            tangent_cache, lambda_plus_star, mu_plus_star
+        )
+
+    def dry_rk4_state_mass_map(self, value):
+        """Apply the certified dry mixed L2 mass map."""
+        return self._get_dry_rk4_hvp_helper().state_mass_map(value)
+
+    def dry_rk4_state_riesz_representative(self, dual):
+        """Solve explicitly for the dry mixed L2 Riesz representative."""
+        return self._get_dry_rk4_hvp_helper().state_riesz_representative(dual)
+
+    def dry_rk4_dual_pairing(self, dual, primal):
+        """Evaluate the natural dry mixed dual/primal pairing."""
+        return self._get_dry_rk4_hvp_helper().dual_pairing(dual, primal)
+
+    def dry_rk4_graph_diagnostics(self, primal_cache):
+        """Describe the cached/deployed RK4 graph without changing it."""
+        return self._get_dry_rk4_hvp_helper().graph_diagnostics(primal_cache)
+
+    def dry_rk4_stage_pairing_diagnostics(self, tangent_cache, reverse_result):
+        """Return isolated natural-pairing residuals for all RK4 stages."""
+        return self._get_dry_rk4_hvp_helper().stage_pairing_diagnostics(
+            tangent_cache, reverse_result
+        )
+
+    def dry_rk4_stage_form_identity_diagnostics(self):
+        """Expose exact UFL coefficient identities for both dry form graphs."""
+        return self._get_dry_rk4_hvp_helper().stage_form_identity_diagnostics()
+
+    def dry_rk4_production_stage_tendency(
+        self, primal_cache, stage_index, stage_state
+    ):
+        """Evaluate one exact deployed RK stage solve at an isolated state."""
+        return self._get_dry_rk4_hvp_helper().production_stage_tendency(
+            primal_cache, stage_index, stage_state
+        )
+
+    def dry_rk4_perturbed_production_stage_tendency(
+        self, primal_cache, stage_index, stage_direction, direction_scale
+    ):
+        """Run the exact stage solve after changing only xk by scale*W_i."""
+        return (
+            self._get_dry_rk4_hvp_helper()
+            .perturbed_production_stage_tendency(
+                primal_cache,
+                stage_index,
+                stage_direction,
+                direction_scale,
+            )
+        )
+
+    def dry_rk4_production_stage_tangent(
+        self, primal_cache, stage_index, stage_state, stage_direction
+    ):
+        """Differentiate the exact deployed RK stage form object."""
+        return self._get_dry_rk4_hvp_helper().production_stage_tangent(
+            primal_cache, stage_index, stage_state, stage_direction
+        )
+
+    def dry_rk4_reconstructed_stage_tangent(
+        self, primal_cache, stage_index, stage_state, stage_direction
+    ):
+        """Differentiate the former independently reconstructed stage form."""
+        return self._get_dry_rk4_hvp_helper().reconstructed_stage_tangent(
+            primal_cache, stage_index, stage_state, stage_direction
+        )
+
+    def _get_mtswe_dg_hvp_helper(self):
+        """Return the exact-form DG SSPRK43 derivative helper lazily."""
+        if not hasattr(self, '_mtswe_dg_hvp_helper'):
+            from .mtswe_split_hvp import ProductionDGSSPRK43HVP
+            self._mtswe_dg_hvp_helper = ProductionDGSSPRK43HVP(self)
+        return self._mtswe_dg_hvp_helper
+
+    def take_dg_forward_step_cached(self, xn, tn, dt):
+        """Cache one deployed four-stage DG SSPRK43 child."""
+        return self._get_mtswe_dg_hvp_helper().take_forward_step_cached(
+            xn, tn, dt
+        )
+
+    def take_dg_tangent_step(self, primal_cache, delta_xn):
+        """Propagate a state direction through exact DG stage forms."""
+        return self._get_mtswe_dg_hvp_helper().take_tangent_step(
+            primal_cache, delta_xn
+        )
+
+    def take_dg_adjoint_step_cached(self, primal_cache, lambda_plus_star):
+        """Apply the genuine-dual reverse of cached DG SSPRK43."""
+        return self._get_mtswe_dg_hvp_helper().take_adjoint_step_cached(
+            primal_cache, lambda_plus_star
+        )
+
+    def take_dg_incremental_adjoint_step(
+        self, tangent_cache, lambda_plus_star, mu_plus_star
+    ):
+        """Apply the exact incremental DG reverse."""
+        return self._get_mtswe_dg_hvp_helper().take_incremental_adjoint_step(
+            tangent_cache, lambda_plus_star, mu_plus_star
+        )
+
+    def _get_mtswe_moist_hvp_helper(self):
+        """Return the exact production-form moist Euler helper lazily."""
+        if not hasattr(self, '_mtswe_moist_hvp_helper'):
+            from .mtswe_split_hvp import ProductionMoistEulerHVP
+            self._mtswe_moist_hvp_helper = ProductionMoistEulerHVP(self)
+        return self._mtswe_moist_hvp_helper
+
+    def take_moist_forward_step_cached(self, xn, tn, dt):
+        """Cache one deployed moist-physics Euler child."""
+        return self._get_mtswe_moist_hvp_helper().take_forward_step_cached(
+            xn, tn, dt
+        )
+
+    def take_moist_tangent_step(self, primal_cache, delta_xn):
+        """Propagate a direction on a fixed moist active set."""
+        return self._get_mtswe_moist_hvp_helper().take_tangent_step(
+            primal_cache, delta_xn
+        )
+
+    def take_moist_adjoint_step_cached(self, primal_cache, lambda_plus_star):
+        """Apply the genuine-dual reverse of moist Euler."""
+        return self._get_mtswe_moist_hvp_helper().take_adjoint_step_cached(
+            primal_cache, lambda_plus_star
+        )
+
+    def take_moist_incremental_adjoint_step(
+        self, tangent_cache, lambda_plus_star, mu_plus_star
+    ):
+        """Apply the exact fixed-active-set incremental moist reverse."""
+        return self._get_mtswe_moist_hvp_helper().take_incremental_adjoint_step(
+            tangent_cache, lambda_plus_star, mu_plus_star
+        )
 
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF
     def take_forward_step(self, xnp1, xnp1_sub, xn, tn, dt):
@@ -514,7 +778,28 @@ class SOMEIMPLICITRK(GeneralRK):
 
 
 class LieSplittingIntegrator():
-    def __init__(self, model, logger, timestepper_list, termlist, subcycle_list, solver_parameters):
+    def __init__(
+        self,
+        model,
+        logger,
+        timestepper_list,
+        termlist,
+        subcycle_list,
+        solver_parameters,
+        *,
+        moist_backend="ufl",
+        jax_moist_local_physics=None,
+    ):
+
+        from .moist_backend import (
+            build_moist_integrator,
+            validate_moist_backend,
+        )
+
+        self.moist_backend = validate_moist_backend(moist_backend)
+        if self.moist_backend == "ufl" and jax_moist_local_physics is not None:
+            raise ValueError("learned local physics requires moist_backend='jax'")
+        self.jax_moist_local_physics = jax_moist_local_physics
 
         self.subcycle_list = subcycle_list
         self.timestepper_list = timestepper_list
@@ -525,6 +810,29 @@ class LieSplittingIntegrator():
         for i,time_integrator_name in enumerate(timestepper_list):
             time_integrator = get_time_integrator(time_integrator_name, None, solver_parameters)
             self.time_integrators.append(time_integrator(model, logger, solver_parameters, terms=termlist[i]))
+
+        if self.moist_backend == "jax":
+            deployed_graph = (
+                list(timestepper_list) == ["RK4", "Euler", "SSPRK43", "Euler"]
+                and list(termlist) == [
+                    ["model"],
+                    ["hyperviscosity"],
+                    ["dg1limiter"],
+                    ["threewayphysics"],
+                ]
+                and list(subcycle_list) == [2, 1, 2, 1]
+            )
+            if not deployed_graph:
+                raise ValueError(
+                    "moist_backend='jax' is available only for the deployed "
+                    "[RK4,Euler,SSPRK43,Euler] MTSWE split with "
+                    "subcycles [2,1,2,1]"
+                )
+            self.time_integrators[-1] = build_moist_integrator(
+                self.time_integrators[-1],
+                self.moist_backend,
+                local_physics=self.jax_moist_local_physics,
+            )
 
         self.lambda_k, self.lambda_sub, self.lambda_split = model.get_x_var('lambda_k')
         self.delta_lambda, _, _ = model.get_x_var('delta_lambda')
@@ -545,6 +853,161 @@ class LieSplittingIntegrator():
             xk[0].assign(0)
         for time_integrator in self.time_integrators:
             time_integrator.reset_internal_vars()
+
+    def _get_dry_lie_hvp_helper(self):
+        """Return the narrowly certified two-child dry Lie HVP helper."""
+        if not hasattr(self, '_dry_lie_hvp_helper'):
+            from .dry_lie_hvp import ProductionDryLieHVP
+            self._dry_lie_hvp_helper = ProductionDryLieHVP(self)
+        return self._dry_lie_hvp_helper
+
+    def take_forward_step_cached(self, xn, tn, dt):
+        """Cache dry RK4 followed by production hyperviscosity Euler."""
+        return self._get_dry_lie_hvp_helper().take_forward_step_cached(
+            xn, tn, dt
+        )
+
+    def take_tangent_step(self, primal_cache, delta_x_in, delta_c0):
+        """Propagate a combined physical ``(delta_x_in, delta_c0)``."""
+        return self._get_dry_lie_hvp_helper().take_tangent_step(
+            primal_cache, delta_x_in, delta_c0
+        )
+
+    def take_adjoint_step_cached(self, primal_cache, lambda_plus_star):
+        """Reverse one cached dry Lie step in exact child order."""
+        return self._get_dry_lie_hvp_helper().take_adjoint_step_cached(
+            primal_cache, lambda_plus_star
+        )
+
+    def take_incremental_adjoint_step(
+        self, tangent_cache, lambda_plus_star, mu_plus_star
+    ):
+        """Apply the exact incremental reverse of one cached dry Lie step."""
+        return self._get_dry_lie_hvp_helper().take_incremental_adjoint_step(
+            tangent_cache, lambda_plus_star, mu_plus_star
+        )
+
+    def dry_lie_state_mass_map(self, value):
+        """Apply the production dry mixed L2 mass map."""
+        return self._get_dry_lie_hvp_helper().state_mass_map(value)
+
+    def dry_lie_state_riesz_representative(self, dual):
+        """Solve explicitly for a production dry L2 Riesz representative."""
+        return self._get_dry_lie_hvp_helper().state_riesz_representative(dual)
+
+    def dry_lie_dual_pairing(self, dual, primal):
+        """Evaluate the natural production dry mixed dual/primal pairing."""
+        return self._get_dry_lie_hvp_helper().dual_pairing(dual, primal)
+
+    def terminal_least_squares_gradient(
+        self, nsteps, state_initial, t0, dt, target
+    ):
+        """Return the physical-c0 and field-valued IC reduced gradient."""
+        return self._get_dry_lie_hvp_helper().terminal_least_squares_gradient(
+            nsteps, state_initial, t0, dt, target
+        )
+
+    def terminal_least_squares_hvp(
+        self,
+        nsteps,
+        state_initial,
+        t0,
+        dt,
+        target,
+        delta_x0,
+        delta_c0,
+    ):
+        """Return the exact physical-c0/IC reduced Hessian action."""
+        return self._get_dry_lie_hvp_helper().terminal_least_squares_hvp(
+            nsteps,
+            state_initial,
+            t0,
+            dt,
+            target,
+            delta_x0,
+            delta_c0,
+        )
+
+    def _get_mtswe_split_hvp_helper(self):
+        """Return the certified six-child MTSWE split helper lazily."""
+        if not hasattr(self, '_mtswe_split_hvp_helper'):
+            from .mtswe_split_hvp import ProductionMTSWESplitHVP
+            self._mtswe_split_hvp_helper = ProductionMTSWESplitHVP(self)
+        return self._mtswe_split_hvp_helper
+
+    def take_mtswe_forward_step_cached(self, xn, tn, dt):
+        """Cache the exact expanded six-child production MTSWE step."""
+        return self._get_mtswe_split_hvp_helper().take_forward_step_cached(
+            xn, tn, dt
+        )
+
+    def take_mtswe_tangent_step(self, primal_cache, delta_x_in, delta_c0):
+        """Propagate physical-c0, IC, or combined MTSWE directions."""
+        return self._get_mtswe_split_hvp_helper().take_tangent_step(
+            primal_cache, delta_x_in, delta_c0
+        )
+
+    def take_mtswe_adjoint_step_cached(
+        self, primal_cache, lambda_plus_star
+    ):
+        """Reverse one complete MTSWE step in exact child order."""
+        return self._get_mtswe_split_hvp_helper().take_adjoint_step_cached(
+            primal_cache, lambda_plus_star
+        )
+
+    def take_mtswe_incremental_adjoint_step(
+        self, tangent_cache, lambda_plus_star, mu_plus_star
+    ):
+        """Apply the exact complete-step incremental reverse."""
+        return self._get_mtswe_split_hvp_helper().take_incremental_adjoint_step(
+            tangent_cache, lambda_plus_star, mu_plus_star
+        )
+
+    def mtswe_state_mass_map(self, value):
+        """Apply the full six-field mixed L2 mass map."""
+        return self._get_mtswe_split_hvp_helper().state_mass_map(value)
+
+    def mtswe_state_riesz_representative(self, dual):
+        """Return an explicit full-state L2 Riesz representative."""
+        return self._get_mtswe_split_hvp_helper().state_riesz_representative(
+            dual
+        )
+
+    def mtswe_dual_pairing(self, dual, primal):
+        """Evaluate the natural full-state dual/primal pairing."""
+        return self._get_mtswe_split_hvp_helper().dual_pairing(dual, primal)
+
+    def mtswe_terminal_least_squares_gradient(
+        self, nsteps, state_initial, t0, dt, target
+    ):
+        """Return physical-c0 and Cofunction IC reduced gradients."""
+        return (
+            self._get_mtswe_split_hvp_helper()
+            .terminal_least_squares_gradient(
+                nsteps, state_initial, t0, dt, target
+            )
+        )
+
+    def mtswe_terminal_least_squares_hvp(
+        self,
+        nsteps,
+        state_initial,
+        t0,
+        dt,
+        target,
+        delta_x0,
+        delta_c0,
+    ):
+        """Return the physical-c0/full-IC reduced Hessian action."""
+        return self._get_mtswe_split_hvp_helper().terminal_least_squares_hvp(
+            nsteps,
+            state_initial,
+            t0,
+            dt,
+            target,
+            delta_x0,
+            delta_c0,
+        )
 
 #DOES THIS NEED TO RESET INTERNAL VARS TO ENSURE REPEATABILITY?
     def take_forward_step(self, xnp1, xnp1_sub, xn, tn, dt):

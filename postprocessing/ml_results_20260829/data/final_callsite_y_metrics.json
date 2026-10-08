@@ -1,0 +1,295 @@
+{
+  "carrier_weighting": "frozen Test-2B carrier-mass weights",
+  "command": [
+    "/Users/arjunsharma/venvs/dimswe-firedrake-2026.4.1-py312/bin/python",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/scripts/complete_final_callsite_y_metrics.py"
+  ],
+  "copied_accepted_groups": [
+    {
+      "copied_without_recomputation": true,
+      "row_count": 13,
+      "run_id": "t2b-a-h1",
+      "source": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_direct_histories.csv",
+      "support": "TRAINING TRUTH SUPPORT"
+    },
+    {
+      "copied_without_recomputation": true,
+      "row_count": 13,
+      "run_id": "t2b-a-h2",
+      "source": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_direct_histories.csv",
+      "support": "TRAINING TRUTH SUPPORT"
+    },
+    {
+      "copied_without_recomputation": true,
+      "row_count": 13,
+      "run_id": "t2b-a-h5",
+      "source": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_direct_histories.csv",
+      "support": "TRAINING TRUTH SUPPORT"
+    },
+    {
+      "copied_without_recomputation": true,
+      "row_count": 13,
+      "run_id": "t2b-a-m1y",
+      "source": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_direct_histories.csv",
+      "support": "TRAINING TRUTH SUPPORT"
+    },
+    {
+      "copied_without_recomputation": true,
+      "row_count": 13,
+      "run_id": "t2b-a-m1y",
+      "source": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_direct_histories.csv",
+      "support": "HELD-OUT TRUTH SUPPORT"
+    },
+    {
+      "copied_without_recomputation": true,
+      "row_count": 51,
+      "run_id": "t2b-b-h1",
+      "source": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_direct_histories.csv",
+      "support": "TRAINING TRUTH SUPPORT"
+    },
+    {
+      "copied_without_recomputation": true,
+      "row_count": 51,
+      "run_id": "t2b-b-h2",
+      "source": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_direct_histories.csv",
+      "support": "TRAINING TRUTH SUPPORT"
+    },
+    {
+      "copied_without_recomputation": true,
+      "row_count": 51,
+      "run_id": "t2b-b-h5",
+      "source": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_direct_histories.csv",
+      "support": "TRAINING TRUTH SUPPORT"
+    },
+    {
+      "copied_without_recomputation": true,
+      "row_count": 51,
+      "run_id": "t2b-b-m1y",
+      "source": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_direct_histories.csv",
+      "support": "TRAINING TRUTH SUPPORT"
+    },
+    {
+      "copied_without_recomputation": true,
+      "row_count": 51,
+      "run_id": "t2b-b-m1y",
+      "source": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_direct_histories.csv",
+      "support": "HELD-OUT TRUTH SUPPORT"
+    },
+    {
+      "copied_without_recomputation": true,
+      "row_count": 85,
+      "run_id": "t2b-c-h1",
+      "source": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_direct_histories.csv",
+      "support": "TRAINING TRUTH SUPPORT"
+    },
+    {
+      "copied_without_recomputation": true,
+      "row_count": 85,
+      "run_id": "t2b-c-h2",
+      "source": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_direct_histories.csv",
+      "support": "TRAINING TRUTH SUPPORT"
+    },
+    {
+      "copied_without_recomputation": true,
+      "row_count": 85,
+      "run_id": "t2b-c-h5",
+      "source": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_direct_histories.csv",
+      "support": "TRAINING TRUTH SUPPORT"
+    },
+    {
+      "copied_without_recomputation": true,
+      "row_count": 85,
+      "run_id": "t2b-c-m1y",
+      "source": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_direct_histories.csv",
+      "support": "TRAINING TRUTH SUPPORT"
+    },
+    {
+      "copied_without_recomputation": true,
+      "row_count": 85,
+      "run_id": "t2b-c-m1y",
+      "source": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_direct_histories.csv",
+      "support": "HELD-OUT TRUTH SUPPORT"
+    }
+  ],
+  "evaluation_state": "truth-derived pre-moist state Y_n*=P(X_n*)",
+  "evaluation_states": [
+    81,
+    160
+  ],
+  "feature_order": [
+    "h",
+    "S",
+    "Qv",
+    "Qc",
+    "B"
+  ],
+  "inputs": [
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_direct_histories.csv",
+      "sha256": "72e26a260f1199e8f861bf685cf053d9434cc3933462c949402d37e4a4930c1a"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/direct_history_validation.json",
+      "sha256": "f4001628488383b2cf7797932c4fc07f5823e59f35189559c83ae90eb1cec1f1"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_hash_manifest.json",
+      "sha256": "8bea6544752cd5c7bdccfb09a8ed9c7e001dfa96994a796119720cb0cb1ad43b"
+    },
+    {
+      "metadata_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/preparation/m1y_learning_data.json",
+      "metadata_sha256": "1cb934f8c4f5f2d3c18e597cd69bba2c74ed88148d3b1ca0c113452b32dd3551",
+      "normalization_provenance_sha256": "794e074b2d3149f58025a7e6a74856374d86adab1e3ee518a64fe6f30ff0dd79",
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/preparation/m1y_learning_data.npz",
+      "sha256": "6f16e6db2c6ebdbd8c00a23cdae9b5318355384723a2f1276b2ea93d95145668"
+    },
+    {
+      "metadata_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/evaluation/m1y_heldout_data.json",
+      "metadata_sha256": "4601a5dcdb5bef7ff5711b7c2273324640759e3248842cb0dc2d72e2da30c21e",
+      "normalization_provenance_sha256": "794e074b2d3149f58025a7e6a74856374d86adab1e3ee518a64fe6f30ff0dd79",
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/evaluation/m1y_heldout_data.npz",
+      "sha256": "1ddfa2d2e28b6f8dc2a0fbe0a12d2fe7da42158745a70eb2e088706501c42d2f"
+    }
+  ],
+  "model_count": 12,
+  "models": [
+    "M1-Y",
+    "H1",
+    "H2",
+    "H5"
+  ],
+  "new_fixed_array_groups": [
+    {
+      "checkpoint_iteration": 5000,
+      "checkpoint_npz_sha256": "a6a7667217ce26fa3b392cacc5e70f087db97622804db0cdcf123f7e532516c1",
+      "checkpoint_parameter_pytree_sha256": "73f39ca1e345256157890f7c918ac41a43684262e4ad11c9465bd35706b16f83",
+      "computed_by_fixed_array_inference": true,
+      "row_count": 13,
+      "run_id": "t2b-a-h1",
+      "support": "HELD-OUT TRUTH SUPPORT"
+    },
+    {
+      "checkpoint_iteration": 20,
+      "checkpoint_npz_sha256": "2158c1e48bb422d13ea077cea9617be77aad1be76a5945ec0a5201a796a04ed3",
+      "checkpoint_parameter_pytree_sha256": "3e9b414ee32f1d702a7998d6a3508c3bbf7097a2c735dbafc3550a4ecf74c5df",
+      "computed_by_fixed_array_inference": true,
+      "row_count": 13,
+      "run_id": "t2b-a-h2",
+      "support": "HELD-OUT TRUTH SUPPORT"
+    },
+    {
+      "checkpoint_iteration": 20,
+      "checkpoint_npz_sha256": "07b3a84734679abf8849b5afb1f30f87568482e221a2a759a143f29a0cfc5ff1",
+      "checkpoint_parameter_pytree_sha256": "f2d56a8947f66761371fbef8aa52b3aa545f3e2ca9822fdb27a7e3ef796d20a9",
+      "computed_by_fixed_array_inference": true,
+      "row_count": 13,
+      "run_id": "t2b-a-h5",
+      "support": "HELD-OUT TRUTH SUPPORT"
+    },
+    {
+      "checkpoint_iteration": 5000,
+      "checkpoint_npz_sha256": "bc622626887cc65acf215c03bf3281eb0fe97447723528415fbc5f8345eccf8e",
+      "checkpoint_parameter_pytree_sha256": "9ebda59a2f74f1522e595b854a06f7c1af01ef9c85a734dc0aab1996c7ac5e03",
+      "computed_by_fixed_array_inference": true,
+      "row_count": 51,
+      "run_id": "t2b-b-h1",
+      "support": "HELD-OUT TRUTH SUPPORT"
+    },
+    {
+      "checkpoint_iteration": 20,
+      "checkpoint_npz_sha256": "b3257a8821b80b90359bce7ca22759e0a48f1785f01b468c60a90c8bf9f41bcc",
+      "checkpoint_parameter_pytree_sha256": "866baac093ffcd94826daa14c13115ea057ce0e07a2b770ba642ccb1f79c44a5",
+      "computed_by_fixed_array_inference": true,
+      "row_count": 51,
+      "run_id": "t2b-b-h2",
+      "support": "HELD-OUT TRUTH SUPPORT"
+    },
+    {
+      "checkpoint_iteration": 20,
+      "checkpoint_npz_sha256": "575d26dacc4eddd4ef84c564725a8b8beb521dc279fb797eaece34e4de842f74",
+      "checkpoint_parameter_pytree_sha256": "4caffb3b14e290581d2cb4394458746e5f47d43689dc3497c942e23582ae0129",
+      "computed_by_fixed_array_inference": true,
+      "row_count": 51,
+      "run_id": "t2b-b-h5",
+      "support": "HELD-OUT TRUTH SUPPORT"
+    },
+    {
+      "checkpoint_iteration": 5000,
+      "checkpoint_npz_sha256": "be3fac690063191ee78df7a8515b580d17842a34083835c73232ab1bb3995c6b",
+      "checkpoint_parameter_pytree_sha256": "c44aa9e8811aacb423570a3bcb2f819462d882931b929a7bee442bb8b9a1d1c3",
+      "computed_by_fixed_array_inference": true,
+      "row_count": 85,
+      "run_id": "t2b-c-h1",
+      "support": "HELD-OUT TRUTH SUPPORT"
+    },
+    {
+      "checkpoint_iteration": 20,
+      "checkpoint_npz_sha256": "cce0fff0c49ad9577a5cfe6b1e8176eb45af8e1d1dbac6e98029d75e3dce1657",
+      "checkpoint_parameter_pytree_sha256": "3ae5e9d6729977310e7e9d740490c223539aa514cf0e24e379adab25d7ca6d70",
+      "computed_by_fixed_array_inference": true,
+      "row_count": 85,
+      "run_id": "t2b-c-h2",
+      "support": "HELD-OUT TRUTH SUPPORT"
+    },
+    {
+      "checkpoint_iteration": 20,
+      "checkpoint_npz_sha256": "ecb28ef27fbb4663970da2e4f72f9adbcf0c67ab966e80e65bb21f17ada63985",
+      "checkpoint_parameter_pytree_sha256": "a9a95ed952ba410ce744c6fe1473c0c842193560d14b432ce4f8543c6ff40f70",
+      "computed_by_fixed_array_inference": true,
+      "row_count": 85,
+      "run_id": "t2b-c-h5",
+      "support": "HELD-OUT TRUTH SUPPORT"
+    }
+  ],
+  "normalization_provenance_sha256": "794e074b2d3149f58025a7e6a74856374d86adab1e3ee518a64fe6f30ff0dd79",
+  "normalization_refitted": false,
+  "operations": {
+    "autonomous_or_deployed_rollout": false,
+    "fixed_network_inference": true,
+    "new_checkpoint_evaluations": 9,
+    "prefix_constructed": false,
+    "recursive_history": false,
+    "timestep_integrated": false,
+    "training_or_optimization": false,
+    "truth_generated": false
+  },
+  "output": {
+    "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/final_callsite_y_metrics.csv",
+    "sha256": "f04daf9bbfef35fdc92a01c58593e767cb7712284d5cc9ff4484fe86070edc34"
+  },
+  "overlap_validation": {
+    "accepted_M1_Y_evaluation_groups_reused": 3,
+    "accepted_training_Y_groups_reused": 12,
+    "new_H1_H2_H5_evaluation_groups": 9,
+    "no_accepted_value_recomputed_or_changed": true,
+    "source_direct_history_validation_status": "passed"
+  },
+  "record_count": 1192,
+  "representation_targets": {
+    "A": [
+      "A"
+    ],
+    "B": [
+      "A",
+      "R"
+    ],
+    "C": [
+      "S source",
+      "Qv source",
+      "Qc source",
+      "Qr source"
+    ]
+  },
+  "representations": [
+    "A",
+    "B",
+    "C"
+  ],
+  "source_head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+  "status": "complete",
+  "training_states": [
+    0,
+    80
+  ],
+  "wall_seconds": 7.135376792051829
+}

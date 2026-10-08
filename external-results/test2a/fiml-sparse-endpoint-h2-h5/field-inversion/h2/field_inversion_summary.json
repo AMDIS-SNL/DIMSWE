@@ -1,0 +1,2731 @@
+{
+  "horizon": 2,
+  "lambda": 1.0,
+  "process_parallelism_used": false,
+  "records": [
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_000.npz",
+      "control_npz_sha256": "86ffd769d044f62e5cb0772492669c9d522b21bea425703fbf5bc315ffb96c2e",
+      "control_sha256": "a300bfdadebf3552cbb9bdfba64644ef1221d75729a4c272c6f13d9218c387db",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.014854606918746762,
+        "control_rms": 0.001809011353946367,
+        "control_sha256": "a300bfdadebf3552cbb9bdfba64644ef1221d75729a4c272c6f13d9218c387db",
+        "data_misfit": 3.3926937224466126e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 4.794749164048198e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 3.7199459303173e-05,
+        "observed_truth_indices": [
+          0,
+          2
+        ],
+        "regularization_contribution": 3.272522078706868e-06,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 3.272522078706868e-06,
+        "window_origin": 0
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 4.096966104688279e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 4.6140548971931826e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 4.096966104688279e-05,
+        "observed_truth_indices": [
+          0,
+          2
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 0
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        0,
+        2
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.596846916014329
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 0,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_002.npz",
+      "control_npz_sha256": "da6f4d0d467a836399dfd5bfbfd0a5b5ba34377350c56513fca029384593160a",
+      "control_sha256": "c53a65a5c2e97c001eef8c920c112c060bdd1ccc8e21dfde3fd58d9fc2039d4d",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.017783196777950466,
+        "control_rms": 0.0016402289803061057,
+        "control_sha256": "c53a65a5c2e97c001eef8c920c112c060bdd1ccc8e21dfde3fd58d9fc2039d4d",
+        "data_misfit": 1.9906184687035947e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.756893772689444e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 2.2596535794871956e-05,
+        "observed_truth_indices": [
+          2,
+          4
+        ],
+        "regularization_contribution": 2.690351107836007e-06,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 2.690351107836007e-06,
+        "window_origin": 2
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 2.578026712334458e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 4.2943932882746345e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 2.578026712334458e-05,
+        "observed_truth_indices": [
+          2,
+          4
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 2
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        2,
+        4
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.5575185001362115
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 2,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_004.npz",
+      "control_npz_sha256": "1b2ae82bba4670a5dfb156fe5fddb7fb9a72a2a134f15be339b9392510ef793c",
+      "control_sha256": "818183d5413e2fe092aeebbf73d3e355b323397bdd8197ba838465736bd91b48",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.016357651121404318,
+        "control_rms": 0.002042423079165377,
+        "control_sha256": "818183d5413e2fe092aeebbf73d3e355b323397bdd8197ba838465736bd91b48",
+        "data_misfit": 2.623825722773115e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 3.022219573548166e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 3.0409749262038528e-05,
+        "observed_truth_indices": [
+          4,
+          6
+        ],
+        "regularization_contribution": 4.17149203430738e-06,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 4.17149203430738e-06,
+        "window_origin": 4
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 3.538267862374815e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 5.3841877535031045e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 3.538267862374815e-05,
+        "observed_truth_indices": [
+          4,
+          6
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 4
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        4,
+        6
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.840470582945272
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 4,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_006.npz",
+      "control_npz_sha256": "2c8756bc4bc81fbbdb4f0ece1a9c990c5c0196e122d6e8612c70fdd771972709",
+      "control_sha256": "7aba2c07357a35a834acb58bdf78d299d1ecb076a05c601b6894ff38c92d3248",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.017113909093133154,
+        "control_rms": 0.0017375677198972672,
+        "control_sha256": "7aba2c07357a35a834acb58bdf78d299d1ecb076a05c601b6894ff38c92d3248",
+        "data_misfit": 1.9820424819541866e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.402198138249541e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 2.2839566400770855e-05,
+        "observed_truth_indices": [
+          6,
+          8
+        ],
+        "regularization_contribution": 3.019141581228988e-06,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 3.019141581228988e-06,
+        "window_origin": 6
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 2.6430498997367396e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 4.5706598404548135e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 2.6430498997367396e-05,
+        "observed_truth_indices": [
+          6,
+          8
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 6
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        6,
+        8
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.373142084106803
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 6,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_008.npz",
+      "control_npz_sha256": "9b310987a6a7ff74ccbdae678f786c15d45a8c71abc92d7c1a5d97fc8fe1a1af",
+      "control_sha256": "07445c4b4febd7eb16e4ef1d50aaa515a15c1068426f16f222a0192aeb2878fc",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.015400395015807911,
+        "control_rms": 0.0014815354898949074,
+        "control_sha256": "07445c4b4febd7eb16e4ef1d50aaa515a15c1068426f16f222a0192aeb2878fc",
+        "data_misfit": 1.545686201174136e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.7564346836506624e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.7651809419559506e-05,
+        "observed_truth_indices": [
+          8,
+          10
+        ],
+        "regularization_contribution": 2.1949474078181433e-06,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 2.1949474078181433e-06,
+        "window_origin": 8
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 2.0245870928393094e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 3.872912281436037e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 2.0245870928393094e-05,
+        "observed_truth_indices": [
+          8,
+          10
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 8
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        8,
+        10
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.516987374983728
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 8,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_010.npz",
+      "control_npz_sha256": "ba3243bdd3c6a6fa74b43d4fb848bee35be06d0061bd893d7a23ad1b476c893d",
+      "control_sha256": "a992ccdb99716e9213bd42e0fcd536c685dd1d25f55b80770a0013c22da88e14",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.015069581432186115,
+        "control_rms": 0.0013244042555211161,
+        "control_sha256": "a992ccdb99716e9213bd42e0fcd536c685dd1d25f55b80770a0013c22da88e14",
+        "data_misfit": 1.315691426638258e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 3.20520487494812e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.4910960898425022e-05,
+        "observed_truth_indices": [
+          10,
+          12
+        ],
+        "regularization_contribution": 1.7540466320424417e-06,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 1.7540466320424417e-06,
+        "window_origin": 10
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 1.6978230709452108e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 3.453385744318e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.6978230709452108e-05,
+        "observed_truth_indices": [
+          10,
+          12
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 10
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        10,
+        12
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 5.11368416598998
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 10,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_012.npz",
+      "control_npz_sha256": "05e06d757f39ff2a3da88f98556f3a6a51bcaf8d39498d0e1edcde0191489c43",
+      "control_sha256": "ea2314d21977a43717e34875e21c852d741cfaaeb8364e965b250cb030841cad",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.019664306840639675,
+        "control_rms": 0.0013025757704636066,
+        "control_sha256": "ea2314d21977a43717e34875e21c852d741cfaaeb8364e965b250cb030841cad",
+        "data_misfit": 1.2492781845818885e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 3.4520494439833143e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.4189485483617743e-05,
+        "observed_truth_indices": [
+          12,
+          14
+        ],
+        "regularization_contribution": 1.6967036377988581e-06,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 1.6967036377988581e-06,
+        "window_origin": 12
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 1.619128568915555e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 3.399925053772104e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.619128568915555e-05,
+        "observed_truth_indices": [
+          12,
+          14
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 12
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        12,
+        14
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.2348578330129385
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 12,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_014.npz",
+      "control_npz_sha256": "47182006e5f69d5d9b176e4bba7e7110b40d7f60d7ee529405d6813ec01d21ce",
+      "control_sha256": "a70f4721cc3739ff962963a36c37f5896fbc53a6c29c01156e1b902359716123",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.014080956778903649,
+        "control_rms": 0.0011531714708991698,
+        "control_sha256": "a70f4721cc3739ff962963a36c37f5896fbc53a6c29c01156e1b902359716123",
+        "data_misfit": 1.0400304882884518e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 3.2599603033382343e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.1730109324180274e-05,
+        "observed_truth_indices": [
+          14,
+          16
+        ],
+        "regularization_contribution": 1.329804441295755e-06,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 1.329804441295755e-06,
+        "window_origin": 14
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 1.3293653204259562e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 3.0002228453040646e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.3293653204259562e-05,
+        "observed_truth_indices": [
+          14,
+          16
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 14
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        14,
+        16
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.21669033402577
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 14,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_016.npz",
+      "control_npz_sha256": "ee23895d9dd23ae33cd7889b7751786a31a2188a6d83bf534dd784df70e5c001",
+      "control_sha256": "e162eeee10b5289338c780c01826a35f617bae1f7645118acdcd807dc92086b5",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.012073154463078035,
+        "control_rms": 0.0011356571679267864,
+        "control_sha256": "e162eeee10b5289338c780c01826a35f617bae1f7645118acdcd807dc92086b5",
+        "data_misfit": 1.0263550936311718e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 3.115952472588901e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.1553268139375208e-05,
+        "observed_truth_indices": [
+          16,
+          18
+        ],
+        "regularization_contribution": 1.289717203063489e-06,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 1.289717203063489e-06,
+        "window_origin": 16
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 1.3068337854800134e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.952174561442426e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.3068337854800134e-05,
+        "observed_truth_indices": [
+          16,
+          18
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 16
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        16,
+        18
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.001692167017609
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 16,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_018.npz",
+      "control_npz_sha256": "24262a40b1102811ac27d2081ac9279693d923641b84988598676e9fa4735f9a",
+      "control_sha256": "dcc31641bca077af78884cdcad01db3ef57d44a040972c2f48ef8235d0379524",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.015372043453683202,
+        "control_rms": 0.0010483488076861176,
+        "control_sha256": "dcc31641bca077af78884cdcad01db3ef57d44a040972c2f48ef8235d0379524",
+        "data_misfit": 8.695175351488914e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.822948482257469e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 9.794210574065818e-06,
+        "observed_truth_indices": [
+          18,
+          20
+        ],
+        "regularization_contribution": 1.0990352225769045e-06,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 1.0990352225769045e-06,
+        "window_origin": 18
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 1.108617124062114e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.727008539897785e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.108617124062114e-05,
+        "observed_truth_indices": [
+          18,
+          20
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 18
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        18,
+        20
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.008477249881253
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 18,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_020.npz",
+      "control_npz_sha256": "38cc4775f23a3811485307de967cd241d64e04e99b18502238b9872927ad4894",
+      "control_sha256": "83263d8497c7b80ddcbceec9767b8e571e763d50b529485e4fc1ba79609a612b",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.011621839504966551,
+        "control_rms": 0.0010086863315123956,
+        "control_sha256": "83263d8497c7b80ddcbceec9767b8e571e763d50b529485e4fc1ba79609a612b",
+        "data_misfit": 8.446736933494283e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.839778190004734e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 9.464185048874217e-06,
+        "observed_truth_indices": [
+          20,
+          22
+        ],
+        "regularization_contribution": 1.0174481153799347e-06,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 1.0174481153799347e-06,
+        "window_origin": 20
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 1.0655763426554755e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.6143143505997e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.0655763426554755e-05,
+        "observed_truth_indices": [
+          20,
+          22
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 20
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        20,
+        22
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.218664707848802
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 20,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_022.npz",
+      "control_npz_sha256": "bed3a54301d8bd100de377ef222cc81f1b97a541425efe8d397b1c020d6c7a94",
+      "control_sha256": "0c024f916b9b83140c0d685ea84a0298685c048956ed6cb6070a85406e472522",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.011943969415081534,
+        "control_rms": 0.0010860286633192445,
+        "control_sha256": "0c024f916b9b83140c0d685ea84a0298685c048956ed6cb6070a85406e472522",
+        "data_misfit": 1.0020533587335673e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 3.115174381986326e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.1199991844886659e-05,
+        "observed_truth_indices": [
+          22,
+          24
+        ],
+        "regularization_contribution": 1.1794582575509852e-06,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 1.1794582575509852e-06,
+        "window_origin": 22
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 1.2577320007209716e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.8068920436853142e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.2577320007209716e-05,
+        "observed_truth_indices": [
+          22,
+          24
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 22
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        22,
+        24
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.224315249826759
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 22,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_024.npz",
+      "control_npz_sha256": "6069e4257c434ed078471dc852ef7d8548a0663e43e4bfe06c24165c4097b7a1",
+      "control_sha256": "31e037d71c8818a74899db3d9b6a8ad8db124696e07a36cefc211cf7849ddabd",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.014379969391438553,
+        "control_rms": 0.0010620709935949234,
+        "control_sha256": "31e037d71c8818a74899db3d9b6a8ad8db124696e07a36cefc211cf7849ddabd",
+        "data_misfit": 9.597379748847263e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.888878663813181e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.0725374544282972e-05,
+        "observed_truth_indices": [
+          24,
+          26
+        ],
+        "regularization_contribution": 1.1279947954357077e-06,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 1.1279947954357077e-06,
+        "window_origin": 24
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 1.2043602108404838e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.7469775670470804e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.2043602108404838e-05,
+        "observed_truth_indices": [
+          24,
+          26
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 24
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        24,
+        26
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.341860000044107
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 24,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_026.npz",
+      "control_npz_sha256": "cba984260e87f805ffccc4a11f62cc18f96e9d447a04a9c0dd9819bc893883d0",
+      "control_sha256": "bc86e72f674e44c90c71e7fcb59440227940b6afaaefa5c29f7deee7580875da",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.019991787961960075,
+        "control_rms": 0.0010996067971126362,
+        "control_sha256": "bc86e72f674e44c90c71e7fcb59440227940b6afaaefa5c29f7deee7580875da",
+        "data_misfit": 9.793956335706961e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 3.073653455824562e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.1003091443963271e-05,
+        "observed_truth_indices": [
+          26,
+          28
+        ],
+        "regularization_contribution": 1.2091351082563103e-06,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 1.2091351082563103e-06,
+        "window_origin": 26
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 1.2420944486841757e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.853237304470788e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.2420944486841757e-05,
+        "observed_truth_indices": [
+          26,
+          28
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 26
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        26,
+        28
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.22014299989678
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 26,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_028.npz",
+      "control_npz_sha256": "72c2c3fb28c7e43aa1915b30188024015bdd4016f0e0bcc1a25be9991a82a69c",
+      "control_sha256": "a70552b666fc36da5b3fc22c54858eda473ff56aaa24b4acd59d180335f66984",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.013861762316253152,
+        "control_rms": 0.0010520776550034176,
+        "control_sha256": "a70552b666fc36da5b3fc22c54858eda473ff56aaa24b4acd59d180335f66984",
+        "data_misfit": 9.105001001378009e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.820432792072797e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.0211868393535499e-05,
+        "observed_truth_indices": [
+          28,
+          30
+        ],
+        "regularization_contribution": 1.1068673921574903e-06,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 1.1068673921574903e-06,
+        "window_origin": 28
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 1.1511645559771854e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.7341254851126633e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.1511645559771854e-05,
+        "observed_truth_indices": [
+          28,
+          30
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 28
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        28,
+        30
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.0105572091415524
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 28,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_030.npz",
+      "control_npz_sha256": "e7187e18289ee96a3f56f37234c7003874534b27609d69b6e4a0c7307a2650c9",
+      "control_sha256": "a7c8ab07e6a65a20a033476af3c82b068c754ba18bee7bb2e88dc4754157c775",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.01099974166902551,
+        "control_rms": 0.0009766846424620911,
+        "control_sha256": "a7c8ab07e6a65a20a033476af3c82b068c754ba18bee7bb2e88dc4754157c775",
+        "data_misfit": 7.941372066885057e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.3785512939056296e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 8.895284957706359e-06,
+        "observed_truth_indices": [
+          30,
+          32
+        ],
+        "regularization_contribution": 9.539128908213029e-07,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 9.539128908213029e-07,
+        "window_origin": 30
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 1.0015958421317002e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.5395442957520537e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.0015958421317002e-05,
+        "observed_truth_indices": [
+          30,
+          32
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 30
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        30,
+        32
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.031020667171106
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 30,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_032.npz",
+      "control_npz_sha256": "7930eb902fba993fe27cf5e3128d3a9cce5626aeb559b9b6364627ad5cc580cb",
+      "control_sha256": "812104c27e0aff8c5c4cb85dbbb1577608c33f9cb9ec1218b1b9d4593684efe0",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.013341637968931607,
+        "control_rms": 0.0009135288705554774,
+        "control_sha256": "812104c27e0aff8c5c4cb85dbbb1577608c33f9cb9ec1218b1b9d4593684efe0",
+        "data_misfit": 7.317466715657819e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.2843223761874247e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 8.152001712996186e-06,
+        "observed_truth_indices": [
+          32,
+          34
+        ],
+        "regularization_contribution": 8.345349973383662e-07,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 8.345349973383662e-07,
+        "window_origin": 32
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 9.130812377985922e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.3716908442134714e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 9.130812377985922e-06,
+        "observed_truth_indices": [
+          32,
+          34
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 32
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        32,
+        34
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.223603707971051
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 32,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_034.npz",
+      "control_npz_sha256": "cd497a9a67dbf3d6e469f5c06e74429f259b6d7d0deedf41c4d5c8bb07509bea",
+      "control_sha256": "69d3f61a47fd2fe4fa1a20ba9ead37263faaa5d5e6a9bd34de6b2d78b89995f4",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.021970448701275378,
+        "control_rms": 0.0011067790966317206,
+        "control_sha256": "69d3f61a47fd2fe4fa1a20ba9ead37263faaa5d5e6a9bd34de6b2d78b89995f4",
+        "data_misfit": 9.898681266971956e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.519266753447014e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.1123641235712884e-05,
+        "observed_truth_indices": [
+          34,
+          36
+        ],
+        "regularization_contribution": 1.2249599687409279e-06,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 1.2249599687409279e-06,
+        "window_origin": 34
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 1.2564719610586909e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.8812800665499058e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.2564719610586909e-05,
+        "observed_truth_indices": [
+          34,
+          36
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 34
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        34,
+        36
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.232008541934192
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 34,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_036.npz",
+      "control_npz_sha256": "76910cd82fa96def2828a574f47d430766f88b2bb25f80b262b7e85d1b2dc620",
+      "control_sha256": "f5e5a34cd9147eedf6b248f372c01dbc4c98b0d81e5d6a3736b9a0cf2a49a15c",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.013053831931589483,
+        "control_rms": 0.0010709208687152976,
+        "control_sha256": "f5e5a34cd9147eedf6b248f372c01dbc4c98b0d81e5d6a3736b9a0cf2a49a15c",
+        "data_misfit": 9.426077239264044e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.1553881973083285e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.0572948746313972e-05,
+        "observed_truth_indices": [
+          36,
+          38
+        ],
+        "regularization_contribution": 1.1468715070499276e-06,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 1.1468715070499276e-06,
+        "window_origin": 36
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 1.1924096602165464e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.7921361444622034e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.1924096602165464e-05,
+        "observed_truth_indices": [
+          36,
+          38
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 36
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        36,
+        38
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.227388624800369
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 36,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_038.npz",
+      "control_npz_sha256": "302434db8300e64c4571b308903a998e645f0c51b545df63da9b4193cd1f488d",
+      "control_sha256": "f83cc4d43f66062e1a72ff240c5e84e828e99d9305b64fa5bc5d7d7e31bb112f",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.019415065422732518,
+        "control_rms": 0.0010342408553447738,
+        "control_sha256": "f83cc4d43f66062e1a72ff240c5e84e828e99d9305b64fa5bc5d7d7e31bb112f",
+        "data_misfit": 8.673554067610538e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.1094855939108655e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 9.743208214474828e-06,
+        "observed_truth_indices": [
+          38,
+          40
+        ],
+        "regularization_contribution": 1.0696541468642893e-06,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 1.0696541468642893e-06,
+        "window_origin": 38
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 1.1004343910210677e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.6982654723065046e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.1004343910210677e-05,
+        "observed_truth_indices": [
+          38,
+          40
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 38
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        38,
+        40
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.064161916961893
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 38,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_040.npz",
+      "control_npz_sha256": "8b03a1fc444e63c39997d16834b877a7cfc88efbbfb1e4323dee346dc5d1365b",
+      "control_sha256": "62d2f45323c65382f945e56f543f8ae365c45dc943a0593234ec9a2380430ba7",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.022710109458697794,
+        "control_rms": 0.0010362494686218834,
+        "control_sha256": "62d2f45323c65382f945e56f543f8ae365c45dc943a0593234ec9a2380430ba7",
+        "data_misfit": 8.983856566251539e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.2593219536925546e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.0057669527470675e-05,
+        "observed_truth_indices": [
+          40,
+          42
+        ],
+        "regularization_contribution": 1.0738129612191356e-06,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 1.0738129612191356e-06,
+        "window_origin": 40
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 1.1319304860590258e-05,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.694135623152277e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 1.1319304860590258e-05,
+        "observed_truth_indices": [
+          40,
+          42
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 40
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        40,
+        42
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.144720458891243
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 40,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_042.npz",
+      "control_npz_sha256": "4e6cccea35333cd371a14387ea84a1def077d3936fa3ab9578ffbbb1f24b06e8",
+      "control_sha256": "21e9739f61c512996631bc252a76946e9ea708d60601a4d7a9b817b2ea6156c8",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.013772431414829077,
+        "control_rms": 0.0009382405783930832,
+        "control_sha256": "21e9739f61c512996631bc252a76946e9ea708d60601a4d7a9b817b2ea6156c8",
+        "data_misfit": 7.278573582288498e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 1.9992300311504547e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 8.158868965231885e-06,
+        "observed_truth_indices": [
+          42,
+          44
+        ],
+        "regularization_contribution": 8.802953829433874e-07,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 8.802953829433874e-07,
+        "window_origin": 42
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 9.193095833740534e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.439034447256589e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 9.193095833740534e-06,
+        "observed_truth_indices": [
+          42,
+          44
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 42
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        42,
+        44
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.446079999906942
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 42,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_044.npz",
+      "control_npz_sha256": "71e119c0bd4709f35ac43250ad467a85ddc2fce85621e7a4f368da08b04a4a80",
+      "control_sha256": "af3629f7cb17e36ab530d0ccb086c97d3566066c39199ab2f7a96c4e1e24d283",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.022978753937647593,
+        "control_rms": 0.0009789857588693848,
+        "control_sha256": "af3629f7cb17e36ab530d0ccb086c97d3566066c39199ab2f7a96c4e1e24d283",
+        "data_misfit": 7.622921195574952e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.1527945401691935e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 8.581334311644018e-06,
+        "observed_truth_indices": [
+          44,
+          46
+        ],
+        "regularization_contribution": 9.584131160690653e-07,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 9.584131160690653e-07,
+        "window_origin": 44
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 9.708154701183178e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.546457577908832e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 9.708154701183178e-06,
+        "observed_truth_indices": [
+          44,
+          46
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 44
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        44,
+        46
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.621423790929839
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 44,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_046.npz",
+      "control_npz_sha256": "2c153266fa96cf79a2da0794ae20cdae11b5818295659ea5b6fc2d32e435764a",
+      "control_sha256": "f44f1c90a27dbe37dc60824270c055e057d0d6ea5609266ecb8b461f95eeeb4c",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.01363756855794401,
+        "control_rms": 0.0009031289026738987,
+        "control_sha256": "f44f1c90a27dbe37dc60824270c055e057d0d6ea5609266ecb8b461f95eeeb4c",
+        "data_misfit": 6.3557968934137975e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 1.8006614054052722e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 7.171438708258758e-06,
+        "observed_truth_indices": [
+          46,
+          48
+        ],
+        "regularization_contribution": 8.156418148449604e-07,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 8.156418148449604e-07,
+        "window_origin": 46
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 8.133713074679072e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.3574515414532446e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 8.133713074679072e-06,
+        "observed_truth_indices": [
+          46,
+          48
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 46
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        46,
+        48
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.641325999982655
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 46,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_048.npz",
+      "control_npz_sha256": "88c70afcb31333e5eee381a2248ca791b64dba8d1c317a076c916c850d039e0c",
+      "control_sha256": "681c4c9accc426d89fd96492848f8c02f1d3750eda60e7c1ff321df1bc991e3a",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.015646433787735295,
+        "control_rms": 0.001017104284581281,
+        "control_sha256": "681c4c9accc426d89fd96492848f8c02f1d3750eda60e7c1ff321df1bc991e3a",
+        "data_misfit": 7.540789783196302e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 1.675308173361144e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 8.575290908909902e-06,
+        "observed_truth_indices": [
+          48,
+          50
+        ],
+        "regularization_contribution": 1.0345011257135996e-06,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 1.0345011257135996e-06,
+        "window_origin": 48
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 9.799165163196454e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.661743130881292e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 9.799165163196454e-06,
+        "observed_truth_indices": [
+          48,
+          50
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 48
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        48,
+        50
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.613748375093564
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 48,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_050.npz",
+      "control_npz_sha256": "4539f5a1569a2c06139f445d197507acba863a43b0695293a3887c56932822f4",
+      "control_sha256": "b3bb403fa0d6bc9a44a1c5cd4258d3b24dc30353b52a79b34fca0dfec96abb7e",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.013100307606147731,
+        "control_rms": 0.0009388912423018709,
+        "control_sha256": "b3bb403fa0d6bc9a44a1c5cd4258d3b24dc30353b52a79b34fca0dfec96abb7e",
+        "data_misfit": 6.984204318172452e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 1.9495015855694483e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 7.865721083043602e-06,
+        "observed_truth_indices": [
+          50,
+          52
+        ],
+        "regularization_contribution": 8.815167648711505e-07,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 8.815167648711505e-07,
+        "window_origin": 50
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 8.903318592143194e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.44501121798769e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 8.903318592143194e-06,
+        "observed_truth_indices": [
+          50,
+          52
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 50
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        50,
+        52
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 5.4791637090966105
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 50,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_052.npz",
+      "control_npz_sha256": "37e9b6829282cd912d09afaff6ec0cf405361d6eb9ee02f329b5977c1f3fbbea",
+      "control_sha256": "6283831873f94a2963154717ed220e09ebcc4c26c25d4781d292e5f15b8daec5",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.012904650511168195,
+        "control_rms": 0.0009218269520961888,
+        "control_sha256": "6283831873f94a2963154717ed220e09ebcc4c26c25d4781d292e5f15b8daec5",
+        "data_misfit": 6.951498965093939e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 1.8636581150510206e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 7.801263894704888e-06,
+        "observed_truth_indices": [
+          52,
+          54
+        ],
+        "regularization_contribution": 8.497649296109492e-07,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 8.497649296109492e-07,
+        "window_origin": 52
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 8.797814667940906e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.392079500385703e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 8.797814667940906e-06,
+        "observed_truth_indices": [
+          52,
+          54
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 52
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        52,
+        54
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.369032041868195
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 52,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_054.npz",
+      "control_npz_sha256": "9e8bbb49d858b8acbf0f6f232d15514cc37462f55c731d2f8ea9c501c936212d",
+      "control_sha256": "31134c232e274bda6eed4ab2e7f1ec0cda7600831943038b825dd519a635dc63",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.02206295425515062,
+        "control_rms": 0.0009912472323535919,
+        "control_sha256": "31134c232e274bda6eed4ab2e7f1ec0cda7600831943038b825dd519a635dc63",
+        "data_misfit": 7.592474852439155e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 1.7995376677828837e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 8.57504592808781e-06,
+        "observed_truth_indices": [
+          54,
+          56
+        ],
+        "regularization_contribution": 9.825710756486558e-07,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 9.825710756486558e-07,
+        "window_origin": 54
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 9.728354464174327e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.574088010811392e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 9.728354464174327e-06,
+        "observed_truth_indices": [
+          54,
+          56
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 54
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        54,
+        56
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.678350250003859
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 54,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_056.npz",
+      "control_npz_sha256": "08b924a3721699e5a08eaebcc15a61da8596921c3f27c64e9ea34d5c1e6859fc",
+      "control_sha256": "88a26cf2d51e87ff06b1f275ab8e13b005dd8086e1d6f3d5d6f7ca78a862365d",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.019996260541519727,
+        "control_rms": 0.0009500154279420687,
+        "control_sha256": "88a26cf2d51e87ff06b1f275ab8e13b005dd8086e1d6f3d5d6f7ca78a862365d",
+        "data_misfit": 7.02859535435523e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 1.5459789650047952e-10,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 7.931124667683182e-06,
+        "observed_truth_indices": [
+          56,
+          58
+        ],
+        "regularization_contribution": 9.025293133279521e-07,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 9.025293133279521e-07,
+        "window_origin": 56
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 8.993736690053595e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.4748447777404156e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 8.993736690053595e-06,
+        "observed_truth_indices": [
+          56,
+          58
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 56
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        56,
+        58
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.67967279208824
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 56,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_058.npz",
+      "control_npz_sha256": "eef1b21488625fb3eb31376d27d3fecaa83c31fec68253cc41a43a1779fe98be",
+      "control_sha256": "13fe566021fb71ddae2766eda6497ab2bf314454cf9273ba67b48d58d4017227",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.012149129233373702,
+        "control_rms": 0.0008688056103379587,
+        "control_sha256": "13fe566021fb71ddae2766eda6497ab2bf314454cf9273ba67b48d58d4017227",
+        "data_misfit": 6.522014344561281e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 8.977261322606263e-09,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 7.276837533115994e-06,
+        "observed_truth_indices": [
+          58,
+          60
+        ],
+        "regularization_contribution": 7.548231885547129e-07,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 7.548231885547129e-07,
+        "window_origin": 58
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 8.15958277687564e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.2486722111995655e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 8.15958277687564e-06,
+        "observed_truth_indices": [
+          58,
+          60
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 58
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        58,
+        60
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 3,
+        "gradient_evaluations": 4,
+        "new_optimizer_process": true,
+        "objective_evaluations": 7,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 3.5277374999132007
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 58,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_060.npz",
+      "control_npz_sha256": "76b613d628d3333b0f6bbd133bd3e7691763aeb580564c65a36b0e5aa9d04b5b",
+      "control_sha256": "3055e234cc2241c511a3294b9c8e1a22336190efbf8c29f71723f312f25affc6",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.01067150425934718,
+        "control_rms": 0.0008965365411268137,
+        "control_sha256": "3055e234cc2241c511a3294b9c8e1a22336190efbf8c29f71723f312f25affc6",
+        "data_misfit": 7.134960544540314e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 8.86989646711278e-09,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 7.938738314115944e-06,
+        "observed_truth_indices": [
+          60,
+          62
+        ],
+        "regularization_contribution": 8.037777695756309e-07,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 8.037777695756309e-07,
+        "window_origin": 60
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 8.877111607011396e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.3167194857374916e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 8.877111607011396e-06,
+        "observed_truth_indices": [
+          60,
+          62
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 60
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        60,
+        62
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 3,
+        "gradient_evaluations": 4,
+        "new_optimizer_process": true,
+        "objective_evaluations": 7,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 3.5535816671326756
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 60,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_062.npz",
+      "control_npz_sha256": "6692e52cf5ae899f1a9a761889043037fab6fee86215bf72b045ac65bee28e22",
+      "control_sha256": "9bd70e21cbdeae39993f0afee6a3f7e01ee568e0bb03169d60b88bf879910433",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.010372424150615839,
+        "control_rms": 0.0008019862259861572,
+        "control_sha256": "9bd70e21cbdeae39993f0afee6a3f7e01ee568e0bb03169d60b88bf879910433",
+        "data_misfit": 5.535069457598228e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 8.425908679663726e-09,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 6.178251364269748e-06,
+        "observed_truth_indices": [
+          62,
+          64
+        ],
+        "regularization_contribution": 6.431819066715196e-07,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 6.431819066715196e-07,
+        "window_origin": 62
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 6.931053446062739e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.077373556655345e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 6.931053446062739e-06,
+        "observed_truth_indices": [
+          62,
+          64
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 62
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        62,
+        64
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 3,
+        "gradient_evaluations": 4,
+        "new_optimizer_process": true,
+        "objective_evaluations": 7,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 3.7539613749831915
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 62,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_064.npz",
+      "control_npz_sha256": "d03024a11508749c0d6db63d6c956e5cb1da5989ed6b13cf3eebdc966b521649",
+      "control_sha256": "d34c6d6b7d61b5833ba9e9eafb813422dbc14c24911cffdd65ec32b2f086abc1",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.01506082793605734,
+        "control_rms": 0.0007432982295584523,
+        "control_sha256": "d34c6d6b7d61b5833ba9e9eafb813422dbc14c24911cffdd65ec32b2f086abc1",
+        "data_misfit": 4.566359152266557e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 7.562310589743058e-09,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 5.118851410331286e-06,
+        "observed_truth_indices": [
+          64,
+          66
+        ],
+        "regularization_contribution": 5.524922580647297e-07,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 5.524922580647297e-07,
+        "window_origin": 64
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 5.76546733792396e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 1.9248874399827852e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 5.76546733792396e-06,
+        "observed_truth_indices": [
+          64,
+          66
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 64
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        64,
+        66
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 3,
+        "gradient_evaluations": 4,
+        "new_optimizer_process": true,
+        "objective_evaluations": 7,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 3.5373195421416312
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 64,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_066.npz",
+      "control_npz_sha256": "6c312dfe6bf7e20e7cf263dbb478d05b381c5ce6903f137358cfea67261a5f28",
+      "control_sha256": "f27f0dc9acd9eae87645beaaf72d36aa8f564991130298fbf0331035863dbf96",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.012572395929924894,
+        "control_rms": 0.000676892178344319,
+        "control_sha256": "f27f0dc9acd9eae87645beaaf72d36aa8f564991130298fbf0331035863dbf96",
+        "data_misfit": 4.205576495373041e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 5.668583682015113e-09,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 4.663759516476759e-06,
+        "observed_truth_indices": [
+          66,
+          68
+        ],
+        "regularization_contribution": 4.5818302110371743e-07,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 4.5818302110371743e-07,
+        "window_origin": 66
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 5.194818594933442e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 1.736023124515135e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 5.194818594933442e-06,
+        "observed_truth_indices": [
+          66,
+          68
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 66
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        66,
+        68
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 3,
+        "gradient_evaluations": 4,
+        "new_optimizer_process": true,
+        "objective_evaluations": 7,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 3.430862082866952
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 66,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_068.npz",
+      "control_npz_sha256": "0e2f7ea734046d4070240bd53e4a93d9add07fe381e54e1a9ff3f7a8a7dac5ed",
+      "control_sha256": "fc6bec54854e4b13cafe48d6ca67fdc02354a0bbfb29d436cb53d352e41b165c",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.010360089973637862,
+        "control_rms": 0.0006242244840964891,
+        "control_sha256": "fc6bec54854e4b13cafe48d6ca67fdc02354a0bbfb29d436cb53d352e41b165c",
+        "data_misfit": 4.2306644130845385e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 4.224917757731486e-09,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 4.620320619630066e-06,
+        "observed_truth_indices": [
+          68,
+          70
+        ],
+        "regularization_contribution": 3.89656206545528e-07,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 3.89656206545528e-07,
+        "window_origin": 68
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 5.067461290016514e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 1.5855191553890185e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 5.067461290016514e-06,
+        "observed_truth_indices": [
+          68,
+          70
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 68
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        68,
+        70
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 3,
+        "gradient_evaluations": 4,
+        "new_optimizer_process": true,
+        "objective_evaluations": 7,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 3.5210760419722646
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 68,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_070.npz",
+      "control_npz_sha256": "0abd29d7f931fcecf373f16e2370097769aaa24ac45c6439794089af9f4316cc",
+      "control_sha256": "abcdf6c0119ca749a4f20eaf5ebf9b54f0e6e87759dd8a03da217e8eee3fd928",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.026188893539826074,
+        "control_rms": 0.0008977775251852425,
+        "control_sha256": "abcdf6c0119ca749a4f20eaf5ebf9b54f0e6e87759dd8a03da217e8eee3fd928",
+        "data_misfit": 6.324044497236458e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 8.738065909147726e-09,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 7.130048981964196e-06,
+        "observed_truth_indices": [
+          70,
+          72
+        ],
+        "regularization_contribution": 8.060044847277387e-07,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 8.060044847277387e-07,
+        "window_origin": 70
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 8.073572234148276e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.3245620334608278e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 8.073572234148276e-06,
+        "observed_truth_indices": [
+          70,
+          72
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 70
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        70,
+        72
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 3,
+        "gradient_evaluations": 4,
+        "new_optimizer_process": true,
+        "objective_evaluations": 7,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 3.4723097498063
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 70,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_072.npz",
+      "control_npz_sha256": "fbb3fd0b9a53fb29d235d7d1c2659db11f3a91b96be05ab5f66a9a81ce893f46",
+      "control_sha256": "69f8d1cb08dbf6a7d405b7ba15b0de050d4de6f0ec0ff97e7c20409b37f84269",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.010618124733795349,
+        "control_rms": 0.0007201651468154332,
+        "control_sha256": "69f8d1cb08dbf6a7d405b7ba15b0de050d4de6f0ec0ff97e7c20409b37f84269",
+        "data_misfit": 4.605049398032213e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 6.4067761068146246e-09,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 5.123687236719907e-06,
+        "observed_truth_indices": [
+          72,
+          74
+        ],
+        "regularization_contribution": 5.186378386876944e-07,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 5.186378386876944e-07,
+        "window_origin": 72
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 5.726382733063717e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 1.8517183175059914e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 5.726382733063717e-06,
+        "observed_truth_indices": [
+          72,
+          74
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 72
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        72,
+        74
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 3,
+        "gradient_evaluations": 4,
+        "new_optimizer_process": true,
+        "objective_evaluations": 7,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 3.49219987494871
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 72,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_074.npz",
+      "control_npz_sha256": "7839724d1058b551e529c31376d776e3f0844b291d4477ebb31c1f1e17f95016",
+      "control_sha256": "3b7d7c87ee5f807fdf002ff6f383ab34e97a684d349fa0bf64012c6da98be8d2",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.020722846407563302,
+        "control_rms": 0.0009636642710969042,
+        "control_sha256": "3b7d7c87ee5f807fdf002ff6f383ab34e97a684d349fa0bf64012c6da98be8d2",
+        "data_misfit": 6.814956108698372e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 9.16105209445926e-11,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 7.7436049360871e-06,
+        "observed_truth_indices": [
+          74,
+          76
+        ],
+        "regularization_contribution": 9.286488273887276e-07,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 9.286488273887276e-07,
+        "window_origin": 74
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 8.838615789167998e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.5134148224290267e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 8.838615789167998e-06,
+        "observed_truth_indices": [
+          74,
+          76
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 74
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        74,
+        76
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 4,
+        "gradient_evaluations": 5,
+        "new_optimizer_process": true,
+        "objective_evaluations": 9,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 4.660442833788693
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 74,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_076.npz",
+      "control_npz_sha256": "72dab289b188e58b84f2ad4f8f4b8f306e9808a074673bcd5b7c101d1b9fd350",
+      "control_sha256": "52034eb9dffb517db276a8417e5e216258de05093feddfb8a8e312e7a685cc1d",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.021178505364113785,
+        "control_rms": 0.0008920665941579358,
+        "control_sha256": "52034eb9dffb517db276a8417e5e216258de05093feddfb8a8e312e7a685cc1d",
+        "data_misfit": 6.966725074025198e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 7.995077503230171e-09,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 7.762507882437737e-06,
+        "observed_truth_indices": [
+          76,
+          78
+        ],
+        "regularization_contribution": 7.957828084125393e-07,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 7.957828084125393e-07,
+        "window_origin": 76
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 8.68876689084004e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.2978373180028477e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 8.68876689084004e-06,
+        "observed_truth_indices": [
+          76,
+          78
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 76
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        76,
+        78
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 3,
+        "gradient_evaluations": 4,
+        "new_optimizer_process": true,
+        "objective_evaluations": 7,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 3.7645125829149038
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 76,
+      "zero_control_initialized": true
+    },
+    {
+      "baseline_parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "configuration_sha256": "ba6156d146d4132220e1fb85a386fbe4fa13d3c92b15cc04627abeee44c216ea",
+      "control_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/field-inversion/h2/window_078.npz",
+      "control_npz_sha256": "e502855f9c053746269590fbd8f70e0899186c0a8d0a0c3141ccda1bea176f48",
+      "control_sha256": "668395f4f00fcef1ff9592d6493707d5ac20cb52335663bf08befbc95289aef8",
+      "final_diagnostics": {
+        "control_maximum_absolute": 0.017413083088150674,
+        "control_rms": 0.0009106443707941456,
+        "control_sha256": "668395f4f00fcef1ff9592d6493707d5ac20cb52335663bf08befbc95289aef8",
+        "data_misfit": 7.249805085457253e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 8.933446700221411e-09,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 8.079078255516318e-06,
+        "observed_truth_indices": [
+          78,
+          80
+        ],
+        "regularization_contribution": 8.292731700590653e-07,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 8.292731700590653e-07,
+        "window_origin": 78
+      },
+      "horizon": 2,
+      "initial_diagnostics": {
+        "control_maximum_absolute": 0.0,
+        "control_rms": 0.0,
+        "control_sha256": "7867b7455b683b635c4acaf251e803ddd0aaa3da89f062ffe27bdf01b1f869a1",
+        "data_misfit": 9.046625492862755e-06,
+        "estimated_owned_tape_bytes": 13885808,
+        "gradient_norm": 2.3514063456420584e-05,
+        "horizon": 2,
+        "intermediate_truth_indices_used": [],
+        "objective": 9.046625492862755e-06,
+        "observed_truth_indices": [
+          78,
+          80
+        ],
+        "regularization_contribution": 0.0,
+        "regularization_lambda": 1.0,
+        "regularizer_mean_control_squared": 0.0,
+        "window_origin": 78
+      },
+      "intermediate_truth_indices_used": [],
+      "lambda": 1.0,
+      "new_optimizer_process": true,
+      "observed_truth_indices": [
+        78,
+        80
+      ],
+      "optimizer": {
+        "HVP_evaluations": 0,
+        "accepted_iterations": 3,
+        "gradient_evaluations": 4,
+        "new_optimizer_process": true,
+        "objective_evaluations": 7,
+        "source_secant_history_reused": false,
+        "termination_reason": "EExitStatus.EXITSTATUS_CONVERGED",
+        "wall_time_seconds": 3.509643250145018
+      },
+      "other_window_secant_histories_reused": false,
+      "states_after_80_accessed": false,
+      "status": "complete",
+      "window_origin": 78,
+      "zero_control_initialized": true
+    }
+  ],
+  "serial_reference": true,
+  "states_after_80_accessed": false,
+  "status": "complete",
+  "window_count": 40
+}

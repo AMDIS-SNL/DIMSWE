@@ -1,0 +1,32 @@
+{
+  "architecture": {
+    "activation": "tanh",
+    "dtype": "float64",
+    "features": [
+      "h",
+      "S",
+      "Qv",
+      "Qc",
+      "B"
+    ],
+    "layers": [
+      5,
+      32,
+      32,
+      1
+    ],
+    "outputs": [
+      "A"
+    ],
+    "parameter_count": 1281,
+    "representation": "A",
+    "seed": 0
+  },
+  "format_version": 1,
+  "initialization_convention": "Problem-A Glorot-uniform per layer, zero bias",
+  "metadata": {
+    "accepted_iteration": 20,
+    "stage": "H5"
+  },
+  "parameter_pytree_sha256": "f2d56a8947f66761371fbef8aa52b3aa545f3e2ca9822fdb27a7e3ef796d20a9"
+}

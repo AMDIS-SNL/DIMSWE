@@ -1,0 +1,1295 @@
+{
+  "archived_common_X_figure": {
+    "assets": {
+      "csv": {
+        "baseline_sha256": "7111ca84a5b9a6e1947067fea12fb5a9406d0a015405d0ded4299b31b8c21601",
+        "byte_parity": true,
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML2_common_x_direct_history_test2b.csv",
+        "sha256": "7111ca84a5b9a6e1947067fea12fb5a9406d0a015405d0ded4299b31b8c21601",
+        "size_bytes": 167797
+      },
+      "pdf": {
+        "baseline_sha256": "835fbdd3cb44895dad3ed9d25bcb412bc941736f7b1364caf34002a71c260522",
+        "byte_parity": true,
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML2_common_x_direct_history_test2b.pdf",
+        "sha256": "835fbdd3cb44895dad3ed9d25bcb412bc941736f7b1364caf34002a71c260522",
+        "size_bytes": 37774
+      },
+      "png": {
+        "baseline_sha256": "75fc2f187caa292ffb0ba0780f954ad811a6bb5f9fad7b07d5971d2e4bb324b5",
+        "byte_parity": true,
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML2_common_x_direct_history_test2b.png",
+        "sha256": "75fc2f187caa292ffb0ba0780f954ad811a6bb5f9fad7b07d5971d2e4bb324b5",
+        "size_bytes": 432520
+      }
+    },
+    "sidecar": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML2_common_x_direct_history_test2b.json",
+      "sha256": "e895860349aaf917ad264fb9cf1bcc053231b01d7dd12629a522ea16beafc2a2",
+      "size_bytes": 3841
+    }
+  },
+  "coverage": [
+    {
+      "count": 10,
+      "curve": "training",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000,
+        10000
+      ],
+      "model": "M1-X",
+      "passed": true,
+      "representation": "A"
+    },
+    {
+      "count": 10,
+      "curve": "evaluation",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000,
+        10000
+      ],
+      "model": "M1-X",
+      "passed": true,
+      "representation": "A"
+    },
+    {
+      "count": 10,
+      "curve": "training",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000,
+        10000
+      ],
+      "model": "M1-Y",
+      "passed": true,
+      "representation": "A"
+    },
+    {
+      "count": 10,
+      "curve": "evaluation",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000,
+        10000
+      ],
+      "model": "M1-Y",
+      "passed": true,
+      "representation": "A"
+    },
+    {
+      "count": 10,
+      "curve": "training",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000,
+        10000
+      ],
+      "model": "M2-X-independent",
+      "passed": true,
+      "representation": "A"
+    },
+    {
+      "count": 10,
+      "curve": "evaluation",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000,
+        10000
+      ],
+      "model": "M2-X-independent",
+      "passed": true,
+      "representation": "A"
+    },
+    {
+      "count": 9,
+      "curve": "training",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000
+      ],
+      "model": "warm M2-X",
+      "passed": true,
+      "representation": "A"
+    },
+    {
+      "count": 9,
+      "curve": "evaluation",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000
+      ],
+      "model": "warm M2-X",
+      "passed": true,
+      "representation": "A"
+    },
+    {
+      "count": 9,
+      "curve": "training",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000
+      ],
+      "model": "H1",
+      "passed": true,
+      "representation": "A"
+    },
+    {
+      "count": 9,
+      "curve": "evaluation",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000
+      ],
+      "model": "H1",
+      "passed": true,
+      "representation": "A"
+    },
+    {
+      "count": 10,
+      "curve": "training",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000,
+        10000
+      ],
+      "model": "M1-X",
+      "passed": true,
+      "representation": "B"
+    },
+    {
+      "count": 10,
+      "curve": "evaluation",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000,
+        10000
+      ],
+      "model": "M1-X",
+      "passed": true,
+      "representation": "B"
+    },
+    {
+      "count": 10,
+      "curve": "training",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000,
+        10000
+      ],
+      "model": "M1-Y",
+      "passed": true,
+      "representation": "B"
+    },
+    {
+      "count": 10,
+      "curve": "evaluation",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000,
+        10000
+      ],
+      "model": "M1-Y",
+      "passed": true,
+      "representation": "B"
+    },
+    {
+      "count": 10,
+      "curve": "training",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000,
+        10000
+      ],
+      "model": "M2-X-independent",
+      "passed": true,
+      "representation": "B"
+    },
+    {
+      "count": 10,
+      "curve": "evaluation",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000,
+        10000
+      ],
+      "model": "M2-X-independent",
+      "passed": true,
+      "representation": "B"
+    },
+    {
+      "count": 9,
+      "curve": "training",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000
+      ],
+      "model": "warm M2-X",
+      "passed": true,
+      "representation": "B"
+    },
+    {
+      "count": 9,
+      "curve": "evaluation",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000
+      ],
+      "model": "warm M2-X",
+      "passed": true,
+      "representation": "B"
+    },
+    {
+      "count": 9,
+      "curve": "training",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000
+      ],
+      "model": "H1",
+      "passed": true,
+      "representation": "B"
+    },
+    {
+      "count": 9,
+      "curve": "evaluation",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000
+      ],
+      "model": "H1",
+      "passed": true,
+      "representation": "B"
+    },
+    {
+      "count": 10,
+      "curve": "training",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000,
+        10000
+      ],
+      "model": "M1-X",
+      "passed": true,
+      "representation": "C"
+    },
+    {
+      "count": 10,
+      "curve": "evaluation",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000,
+        10000
+      ],
+      "model": "M1-X",
+      "passed": true,
+      "representation": "C"
+    },
+    {
+      "count": 10,
+      "curve": "training",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000,
+        10000
+      ],
+      "model": "M1-Y",
+      "passed": true,
+      "representation": "C"
+    },
+    {
+      "count": 10,
+      "curve": "evaluation",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000,
+        10000
+      ],
+      "model": "M1-Y",
+      "passed": true,
+      "representation": "C"
+    },
+    {
+      "count": 10,
+      "curve": "training",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000,
+        10000
+      ],
+      "model": "M2-X-independent",
+      "passed": true,
+      "representation": "C"
+    },
+    {
+      "count": 10,
+      "curve": "evaluation",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000,
+        10000
+      ],
+      "model": "M2-X-independent",
+      "passed": true,
+      "representation": "C"
+    },
+    {
+      "count": 9,
+      "curve": "training",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000
+      ],
+      "model": "warm M2-X",
+      "passed": true,
+      "representation": "C"
+    },
+    {
+      "count": 9,
+      "curve": "evaluation",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000
+      ],
+      "model": "warm M2-X",
+      "passed": true,
+      "representation": "C"
+    },
+    {
+      "count": 9,
+      "curve": "training",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000
+      ],
+      "model": "H1",
+      "passed": true,
+      "representation": "C"
+    },
+    {
+      "count": 9,
+      "curve": "evaluation",
+      "iterations": [
+        0,
+        1,
+        5,
+        10,
+        20,
+        100,
+        500,
+        1000,
+        5000
+      ],
+      "model": "H1",
+      "passed": true,
+      "representation": "C"
+    }
+  ],
+  "date": "2026-08-29",
+  "denominator_convention": {
+    "H1_evaluation_increment_denominator": 778389283037.0262,
+    "H1_evaluation_source_equivalent": 77838928.30370262,
+    "H1_training_increment_denominator": 901944200525722.0,
+    "H1_training_source_equivalent": 90194420052.5722,
+    "M2-X_evaluation": 14256196.634496419,
+    "M2-X_training": 90147685409.58347,
+    "definition": "Each curve uses the same normalized-target energy formula as its training objective, evaluated on that curve's own state/window set.",
+    "newly_defined_evaluation_denominators": [
+      "M2-X",
+      "H1"
+    ],
+    "note": "The H1 implementation evaluates source error after canceling the common dt^2 factor from numerator and target increment denominator."
+  },
+  "figure": {
+    "csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_objective_training_evaluation_history_test2b.csv",
+      "sha256": "316f2d0b98c542b638efd72e85e4aef77ac3857fb334bccf0f87c230ea7864b4",
+      "size_bytes": 263720
+    },
+    "json": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_objective_training_evaluation_history_test2b.json",
+      "sha256": "c62f4d9b6cb7f02c33d20b49138a806cd2808a041bf5cfa0b77f8f645a56dbd9",
+      "size_bytes": 10226
+    },
+    "pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_objective_training_evaluation_history_test2b.pdf",
+      "sha256": "21acafc3db2f31144c6a7d43b31b15d83f34fe136efab28c0d0296109c20cf41",
+      "size_bytes": 36128
+    },
+    "png": {
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_objective_training_evaluation_history_test2b.png",
+      "pixels": [
+        2210,
+        2129
+      ],
+      "sha256": "f99766f06f5c37557c053fe14d3b4193cb3ca49fa319404fa95108c874090646",
+      "size_bytes": 402840
+    },
+    "visual_findings": [
+      "all six panels are legible at approximate final LaTeX size",
+      "legends and row labels do not cover data",
+      "training and evaluation line styles are visually distinct",
+      "iteration 0 is at the left edge and all requested ticks are visible"
+    ],
+    "visually_inspected_at_original_png_resolution": true
+  },
+  "final_training_objective_parity": [
+    {
+      "absolute_difference": 2.0328790734103208e-20,
+      "accepted": 2.9897337575707075e-05,
+      "passed": true,
+      "reconstructed_or_selected": 2.9897337575707054e-05,
+      "run_id": "t2b-a-m1x",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 1.864768212896724e-05,
+      "passed": true,
+      "reconstructed_or_selected": 1.864768212896724e-05,
+      "run_id": "t2b-a-m2x-independent",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 1.4875848850968718e-05,
+      "passed": true,
+      "reconstructed_or_selected": 1.4875848850968718e-05,
+      "run_id": "t2b-a-m2x-warm",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 3.001818343501887e-05,
+      "passed": true,
+      "reconstructed_or_selected": 3.001818343501887e-05,
+      "run_id": "t2b-a-h1",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 1.4230153513872246e-19,
+      "accepted": 4.072769317816356e-05,
+      "passed": true,
+      "reconstructed_or_selected": 4.0727693178163705e-05,
+      "run_id": "t2b-b-m1x",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 1.863373258646678e-05,
+      "passed": true,
+      "reconstructed_or_selected": 1.863373258646678e-05,
+      "run_id": "t2b-b-m2x-independent",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 1.4814244410556754e-05,
+      "passed": true,
+      "reconstructed_or_selected": 1.4814244410556754e-05,
+      "run_id": "t2b-b-m2x-warm",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 2.2820014210665148e-05,
+      "passed": true,
+      "reconstructed_or_selected": 2.2820014210665148e-05,
+      "run_id": "t2b-b-h1",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 1.0164395367051604e-19,
+      "accepted": 3.8697519765561936e-05,
+      "passed": true,
+      "reconstructed_or_selected": 3.869751976556204e-05,
+      "run_id": "t2b-c-m1x",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 1.538900036045785e-05,
+      "passed": true,
+      "reconstructed_or_selected": 1.538900036045785e-05,
+      "run_id": "t2b-c-m2x-independent",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 1.4039537322282988e-05,
+      "passed": true,
+      "reconstructed_or_selected": 1.4039537322282988e-05,
+      "run_id": "t2b-c-m2x-warm",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 0.0,
+      "accepted": 3.426713133257584e-05,
+      "passed": true,
+      "reconstructed_or_selected": 3.426713133257584e-05,
+      "run_id": "t2b-c-h1",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 1.3552527156068805e-20,
+      "accepted": 2.4395096189055723e-05,
+      "passed": true,
+      "reconstructed_or_selected": 2.439509618905571e-05,
+      "run_id": "t2b-a-m1y",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 1.3552527156068805e-20,
+      "accepted": 3.261043519805744e-05,
+      "passed": true,
+      "reconstructed_or_selected": 3.261043519805743e-05,
+      "run_id": "t2b-b-m1y",
+      "tolerance": 2e-15
+    },
+    {
+      "absolute_difference": 1.0164395367051604e-19,
+      "accepted": 3.805860067388399e-05,
+      "passed": true,
+      "reconstructed_or_selected": 3.8058600673884094e-05,
+      "run_id": "t2b-c-m1y",
+      "tolerance": 2e-15
+    }
+  ],
+  "normalization": {
+    "input_offset": [
+      749.6487720807651,
+      7376.434989735685,
+      1.4193153609575624,
+      0.06015957787413514,
+      0.0
+    ],
+    "input_scale": [
+      16.913638066122523,
+      133.5602198531373,
+      0.21326095651874272,
+      0.012412402653357142,
+      1.0
+    ],
+    "output_scales": {
+      "A": [
+        9.052258655848717e-08
+      ],
+      "B": [
+        9.052258655848717e-08,
+        1.9902871261559996e-11
+      ],
+      "C": [
+        0.006671477765500949,
+        6.803353979030477e-05,
+        6.80335397581467e-05,
+        1.5076498196845062e-08
+      ]
+    },
+    "provenance_sha256": "794e074b2d3149f58025a7e6a74856374d86adab1e3ee518a64fe6f30ff0dd79",
+    "refitted": false
+  },
+  "operations": {
+    "autonomous_or_deployed_simulation": false,
+    "fixed_checkpoint_inference": true,
+    "optimizer_instantiated": false,
+    "prefix_integration": false,
+    "recursive_H2_H5_history": false,
+    "rendering": true,
+    "timestep_integration": false,
+    "training_or_retraining": false,
+    "truth_regenerated": false
+  },
+  "repositories": {
+    "authoritative": {
+      "checks": {
+        "branch_unchanged": true,
+        "head_unchanged": true,
+        "status_fingerprint_unchanged": true,
+        "status_line_count_unchanged": true,
+        "tracked_diff_fingerprint_unchanged": true
+      },
+      "fingerprint": {
+        "branch": "dev/dimswe-learned-physics-framework",
+        "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615",
+        "status_short_all_line_count": 6948,
+        "status_short_all_sha256": "b4dbc351a8a4d4bcc18bb2b037888b69a38813a75fa7d85f1abb443cd1ebad22",
+        "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+      }
+    },
+    "m1y_workspace": {
+      "checks": {
+        "branch_unchanged": true,
+        "head_unchanged": true,
+        "status_fingerprint_unchanged": true,
+        "status_line_count_unchanged": true,
+        "tracked_diff_fingerprint_unchanged": true
+      },
+      "fingerprint": {
+        "branch": "dev/dimswe-learned-physics-framework",
+        "head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+        "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace",
+        "status_short_all_line_count": 7050,
+        "status_short_all_sha256": "a74dc38151e0d5b3cb1eabe275c3c80a534dea9623ceb6327894aeb8c9a893de",
+        "tracked_diff_binary_sha256": "ab006aabcaf02020390a5ecc16b1db557dcec1d52ff3b0680f2cfe9ca1e666fd"
+      }
+    }
+  },
+  "scripts": [
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/scripts/reconstruct_objective_consistent_histories.py",
+      "sha256": "af98685cf441c38fd27d047f274250190175d84ce9ee41df95b2bdb7003da56e",
+      "size_bytes": 28572
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/scripts/render_objective_consistent_ml2.py",
+      "sha256": "e8a43bc6db56aebb1fd222426ce0d3d3ebbf11701bc68f32ed47cfa072088f13",
+      "size_bytes": 11651
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/scripts/archive_common_x_ml2.py",
+      "sha256": "b0b88edb69b6d6ff7ec7f1a3fd294f64dce8258abc7bb45fb17277b61856c71c",
+      "size_bytes": 4109
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/scripts/build_caption_inventory.py",
+      "sha256": "b7cae1cd10c475214034c0ca0866dcd647d5153d5fc7384e7a59034cb6653f53",
+      "size_bytes": 7287
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/scripts/validate_objective_consistent_ml2.py",
+      "sha256": "79ae4d5cd60b57ea6f1d9d391d874a23b48cb66a82d7de0a7090ecfb7ddca5fe",
+      "size_bytes": 17275
+    }
+  ],
+  "source_head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+  "state_and_objective_contracts": [
+    {
+      "curve": "training",
+      "expected": {
+        "input_indices": "0..80",
+        "objective": "J_M1_X",
+        "state": "X*",
+        "target_indices": "0..80"
+      },
+      "model": "M1-X",
+      "passed": true,
+      "representation": "A"
+    },
+    {
+      "curve": "evaluation",
+      "expected": {
+        "input_indices": "81..160",
+        "objective": "J_M1_X",
+        "state": "X*",
+        "target_indices": "81..160"
+      },
+      "model": "M1-X",
+      "passed": true,
+      "representation": "A"
+    },
+    {
+      "curve": "training",
+      "expected": {
+        "input_indices": "0..80",
+        "objective": "J_M1_Y",
+        "state": "Y*",
+        "target_indices": "0..80"
+      },
+      "model": "M1-Y",
+      "passed": true,
+      "representation": "A"
+    },
+    {
+      "curve": "evaluation",
+      "expected": {
+        "input_indices": "81..160",
+        "objective": "J_M1_Y",
+        "state": "Y*",
+        "target_indices": "81..160"
+      },
+      "model": "M1-Y",
+      "passed": true,
+      "representation": "A"
+    },
+    {
+      "curve": "training",
+      "expected": {
+        "input_indices": "0..80",
+        "objective": "J_M2_X",
+        "state": "X*",
+        "target_indices": "0..80"
+      },
+      "model": "M2-X-independent",
+      "passed": true,
+      "representation": "A"
+    },
+    {
+      "curve": "evaluation",
+      "expected": {
+        "input_indices": "81..160",
+        "objective": "J_M2_X",
+        "state": "X*",
+        "target_indices": "81..160"
+      },
+      "model": "M2-X-independent",
+      "passed": true,
+      "representation": "A"
+    },
+    {
+      "curve": "training",
+      "expected": {
+        "input_indices": "0..80",
+        "objective": "J_M2_X",
+        "state": "X*",
+        "target_indices": "0..80"
+      },
+      "model": "warm M2-X",
+      "passed": true,
+      "representation": "A"
+    },
+    {
+      "curve": "evaluation",
+      "expected": {
+        "input_indices": "81..160",
+        "objective": "J_M2_X",
+        "state": "X*",
+        "target_indices": "81..160"
+      },
+      "model": "warm M2-X",
+      "passed": true,
+      "representation": "A"
+    },
+    {
+      "curve": "training",
+      "expected": {
+        "input_indices": "0..79",
+        "objective": "J_H1",
+        "state": "Y*=P(X*)",
+        "target_indices": "1..80"
+      },
+      "model": "H1",
+      "passed": true,
+      "representation": "A"
+    },
+    {
+      "curve": "evaluation",
+      "expected": {
+        "input_indices": "81..159",
+        "objective": "J_H1",
+        "state": "Y*=P(X*)",
+        "target_indices": "82..160"
+      },
+      "model": "H1",
+      "passed": true,
+      "representation": "A"
+    },
+    {
+      "curve": "training",
+      "expected": {
+        "input_indices": "0..80",
+        "objective": "J_M1_X",
+        "state": "X*",
+        "target_indices": "0..80"
+      },
+      "model": "M1-X",
+      "passed": true,
+      "representation": "B"
+    },
+    {
+      "curve": "evaluation",
+      "expected": {
+        "input_indices": "81..160",
+        "objective": "J_M1_X",
+        "state": "X*",
+        "target_indices": "81..160"
+      },
+      "model": "M1-X",
+      "passed": true,
+      "representation": "B"
+    },
+    {
+      "curve": "training",
+      "expected": {
+        "input_indices": "0..80",
+        "objective": "J_M1_Y",
+        "state": "Y*",
+        "target_indices": "0..80"
+      },
+      "model": "M1-Y",
+      "passed": true,
+      "representation": "B"
+    },
+    {
+      "curve": "evaluation",
+      "expected": {
+        "input_indices": "81..160",
+        "objective": "J_M1_Y",
+        "state": "Y*",
+        "target_indices": "81..160"
+      },
+      "model": "M1-Y",
+      "passed": true,
+      "representation": "B"
+    },
+    {
+      "curve": "training",
+      "expected": {
+        "input_indices": "0..80",
+        "objective": "J_M2_X",
+        "state": "X*",
+        "target_indices": "0..80"
+      },
+      "model": "M2-X-independent",
+      "passed": true,
+      "representation": "B"
+    },
+    {
+      "curve": "evaluation",
+      "expected": {
+        "input_indices": "81..160",
+        "objective": "J_M2_X",
+        "state": "X*",
+        "target_indices": "81..160"
+      },
+      "model": "M2-X-independent",
+      "passed": true,
+      "representation": "B"
+    },
+    {
+      "curve": "training",
+      "expected": {
+        "input_indices": "0..80",
+        "objective": "J_M2_X",
+        "state": "X*",
+        "target_indices": "0..80"
+      },
+      "model": "warm M2-X",
+      "passed": true,
+      "representation": "B"
+    },
+    {
+      "curve": "evaluation",
+      "expected": {
+        "input_indices": "81..160",
+        "objective": "J_M2_X",
+        "state": "X*",
+        "target_indices": "81..160"
+      },
+      "model": "warm M2-X",
+      "passed": true,
+      "representation": "B"
+    },
+    {
+      "curve": "training",
+      "expected": {
+        "input_indices": "0..79",
+        "objective": "J_H1",
+        "state": "Y*=P(X*)",
+        "target_indices": "1..80"
+      },
+      "model": "H1",
+      "passed": true,
+      "representation": "B"
+    },
+    {
+      "curve": "evaluation",
+      "expected": {
+        "input_indices": "81..159",
+        "objective": "J_H1",
+        "state": "Y*=P(X*)",
+        "target_indices": "82..160"
+      },
+      "model": "H1",
+      "passed": true,
+      "representation": "B"
+    },
+    {
+      "curve": "training",
+      "expected": {
+        "input_indices": "0..80",
+        "objective": "J_M1_X",
+        "state": "X*",
+        "target_indices": "0..80"
+      },
+      "model": "M1-X",
+      "passed": true,
+      "representation": "C"
+    },
+    {
+      "curve": "evaluation",
+      "expected": {
+        "input_indices": "81..160",
+        "objective": "J_M1_X",
+        "state": "X*",
+        "target_indices": "81..160"
+      },
+      "model": "M1-X",
+      "passed": true,
+      "representation": "C"
+    },
+    {
+      "curve": "training",
+      "expected": {
+        "input_indices": "0..80",
+        "objective": "J_M1_Y",
+        "state": "Y*",
+        "target_indices": "0..80"
+      },
+      "model": "M1-Y",
+      "passed": true,
+      "representation": "C"
+    },
+    {
+      "curve": "evaluation",
+      "expected": {
+        "input_indices": "81..160",
+        "objective": "J_M1_Y",
+        "state": "Y*",
+        "target_indices": "81..160"
+      },
+      "model": "M1-Y",
+      "passed": true,
+      "representation": "C"
+    },
+    {
+      "curve": "training",
+      "expected": {
+        "input_indices": "0..80",
+        "objective": "J_M2_X",
+        "state": "X*",
+        "target_indices": "0..80"
+      },
+      "model": "M2-X-independent",
+      "passed": true,
+      "representation": "C"
+    },
+    {
+      "curve": "evaluation",
+      "expected": {
+        "input_indices": "81..160",
+        "objective": "J_M2_X",
+        "state": "X*",
+        "target_indices": "81..160"
+      },
+      "model": "M2-X-independent",
+      "passed": true,
+      "representation": "C"
+    },
+    {
+      "curve": "training",
+      "expected": {
+        "input_indices": "0..80",
+        "objective": "J_M2_X",
+        "state": "X*",
+        "target_indices": "0..80"
+      },
+      "model": "warm M2-X",
+      "passed": true,
+      "representation": "C"
+    },
+    {
+      "curve": "evaluation",
+      "expected": {
+        "input_indices": "81..160",
+        "objective": "J_M2_X",
+        "state": "X*",
+        "target_indices": "81..160"
+      },
+      "model": "warm M2-X",
+      "passed": true,
+      "representation": "C"
+    },
+    {
+      "curve": "training",
+      "expected": {
+        "input_indices": "0..79",
+        "objective": "J_H1",
+        "state": "Y*=P(X*)",
+        "target_indices": "1..80"
+      },
+      "model": "H1",
+      "passed": true,
+      "representation": "C"
+    },
+    {
+      "curve": "evaluation",
+      "expected": {
+        "input_indices": "81..159",
+        "objective": "J_H1",
+        "state": "Y*=P(X*)",
+        "target_indices": "82..160"
+      },
+      "model": "H1",
+      "passed": true,
+      "representation": "C"
+    }
+  ],
+  "status": "complete",
+  "stored_final_evaluation_parity": [
+    {
+      "absolute_difference": 0.0,
+      "passed": true,
+      "run_id": "t2b-a-m1x"
+    },
+    {
+      "absolute_difference": 0.0,
+      "passed": true,
+      "run_id": "t2b-a-m1y"
+    },
+    {
+      "absolute_difference": 0.0,
+      "passed": true,
+      "run_id": "t2b-b-m1x"
+    },
+    {
+      "absolute_difference": 0.0,
+      "passed": true,
+      "run_id": "t2b-b-m1y"
+    },
+    {
+      "absolute_difference": 0.0,
+      "passed": true,
+      "run_id": "t2b-c-m1x"
+    },
+    {
+      "absolute_difference": 0.0,
+      "passed": true,
+      "run_id": "t2b-c-m1y"
+    }
+  ],
+  "task": "replace common-X ML-2 with objective-consistent histories",
+  "validation_gates": {
+    "H2_H5_absent": true,
+    "all_15_final_training_objectives_match": true,
+    "all_6_stored_M1_evaluation_endpoints_match": true,
+    "all_state_objective_contracts_exact": true,
+    "archived_sidecar_is_consistent": true,
+    "authoritative_repository_unchanged": true,
+    "caption_and_inventory_include_both_figures": true,
+    "common_X_assets_archived_without_byte_changes": true,
+    "common_X_bundle_absent_from_main": true,
+    "coverage_exact_at_saved_iterations": true,
+    "figure_csv_is_byte_identical_to_source": true,
+    "figure_sidecar_hashes_match": true,
+    "history_has_288_records": true,
+    "m1y_workspace_unchanged": true,
+    "main_caption_avoids_forbidden_terms": true,
+    "pdf_is_present": true,
+    "png_is_300_dpi": true,
+    "source_history_all_validation_gates_pass": true,
+    "source_history_status_complete": true
+  },
+  "weighting": {
+    "M1-X/M1-Y": "frozen carrier-mass weights",
+    "M2-X/H1": "frozen S/Q finite-element mass and inverse-mass maps"
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "archival_revision": {
+    "date": "2026-08-29",
+    "original_figure_id": "ML2_posthoc_direct_history_test2b",
+    "original_sidecar_sha256": "762c4dec165e0c5c44f011b97ca80a733b12050283a0825ee71ddb043ee87634",
+    "reason": "replaced in the main text by objective-consistent histories",
+    "scientific_csv_pdf_png_bytes_changed": false
+  },
+  "draft_caption": "Common-X direct physical-law histories retained as an audit diagnostic for selected Test 2B models. Solid curves use states 0--80 and dashed curves with open markers use states 81--160; the later-state values were calculated from saved networks and did not influence optimization. Every curve evaluates the local physical law at timestep-boundary states X*, irrespective of the objective used to train the model. The objective-consistent training/evaluation comparison is the main ML-2 figure.",
+  "editorial_revision": {
+    "csv_sha256_unchanged": "7111ca84a5b9a6e1947067fea12fb5a9406d0a015405d0ded4299b31b8c21601",
+    "data_source": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML2_posthoc_direct_history_test2b.csv",
+    "date": "2026-08-29",
+    "scope": "rendering and terminology only"
+  },
+  "figure_id": "ML2_common_x_direct_history_test2b",
+  "files": {
+    "csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML2_common_x_direct_history_test2b.csv",
+      "rows": 344,
+      "sha256": "7111ca84a5b9a6e1947067fea12fb5a9406d0a015405d0ded4299b31b8c21601"
+    },
+    "pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML2_common_x_direct_history_test2b.pdf",
+      "sha256": "835fbdd3cb44895dad3ed9d25bcb412bc941736f7b1364caf34002a71c260522"
+    },
+    "png_300dpi": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML2_common_x_direct_history_test2b.png",
+      "sha256": "75fc2f187caa292ffb0ba0780f954ad811a6bb5f9fad7b07d5971d2e4bb324b5"
+    }
+  },
+  "metric_definitions": {
+    "normalized_vector_relative_RMS_error": "Carrier-mass-weighted RMS in frozen output-scaled source coordinates divided by the corresponding target RMS.",
+    "relative_RMS_error": "Carrier-mass-weighted physical RMS error divided by carrier-mass-weighted target RMS."
+  },
+  "model_labels": [
+    "M1-X",
+    "warm M2-X",
+    "H1",
+    "H5",
+    "M1-Y"
+  ],
+  "notes": [
+    "Supplementary audit diagnostic; this is not the fitted objective for every model.",
+    "Every curve evaluates X* states.",
+    "Only saved iterations are plotted."
+  ],
+  "quantity_kind": "COMMON-X SAVED-NETWORK AUDIT DIAGNOSTIC",
+  "representations": [
+    "A",
+    "B",
+    "C"
+  ],
+  "scientific_question": "How do models trained under different objectives compare under one common-X direct physical-law diagnostic?",
+  "source_artifacts": [
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_direct_histories.csv",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/heldout_x_test2b.npz",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/training_x_carriers_test2b.npz"
+  ],
+  "state_intervals": [
+    "0--80",
+    "81--160"
+  ],
+  "support_classification": "Test 2B training states 0--80 and evaluation states 81--160, all evaluated at X*",
+  "units": {
+    "checkpoint_iteration": "iteration",
+    "value": "dimensionless relative RMS error"
+  }
+}

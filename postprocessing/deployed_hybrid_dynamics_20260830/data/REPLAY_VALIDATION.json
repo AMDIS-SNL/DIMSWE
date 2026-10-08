@@ -1,0 +1,139 @@
+{
+  "all_models_passed": true,
+  "model_count": 12,
+  "models": [
+    {
+      "all_scalar_parity_exact": true,
+      "cache": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repA_M1Y_maps.npz",
+      "cache_sha256": "e49787f46136f491604854e192883ad32aadd50d18f171f2e41fdb59ae195b92",
+      "checkpoint_sha256": "a7f98ffe462a89a00d9d2dedd4efb4531cd0feea6e1d64de0b5359bae5e31db4",
+      "frame_count": 161,
+      "maximum_parity_absolute_difference": 0.0,
+      "maximum_parity_relative_difference": 0.0,
+      "method": "M1Y",
+      "representation": "A"
+    },
+    {
+      "all_scalar_parity_exact": true,
+      "cache": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repA_H1_maps.npz",
+      "cache_sha256": "c1baf2f41a65c6a40ddda8e00623f38b49c012c98386c34f482a9f3aa9f59c4f",
+      "checkpoint_sha256": "a6a7667217ce26fa3b392cacc5e70f087db97622804db0cdcf123f7e532516c1",
+      "frame_count": 161,
+      "maximum_parity_absolute_difference": 0.0,
+      "maximum_parity_relative_difference": 0.0,
+      "method": "H1",
+      "representation": "A"
+    },
+    {
+      "all_scalar_parity_exact": true,
+      "cache": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repA_H2_maps.npz",
+      "cache_sha256": "2df91af27e1fc7da5748b08de27aa6b9adebf076f1fea12695bcdc4236e00713",
+      "checkpoint_sha256": "2158c1e48bb422d13ea077cea9617be77aad1be76a5945ec0a5201a796a04ed3",
+      "frame_count": 161,
+      "maximum_parity_absolute_difference": 0.0,
+      "maximum_parity_relative_difference": 0.0,
+      "method": "H2",
+      "representation": "A"
+    },
+    {
+      "all_scalar_parity_exact": true,
+      "cache": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repA_H5_maps.npz",
+      "cache_sha256": "a60c6cd46d3f20884d4fe8bad116e066c5c379f3ee3313ae2f704a1705ecb837",
+      "checkpoint_sha256": "07b3a84734679abf8849b5afb1f30f87568482e221a2a759a143f29a0cfc5ff1",
+      "frame_count": 161,
+      "maximum_parity_absolute_difference": 0.0,
+      "maximum_parity_relative_difference": 0.0,
+      "method": "H5",
+      "representation": "A"
+    },
+    {
+      "all_scalar_parity_exact": true,
+      "cache": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repB_M1Y_maps.npz",
+      "cache_sha256": "0f97d3265ab189d9f9f9f58eb5dc04b7f3917ede49602d0abd2f5936b1becda6",
+      "checkpoint_sha256": "3a829ffff2c2ee96946c197e18a7bd7d7495c255212c61bec1b3d24d788a71ee",
+      "frame_count": 161,
+      "maximum_parity_absolute_difference": 0.0,
+      "maximum_parity_relative_difference": 0.0,
+      "method": "M1Y",
+      "representation": "B"
+    },
+    {
+      "all_scalar_parity_exact": true,
+      "cache": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repB_H1_maps.npz",
+      "cache_sha256": "ee8c627c9b3cd523ef42501ab02a035372f525fb0b5079f0de88bcae932bbf08",
+      "checkpoint_sha256": "bc622626887cc65acf215c03bf3281eb0fe97447723528415fbc5f8345eccf8e",
+      "frame_count": 161,
+      "maximum_parity_absolute_difference": 0.0,
+      "maximum_parity_relative_difference": 0.0,
+      "method": "H1",
+      "representation": "B"
+    },
+    {
+      "all_scalar_parity_exact": true,
+      "cache": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repB_H2_maps.npz",
+      "cache_sha256": "aea531dff007c4ce9546fca7c53c631fbf7409838f9e0868c9838589fd7126f1",
+      "checkpoint_sha256": "b3257a8821b80b90359bce7ca22759e0a48f1785f01b468c60a90c8bf9f41bcc",
+      "frame_count": 161,
+      "maximum_parity_absolute_difference": 0.0,
+      "maximum_parity_relative_difference": 0.0,
+      "method": "H2",
+      "representation": "B"
+    },
+    {
+      "all_scalar_parity_exact": true,
+      "cache": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repB_H5_maps.npz",
+      "cache_sha256": "ee60e2ad75a6576ab85376301c022f8ad10642a0b46451263ba8c8e8fbf6d34f",
+      "checkpoint_sha256": "575d26dacc4eddd4ef84c564725a8b8beb521dc279fb797eaece34e4de842f74",
+      "frame_count": 161,
+      "maximum_parity_absolute_difference": 0.0,
+      "maximum_parity_relative_difference": 0.0,
+      "method": "H5",
+      "representation": "B"
+    },
+    {
+      "all_scalar_parity_exact": true,
+      "cache": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repC_M1Y_maps.npz",
+      "cache_sha256": "fb4e5e5a54e52fbec4982cb48f5c32b4422d6070f09c54341d24d7a41e12165f",
+      "checkpoint_sha256": "169eadab27a39916e37a875c27708873595f133cb4ea39e9f23eab14e86d49ee",
+      "frame_count": 161,
+      "maximum_parity_absolute_difference": 0.0,
+      "maximum_parity_relative_difference": 0.0,
+      "method": "M1Y",
+      "representation": "C"
+    },
+    {
+      "all_scalar_parity_exact": true,
+      "cache": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repC_H1_maps.npz",
+      "cache_sha256": "46eb8ed760cddffdc83d96b71f93e631d56089310c39cae8c9d65c44421ef427",
+      "checkpoint_sha256": "be3fac690063191ee78df7a8515b580d17842a34083835c73232ab1bb3995c6b",
+      "frame_count": 161,
+      "maximum_parity_absolute_difference": 0.0,
+      "maximum_parity_relative_difference": 0.0,
+      "method": "H1",
+      "representation": "C"
+    },
+    {
+      "all_scalar_parity_exact": true,
+      "cache": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repC_H2_maps.npz",
+      "cache_sha256": "14c310f4263936b3bd153d3a33828c447836a21e9779bcaa10a47ea5ce9886dd",
+      "checkpoint_sha256": "cce0fff0c49ad9577a5cfe6b1e8176eb45af8e1d1dbac6e98029d75e3dce1657",
+      "frame_count": 161,
+      "maximum_parity_absolute_difference": 0.0,
+      "maximum_parity_relative_difference": 0.0,
+      "method": "H2",
+      "representation": "C"
+    },
+    {
+      "all_scalar_parity_exact": true,
+      "cache": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repC_H5_maps.npz",
+      "cache_sha256": "0b69a4f12c895c77f06c3e7073af20bf0bf4dfb31ac796cf5458ab4a96b9b6ee",
+      "checkpoint_sha256": "ecb28ef27fbb4663970da2e4f72f9adbcf0c67ab966e80e65bb21f17ada63985",
+      "frame_count": 161,
+      "maximum_parity_absolute_difference": 0.0,
+      "maximum_parity_relative_difference": 0.0,
+      "method": "H5",
+      "representation": "C"
+    }
+  ],
+  "status": "complete"
+}

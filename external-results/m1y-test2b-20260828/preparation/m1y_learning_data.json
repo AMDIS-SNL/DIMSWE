@@ -1,0 +1,285 @@
+{
+  "B_exactly_zero": true,
+  "Qr_is_network_input": false,
+  "architecture": {
+    "A": {
+      "activation": "tanh",
+      "dtype": "float64",
+      "features": [
+        "h",
+        "S",
+        "Qv",
+        "Qc",
+        "B"
+      ],
+      "layers": [
+        5,
+        32,
+        32,
+        1
+      ],
+      "outputs": [
+        "A"
+      ],
+      "parameter_count": 1281,
+      "representation": "A",
+      "seed": 0
+    },
+    "B": {
+      "activation": "tanh",
+      "dtype": "float64",
+      "features": [
+        "h",
+        "S",
+        "Qv",
+        "Qc",
+        "B"
+      ],
+      "layers": [
+        5,
+        32,
+        32,
+        2
+      ],
+      "outputs": [
+        "A",
+        "R"
+      ],
+      "parameter_count": 1314,
+      "representation": "B",
+      "seed": 0
+    },
+    "C": {
+      "activation": "tanh",
+      "dtype": "float64",
+      "features": [
+        "h",
+        "S",
+        "Qv",
+        "Qc",
+        "B"
+      ],
+      "layers": [
+        5,
+        32,
+        32,
+        4
+      ],
+      "outputs": [
+        "S",
+        "Qv",
+        "Qc",
+        "Qr"
+      ],
+      "parameter_count": 1380,
+      "representation": "C",
+      "seed": 0
+    }
+  },
+  "arrays": {
+    "carrier_weights": {
+      "dtype": "float64",
+      "sha256": "92f774ccfbd1661c8766f1523f04b758bbd6c00a039585c2cc55246bb69d3700",
+      "shape": [
+        65536
+      ]
+    },
+    "m1y_A": {
+      "dtype": "float64",
+      "sha256": "278143819a50fc3b9103a2e823dcaabe22bd9f41b7e68fb3a0533b7d6dd19e35",
+      "shape": [
+        81,
+        65536
+      ]
+    },
+    "m1y_Qr": {
+      "dtype": "float64",
+      "sha256": "20bd744b485c8cedc00c25ece6fb7a01fcaf9096d61783a44fe32d50ea6921f6",
+      "shape": [
+        81,
+        65536
+      ]
+    },
+    "m1y_R": {
+      "dtype": "float64",
+      "sha256": "e266b6ee6d75ecfb0d8517d1aac86c6baf7a8fd3762decb2256a042ef6d55156",
+      "shape": [
+        81,
+        65536
+      ]
+    },
+    "m1y_features": {
+      "dtype": "float64",
+      "sha256": "9d257b700d8ff21f9e64bc99ec5c656599551b84c1086f4ce792d46efa6240de",
+      "shape": [
+        81,
+        65536,
+        5
+      ]
+    }
+  },
+  "campaign_configuration": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/dimswe/configs/test2b_m1y_20260828.json",
+  "campaign_configuration_sha256": "d9836c3d28d7ab192f04da6fe6eab75018173c808296c262d1f20a95a55006d5",
+  "campaign_id": "m1y_test2b_20260828",
+  "carrier_weights_reused_bitwise": true,
+  "command": [
+    "/Users/arjunsharma/venvs/dimswe-firedrake-2026.4.1-py312/bin/python",
+    "-m",
+    "dimswe.test2b_m1y_campaign",
+    "prepare",
+    "--configuration",
+    "dimswe/configs/test2b_m1y_20260828.json",
+    "--immutable-manifest",
+    "external-results/m1y-test2b-20260828/preparation/immutable_inputs.json",
+    "--output",
+    "external-results/m1y-test2b-20260828/preparation/m1y_learning_data.npz"
+  ],
+  "feature_order": [
+    "h",
+    "S",
+    "Qv",
+    "Qc",
+    "B"
+  ],
+  "feature_state": "Y_n*=P(X_n*)",
+  "features": [
+    "h",
+    "S",
+    "Qv",
+    "Qc",
+    "B"
+  ],
+  "final_state_80_added_for_M1_Y": true,
+  "historical_H1_cache_parity": {
+    "A_states_0_79": {
+      "bitwise_equal": true,
+      "maximum_absolute": 0.0,
+      "maximum_relative": 0.0,
+      "shape": [
+        80,
+        65536
+      ]
+    },
+    "R_states_0_79": {
+      "bitwise_equal": true,
+      "maximum_absolute": 0.0,
+      "maximum_relative": 0.0,
+      "shape": [
+        80,
+        65536
+      ]
+    },
+    "features_states_0_79": {
+      "bitwise_equal": true,
+      "maximum_absolute": 0.0,
+      "maximum_relative": 0.0,
+      "shape": [
+        80,
+        65536,
+        5
+      ]
+    }
+  },
+  "historical_H1_postprefix_support": [
+    0,
+    79
+  ],
+  "historical_M1_X_support": [
+    0,
+    80
+  ],
+  "historical_configuration": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/dimswe/configs/test2b_rain_active_learning.json",
+  "historical_configuration_sha256": "d04faed1e34469dcd7c0ee8c5382c832e337cd129a7d57cf247c7d2c201d57d1",
+  "historical_preparation": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/test2b-rain-active-learning/preparation/fixed_learning_data.npz",
+  "historical_preparation_sha256": "6e159015234fd94881b0b97888b7481eb049a02dcd96c571078920c0bedc901c",
+  "immutable_input_manifest": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/preparation/immutable_inputs.json",
+  "immutable_input_manifest_sha256": "3857fb6685718f30ada253126c8270c5916f39542ab777de9efababaabd271f9",
+  "normalization": {
+    "R_scale_definition": "mass-weighted RMS over meaningful R>0 samples; all zero samples remain in every loss numerator",
+    "feature_order": [
+      "h",
+      "S",
+      "Qv",
+      "Qc",
+      "B"
+    ],
+    "fitted_truth_state_indices": [
+      0,
+      80
+    ],
+    "heldout_state_indices": [
+      81,
+      160
+    ],
+    "input_offset": [
+      749.6487720807651,
+      7376.434989735685,
+      1.4193153609575624,
+      0.06015957787413514,
+      0.0
+    ],
+    "input_scale": [
+      16.913638066122523,
+      133.5602198531373,
+      0.21326095651874272,
+      0.012412402653357142,
+      1.0
+    ],
+    "provenance_sha256": "794e074b2d3149f58025a7e6a74856374d86adab1e3ee518a64fe6f30ff0dd79",
+    "sigma_A_all_training_support": 9.052258655848717e-08,
+    "sigma_R_active_training_support": 1.9902871261559996e-11,
+    "source_order": [
+      "S",
+      "Qv",
+      "Qc",
+      "Qr"
+    ],
+    "source_scales": [
+      0.006671477765500949,
+      6.803353979030477e-05,
+      6.80335397581467e-05,
+      1.5076498196845062e-08
+    ]
+  },
+  "normalization_refitted_on_Y": false,
+  "operator_denominators": {
+    "A": 2026212938570984.0,
+    "B": 2041296881127481.8,
+    "C": 6093310863157332.0
+  },
+  "output_scales_refitted_on_Y": false,
+  "prefix": {
+    "complete_child_order": [
+      "dry_rk4_0",
+      "dry_rk4_1",
+      "hyperviscosity_euler",
+      "dg_ssprk43_0",
+      "dg_ssprk43_1",
+      "moist_euler"
+    ],
+    "differentiate_through_prefix": false,
+    "implementation": "case.helper.take_forward_step_cached(X_n*, n*dt, dt).boundary_states[-2]",
+    "local_wrapper_source_sha256": "1e8a7c5c0b4b4a8acede147f3a60d27fcd7ca55d8bac8c6078c8cd29ac2af031",
+    "offline_precomputed": true,
+    "recursive_rollout": false,
+    "selected_boundary_index": -2,
+    "theta_argument_present": false
+  },
+  "preparation_npz_sha256": "6f16e6db2c6ebdbd8c00a23cdae9b5318355384723a2f1276b2ea93d95145668",
+  "samples_per_state": 65536,
+  "seed0_parameter_sha256": {
+    "A": "6d4ac7bafe775b90a70e2a199ef3305308c3d02333f7daeac1c870b6f18e0975",
+    "B": "cfadd9f3ee02a78c5b3a946b88c039d9f7ed34e719325ff22c92e1fe4afac056",
+    "C": "e52dd73e3f97d44adf4d55354b1c8d9a9b252186a17cae4ad09410270b86df1e"
+  },
+  "source_head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+  "status": "complete",
+  "target_state": "Y_n*=P(X_n*)",
+  "total_sample_count": 5308416,
+  "training_state_count": 81,
+  "training_state_indices": [
+    0,
+    80
+  ],
+  "wall_seconds": 79.10724104201654
+}

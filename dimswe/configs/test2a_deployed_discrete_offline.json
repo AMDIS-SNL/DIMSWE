@@ -1,0 +1,60 @@
+{
+  "benchmark_stage": "Test 2A-3A deployed-discrete offline objective",
+  "format_version": 1,
+  "truth": {
+    "run_directory": "external-results/test1b-production/truth_c0_0.14",
+    "selected_plan": "dimswe/configs/test1b_selected_plan.json",
+    "state_indices": [
+      0,
+      80
+    ],
+    "states_after_80_forbidden": true
+  },
+  "model": {
+    "selected_operator_configuration": "dimswe/configs/test2a_selected_operator.json",
+    "embedding_configuration": "dimswe/configs/test2a_embedded_neural_a.json",
+    "operator_dataset": "external-results/test2a/dataset/doublevortex_A_operator.npz",
+    "feature_normalization_refitted": false,
+    "canonical_initialization": "Test 2A-1 seed-0 initial pytree",
+    "canonical_initial_parameter_sha256": "6d4ac7bafe775b90a70e2a199ef3305308c3d02333f7daeac1c870b6f18e0975",
+    "operator_trained_artifact_role": "comparison baseline only; never a canonical warm start"
+  },
+  "physics": {
+    "target": "analytical-A/original-R certified deployed JAX moist tendency at each fixed truth state",
+    "prediction": "neural-A/original-R certified deployed JAX moist tendency at the same fixed truth state",
+    "original_R_evaluated_on_both_sides": true,
+    "recursive_model_state_propagation": false
+  },
+  "objective": {
+    "quantity": "mass-solved moist tendency",
+    "metric": "squared production mixed L2/mass norm",
+    "definition": "sum_k ||G_k(A_theta-A_truth)||_M^2 / sum_k ||G_k A_truth||_M^2",
+    "normalization": "one global training-support analytical-A-sensitive tendency energy",
+    "per_state_inverse_activity_weighting": false,
+    "state_indices": [
+      0,
+      80
+    ]
+  },
+  "comparison": {
+    "parameter_vectors": [
+      "seed0_initial",
+      "frozen_operator_trained",
+      "seed0_plus_deterministic_relative_1e-3",
+      "seed0_minus_deterministic_relative_1e-3"
+    ],
+    "deterministic_relative_perturbation": 0.001
+  },
+  "optimizer": {
+    "authorization": "prepared but not authorized in Test 2A-3A",
+    "library": "PyROL/ROL",
+    "method": "line-search L-BFGS",
+    "maximum_secant_storage": 20,
+    "iteration_limit": 500,
+    "gradient_tolerance": 1e-08,
+    "step_tolerance": 1e-12,
+    "objective_derivatives": "exact deployed-discrete parameter gradients",
+    "production_HVP": false,
+    "initialization": "seed0_initial"
+  }
+}

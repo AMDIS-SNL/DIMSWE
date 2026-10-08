@@ -1,0 +1,59 @@
+{
+  "J_op": 0.0005943359996488492,
+  "autonomous_metrics_used_for_selection": false,
+  "direct_A_metrics": {
+    "correlation": 0.999702303477314,
+    "magnitude_strata": {
+      "abs_A_gt_1e-03_max_abs_A": {
+        "mae": 1.5756716699294635e-10,
+        "relative_rms_error": 0.023850100003813025,
+        "rmse": 2.7800947260538956e-10,
+        "sample_count": 213688,
+        "sample_fraction": 0.6440731095679012
+      },
+      "abs_A_gt_1e-06_max_abs_A": {
+        "mae": 1.1602601441097899e-10,
+        "relative_rms_error": 0.024050756859628448,
+        "rmse": 2.2986248549085394e-10,
+        "sample_count": 317865,
+        "sample_fraction": 0.9580711082175926
+      }
+    },
+    "maximum_absolute_error": 6.4199122992792386e-09,
+    "normalized_mse": 0.0005943359996488494,
+    "physical_mae_A": 1.150699430036562e-10,
+    "physical_rmse_A": 2.280626890891612e-10,
+    "relative_rms_error": 0.024379007355691276,
+    "sample_count": 331776,
+    "sign_accuracy": 0.8920736790775958,
+    "sign_accuracy_strata": {
+      "abs_A_gt_1e-01_max_abs_A": {
+        "accuracy": 1.0,
+        "sample_count": 35348,
+        "sample_fraction": 0.10654176311728394,
+        "threshold": 1.0805235023802465e-08
+      },
+      "abs_A_gt_1e-02_max_abs_A": {
+        "accuracy": 1.0,
+        "sample_count": 128146,
+        "sample_fraction": 0.3862425250771605,
+        "threshold": 1.0805235023802465e-09
+      },
+      "abs_A_gt_1e-03_max_abs_A": {
+        "accuracy": 0.9901351503126052,
+        "sample_count": 213688,
+        "sample_fraction": 0.6440731095679012,
+        "threshold": 1.0805235023802465e-10
+      }
+    },
+    "sign_accuracy_threshold": 1.0805235023802464e-13
+  },
+  "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fiml-sparse-endpoint-h2-h5/stage2/h2/final_parameters.npz",
+  "parameter_pytree_sha256": "46cc90d55f31ddaee93e231223f519ada6a4f438a217bb469c724c85bd7ea093",
+  "sparse_endpoint_objectives": {
+    "H2": 0.0004934000504393266,
+    "H5": 0.00046923438496739825
+  },
+  "states_after_80_accessed": false,
+  "status": "complete"
+}

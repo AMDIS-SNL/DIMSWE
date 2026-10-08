@@ -1,0 +1,35 @@
+{
+  "autonomous_metrics_used_for_selection": false,
+  "entries": [
+    {
+      "cross_objective_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/postprocess/cross-objectives/m1_200k_initial.json",
+      "label": "M1-200k-initial",
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/fair-longfit/operator-seed0-m20-200k/final_parameters.npz",
+      "parameter_pytree_sha256": "f86ee79be3086028f21de10b947c0089147234f494c066f8bbbb2fffb3f8bef8",
+      "rollout_summary_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/postprocess/autonomous/m1_200k_initial/rollout_summary.json"
+    },
+    {
+      "cross_objective_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/postprocess/cross-objectives/h1_final.json",
+      "label": "H1-final",
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/h1-from-m1-200k/final_parameters.npz",
+      "parameter_pytree_sha256": "ebc49083bda299d91e614adeaeefdda0400ca1e8cfccc95a3b4ba953044f963c",
+      "rollout_summary_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/postprocess/autonomous/h1_final/rollout_summary.json"
+    },
+    {
+      "cross_objective_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/postprocess/cross-objectives/h2_final.json",
+      "label": "H2-final",
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/h2-from-h1/final_parameters.npz",
+      "parameter_pytree_sha256": "92241e66a93e063af2bfc56a22b5cdb7e154e21b936ad2d80d89dce115bf1fab",
+      "rollout_summary_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/postprocess/autonomous/h2_final/rollout_summary.json"
+    },
+    {
+      "cross_objective_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/postprocess/cross-objectives/h5_final.json",
+      "label": "H5-final",
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/h5-from-h2/final_parameters.npz",
+      "parameter_pytree_sha256": "fe22c92e56b5b9421835a4ff9a973250c6a186e541356c033b7810521fa3c566",
+      "rollout_summary_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/horizon-curriculum-h1-h2-h5/postprocess/autonomous/h5_final/rollout_summary.json"
+    }
+  ],
+  "states_after_80_accessed": false,
+  "status": "ready"
+}

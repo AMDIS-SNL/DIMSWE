@@ -1,0 +1,28 @@
+# Table 5. Rain-event and water-partition diagnostics
+
+| Rep. | Model | rain diagnostic | onset (s) | onset error (s) | pre-onset FP | truth-active FN rate | integrated rain error | final Qr error | final Qc error |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| truth | Truth | analytical truth R | 5.1e+03 | 0 | 0 | 0 | 0 | 0 | 0 |
+| A | M1-X | analytical R evaluated on model-generated state | 5.1e+03 | 0 | NOT_STORED_ANALYTICAL_R_ON_MODEL_STATE | NOT_STORED_ANALYTICAL_R_ON_MODEL_STATE | 6.371e+06 | 6.371e+06 | 8.229e+08 |
+| A | M2-X-independent | analytical R evaluated on model-generated state | 5.1e+03 | 0 | NOT_STORED_ANALYTICAL_R_ON_MODEL_STATE | NOT_STORED_ANALYTICAL_R_ON_MODEL_STATE | 2.201e+06 | 2.201e+06 | -1.765e+09 |
+| A | warm M2-X | analytical R evaluated on model-generated state | 5.1e+03 | 0 | NOT_STORED_ANALYTICAL_R_ON_MODEL_STATE | NOT_STORED_ANALYTICAL_R_ON_MODEL_STATE | -3.099e+06 | -3.099e+06 | 5.278e+08 |
+| A | H1 | analytical R evaluated on model-generated state | 5.1e+03 | 0 | NOT_STORED_ANALYTICAL_R_ON_MODEL_STATE | NOT_STORED_ANALYTICAL_R_ON_MODEL_STATE | 2.412e+07 | 2.412e+07 | 2.006e+09 |
+| A | H2 | analytical R evaluated on model-generated state | 5.1e+03 | 0 | NOT_STORED_ANALYTICAL_R_ON_MODEL_STATE | NOT_STORED_ANALYTICAL_R_ON_MODEL_STATE | 2.408e+07 | 2.408e+07 | 2.025e+09 |
+| A | H5 | analytical R evaluated on model-generated state | 5.1e+03 | 0 | NOT_STORED_ANALYTICAL_R_ON_MODEL_STATE | NOT_STORED_ANALYTICAL_R_ON_MODEL_STATE | 2.346e+07 | 2.346e+07 | 2.039e+09 |
+| A | M1-Y | analytical R evaluated on model-generated state | 5.1e+03 | 0 | NOT_STORED_ANALYTICAL_R_ON_MODEL_STATE | NOT_STORED_ANALYTICAL_R_ON_MODEL_STATE | 1.843e+06 | 1.843e+06 | -2.770e+09 |
+| B | M1-X | direct learned R | 0 | -5.1e+03 | 0.217 | 3.873e-05 | 4.526e+08 | 4.526e+08 | 4.408e+12 |
+| B | M2-X-independent | direct learned R | 0 | -5.1e+03 | 0.112 | 1 | -1.988e+09 | -1.988e+09 | 2.588e+09 |
+| B | warm M2-X | direct learned R | 0 | -5.1e+03 | 0.82 | 1.318e-03 | -8.816e+07 | -8.816e+07 | -3.992e+07 |
+| B | H1 | direct learned R | 0 | -5.1e+03 | 0.825 | 0 | -7.947e+07 | -7.947e+07 | -9.405e+08 |
+| B | H2 | direct learned R | 0 | -5.1e+03 | 0.825 | 0 | -7.926e+07 | -7.926e+07 | -9.079e+08 |
+| B | H5 | direct learned R | 0 | -5.1e+03 | 0.825 | 0 | -8.047e+07 | -8.047e+07 | -9.394e+08 |
+| B | M1-Y | direct learned R | 0 | -5.1e+03 | 0.274 | 0 | 2.548e+07 | 2.548e+07 | 3.628e+09 |
+| C | M1-X | effective R_Qr=predicted Qr source/h | 0 | -5.1e+03 | 0.778 | 0 | -4.125e+07 | -4.125e+07 | 5.732e+09 |
+| C | M2-X-independent | effective R_Qr=predicted Qr source/h | -- | -- | 0 | 1 | -7.640e+09 | -7.640e+09 | 2.933e+10 |
+| C | warm M2-X | effective R_Qr=predicted Qr source/h | 0 | -5.1e+03 | 4.308e-05 | 0 | -6.645e+08 | -6.645e+08 | -2.599e+10 |
+| C | H1 | effective R_Qr=predicted Qr source/h | 0 | -5.1e+03 | 2.210e-03 | -- | -1.043e+09 | -1.043e+09 | -1.114e+11 |
+| C | H2 | effective R_Qr=predicted Qr source/h | 0 | -5.1e+03 | 2.335e-03 | -- | -1.020e+09 | -1.020e+09 | -1.630e+11 |
+| C | H5 | effective R_Qr=predicted Qr source/h | 0 | -5.1e+03 | 2.469e-03 | -- | -7.740e+08 | -7.740e+08 | -2.702e+11 |
+| C | M1-Y | effective R_Qr=predicted Qr source/h | 0 | -5.1e+03 | 0.634 | 0 | -6.592e+07 | -6.592e+07 | -1.228e+10 |
+
+Representation A uses analytical R on the model-generated state; a learned-rate FP/FN count is therefore not stored. Representation B learns R directly. Representation C is labeled by the effective Qr-source rate.

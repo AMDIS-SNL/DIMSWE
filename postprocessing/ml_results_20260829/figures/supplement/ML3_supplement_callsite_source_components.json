@@ -1,0 +1,49 @@
+{
+  "draft_caption": "Representation C source-component errors at truth-derived pre-moist states Y*. Filled points show training states 0--80 and open points show evaluation states 81--160. All values use the frozen carrier weighting and output scales.",
+  "figure_id": "ML3_supplement_callsite_source_components",
+  "files": {
+    "csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML3_supplement_callsite_source_components.csv",
+      "rows": 32,
+      "sha256": "2a756f9d51230bc415ad4cf8f97564cca0c7ec01a63afcb2c196faff7a41f626",
+      "size_bytes": 16008
+    },
+    "pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML3_supplement_callsite_source_components.pdf",
+      "sha256": "d0218df7fc521c2afea494d328b27ef2115954ce42db414feaeede72db68fd93",
+      "size_bytes": 17341
+    },
+    "png_300dpi": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML3_supplement_callsite_source_components.png",
+      "sha256": "94dac55932428de34b4468e0f8041ce0319b6d2c9fce0cdec43fa1e9702d6469",
+      "size_bytes": 113313
+    }
+  },
+  "model_labels": [
+    "M1-Y",
+    "H1",
+    "H2",
+    "H5"
+  ],
+  "notes": [
+    "Evaluation states did not influence training."
+  ],
+  "quantity_kind": "FINAL FROZEN-NETWORK DIRECT PHYSICAL-LAW ERROR",
+  "representations": [
+    "C"
+  ],
+  "scientific_question": "Which Representation C source components dominate the final Y* error?",
+  "source_artifacts": [
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/final_callsite_y_metrics.csv",
+      "sha256": "f04daf9bbfef35fdc92a01c58593e767cb7712284d5cc9ff4484fe86070edc34",
+      "size_bytes": 581724
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/final_callsite_y_metrics.json",
+      "sha256": "8efa736e2fe0c9746b38159950d1ed568eecaa73485b2286a7a3311aa1851c1d",
+      "size_bytes": 12809
+    }
+  ],
+  "support_classification": "Test 2B training/evaluation states at Y*=P(X*)"
+}

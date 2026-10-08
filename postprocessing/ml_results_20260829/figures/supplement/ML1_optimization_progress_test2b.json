@@ -1,0 +1,69 @@
+{
+  "archive": {
+    "classification": "SUPPLEMENTARY / PROVENANCE",
+    "pre_reset_snapshot": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/FINAL_MAIN_RESET_BASELINE.json",
+      "sha256": "20bb91198cf015b045a3332a7b4a6d1ff4f063bfa2e99babc969a6b29cb4eac7",
+      "size_bytes": 20616
+    },
+    "reason": "Superseded in the main-paper subset by deployment-consistent M1-Y/H1/H2/H5 figures; numerical assets retained unchanged."
+  },
+  "draft_caption": "Optimization of the Test 2B training objectives. Markers show the iterations at which objective values are available. Direct and one-step histories use the iteration axis shown. H2 and H5 are displayed as paired initial and final values; their final values correspond to the 20-iteration optimization stages, and intermediate recursive values were not reconstructed. Objective normalizations differ across representations.",
+  "editorial_revision": {
+    "csv_sha256_unchanged": "2ca32793a3b39348925f5ac173ffd8d0b91028835f18e7177242aea620e53522",
+    "data_source": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/main/ML1_optimization_progress_test2b.csv",
+    "date": "2026-08-29",
+    "scope": "rendering and terminology only"
+  },
+  "figure_id": "ML1_optimization_progress_test2b",
+  "files": {
+    "csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML1_optimization_progress_test2b.csv",
+      "rows": 156,
+      "sha256": "2ca32793a3b39348925f5ac173ffd8d0b91028835f18e7177242aea620e53522",
+      "size_bytes": 61849
+    },
+    "pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML1_optimization_progress_test2b.pdf",
+      "sha256": "aa08102e21c51233ef7e6900dfbf0cfd161657c56e0ed76e53eb22faf5276486",
+      "size_bytes": 29989
+    },
+    "png_300dpi": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML1_optimization_progress_test2b.png",
+      "sha256": "4b28a02bc7a5ef3ad1d1a438c51c26329e43870d945ec314b293c3a301abb220",
+      "size_bytes": 361894
+    }
+  },
+  "metric_definitions": {
+    "value": "Normalized objective actually fitted by the named run."
+  },
+  "model_labels": [
+    "M1-X",
+    "M1-Y",
+    "M2-X-independent",
+    "warm M2-X",
+    "H1",
+    "H2",
+    "H5"
+  ],
+  "notes": [
+    "Markers occur only at saved iterations.",
+    "H2/H5 intermediate recursive values were not reconstructed."
+  ],
+  "quantity_kind": "FITTED OBJECTIVE HISTORY or STORED OBJECTIVE ENDPOINT",
+  "representations": [
+    "A",
+    "B",
+    "C"
+  ],
+  "scientific_question": "How much did each training objective decrease under its fixed budget?",
+  "source_artifacts": [
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_training_objectives.csv"
+  ],
+  "state_intervals": [],
+  "support_classification": "Test 2B training states 0--80; objective-specific X, Y, or recursive evaluation",
+  "units": {
+    "checkpoint_iteration": "iteration",
+    "value": "dimensionless objective"
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "benchmark_stage": "Test 2A H1-H2-H5 horizon curriculum",
+  "format_version": 1,
+  "truth": {
+    "trajectory_configuration": "dimswe/configs/test2a_trajectory_prep.json",
+    "state_indices": [0, 80],
+    "states_after_80_forbidden": true,
+    "c0": 0.14
+  },
+  "model": {
+    "selected_operator_configuration": "dimswe/configs/test2a_selected_operator.json",
+    "embedding_configuration": "dimswe/configs/test2a_embedded_neural_a.json",
+    "operator_dataset": "external-results/test2a/dataset/doublevortex_A_operator.npz",
+    "parameter_count": 1281,
+    "dtype": "float64",
+    "R": "original deployed analytical R"
+  },
+  "initialization": {
+    "kind": "matched_M1_200k",
+    "parameter_file": "external-results/test2a/fair-longfit/operator-seed0-m20-200k/final_parameters.npz",
+    "parameter_pytree_sha256": "f86ee79be3086028f21de10b947c0089147234f494c066f8bbbb2fffb3f8bef8"
+  },
+  "fixed_cache": {
+    "source_M2_X_cache": "external-results/test2a/deployed-discrete-offline/fixed_operator_cache.npz",
+    "source_M2_X_cache_sha256": "baee2dd3ae8a5e3f9ec16f6883e3583d4ac61281d777c3079b002e611504bacf",
+    "H1_M2_Y_cache": "external-results/test2a/horizon-curriculum-h1-h2-h5/h1_postprefix_cache.npz",
+    "analytical_target": "genuine analytical JAX A at Y_k with local_physics=None",
+    "hot_loop_firedrake_or_petsc_solves": 0
+  },
+  "loss": {
+    "mode": "accumulated",
+    "target_weights": 1.0,
+    "target_normalization": "none",
+    "metric": "production complete mixed-state mass norm",
+    "common_denominator": "sum_k ||dt G(Y_k) A_star(Y_k)||_M^2",
+    "common_denominator_identical_across_horizons": true
+  },
+  "stages": {
+    "1": {
+      "scientific_name": "fixed post-prefix M2-Y / one-step objective",
+      "starts": [0, 79, 1],
+      "window_count": 80,
+      "targets": [1, 80],
+      "target_count": 80,
+      "recursive_feedback": false,
+      "production_accepted_iteration_limit": 50000,
+      "checkpoint_accepted_iterations": [0, 100, 500, 1000, 5000, 10000, 25000, 50000]
+    },
+    "2": {
+      "scientific_name": "recursive horizon-2",
+      "starts": [0, 78, 2],
+      "window_count": 40,
+      "targets": [1, 80],
+      "target_count": 80,
+      "recursive_feedback": true,
+      "production_accepted_iteration_limit": 100,
+      "checkpoint_accepted_iterations": [0, 5, 10, 25, 50, 75, 100]
+    },
+    "5": {
+      "scientific_name": "recursive horizon-5",
+      "starts": [0, 75, 5],
+      "window_count": 16,
+      "targets": [1, 80],
+      "target_count": 80,
+      "recursive_feedback": true,
+      "production_accepted_iteration_limit": 100,
+      "checkpoint_accepted_iterations": [0, 5, 10, 25, 50, 75, 100]
+    }
+  },
+  "optimizer": {
+    "library": "PyROL/ROL",
+    "method": "line-search L-BFGS",
+    "maximum_secant_storage": 20,
+    "gradient_tolerance": 1e-8,
+    "step_tolerance": 1e-12,
+    "exact_gradients": true,
+    "production_HVP": false,
+    "new_process_and_empty_secant_history_each_stage": true,
+    "parameter_checkpoint_resume_restores_secant_history": false
+  },
+  "certification": {
+    "value_relative_tolerance": 1e-8,
+    "gradient_relative_tolerance": 1e-8,
+    "absolute_floor": 1e-14,
+    "probes": {
+      "canonical_seed0": null,
+      "matched_M1_200k": {
+        "path": "external-results/test2a/fair-longfit/operator-seed0-m20-200k/final_parameters.npz",
+        "sha256": "f86ee79be3086028f21de10b947c0089147234f494c066f8bbbb2fffb3f8bef8"
+      },
+      "matched_M2_X_200k": {
+        "path": "external-results/test2a/fair-longfit/discrete-seed0-m20-200k/final_parameters.npz",
+        "sha256": "94bb112961bc2f2e05cbca459bc50d64513110a077e2b15cded39fe8427de6f8"
+      },
+      "M1_to_M2_X_50k": {
+        "path": "external-results/test2a/m1-to-m2-finetune/operator-200k-to-discrete-m20-50k/final_parameters.npz",
+        "sha256": "e68110b18ea29748830b70683da321bb8e670aa69ddc94598692d72a6f278fc3"
+      }
+    }
+  },
+  "benchmark": {
+    "steady_H1_repeats": 5,
+    "trajectory_repeats": 1,
+    "nonscientific_smoke_accepted_iterations": 2
+  },
+  "output_root": "external-results/test2a/horizon-curriculum-h1-h2-h5",
+  "resume_contract": "parameter-exact restart from the latest verified checkpoint starts a new process with empty ROL L-BFGS secant history"
+}

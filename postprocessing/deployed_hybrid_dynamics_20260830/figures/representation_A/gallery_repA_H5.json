@@ -1,0 +1,55 @@
+{
+  "common_visual_limits": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/COMMON_VISUAL_LIMITS.json",
+  "common_visual_limits_sha256": "c11b828d313170422c3602d849571cbc7c18d8d4d8b475f625786f8f64b6b4ac",
+  "event_roles": [
+    "initial",
+    "truth pre-rain reference",
+    "truth sustained-rain reference",
+    "truth peak integrated rain-production reference",
+    "final"
+  ],
+  "event_roles_are_truth_defined": true,
+  "event_steps": [
+    0,
+    50,
+    61,
+    120,
+    160
+  ],
+  "event_times_s": [
+    0.0,
+    5000.0,
+    6100.0,
+    12000.0,
+    16000.0
+  ],
+  "figure": "Representation A \u2014 H5",
+  "model_specific_autoscaling": false,
+  "negative_values_clipped": false,
+  "pdf": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_A/gallery_repA_H5.pdf",
+  "pdf_sha256": "cf2d46a4a9d979d986764d4e18cb8e3b2e303cfa21aac679fd81ccbd669250d4",
+  "png": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/figures/representation_A/gallery_repA_H5.png",
+  "png_sha256": "23470a3730a06a816e8c01f097bb54bb1283db8fea9c3063b66173310c73552f",
+  "rendering": "cache only",
+  "representation_c_rate_label": null,
+  "source_cache": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/deployed_hybrid_dynamics_20260830/data/repA_H5_maps.npz",
+  "source_cache_sha256": "a60c6cd46d3f20884d4fe8bad116e066c5c379f3ee3313ae2f704a1705ecb837",
+  "status": "complete",
+  "variables": [
+    "supersaturation_percent",
+    "specific_cloud_g_kg-1",
+    "specific_rain_ug_kg-1",
+    "R_ug_kg-1_h-1"
+  ],
+  "vorticity_overlay": {
+    "levels": [
+      -8.0,
+      -4.0,
+      4.0,
+      8.0,
+      12.0
+    ],
+    "source": "same deployed model boundary state",
+    "variable": "relative_vorticity_1e5_s-1"
+  }
+}

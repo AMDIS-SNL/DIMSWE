@@ -1,0 +1,68 @@
+{
+  "color_limits": {
+    "h-H0_m": [
+      -70,
+      6
+    ],
+    "thermal_percent": [
+      0,
+      5
+    ],
+    "vorticity_1e5_s-1": [
+      -16.88884483113007,
+      16.88884483113007
+    ]
+  },
+  "coordinate_units": "km",
+  "deterministic_rendering": {
+    "backend": "Agg",
+    "fixed_pdf_date": "2026-08-29T00:00:00Z",
+    "font": "DejaVu Sans",
+    "png_dpi": 300
+  },
+  "figure_id": "figure1",
+  "format_version": 1,
+  "outputs": [
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/figures/figure1_doublevortex_initial_state.png",
+      "sha256": "34cdb26dbe39d377a9af237d845de90f4f676981e11a7150855add5b9d918ec4"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/figures/figure1_doublevortex_initial_state.pdf",
+      "sha256": "b07aac5335cb9fcb2aba7044afbe6749facda6b8e966f42807cb37226e212d00"
+    }
+  ],
+  "panels": [
+    "h-H0 with streamlines",
+    "relative vorticity",
+    "100*(b/g-1)"
+  ],
+  "script": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/scripts/ground_truth_figures_20260829/make_ground_truth_figures.py",
+  "script_sha256": "f4e61a0b6911b8a7818cb8f40bfda6e8b6da67680d9662f197b6692e779fdf65",
+  "source_caches": [
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/data/test2a_truth_maps.npz",
+      "sha256": "0cbc5fac8a15c110701ba63e5051f214330532df7ef3435c784129ef405f36ea"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-groundtruth-figures-20260829/outputs/ground_truth_figures_20260829/data/test2b_truth_maps.npz",
+      "sha256": "e9477a3ac4e54ebe4da73f9df5ffaafdf98c812afd7fe92b55820230db034de6"
+    }
+  ],
+  "source_truth_paths": [
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test1b-production/truth_c0_0.14",
+    "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2b-rain-active-truth/production-n64-zeta-m0p06-dt100-t16000"
+  ],
+  "state_indices": [
+    0
+  ],
+  "times_s": [
+    0.0
+  ],
+  "variables_units": {
+    "100*(b/g-1)": "%",
+    "h-H0": "m",
+    "relative_vorticity": "1e-5 s-1",
+    "velocity": "m s-1"
+  }
+}

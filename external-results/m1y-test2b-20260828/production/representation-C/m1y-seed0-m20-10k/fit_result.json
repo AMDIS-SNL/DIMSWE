@@ -1,0 +1,376 @@
+{
+  "accepted_iterations": 10000,
+  "architecture": {
+    "activation": "tanh",
+    "dtype": "float64",
+    "features": [
+      "h",
+      "S",
+      "Qv",
+      "Qc",
+      "B"
+    ],
+    "layers": [
+      5,
+      32,
+      32,
+      4
+    ],
+    "outputs": [
+      "S",
+      "Qv",
+      "Qc",
+      "Qr"
+    ],
+    "parameter_count": 1380,
+    "representation": "C",
+    "seed": 0
+  },
+  "campaign_configuration": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/dimswe/configs/test2b_m1y_20260828.json",
+  "campaign_configuration_sha256": "d9836c3d28d7ab192f04da6fe6eab75018173c808296c262d1f20a95a55006d5",
+  "campaign_id": "m1y_test2b_20260828",
+  "checkpoint_readable": true,
+  "command": [
+    "/Users/arjunsharma/venvs/dimswe-firedrake-2026.4.1-py312/bin/python",
+    "-m",
+    "dimswe.test2b_m1y_campaign",
+    "train",
+    "--configuration",
+    "dimswe/configs/test2b_m1y_20260828.json",
+    "--preparation",
+    "external-results/m1y-test2b-20260828/preparation/m1y_learning_data.npz",
+    "--validation",
+    "external-results/m1y-test2b-20260828/preparation/pretraining_validation.json",
+    "--representation",
+    "C",
+    "--output-directory",
+    "external-results/m1y-test2b-20260828/production/representation-C/m1y-seed0-m20-10k"
+  ],
+  "differentiate_through_prefix": false,
+  "direct_training_support_metrics": {
+    "component_errors": {
+      "Qc": {
+        "correlation": 0.9999865855617888,
+        "cosine": 0.9999867516279686,
+        "maximum_absolute_error": 2.090171967807911e-05,
+        "normalized_RMS_error": 0.0051491444372500535,
+        "physical_RMS_error": 3.5031452279209144e-07,
+        "relative_RMS_error": 0.0051477785639168164,
+        "sample_count": 5308416,
+        "signed_mass_weighted_bias": -1.0396764471976715e-09,
+        "target_RMS": 6.805159127232269e-05
+      },
+      "Qr": {
+        "correlation": 0.9976334394905148,
+        "cosine": 0.9976460706515762,
+        "maximum_absolute_error": 8.168051560553385e-09,
+        "normalized_RMS_error": 0.005918891566835378,
+        "physical_RMS_error": 8.923615803471502e-11,
+        "relative_RMS_error": 0.06857387189818062,
+        "sample_count": 5308416,
+        "signed_mass_weighted_bias": 1.6694660864364183e-13,
+        "target_RMS": 1.3013142697733917e-09
+      },
+      "Qv": {
+        "correlation": 0.9999865820994897,
+        "cosine": 0.9999867481234918,
+        "maximum_absolute_error": 2.0439864387715287e-05,
+        "normalized_RMS_error": 0.005150293461263637,
+        "physical_RMS_error": 3.503926951286261e-07,
+        "relative_RMS_error": 0.005148927190199489,
+        "sample_count": 5308416,
+        "signed_mass_weighted_bias": -2.3881855088269543e-09,
+        "target_RMS": 6.805159253282247e-05
+      },
+      "S": {
+        "correlation": 0.9999866248397116,
+        "cosine": 0.9999867905964648,
+        "maximum_absolute_error": 0.002078265207586437,
+        "normalized_RMS_error": 0.005142708879469349,
+        "physical_RMS_error": 3.430946794382406e-05,
+        "relative_RMS_error": 0.0051413446204448465,
+        "sample_count": 5308416,
+        "signed_mass_weighted_bias": 1.822576281027105e-08,
+        "target_RMS": 0.0066732480463166256
+      }
+    },
+    "effective_rates": {
+      "A_S_minus_A_Qv": {
+        "correlation": 0.999999559112357,
+        "cosine": 0.9999995644563314,
+        "maximum_absolute_error": 2.372381757948211e-09,
+        "normalized_RMS_error": 0.0009570566233084029,
+        "physical_RMS_error": 8.663524102480835e-11,
+        "relative_RMS_error": 0.0009566991917722983,
+        "sample_count": 5308416,
+        "signed_mass_weighted_bias": 3.4219858410992786e-12,
+        "target_RMS": 9.055640662172545e-08
+      },
+      "A_from_Qv": {
+        "correlation": 0.9999833486707598,
+        "cosine": 0.999983554070741,
+        "maximum_absolute_error": 3.11385868891406e-08,
+        "normalized_RMS_error": 0.00573755177569111,
+        "physical_RMS_error": 5.193780272488002e-10,
+        "relative_RMS_error": 0.005735834202100785,
+        "sample_count": 5308416,
+        "signed_mass_weighted_bias": -3.1526509088901543e-12,
+        "target_RMS": 9.054969320043714e-08
+      },
+      "A_from_S": {
+        "correlation": 0.9999833851603193,
+        "cosine": 0.9999835903650106,
+        "maximum_absolute_error": 3.228664227005596e-08,
+        "normalized_RMS_error": 0.005731761750530635,
+        "physical_RMS_error": 5.188538991950353e-10,
+        "relative_RMS_error": 0.005730045910222151,
+        "sample_count": 5308416,
+        "signed_mass_weighted_bias": 2.6933493220912505e-13,
+        "target_RMS": 9.054969320043714e-08
+      },
+      "R_from_Qr": {
+        "activity_numerical_tolerance": 1.2119968976504772e-20,
+        "all_samples": {
+          "correlation": 0.997617394446561,
+          "cosine": 0.9976301250915766,
+          "maximum_absolute_error": 1.0754074304527306e-11,
+          "normalized_RMS_error": 0.005938364562894719,
+          "physical_RMS_error": 1.181905053995036e-13,
+          "relative_RMS_error": 0.06880530665303396,
+          "sample_count": 5308416,
+          "signed_mass_weighted_bias": 2.3116254359734963e-16,
+          "target_RMS": 1.7177527599071024e-12
+        },
+        "false_negative_count": 0,
+        "false_negative_fraction_all_samples": 0.0,
+        "false_negative_rate_given_truth_active": 0.0,
+        "false_positive_count": 3614378,
+        "false_positive_fraction_all_samples": 0.6808769320264275,
+        "false_positive_rate_given_truth_inactive": 0.6861474967917321,
+        "maximum_predicted_R": 3.934885932798125e-11,
+        "minimum_predicted_R": -7.138667652207791e-13,
+        "predicted_exact_negative_fraction": 0.31144130377121915,
+        "predicted_exact_positive_fraction": 0.6885586962287809,
+        "predicted_meaningful_negative_fraction": 0.31144130377121915,
+        "predicted_meaningful_positive_fraction": 0.6885583194685571,
+        "sample_count": 5308416,
+        "truth_active_sample_count": 40776,
+        "truth_active_sample_fraction": 0.007681387442129629,
+        "truth_active_samples": {
+          "correlation": 0.9948960122256371,
+          "cosine": 0.9985419864427496,
+          "maximum_absolute_error": 1.0754074304527306e-11,
+          "normalized_RMS_error": 0.05400803178251351,
+          "physical_RMS_error": 1.074914903657607e-12,
+          "relative_RMS_error": 0.05401813409018941,
+          "sample_count": 40776,
+          "signed_mass_weighted_bias": -9.272905957381728e-14,
+          "target_RMS": 1.9899149086914304e-11
+        }
+      },
+      "cloud_closure_minus_A_Qv_plus_R_Qr": {
+        "correlation": 0.9999991601751134,
+        "cosine": 0.9999991694843764,
+        "maximum_absolute_error": 1.7464545430475136e-09,
+        "normalized_RMS_error": 0.0012898581691976833,
+        "physical_RMS_error": 1.1676129776936907e-10,
+        "relative_RMS_error": 0.001289376520794778,
+        "sample_count": 5308416,
+        "signed_mass_weighted_bias": 4.548916317534279e-12,
+        "target_RMS": 9.055640139731786e-08
+      },
+      "cloud_total_rate_minus_truth_A_plus_R": {
+        "correlation": 0.9999833289284198,
+        "cosine": 0.9999835346508037,
+        "maximum_absolute_error": 3.184218847946459e-08,
+        "normalized_RMS_error": 0.00574045341058179,
+        "physical_RMS_error": 5.19640690744353e-10,
+        "relative_RMS_error": 0.005738735072588064,
+        "sample_count": 5308416,
+        "signed_mass_weighted_bias": 1.3964965711877253e-12,
+        "target_RMS": 9.054969155598336e-08
+      }
+    },
+    "negative_Qr_t_fraction": 0.31144130377121915,
+    "physical_two_rate_projection": {
+      "metric": {
+        "basis": [
+          [
+            14698.632513936996,
+            0.0
+          ],
+          [
+            14698.632513936995,
+            0.0
+          ],
+          [
+            -14698.632520884741,
+            -14698.632520884741
+          ],
+          [
+            0.0,
+            66328399.801040135
+          ]
+        ],
+        "component_order": [
+          "S",
+          "Qv",
+          "Qc",
+          "Qr"
+        ],
+        "sha256": "ca9589c0fefd88a803be4ad3bdafa9053f730f19515a33afcd58b468598a38b3",
+        "source_scales": [
+          0.006671477765500949,
+          6.803353979030477e-05,
+          6.80335397581467e-05,
+          1.5076498196845062e-08
+        ]
+      },
+      "normalized_off_manifold_RMS": 0.0010252578324049042,
+      "normalized_source_RMS": 1.7346380460804227,
+      "normalized_truth_source_RMS": 1.7346591600539798,
+      "off_manifold_fraction_of_source_magnitude": 0.0005910500088024533,
+      "physical_off_manifold_component_bias": {
+        "Qc": -1.4271146744872362e-09,
+        "Qr": -7.008316339478035e-17,
+        "Qv": -2.0005802648462296e-09,
+        "S": 5.623495320341765e-08
+      },
+      "physical_off_manifold_vector_RMS": 2.880281077167732e-06,
+      "projected_A": {
+        "correlation": 0.9999835418642016,
+        "cosine": 0.9999837451762945,
+        "maximum_absolute_error": 3.175586515030379e-08,
+        "normalized_RMS_error": 0.00570341164272977,
+        "physical_RMS_error": 5.162875741076891e-10,
+        "relative_RMS_error": 0.005701704289211183,
+        "sample_count": 5308416,
+        "signed_mass_weighted_bias": -4.956835530537177e-13,
+        "target_RMS": 9.054969320043714e-08
+      },
+      "projected_R": {
+        "correlation": 0.9976173901314656,
+        "cosine": 0.9976301207894508,
+        "maximum_absolute_error": 1.0754088960739504e-11,
+        "normalized_RMS_error": 0.005938369990864844,
+        "physical_RMS_error": 1.181906134316942e-13,
+        "relative_RMS_error": 0.06880536954461715,
+        "sample_count": 5308416,
+        "signed_mass_weighted_bias": 2.312554539738427e-16,
+        "target_RMS": 1.7177527599071024e-12
+      }
+    },
+    "positive_Qr_t_fraction": 0.6885586962287809,
+    "thermodynamic_source_defect": {
+      "RMS": 6.138691732464522e-06,
+      "maximum_absolute": 0.00015853703745542097,
+      "sampled_state_count": 81,
+      "signed_mass_weighted_mean": 2.524150549026569e-07,
+      "signed_to_absolute_ratio": 0.08565091221632656,
+      "spatial_integral_maximum": 339292468.58901536,
+      "spatial_integral_minimum": -17148297.717620164,
+      "time_sampled_absolute_integral": 596771794895.6625,
+      "time_sampled_signed_integral": 51114048617.788025
+    },
+    "water_source_defect": {
+      "RMS": 8.452063702752246e-08,
+      "maximum_absolute": 1.1884292859700746e-06,
+      "sampled_state_count": 81,
+      "signed_mass_weighted_mean": -3.4276950094159807e-09,
+      "signed_to_absolute_ratio": -0.07029974853131948,
+      "spatial_integral_maximum": 292409.67745415616,
+      "spatial_integral_minimum": -887750.3428925097,
+      "time_sampled_absolute_integral": 9873552237.494864,
+      "time_sampled_signed_integral": -694108239.4067358
+    }
+  },
+  "evaluation_state": "Y_n*=P(X_n*)",
+  "feature_order": [
+    "h",
+    "S",
+    "Qv",
+    "Qc",
+    "B"
+  ],
+  "final_objective": 3.805860067388399e-05,
+  "final_parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/production/representation-C/m1y-seed0-m20-10k/final_parameters.npz",
+  "final_parameter_npz_sha256": "169eadab27a39916e37a875c27708873595f133cb4ea39e9f23eab14e86d49ee",
+  "final_parameter_pytree_sha256": "c8da7ea375ced0f692210f97097e069f9d5757b6bead22b7a4a10d9a265d8a65",
+  "final_parameter_sidecar_sha256": "4c359d363dd3f756317907fcaa92d161dcfa0c13cb4129becacbdbb05249bafd",
+  "gradient_evaluations": 10001,
+  "gradient_norm_history_all_finite": true,
+  "initial_parameter_pytree_sha256": "e52dd73e3f97d44adf4d55354b1c8d9a9b252186a17cae4ad09410270b86df1e",
+  "initialization_convention": "Problem-A Glorot-uniform per layer, zero bias",
+  "maximum_objective_evaluated": 1.2821936979995798,
+  "minimum_objective_evaluated": 3.805860067388399e-05,
+  "normalization": {
+    "R_scale_definition": "mass-weighted RMS over meaningful R>0 samples; all zero samples remain in every loss numerator",
+    "feature_order": [
+      "h",
+      "S",
+      "Qv",
+      "Qc",
+      "B"
+    ],
+    "fitted_truth_state_indices": [
+      0,
+      80
+    ],
+    "heldout_state_indices": [
+      81,
+      160
+    ],
+    "input_offset": [
+      749.6487720807651,
+      7376.434989735685,
+      1.4193153609575624,
+      0.06015957787413514,
+      0.0
+    ],
+    "input_scale": [
+      16.913638066122523,
+      133.5602198531373,
+      0.21326095651874272,
+      0.012412402653357142,
+      1.0
+    ],
+    "provenance_sha256": "794e074b2d3149f58025a7e6a74856374d86adab1e3ee518a64fe6f30ff0dd79",
+    "sigma_A_all_training_support": 9.052258655848717e-08,
+    "sigma_R_active_training_support": 1.9902871261559996e-11,
+    "source_order": [
+      "S",
+      "Qv",
+      "Qc",
+      "Qr"
+    ],
+    "source_scales": [
+      0.006671477765500949,
+      6.803353979030477e-05,
+      6.80335397581467e-05,
+      1.5076498196845062e-08
+    ]
+  },
+  "normalization_refitted_on_Y": false,
+  "objective_denominator": 6093310863157332.0,
+  "objective_evaluations": 20785,
+  "objective_history_all_finite": true,
+  "output_scales_refitted_on_Y": false,
+  "parameter_only_restart_restores_secant_history": false,
+  "preparation": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/preparation/m1y_learning_data.npz",
+  "preparation_sha256": "6f16e6db2c6ebdbd8c00a23cdae9b5318355384723a2f1276b2ea93d95145668",
+  "pretraining_validation": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/preparation/pretraining_validation.json",
+  "pretraining_validation_sha256": "bca0fc0c33108aafb4785ee4ae610013d83abc1c89ac723d1cd709f88d9f37b7",
+  "recursive_rollout": false,
+  "representation": "C",
+  "source_secant_history_reused": false,
+  "stage": "M1-Y",
+  "status": "complete",
+  "termination_reason": "EExitStatus.EXITSTATUS_MAXITER",
+  "total_sample_count": 5308416,
+  "training_state_count": 81,
+  "training_states": [
+    0,
+    80
+  ],
+  "wall_seconds": 10143.429308957944
+}

@@ -1,0 +1,61 @@
+{
+  "benchmark_stage": "Test 2A-2 frozen neural-A embedding",
+  "dataset_metadata": "external-results/test2a/dataset/doublevortex_A_operator.json",
+  "dataset_metadata_sha256": "0e3f354676dbe2321db928db7f5cc93b95fbee23d16756d8cbb4260f54610893",
+  "moist_activity_audit": "external-results/test2-prep/doublevortex_training_moist_activity.json",
+  "moist_activity_audit_sha256": "8b63d4bd7e50abb99e961be435981f9d24d3d738497666a4d7cc3f62f5e6fcf9",
+  "selected_operator_configuration": "dimswe/configs/test2a_selected_operator.json",
+  "selected_operator_configuration_sha256": "78e5ad8accc9a0b10a35a95c6968a6da638ce5937ca810a651b76b258aee79e4",
+  "format_version": 1,
+  "frozen_operator": {
+    "architecture": {
+      "activation": "tanh",
+      "dtype": "float64",
+      "hidden_layers": [
+        32,
+        32
+      ],
+      "input_dimension": 5,
+      "output_dimension": 1,
+      "parameter_count": 1281,
+      "seed": 0
+    },
+    "parameter_file": "external-results/test2a/optimizer-study/continuation-m20-plus45000/continuation_final_parameters.npz",
+    "parameter_npz_sha256": "bb9910c798428215d76a96a165a67a02d4b2e19aacb31299d521151bf7bb2cf6",
+    "parameter_pytree_sha256": "f7d2fd9577ba2a824d3df6c1f8c90a425e6964e1fb5962508315509b247bed56",
+    "parameter_sidecar_sha256": "c7763cf04f0db00c640be3a6fc861d28a07944d01e9d700700a3b70ce6e46371",
+    "source_result": "external-results/test2a/optimizer-study/continuation-m20-plus45000/continuation_result.json",
+    "source_result_sha256": "53f2b2d640482604bdeda3672821533f0b449904a0e24f37cd4b2a2477c36796"
+  },
+  "normalization_contract": {
+    "feature_order": [
+      "h",
+      "S",
+      "Qv",
+      "Qc",
+      "B"
+    ],
+    "input": "training states 0..80 mean and population standard deviation with recorded degenerate handling",
+    "output": "uncentered RMS_training(A)",
+    "refit_during_embedding": false
+  },
+  "physics": {
+    "A": "frozen neural A_theta",
+    "R": "original deployed analytical rain law",
+    "default": false,
+    "mode": "neural_A_original_R",
+    "source_structure": {
+      "Qc": "-h*(A_theta+R_original)",
+      "Qr": "h*R_original",
+      "Qv": "h*A_theta",
+      "S": "h*(g*L)*A_theta"
+    }
+  },
+  "truth_access": {
+    "allowed_state_indices": [
+      0,
+      80
+    ],
+    "states_after_80_forbidden": true
+  }
+}

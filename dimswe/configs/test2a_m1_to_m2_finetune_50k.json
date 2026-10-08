@@ -1,0 +1,67 @@
+{
+  "benchmark_stage": "Test 2A M1-to-M2 deployed-discrete fine-tune",
+  "format_version": 1,
+  "diagnostic_name": "OPERATOR_PRETRAINED_DISCRETE_FINETUNE",
+  "source_objective_configuration": "dimswe/configs/test2a_deployed_discrete_offline.json",
+  "selected_operator_configuration": "dimswe/configs/test2a_selected_operator.json",
+  "operator_dataset": "external-results/test2a/dataset/doublevortex_A_operator.npz",
+  "fixed_operator_cache": "external-results/test2a/deployed-discrete-offline/fixed_operator_cache.npz",
+  "compatible_cache_training_configuration_sha256": "c1e13dfecf9050a7e36c62262ce11fae871cb7a40e7a8159ad924db8096c2f32",
+  "truth_state_indices": [0, 80],
+  "states_after_80_forbidden": true,
+  "recursive_model_state_propagation": false,
+  "initialization": {
+    "kind": "operator_200k_warm_start",
+    "operator_pretraining": true,
+    "source_parameter_file": "external-results/test2a/fair-longfit/operator-seed0-m20-200k/final_parameters.npz",
+    "parameter_pytree_sha256": "f86ee79be3086028f21de10b947c0089147234f494c066f8bbbb2fffb3f8bef8",
+    "initial_J_op": 0.000373006108792648,
+    "initial_J_disc": 0.0008346864309047664,
+    "new_optimizer_process": true,
+    "source_optimizer_secant_history_reused": false
+  },
+  "operator_baseline": {
+    "parameter_file": "external-results/test2a/fair-longfit/operator-seed0-m20-200k/final_parameters.npz",
+    "parameter_pytree_sha256": "f86ee79be3086028f21de10b947c0089147234f494c066f8bbbb2fffb3f8bef8",
+    "accepted_J_op": 0.000373006108792648,
+    "accepted_J_disc": 0.0008346864309047664
+  },
+  "direct_production_method2_baseline": {
+    "parameter_file": "external-results/test2a/deployed-discrete-offline/direct-fit-50k-rerun/final_parameters.npz",
+    "parameter_pytree_sha256": "4db13a84f52d6fcf66f0345ce5c677aff2b46a84350228a78bc05b073ff6b12a",
+    "accepted_J_disc": 0.0017427829635521567,
+    "accepted_J_op": 0.0020819762080123453,
+    "accepted_iterations": 50000,
+    "objective_evaluations": 104234,
+    "gradient_evaluations": 50001,
+    "wall_time_seconds": 37523.034
+  },
+  "matched_seed0_method2_reference": {
+    "parameter_file": "external-results/test2a/fair-longfit/discrete-seed0-m20-200k/final_parameters.npz",
+    "parameter_pytree_sha256": "94bb112961bc2f2e05cbca459bc50d64513110a077e2b15cded39fe8427de6f8",
+    "accepted_J_disc": 0.001721966994676836,
+    "accepted_J_op": 0.002489117530253537,
+    "accepted_iterations": 200000
+  },
+  "objective": {
+    "definition": "sum_k ||G_k(A_theta-A_truth)||_M^2 / sum_k ||G_k A_truth||_M^2",
+    "G_k": "M^-1 W H_k",
+    "exact_fixed_state_cache": true,
+    "dense_G_or_K_formed": false,
+    "production_oracle_required_before_training": true
+  },
+  "optimizer": {
+    "library": "PyROL/ROL",
+    "method": "line-search L-BFGS",
+    "maximum_secant_storage": 20,
+    "accepted_iteration_limit": 50000,
+    "gradient_tolerance": 1e-8,
+    "step_tolerance": 1e-12,
+    "exact_gradients": true,
+    "production_HVP": false
+  },
+  "progress_accepted_iteration_stride": 1000,
+  "checkpoint_accepted_iterations": [0, 1000, 5000, 10000, 25000, 50000],
+  "output_directory": "external-results/test2a/m1-to-m2-finetune/operator-200k-to-discrete-m20-50k",
+  "resume_contract": "parameter-exact restart from latest verified checkpoint; a restarted process has new empty ROL L-BFGS secant history and is not the same continuous optimizer trajectory"
+}

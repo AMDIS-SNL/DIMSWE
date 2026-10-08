@@ -1,0 +1,56 @@
+{
+  "benchmark_stage": "Test 2A Problem B preparation and campaign",
+  "format_version": 1,
+  "truth": {
+    "allowed_state_indices": [0, 80],
+    "states_after_80_forbidden": true,
+    "trajectory_configuration": "dimswe/configs/test2a_trajectory_prep.json",
+    "c0": 0.14,
+    "m2x_oracle_configuration": "dimswe/configs/test2a_deployed_discrete_offline.json"
+  },
+  "model": {
+    "features": ["h", "S", "Qv", "Qc", "B"],
+    "layers": [5, 32, 32, 4],
+    "activation": "tanh",
+    "dtype": "float64",
+    "seed": 0,
+    "parameter_count": 1380,
+    "source_order": ["S", "Qv", "Qc", "Qr"],
+    "source_structure_enforced": false
+  },
+  "normalization": {
+    "problem_a_operator_dataset": "external-results/test2a/dataset/doublevortex_A_operator.npz",
+    "input": "exact frozen Problem-A training mean/population-std",
+    "output": "sigma_S and shared sigma_Q mass weighted on truth states 0..80"
+  },
+  "objectives": {
+    "M1": "direct normalized four-source carrier-mass regression",
+    "M2-X": "fixed boundary-state G4 deployed-discrete regression",
+    "H1": "fixed post-prefix G4 deployed-discrete regression",
+    "H2": "dense accumulated recursive horizon-2",
+    "H5": "dense accumulated recursive horizon-5",
+    "dense_schedules": {
+      "1": [0, 79, 1],
+      "2": [0, 78, 2],
+      "5": [0, 75, 5]
+    }
+  },
+  "optimizer": {
+    "library": "PyROL/ROL",
+    "method": "line-search L-BFGS",
+    "maximum_secant_storage": 20,
+    "gradient_tolerance": 1e-8,
+    "step_tolerance": 1e-12,
+    "production_HVP": false,
+    "parameter_only_resume_restores_secant_history": false
+  },
+  "proposed_accepted_iteration_caps": {
+    "M1": 200000,
+    "M2-X-independent": 200000,
+    "M1-to-M2-X": 50000,
+    "H1-from-M1": 50000,
+    "H2-from-H1": 100,
+    "H5-from-H2": 100
+  },
+  "output_root": "external-results/test2a/problem-b"
+}

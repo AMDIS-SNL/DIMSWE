@@ -1,0 +1,230 @@
+{
+  "archive": {
+    "classification": "SUPPLEMENTARY / PROVENANCE",
+    "pre_reset_snapshot": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/FINAL_MAIN_RESET_BASELINE.json",
+      "sha256": "20bb91198cf015b045a3332a7b4a6d1ff4f063bfa2e99babc969a6b29cb4eac7",
+      "size_bytes": 20616
+    },
+    "reason": "Superseded in the main-paper subset by deployment-consistent M1-Y/H1/H2/H5 figures; numerical assets retained unchanged."
+  },
+  "denominator_convention": {
+    "H1_evaluation_increment_denominator": 778389283037.0262,
+    "H1_evaluation_source_equivalent": 77838928.30370262,
+    "H1_training_increment_denominator": 901944200525722.0,
+    "H1_training_source_equivalent": 90194420052.5722,
+    "M2-X_evaluation": 14256196.634496419,
+    "M2-X_training": 90147685409.58347,
+    "definition": "Each curve uses the same normalized-target energy formula as its training objective, evaluated on that curve's own state/window set.",
+    "newly_defined_evaluation_denominators": [
+      "M2-X",
+      "H1"
+    ],
+    "note": "The H1 implementation evaluates source error after canceling the common dt^2 factor from numerator and target increment denominator."
+  },
+  "draft_caption": "Objective-consistent histories for the nonrecursive Test 2B objectives. Solid curves use the training portion and dashed curves with open markers use the later evaluation portion; the evaluation curves were calculated from saved networks after optimization and did not influence training. M1-X and both M2-X runs are evaluated on timestep-boundary states X*, whereas M1-Y is evaluated on Y*=P(X*) and H1 uses fixed one-step pairs from Y* to the corresponding next truth state. Each evaluation curve uses the same normalization, output scaling, weighting, and normalized-target-energy formula as its fitted objective. Objective normalizations differ across representations. H2 and H5 are omitted because their recursive evaluation histories were not computed.",
+  "excluded_models": [
+    "H2",
+    "H5"
+  ],
+  "excluded_reason": "recursive evaluation histories were not computed",
+  "figure_id": "ML2_objective_training_evaluation_history_test2b",
+  "files": {
+    "csv": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML2_objective_training_evaluation_history_test2b.csv",
+      "rows": 288,
+      "sha256": "316f2d0b98c542b638efd72e85e4aef77ac3857fb334bccf0f87c230ea7864b4",
+      "size_bytes": 263720
+    },
+    "pdf": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML2_objective_training_evaluation_history_test2b.pdf",
+      "sha256": "21acafc3db2f31144c6a7d43b31b15d83f34fe136efab28c0d0296109c20cf41",
+      "size_bytes": 36128
+    },
+    "png_300dpi": {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/figures/supplement/ML2_objective_training_evaluation_history_test2b.png",
+      "sha256": "f99766f06f5c37557c053fe14d3b4193cb3ca49fa319404fa95108c874090646",
+      "size_bytes": 402840
+    }
+  },
+  "metric_definitions": {
+    "H1": "fitted fixed one-step mixed-state objective from Y* to the next truth state",
+    "M1-X": "fitted carrier-weighted direct-regression objective at X*",
+    "M1-Y": "fitted carrier-weighted direct-regression objective at Y*=P(X*)",
+    "M2-X": "fitted fixed source-to-tendency mixed-state objective at X*"
+  },
+  "model_labels": [
+    "M1-X",
+    "M1-Y",
+    "M2-X-independent",
+    "warm M2-X",
+    "H1"
+  ],
+  "normalization": {
+    "input_offset": [
+      749.6487720807651,
+      7376.434989735685,
+      1.4193153609575624,
+      0.06015957787413514,
+      0.0
+    ],
+    "input_scale": [
+      16.913638066122523,
+      133.5602198531373,
+      0.21326095651874272,
+      0.012412402653357142,
+      1.0
+    ],
+    "output_scales": {
+      "A": [
+        9.052258655848717e-08
+      ],
+      "B": [
+        9.052258655848717e-08,
+        1.9902871261559996e-11
+      ],
+      "C": [
+        0.006671477765500949,
+        6.803353979030477e-05,
+        6.80335397581467e-05,
+        1.5076498196845062e-08
+      ]
+    },
+    "provenance_sha256": "794e074b2d3149f58025a7e6a74856374d86adab1e3ee518a64fe6f30ff0dd79",
+    "refitted": false
+  },
+  "notes": [
+    "Only saved iterations are plotted; no interpolation is used.",
+    "Training is solid; evaluation is dashed with open markers.",
+    "Raw objective values should not be compared across representations without accounting for their distinct target scalings and normalizations."
+  ],
+  "operations": {
+    "checkpoint_inference": true,
+    "fixed_array_or_fixed_map_only": true,
+    "optimizer_instantiated": false,
+    "prefix_constructed": false,
+    "recursive_rollout": false,
+    "timestep_integrated": false
+  },
+  "quantity_kind": "OBJECTIVE-CONSISTENT SAVED-NETWORK EVALUATION",
+  "rendering": {
+    "date": "2026-08-29",
+    "iteration_ticks": [
+      0,
+      1,
+      10,
+      100,
+      1000,
+      10000
+    ],
+    "iteration_transform": "log10(iteration+1)",
+    "y_scale": "logarithmic within each panel"
+  },
+  "representations": [
+    "A",
+    "B",
+    "C"
+  ],
+  "scientific_question": "For each nonrecursive training objective, how does the same objective behave on the training and later evaluation portions of the Test-2B trajectory?",
+  "source_artifacts": [
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_hash_manifest.json",
+      "sha256": "8bea6544752cd5c7bdccfb09a8ed9c7e001dfa96994a796119720cb0cb1ad43b"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/test2b-rain-active-learning/preparation/fixed_learning_data.npz",
+      "sha256": "6e159015234fd94881b0b97888b7481eb049a02dcd96c571078920c0bedc901c"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/test2b-rain-active-learning/preparation/fixed_learning_data.json",
+      "sha256": "efeba6e0f80063a79ff47209aa1b8973565386e4d4e8844b4b4c2fb0281f0cae"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/heldout_x_test2b.npz",
+      "sha256": "fd55559e2eb3277228099106c8043d3c1d11848a83c77efb87a3f4373f03274f"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/heldout_x_test2b.json",
+      "sha256": "564925b039320e2fec60365b925f42101d6d86479446025ec56fe74f04ce38d3"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/evaluation/m1y_heldout_data.npz",
+      "sha256": "1ddfa2d2e28b6f8dc2a0fbe0a12d2fe7da42158745a70eb2e088706501c42d2f"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/evaluation/m1y_heldout_data.json",
+      "sha256": "4601a5dcdb5bef7ff5711b7c2273324640759e3248842cb0dc2d72e2da30c21e"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_direct_histories.csv",
+      "sha256": "72e26a260f1199e8f861bf685cf053d9434cc3933462c949402d37e4a4930c1a"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_training_objectives_operator.csv",
+      "sha256": "dba15ecdc96755e6cdc6e38643b9fc78dc96ceed2787ad1b04ba895678112af2"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/checkpoint_training_objectives_fixed.csv",
+      "sha256": "3ff41906d67add5a1ac519b04de0b31c8c599e22049d8ad007e047c2d4b5eb8c"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/m1_cross_state_final_metrics.csv",
+      "sha256": "1667691c50ab9986b9d420d5fd534a35894c79457988d29a704236672bf3cee6"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/objective_training_evaluation_histories.csv",
+      "sha256": "316f2d0b98c542b638efd72e85e4aef77ac3857fb334bccf0f87c230ea7864b4"
+    },
+    {
+      "path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/ml_results_postprocess_20260829/data/objective_training_evaluation_histories.json",
+      "sha256": "ead0ef6e4f900bf593d34c78a722ad387c80f61828a4e70b640a6853bdf97938"
+    }
+  ],
+  "state_contracts": {
+    "H1 evaluation": {
+      "input": "Y*_81..159",
+      "next_truth_target": "X*_82..160"
+    },
+    "H1 training": {
+      "input": "Y*_0..79",
+      "next_truth_target": "X*_1..80"
+    },
+    "M1-X evaluation": {
+      "input_and_target": "X*_81..160"
+    },
+    "M1-X training": {
+      "input_and_target": "X*_0..80"
+    },
+    "M1-Y evaluation": {
+      "input_and_target": "Y*_81..160=P(X*_81..160)"
+    },
+    "M1-Y training": {
+      "input_and_target": "Y*_0..80=P(X*_0..80)"
+    },
+    "M2-X evaluation": {
+      "input_and_source_target": "X*_81..160"
+    },
+    "M2-X training": {
+      "input_and_source_target": "X*_0..80"
+    }
+  },
+  "support_classification": "Test 2B training states/windows and temporally later evaluation states/windows; evaluation values did not influence optimization",
+  "units": {
+    "checkpoint_iteration": "iteration",
+    "normalized_objective": "dimensionless objective"
+  },
+  "validation_gates": {
+    "H1_evaluation_alignment_is_81_to_159_targeting_82_to_160": true,
+    "H2_H5_excluded": true,
+    "all_15_final_training_objectives_match": true,
+    "all_6_M1_final_evaluation_values_match_existing_cross_state_metrics": true,
+    "all_M1_training_checkpoint_values_match_existing_history": true,
+    "all_values_finite": true,
+    "coverage_complete_for_15_nonrecursive_runs": true,
+    "normalization_provenance_matches": true
+  },
+  "weighting": {
+    "M1-X/M1-Y": "frozen carrier-mass weights",
+    "M2-X/H1": "frozen S/Q finite-element mass and inverse-mass maps"
+  }
+}

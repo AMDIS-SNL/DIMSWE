@@ -1,0 +1,11 @@
+{
+  "campaign_id": "m1y_test2b_20260828",
+  "completed_count": 80,
+  "completed_truth_state": 160,
+  "elapsed_wall_seconds": 37.1227245409973,
+  "heldout_npz": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/evaluation/m1y_heldout_data.npz",
+  "heldout_npz_sha256": "1ddfa2d2e28b6f8dc2a0fbe0a12d2fe7da42158745a70eb2e088706501c42d2f",
+  "required_count": 80,
+  "status": "complete",
+  "used_for_training_or_model_selection": false
+}

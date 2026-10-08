@@ -1,0 +1,20 @@
+Test 2A-3B/3C preparation manifest
+==================================
+
+dimswe/configs/test2a_apriori_autonomous.json
+dimswe/configs/test2a_deployed_discrete_50k.json
+dimswe/resolved_hidden_c0_driver.py
+dimswe/test2a_apriori_autonomous.py
+dimswe/test2a_discrete_training.py
+tests/test_test2a_apriori_autonomous.py
+tests/test_test2a_discrete_training.py
+tests/test_test2a_apriori_autonomous_firedrake.py
+tests/test_test2a_discrete_offline_firedrake.py
+docs/TEST2A_3B_3C.md
+docs/TEST2A_DEPLOYED_DISCRETE_OFFLINE.md
+docs/LEARNED_PHYSICS_EXPERIMENTS.md
+docs/manifests/TEST2A_3B_3C_FILES.txt
+
+Generated caches, rollouts, figures, checkpoints, training records, and logs
+remain under external-results and are not tracked. Neither stage accesses
+truth states after 80 or implements recursive neural training.

@@ -1,0 +1,83 @@
+{
+  "checkpoint_schedule": [
+    0,
+    10,
+    25,
+    50,
+    75,
+    100
+  ],
+  "checkpoints": [
+    {
+      "accepted_iteration": 0,
+      "objective": 0.0020390381125901676,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/h5-from-h2/checkpoint_000000000_parameters.npz",
+      "parameter_pytree_sha256": "bf0233109c26d2892b202819f228f8002de162dd52b78fb5bf7bcfbadc5c8cc5"
+    },
+    {
+      "accepted_iteration": 10,
+      "objective": 0.0018433189966561001,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/h5-from-h2/checkpoint_000000010_parameters.npz",
+      "parameter_pytree_sha256": "6edb205d09db5183c2eb59ca589f69cf28cf2ea9a3165873da1ba1ce6e7b53fc"
+    },
+    {
+      "accepted_iteration": 25,
+      "objective": 0.001787781125853742,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/h5-from-h2/checkpoint_000000025_parameters.npz",
+      "parameter_pytree_sha256": "f16e365a580420ed905347d772484867408aebb1cea8671aa477871cda20f58d"
+    },
+    {
+      "accepted_iteration": 50,
+      "objective": 0.0017312168385166622,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/h5-from-h2/checkpoint_000000050_parameters.npz",
+      "parameter_pytree_sha256": "29111173dcea8152f2497d5ab804ee63518f6046483b85910472069384bb0403"
+    },
+    {
+      "accepted_iteration": 75,
+      "objective": 0.0016708303538145518,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/h5-from-h2/checkpoint_000000075_parameters.npz",
+      "parameter_pytree_sha256": "18f8edc477d8ebb44428c8f5722b9bca8a78f09951acd8f1e335c5b63972bf16"
+    },
+    {
+      "accepted_iteration": 100,
+      "objective": 0.0016206670827861548,
+      "parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/h5-from-h2/checkpoint_000000100_parameters.npz",
+      "parameter_pytree_sha256": "9afcd50bb6f3caadba30140b2ea714d049a1b4f29cb5c0b162f1e878f934ccce"
+    }
+  ],
+  "configuration_sha256": "355f037241c42bead4592d5046ae77fcda8e2aeb7d43bb5d2db9293fbffb54a7",
+  "final_objective": 0.0016206670827861548,
+  "final_parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/h5-from-h2/final_parameters.npz",
+  "final_parameter_pytree_sha256": "9afcd50bb6f3caadba30140b2ea714d049a1b4f29cb5c0b162f1e878f934ccce",
+  "initial_objective": 0.0020390381125901676,
+  "initialization": {
+    "initial_parameter_pytree_sha256": "bf0233109c26d2892b202819f228f8002de162dd52b78fb5bf7bcfbadc5c8cc5",
+    "kind": "new_optimizer_from_verified_parameter_artifact",
+    "new_optimizer_process": true,
+    "source_optimizer_secant_history_reused": false,
+    "source_parameter_file": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-study-d0eb615/external-results/test2a/problem-b/production/h2-from-h1/final_parameters.npz"
+  },
+  "optimizer": {
+    "HVP_evaluations": 0,
+    "accepted_iterations": 100,
+    "gradient_evaluations": 101,
+    "gradient_tolerance": 1e-08,
+    "iteration_limit": 100,
+    "library": "PyROL/ROL",
+    "maximum_secant_storage": 20,
+    "method": "line-search L-BFGS",
+    "objective_evaluations": 212,
+    "step_tolerance": 1e-12,
+    "termination_reason": "EExitStatus.EXITSTATUS_MAXITER"
+  },
+  "parameter_only_restart_restores_secant_history": false,
+  "preparation_npz_sha256": "a869d1dd6801fd06d6f4e981f1ad36bab6f285204c259a1bfe9c19b6d4eb839b",
+  "stage": "H5",
+  "states_after_80_accessed": false,
+  "status": "complete",
+  "truth_state_indices": [
+    0,
+    80
+  ],
+  "wall_seconds": 5707.703796708025
+}

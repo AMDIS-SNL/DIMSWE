@@ -1,0 +1,15 @@
+{
+  "checkpoint_training_objective_rows": 261,
+  "deployed_diagnostic_rows": 21,
+  "final_direct_metric_rows": 3505,
+  "global_trajectory_rows": 3381,
+  "main_run_count": 33,
+  "no_rollout": true,
+  "no_training": true,
+  "no_truth_generation": true,
+  "objective_matrix_rows": 33,
+  "rain_rows_including_truth": 22,
+  "recursive_H2_H5_history_reconstruction": false,
+  "source_head": "d2f5d66ecb5500aad24eca37280f8a52e22a250f",
+  "status": "complete"
+}

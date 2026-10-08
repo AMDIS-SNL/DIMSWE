@@ -1,0 +1,7 @@
+dimswe/configs/test2a_m1_to_m2_finetune_50k.json
+dimswe/test2a_m1_to_m2_finetune.py
+dimswe/test2a_discrete_training.py
+scripts/run_test2a_m1_to_m2_finetune_50k.sh
+tests/test_test2a_m1_to_m2_finetune.py
+docs/TEST2A_M1_TO_M2_FINETUNE.md
+docs/manifests/TEST2A_M1_TO_M2_FINETUNE_FILES.txt

@@ -1,0 +1,11 @@
+# Generated operating-system and Python cache files.
+.DS_Store
+**/.DS_Store
+__pycache__/
+**/__pycache__/
+*.py[cod]
+
+# Numerical campaigns are retained locally and hash-addressed in
+# docs/provenance/DISPOSITION_MANIFEST.tsv.  Only compact, reviewed canonical
+# artifacts are force-added to Git.
+external-results/

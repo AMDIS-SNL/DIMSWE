@@ -1,0 +1,329 @@
+{
+  "campaign_id": "m1y_test2b_20260828",
+  "command": [
+    "/Users/arjunsharma/venvs/dimswe-firedrake-2026.4.1-py312/bin/python",
+    "-m",
+    "dimswe.test2b_m1y_campaign",
+    "validate",
+    "--configuration",
+    "dimswe/configs/test2b_m1y_20260828.json",
+    "--preparation",
+    "external-results/m1y-test2b-20260828/preparation/m1y_learning_data.npz",
+    "--output",
+    "external-results/m1y-test2b-20260828/preparation/pretraining_validation.json"
+  ],
+  "configuration": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/dimswe/configs/test2b_m1y_20260828.json",
+  "configuration_sha256": "d9836c3d28d7ab192f04da6fe6eab75018173c808296c262d1f20a95a55006d5",
+  "gates": {
+    "A_targets_reproduced_independently": true,
+    "C_source_order_reproduced_independently": true,
+    "H1_prefix_parity_passed": true,
+    "Qr_absent_from_network_input": true,
+    "R_targets_reproduced_independently": true,
+    "all_prepared_values_finite": true,
+    "feature_order_is_h_S_Qv_Qc_B": true,
+    "features_reproduced_independently": true,
+    "historical_carrier_weights_bitwise_reused": true,
+    "normalization_is_historical_X_fitted": true,
+    "offline_theta_independent_cache": true,
+    "seed0_initializations_match": true,
+    "support_is_exactly_0_through_80": true
+  },
+  "historical_preparation": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/test2b-rain-active-learning/preparation/fixed_learning_data.npz",
+  "historical_preparation_sha256": "6e159015234fd94881b0b97888b7481eb049a02dcd96c571078920c0bedc901c",
+  "maximum_discrepancies": {
+    "A": 0.0,
+    "C_source": 0.0,
+    "R": 0.0,
+    "feature": 0.0
+  },
+  "offline_semantics": {
+    "Y_construction": "case.helper.take_forward_step_cached(X_n*, n*dt, dt).boundary_states[-2]",
+    "differentiation_through_P": false,
+    "features_and_targets_materialized_before_optimizer": true,
+    "objective_inputs": [
+      "m1y_features",
+      "m1y_A",
+      "m1y_R",
+      "carrier_weights"
+    ],
+    "prefix_source_path": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/dimswe/mtswe_split_hvp.py",
+    "prefix_source_sha256": "0a7e5a9a21a0280d2c3c620e64f48f850e85e1cb7a6b9b7737a8919244b876b8",
+    "recursive_rollout": false,
+    "theta_in_preparation": false
+  },
+  "preparation": "/Users/arjunsharma/Documents/SandiaProjects/4-LDRDAMDIS/DIMSWE-feature-study-20260828/m1y_test2b_20260828_workspace/external-results/m1y-test2b-20260828/preparation/m1y_learning_data.npz",
+  "preparation_sha256": "6f16e6db2c6ebdbd8c00a23cdae9b5318355384723a2f1276b2ea93d95145668",
+  "pretraining_gate": true,
+  "spot_checks": {
+    "condensation_active": {
+      "A_sign": "negative_condensation",
+      "C_target_actual": [
+        -0.06316671570479991,
+        -0.0006441534270784886,
+        0.0006441534270784886,
+        0.0
+      ],
+      "C_target_independent": [
+        -0.06316671570479991,
+        -0.0006441534270784886,
+        0.0006441534270784886,
+        0.0
+      ],
+      "C_target_maximum_absolute_discrepancy": 0.0,
+      "M1Y_A_absolute_discrepancy": 0.0,
+      "M1Y_A_actual": -8.528669963488885e-07,
+      "M1Y_A_independent_numpy": -8.528669963488885e-07,
+      "M1Y_R_absolute_discrepancy": 0.0,
+      "M1Y_R_actual": 0.0,
+      "M1Y_R_independent_numpy": 0.0,
+      "X_feature_actual": [
+        0.3329405685911625,
+        0.22463330013524746,
+        0.7995662617983615,
+        -4.846731092619202,
+        0.0
+      ],
+      "X_feature_independent_from_X_state": [
+        0.3329405685911625,
+        0.22463330013524746,
+        0.7995662617983615,
+        -4.846731092619202,
+        0.0
+      ],
+      "X_feature_maximum_absolute_discrepancy": 0.0,
+      "X_vs_Y_feature_maximum_absolute_difference": 8.377939976794702e-06,
+      "Y_feature_actual": [
+        0.33294299145522116,
+        0.22464167807522425,
+        0.7995668100232305,
+        -4.846731092619202,
+        0.0
+      ],
+      "Y_feature_independent_from_prefix_state": [
+        0.33294299145522116,
+        0.22464167807522425,
+        0.7995668100232305,
+        -4.846731092619202,
+        0.0
+      ],
+      "Y_feature_maximum_absolute_discrepancy": 0.0,
+      "physical_feature_order_h_S_Qv_Qc_B": [
+        755.2800493348908,
+        7406.43818164759,
+        1.5898317436637563,
+        0.0,
+        0.0
+      ],
+      "q_sat": 0.00198579750245342,
+      "rain_active": false,
+      "sample": 25092,
+      "specific_b": 9.806214513636093,
+      "specific_qc": 0.0,
+      "specific_qv": 0.0021049566251138004,
+      "step": 0
+    },
+    "evaporation_active": {
+      "A_sign": "positive_evaporation",
+      "C_target_actual": [
+        0.0020811244328361256,
+        2.1222623665493175e-05,
+        -2.1222623665493175e-05,
+        0.0
+      ],
+      "C_target_independent": [
+        0.0020811244328361256,
+        2.1222623665493175e-05,
+        -2.1222623665493175e-05,
+        0.0
+      ],
+      "C_target_maximum_absolute_discrepancy": 0.0,
+      "M1Y_A_absolute_discrepancy": 0.0,
+      "M1Y_A_actual": 3.244394353519655e-08,
+      "M1Y_A_independent_numpy": 3.244394353519655e-08,
+      "M1Y_R_absolute_discrepancy": 0.0,
+      "M1Y_R_actual": 0.0,
+      "M1Y_R_independent_numpy": 0.0,
+      "X_feature_actual": [
+        -5.564871401963512,
+        -5.936939589807694,
+        -2.319380967467156,
+        -3.8447203721539704,
+        0.0
+      ],
+      "X_feature_independent_from_X_state": [
+        -5.564871401963512,
+        -5.936939589807694,
+        -2.319380967467156,
+        -3.8447203721539704,
+        0.0
+      ],
+      "X_feature_maximum_absolute_discrepancy": 0.0,
+      "X_vs_Y_feature_maximum_absolute_difference": 0.10402580827736241,
+      "Y_feature_actual": [
+        -5.647319061726353,
+        -6.040965398085056,
+        -2.331075642951112,
+        -3.848241575750392,
+        0.0
+      ],
+      "Y_feature_independent_from_prefix_state": [
+        -5.647319061726353,
+        -6.040965398085056,
+        -2.331075642951112,
+        -3.848241575750392,
+        0.0
+      ],
+      "Y_feature_maximum_absolute_discrepancy": 0.0,
+      "physical_feature_order_h_S_Qv_Qc_B": [
+        654.1320614268109,
+        6569.60232304225,
+        0.922187939624265,
+        0.012393653928531706,
+        0.0
+      ],
+      "q_sat": 0.0014139505022291421,
+      "rain_active": false,
+      "sample": 58559,
+      "specific_b": 10.043235472532032,
+      "specific_qc": 1.8946715287885943e-05,
+      "specific_qv": 0.0014097886252705048,
+      "step": 27
+    },
+    "near_inactive": {
+      "A_sign": "negative_condensation",
+      "C_target_actual": [
+        -1.528027311450132e-14,
+        -1.5582320821301427e-16,
+        1.5582320821301427e-16,
+        0.0
+      ],
+      "C_target_independent": [
+        -1.528027311450132e-14,
+        -1.5582320821301427e-16,
+        1.5582320821301427e-16,
+        0.0
+      ],
+      "C_target_maximum_absolute_discrepancy": 0.0,
+      "M1Y_A_absolute_discrepancy": 0.0,
+      "M1Y_A_actual": -2.484059191415694e-19,
+      "M1Y_A_independent_numpy": -2.484059191415694e-19,
+      "M1Y_R_absolute_discrepancy": 0.0,
+      "M1Y_R_actual": 0.0,
+      "M1Y_R_independent_numpy": 0.0,
+      "X_feature_actual": [
+        -7.246348030629166,
+        -8.107562003894724,
+        -2.353907078139826,
+        -4.846731092619202,
+        0.0
+      ],
+      "X_feature_independent_from_X_state": [
+        -7.246348030629166,
+        -8.107562003894724,
+        -2.353907078139826,
+        -4.846731092619202,
+        0.0
+      ],
+      "X_feature_maximum_absolute_discrepancy": 0.0,
+      "X_vs_Y_feature_maximum_absolute_difference": 0.015463178806475852,
+      "Y_feature_actual": [
+        -7.234169130424782,
+        -8.092098825088248,
+        -2.3524012827299363,
+        -4.846731092620457,
+        0.0
+      ],
+      "Y_feature_independent_from_prefix_state": [
+        -7.234169130424782,
+        -8.092098825088248,
+        -2.3524012827299363,
+        -4.846731092620457,
+        0.0
+      ],
+      "Y_feature_maximum_absolute_discrepancy": 0.0,
+      "physical_feature_order_h_S_Qv_Qc_B": [
+        627.292653699644,
+        6295.652491583584,
+        0.9176400132866589,
+        -1.5582320821301428e-14,
+        0.0
+      ],
+      "q_sat": 0.0014956700933546358,
+      "rain_active": false,
+      "sample": 59478,
+      "specific_b": 10.036228631808632,
+      "specific_qc": -2.4840591914156943e-17,
+      "specific_qv": 0.0014628578987408915,
+      "step": 71
+    },
+    "rain_active": {
+      "A_sign": "negative_condensation",
+      "C_target_actual": [
+        -0.0002084146939088437,
+        -2.1253446191867525e-06,
+        2.0872898937258145e-06,
+        3.8054725460937966e-08
+      ],
+      "C_target_independent": [
+        -0.0002084146939088437,
+        -2.1253446191867525e-06,
+        2.0872898937258145e-06,
+        3.8054725460937966e-08
+      ],
+      "C_target_maximum_absolute_discrepancy": 0.0,
+      "M1Y_A_absolute_discrepancy": 0.0,
+      "M1Y_A_actual": -2.7982333103579403e-09,
+      "M1Y_A_independent_numpy": -2.7982333103579403e-09,
+      "M1Y_R_absolute_discrepancy": 0.0,
+      "M1Y_R_actual": 5.0102933632508554e-11,
+      "M1Y_R_independent_numpy": 5.0102933632508554e-11,
+      "X_feature_actual": [
+        0.5833589256871559,
+        0.5916166547459668,
+        0.2386475959619195,
+        1.5791139461397339,
+        0.0
+      ],
+      "X_feature_independent_from_X_state": [
+        0.5833589256871559,
+        0.5916166547459668,
+        0.2386475959619195,
+        1.5791139461397339,
+        0.0
+      ],
+      "X_feature_maximum_absolute_discrepancy": 0.0,
+      "X_vs_Y_feature_maximum_absolute_difference": 0.001411265245462534,
+      "Y_feature_actual": [
+        0.5842688392645641,
+        0.5930279199914293,
+        0.23839962881609622,
+        1.5789838273412544,
+        0.0
+      ],
+      "Y_feature_independent_from_prefix_state": [
+        0.5842688392645641,
+        0.5930279199914293,
+        0.23839962881609622,
+        1.5789838273412544,
+        0.0
+      ],
+      "Y_feature_maximum_absolute_discrepancy": 0.0,
+      "physical_feature_order_h_S_Qv_Qc_B": [
+        759.5308837613994,
+        7455.639929108789,
+        1.4701566938325963,
+        0.07975856092223374,
+        0.0
+      ],
+      "q_sat": 0.001935223347023072,
+      "rain_active": true,
+      "sample": 45011,
+      "specific_b": 9.816111613772007,
+      "specific_qc": 0.00010501029336325086,
+      "specific_qv": 0.0019356114744827602,
+      "step": 80
+    }
+  },
+  "status": "passed"
+}
