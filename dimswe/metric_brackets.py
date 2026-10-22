@@ -12,6 +12,8 @@ class ThermodynamicallyCompatibleViscousRegularization_Base(BracketBase):
 class ThermodynamicallyCompatibleViscousRegularization_LP(ThermodynamicallyCompatibleViscousRegularization_Base):
     pass
 
-
 class ThermodynamicallyCompatibleViscousRegularization_CF(ThermodynamicallyCompatibleViscousRegularization_Base):
+    pass
+
+class DissipativeMaxwell(BracketBase):
     pass

@@ -1,6 +1,37 @@
 from firedrake import Function, MixedFunctionSpace, TestFunction, TestFunctions, TrialFunction
 from firedrake import project, FunctionSpace
 
+
+def get_diff_form_space(spaces, bundle, degree, dim, nm1):
+    if bundle == 'S':
+        if degree == 0:
+            return spaces.CG
+        elif degree == dim:
+            return spaces.DG
+        elif degree == 1 and dim == 2 and nm1:
+            return spaces.Hdiv
+        elif degree == 1 and dim == 2 and not nm1:
+            return spaces.Hcurl
+        elif degree == 1 and dim == 3:
+            return spaces.Hcurl
+        elif degree == 2 and dim == 3:
+            return spaces.Hdiv
+    elif bundle in ['VV', 'CV']:
+        if degree == 0:
+            return spaces.CGV
+        elif degree == dim:
+            return spaces.DGV
+        elif degree == 1 and dim == 2 and nm1:
+            return spaces.HdivV
+        elif degree == 1 and dim == 2 and not nm1:
+            return spaces.HcurlV
+        elif degree == 1 and dim == 3:
+            return spaces.HcurlV
+        elif degree == 2 and dim == 3:
+            return spaces.HdivV
+    else:
+        raise NotImplementedError('bundle ' + bundle + ' is not implemented')
+
 class VariablesBase():
 
     def get_varlist(self):
@@ -20,92 +51,95 @@ class VariablesBase():
 
 
 
-    #def get_vars(self, varname):
-    #    return Function(self.mixedspace, name=varname)
 
-    #def get_test_var(self):
-    #    return TestFunction(self.mixedspace)
+class DiffFormVariablesBase(VariablesBase):
+    def __init__(self, spaces, variablelist, bundlelist, degreelist, dim):
+        self.spaces = spaces
+        self.varlist = variablelist
+        self.bundlelist = bundlelist
+        self.degreelist = degreelist
+        self.dim = dim
 
-    #def get_trial_var(self):
-    #    return TrialFunction(self.mixedspace)
+        if not spaces is None:
+            self.spacelist = []
+            for bundle, degree in zip(self.bundlelist, self.degreelist):
+#NEED TO HANDLE 1-FORMS VS N-1 FORMS in 2D PROPERLY!
+#RIGHT NOW IT DEFAULTS TO HDIV IE N-1 FORMS
+                self.spacelist.append(get_diff_form_space(spaces, bundle, degree, dim, True))
 
-    #def get_test_vars(self):
-    #    xhats = TestFunctions(self.mixedspace)
-    #    xhat_subs = {}
-    #    for i,var in enumerate(self.varlist):
-    #        xhat_subs[var] = xhats[i]
-    #    return xhat_subs
 
-# def get_space(spaces, bundle, degree, dim, nm1):
-#     if bundle == 'S':
-#         if degree == 0:
-#             return spaces.CG
-#         elif degree == dim:
-#             return spaces.DG
-#         elif degree == 1 and dim == 2 and nm1:
-#             return spaces.Hdiv
-#         elif degree == 1 and dim == 2 and not nm1:
-#             return spaces.Hcurl
-#         elif degree == 1 and dim == 3:
-#             return spaces.Hcurl
-#         elif degree == 2 and dim == 3:
-#             return spaces.Hdiv
-#     if bundle in ['VV', 'CV']:
-#         if degree == 0:
-#             return spaces.CGV
-#         elif degree == dim:
-#             return spaces.DGV
-#         elif degree == 1 and dim == 2 and nm1:
-#             return spaces.HdivV
-#         elif degree == 1 and dim == 2 and not nm1:
-#             return spaces.HcurlV
-#         elif degree == 1 and dim == 3:
-#             return spaces.HcurlV
-#         elif degree == 2 and dim == 3:
-#             return spaces.HdivV
-#
-# class DiffFormVariablesBase(VariablesBase):
-#     def __init__(self, spaces, variablelist, bundlelist, degreelist, dim):
-#         self.spaces = spaces
-#         self.variablelist = variablelist
-#         self.bundlelist = bundlelist
-#         self.degreelist = degreelist
-#         self.dim = dim
-#
-#         if not spaces is None:
-#             self.spacelist = []
-#             for var, bundle, degree in zip(self.variablelist, self.bundlelist, self.degreelist):
-# #NEED TO HANDLE 1-FORMS VS N-1 FORMS in 2D!
-#                 self.spacelist.append(get_space(spaces, bundle, degree, dim))
-#             self.mixedspace = MixedFunctionSpace(self.spacelist)
-#
-#     def initialize(self, varexpr, vars):
-#         for i,var in enumerate(self.variablelist):
-#             if not varexpr[var]==0:
-#                 vars.sub(i).project(varexpr[var])
-#
-# class LPVariablesBase(DiffFormVariablesBase):
-#     def __init__(self, spaces, advected_quantity_names, advected_quantity_bundles, advected_quantity_degrees, dim):
-#         variablelist = ['m',] + advected_quantity_names
-#         bundlelist = ['CV',] + advected_quantity_bundle
-#         degreelist = [dim,] + advected_quantity_degrees
-#         DiffFormVariablesBase.__init__(self, spaces, variablelist, bundlelist, degreelist, dim)
-#
-# class CFVariablesBase(DiffFormVariablesBase):
-#     def __init__(self, spaces, advected_quantity_names, advected_quantity_bundles, advected_quantity_degrees, dim):
-#         variablelist = ['v',] + advected_quantity_names
-#         bundlelist = ['S',] + advected_quantity_bundle
-# #NEED TO HANDLE 1-FORMS VS N-1 FORMS in 2D!
-#         degreelist = [dim-1,] + advected_quantity_degrees
-#         DiffFormVariablesBase.__init__(self, spaces, variablelist, bundlelist, degreelist, dim)
-#
-# class CFH1VariablesBase(DiffFormVariablesBase):
-#     def __init__(self, spaces, advected_quantity_names, advected_quantity_bundles, advected_quantity_degrees, dim):
-#         variablelist = ['v',] + advected_quantity_names
-#         bundlelist = ['VV',] + advected_quantity_bundle
-# #BROKEN
-#         degreelist = [0,] + advected_quantity_degrees
-#         DiffFormVariablesBase.__init__(self, spaces, variablelist, bundlelist, degreelist, dim)
+class LPVariablesBase(DiffFormVariablesBase):
+    def __init__(self, spaces, dim,
+        advected_quantity_names, advected_quantity_bundles, advected_quantity_degrees,
+        advected_quantity_dhdx_var_list, advected_quantity_dsdx_var_list,
+        inactive_advected_quantity_names, inactive_advected_quantity_bundles, inactive_advected_quantity_degrees):
+        variablelist = ['m',] + advected_quantity_names + inactive_advected_quantity_names
+        bundlelist = ['CV',] + advected_quantity_bundles + inactive_advected_quantity_bundles
+        degreelist = [dim,] + advected_quantity_degrees + inactive_advected_quantity_degrees
+        self.advected_quantity_names = advected_quantity_names
+        self.advected_quantity_bundles = advected_quantity_bundles
+        self.advected_quantity_degrees = advected_quantity_degrees
+        self.dhdx_var_list = ['u'] + advected_quantity_dhdx_var_list
+        self.dsdx_var_list = ['dSdm'] + advected_quantity_dsdx_var_list
+        self.inactive_advected_quantity_names = inactive_advected_quantity_names
+        self.inactive_advected_quantity_bundles = inactive_advected_quantity_bundles
+        self.inactive_advected_quantity_degrees = inactive_advected_quantity_degrees
+        DiffFormVariablesBase.__init__(self, spaces, variablelist, bundlelist, degreelist, dim)
+
+class CFVariablesBase(DiffFormVariablesBase):
+    def __init__(self, spaces, dim,
+        advected_quantity_names, advected_quantity_bundles, advected_quantity_degrees,
+        advected_quantity_dhdx_var_list, advected_quantity_dsdx_var_list,
+        inactive_advected_quantity_names, inactive_advected_quantity_bundles, inactive_advected_quantity_degrees):
+        variablelist = ['v',] + advected_quantity_names + inactive_advected_quantity_names
+        bundlelist = ['S',] + advected_quantity_bundles + inactive_advected_quantity_bundles
+#NEED TO HANDLE PROPERLY 1-FORMS VS N-1 FORMS in 2D!
+#THE DEFAULT WORKS HERE, BUT IT SHOULD BE DONE PROPERLY
+        degreelist = [dim-1,] + advected_quantity_degrees + inactive_advected_quantity_degrees
+        self.advected_quantity_names = advected_quantity_names
+        self.advected_quantity_bundles = advected_quantity_bundles
+        self.advected_quantity_degrees = advected_quantity_degrees
+        self.dhdx_var_list = ['F'] + advected_quantity_dhdx_var_list
+        self.dsdx_var_list = ['dSdv'] + advected_quantity_dsdx_var_list
+        self.inactive_advected_quantity_names = inactive_advected_quantity_names
+        self.inactive_advected_quantity_bundles = inactive_advected_quantity_bundles
+        self.inactive_advected_quantity_degrees = inactive_advected_quantity_degrees
+        DiffFormVariablesBase.__init__(self, spaces, variablelist, bundlelist, degreelist, dim)
+
+
+
+class AdvDensVariables_CF(CFVariablesBase):
+     def __init__(self, spaces, active_density_names, inactive_density_names, dim):
+         self.density_names = active_density_names + inactive_density_names
+
+         advected_quantity_bundles = ['S',] * len(active_density_names)
+         advected_quantity_degrees = [dim, ] * len(active_density_names)
+         inactive_advected_quantity_bundles = ['S',] * len(inactive_density_names)
+         inactive_advected_quantity_degrees = [dim, ] * len(inactive_density_names)
+         advected_quantity_dhdx_var_list = ['B_' + dens for dens in active_density_names]
+         advected_quantity_dsdx_var_list = ['dSd' + dens for dens in active_density_names]
+
+         CFVariablesBase.__init__(self, spaces, dim,
+         active_density_names, advected_quantity_bundles, advected_quantity_degrees, advected_quantity_dhdx_var_list, advected_quantity_dsdx_var_list,
+         inactive_density_names, inactive_advected_quantity_bundles, inactive_advected_quantity_degrees)
+
+class AdvDensVariables_LP(LPVariablesBase):
+     def __init__(self, spaces, active_density_names, inactive_density_names, dim):
+         self.density_names = active_density_names + inactive_density_names
+
+         advected_quantity_bundles = ['S',] * len(active_density_names)
+         advected_quantity_degrees = [dim, ] * len(active_density_names)
+         inactive_advected_quantity_bundles = ['S',] * len(inactive_density_names)
+         inactive_advected_quantity_degrees = [dim, ] * len(inactive_density_names)
+         advected_quantity_dhdx_var_list = ['B_' + dens for dens in active_density_names]
+         advected_quantity_dsdx_var_list = ['dSd' + dens for dens in active_density_names]
+
+         LPVariablesBase.__init__(self, spaces, dim,
+         active_density_names, advected_quantity_bundles, advected_quantity_degrees, advected_quantity_dhdx_var_list, advected_quantity_dsdx_var_list,
+         inactive_density_names, inactive_advected_quantity_bundles, inactive_advected_quantity_degrees)
+
+
+#THIS IS WHAT WE NEED TO DO SOON-ISH
 
 #DO LOTS OF MERGING HERE
 #basically we have CF, LP and CF-H1 models, each with some set of advected quantities
@@ -115,6 +149,10 @@ class VariablesBase():
 #ie variables are just a set of differential forms
 #then add some specialized logic for various examples ie TSWE, mTSWE, CE, MCE, MHD, Euler-Maxwell, Maxwell!
 #YES THIS IS THE WAY..
+
+
+
+
 
 # class AdvectionVariables(VariablesBase):
 #     def __init__(self, spaces, SOMETHING):
@@ -136,44 +174,14 @@ class VariablesBase():
 #         #for i,dens in enumerate(self.density_names):
 #         #    vars.sub(i+1).interpolate(varexpr[dens])
 #
-# #NEED TO ADD DSDX VARLIST ALSO!!!
-#     def get_total_density_expr(self):
-#         return XXX
 
 
-class AdvDensVariables_CF_Base(VariablesBase):
-    def __init__(self, spaces, active_density_names, inactive_density_names, dim):
-        self.spaces = spaces
-        self.density_names = active_density_names + inactive_density_names
-        self.active_density_names = active_density_names
-        self.inactive_density_names = inactive_density_names
-
-        self.advected_quantity_names = self.active_density_names
-        self.advected_quantity_bundle = ['S',] * len(self.active_density_names)
-        self.advected_quantity_degree = [dim, ] * len(self.active_density_names)
-        self.inactive_advected_quantity_names = self.inactive_density_names
-        self.inactive_advected_quantity_bundle = ['S',] * len(self.inactive_density_names)
-        self.inactive_advected_quantity_degree = [dim, ] * len(self.inactive_density_names)
-
-        self.varlist = ['v',]
-        for dens in self.density_names:
-            self.varlist.append(dens)
-
-        self.dhdx_var_list = ['F',]
-        for dens in self.active_density_names:
-            self.dhdx_var_list.append('B_' + dens)
-
-
-        #if not varexpr['v']==0:
-        #    vars.sub(0).project(varexpr['v'])
-        #for i,dens in enumerate(self.density_names):
-        #    vars.sub(i+1).interpolate(varexpr[dens])
-
-
-class AdvDensVariables_CF_H1(AdvDensVariables_CF_Base):
+class AdvDensVariables_CF_H1(VariablesBase):
     def __init__(self, spaces, active_density_names, cg_inactive_density_names, dg_inactive_density_names, dim):
-        AdvDensVariables_CF_Base.__init__(self, spaces, active_density_names, cg_inactive_density_names + dg_inactive_density_names, dim)
-
+        self.spaces = spaces
+        self.density_names = active_density_names + cg_inactive_density_names + dg_inactive_density_names
+        self.active_density_names = active_density_names
+        self.inactive_density_names = cg_inactive_density_names + dg_inactive_density_names
         self.dg_inactive_density_names = dg_inactive_density_names
         self.cg_inactive_density_names = cg_inactive_density_names
 
@@ -185,54 +193,90 @@ class AdvDensVariables_CF_H1(AdvDensVariables_CF_Base):
 #EVENTUALLY MAKE THIS TUNABLE, IFF THE SLOPE LIMITER EVER GETS GENERALIZED...
                 self.spacelist.append(FunctionSpace(self.spaces.mesh, 'DG', 1, variant="spectral"))
 
-class AdvDensVariables_CF(AdvDensVariables_CF_Base):
-    def __init__(self, spaces, active_density_names, inactive_density_names, dg_inactive_density_names, dim):
-        AdvDensVariables_CF_Base.__init__(self, spaces, active_density_names, inactive_density_names + dg_inactive_density_names, dim)
-
-        self.dg_inactive_density_names = dg_inactive_density_names
-
-        if not spaces is None:
-            self.spacelist = [self.spaces.Hdiv, ]
-            for dens in self.active_density_names + self.inactive_density_names:
-                self.spacelist.append(self.spaces.DG)
-            for dens in self.dg_inactive_density_names:
-#EVENTUALLY MAKE THIS TUNABLE, IFF THE SLOPE LIMITER EVER GETS GENERALIZED...
-                self.spacelist.append(FunctionSpace(self.spaces.mesh, 'DG', 1, variant="spectral"))
-
-
-class AdvDensVariables_LP(VariablesBase):
-    def __init__(self, spaces, active_density_names, inactive_density_names, dg_inactive_density_names, dim):
-        self.spaces = spaces
-
-        self.density_names = active_density_names + inactive_density_names + dg_inactive_density_names
-        self.active_density_names = active_density_names
-        self.inactive_density_names = inactive_density_names
-        self.dg_inactive_density_names = dg_inactive_density_names
-        self.dim = dim
-
-        self.advected_quantity_names = self.active_density_names
-        self.advected_quantity_bundle = ['S',] * len(self.active_density_names)
-        self.advected_quantity_degree = [dim, ] * len(self.active_density_names)
-        self.inactive_advected_quantity_names = self.inactive_density_names
-        self.inactive_advected_quantity_bundle = ['S',] * len(self.inactive_density_names)
-        self.inactive_advected_quantity_degree = [dim, ] * len(self.inactive_density_names)
-
-        self.varlist = ['m',]
+        self.varlist = ['v',]
         for dens in self.density_names:
             self.varlist.append(dens)
 
-        self.dhdx_var_list = ['u',]
+        self.dhdx_var_list = ['F',]
         for dens in self.active_density_names:
             self.dhdx_var_list.append('B_' + dens)
 
-        if not spaces is None:
 
-            self.spacelist = [self.spaces.DGV, ]
-            for dens in self.active_density_names + self.inactive_density_names:
-                self.spacelist.append(self.spaces.DG)
-            for dens in self.dg_inactive_density_names:
-#EVENTUALLY MAKE THIS TUNABLE, IFF THE SLOPE LIMITER EVER GETS GENERALIZED...
-                self.spacelist.append(FunctionSpace(self.spaces.mesh, 'DG', 1, variant="spectral"))
+
+
+# class AdvDensVariables_CF_Base(VariablesBase):
+#     def __init__(self, spaces, active_density_names, inactive_density_names, dim):
+#         self.spaces = spaces
+#         self.density_names = active_density_names + inactive_density_names
+#         self.active_density_names = active_density_names
+#         self.inactive_density_names = inactive_density_names
+#
+#         self.advected_quantity_names = self.active_density_names
+#         self.advected_quantity_bundle = ['S',] * len(self.active_density_names)
+#         self.advected_quantity_degree = [dim, ] * len(self.active_density_names)
+#         self.inactive_advected_quantity_names = self.inactive_density_names
+#         self.inactive_advected_quantity_bundle = ['S',] * len(self.inactive_density_names)
+#         self.inactive_advected_quantity_degree = [dim, ] * len(self.inactive_density_names)
+#
+#         self.varlist = ['v',]
+#         for dens in self.density_names:
+#             self.varlist.append(dens)
+#
+#         self.dhdx_var_list = ['F',]
+#         for dens in self.active_density_names:
+#             self.dhdx_var_list.append('B_' + dens)
+
+
+
+
+# class AdvDensVariables_CF(AdvDensVariables_CF_Base):
+#     def __init__(self, spaces, active_density_names, inactive_density_names, dg_inactive_density_names, dim):
+#         AdvDensVariables_CF_Base.__init__(self, spaces, active_density_names, inactive_density_names + dg_inactive_density_names, dim)
+#
+#         self.dg_inactive_density_names = dg_inactive_density_names
+#
+#         if not spaces is None:
+#             self.spacelist = [self.spaces.Hdiv, ]
+#             for dens in self.active_density_names + self.inactive_density_names:
+#                 self.spacelist.append(self.spaces.DG)
+#             for dens in self.dg_inactive_density_names:
+# #EVENTUALLY MAKE THIS TUNABLE, IFF THE SLOPE LIMITER EVER GETS GENERALIZED...
+#                 self.spacelist.append(FunctionSpace(self.spaces.mesh, 'DG', 1, variant="spectral"))
+#
+#
+# class AdvDensVariables_LP(VariablesBase):
+#     def __init__(self, spaces, active_density_names, inactive_density_names, dg_inactive_density_names, dim):
+#         self.spaces = spaces
+#
+#         self.density_names = active_density_names + inactive_density_names + dg_inactive_density_names
+#         self.active_density_names = active_density_names
+#         self.inactive_density_names = inactive_density_names
+#         self.dg_inactive_density_names = dg_inactive_density_names
+#         self.dim = dim
+#
+#         self.advected_quantity_names = self.active_density_names
+#         self.advected_quantity_bundle = ['S',] * len(self.active_density_names)
+#         self.advected_quantity_degree = [dim, ] * len(self.active_density_names)
+#         self.inactive_advected_quantity_names = self.inactive_density_names
+#         self.inactive_advected_quantity_bundle = ['S',] * len(self.inactive_density_names)
+#         self.inactive_advected_quantity_degree = [dim, ] * len(self.inactive_density_names)
+#
+#         self.varlist = ['m',]
+#         for dens in self.density_names:
+#             self.varlist.append(dens)
+#
+#         self.dhdx_var_list = ['u',]
+#         for dens in self.active_density_names:
+#             self.dhdx_var_list.append('B_' + dens)
+#
+#         if not spaces is None:
+#
+#             self.spacelist = [self.spaces.DGV, ]
+#             for dens in self.active_density_names + self.inactive_density_names:
+#                 self.spacelist.append(self.spaces.DG)
+#             for dens in self.dg_inactive_density_names:
+# #EVENTUALLY MAKE THIS TUNABLE, IFF THE SLOPE LIMITER EVER GETS GENERALIZED...
+#                 self.spacelist.append(FunctionSpace(self.spaces.mesh, 'DG', 1, variant="spectral"))
 
 ###################
 
@@ -244,8 +288,8 @@ class ThermalShallowWaterBase():
 
 
 class ThermalShallowWaterVariables_CF(AdvDensVariables_CF, ThermalShallowWaterBase):
-    def __init__(self, spaces, tracer_names, dg_tracer_names=[]):
-        AdvDensVariables_CF.__init__(self, spaces, ['h', 'S'], tracer_names, dg_tracer_names, 2)
+    def __init__(self, spaces, tracer_names):
+        AdvDensVariables_CF.__init__(self, spaces, ['h', 'S'], tracer_names, 2)
         self.entropy_name = 'S'
 
 
@@ -255,14 +299,14 @@ class ThermalShallowWaterVariables_CF_H1(AdvDensVariables_CF_H1, ThermalShallowW
         self.entropy_name = 'S'
 
 class ThermalShallowWaterVariables_LP(AdvDensVariables_LP, ThermalShallowWaterBase):
-    def __init__(self, spaces, tracer_names, dg_tracer_names=[]):
-        AdvDensVariables_LP.__init__(self, spaces, ['h', 'S'], tracer_names, dg_tracer_names, 2)
+    def __init__(self, spaces, tracer_names):
+        AdvDensVariables_LP.__init__(self, spaces, ['h', 'S'], tracer_names, 2)
         self.entropy_name = 'S'
 
 
 class MoistThermalShallowWaterVariables_CF(AdvDensVariables_CF, ThermalShallowWaterBase):
     def __init__(self, spaces, tracer_names, dg_tracer_names=[]):
-        AdvDensVariables_CF.__init__(self, spaces, ['h', 'S'], tracer_names + ['Qv', 'Qc', 'Qr'], dg_tracer_names, 2)
+        AdvDensVariables_CF.__init__(self, spaces, ['h', 'S'], tracer_names + ['Qv', 'Qc', 'Qr'], 2)
         self.entropy_name = 'S'
 
 
@@ -273,7 +317,7 @@ class MoistThermalShallowWaterVariables_CF_H1(AdvDensVariables_CF_H1, ThermalSha
 
 class MoistThermalShallowWaterVariables_LP(AdvDensVariables_LP, ThermalShallowWaterBase):
     def __init__(self, spaces, tracer_names, dg_tracer_names=[]):
-        AdvDensVariables_LP.__init__(self, spaces, ['h', 'S'], tracer_names + ['Qv', 'Qc', 'Qr'], dg_tracer_names, 2)
+        AdvDensVariables_LP.__init__(self, spaces, ['h', 'S'], tracer_names + ['Qv', 'Qc', 'Qr'], 2)
         self.entropy_name = 'S'
 
 

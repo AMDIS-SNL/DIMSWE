@@ -4,7 +4,7 @@ from .operators import ForcingBase
 from firedrake import inner, grad, TestFunction, TrialFunction, FunctionSpace, Constant, VectorFunctionSpace, as_vector
 import numpy as np
 
-#THIS IS PRETTY SPECIFIC TO CG METHODS
+#THIS IS PRETTY SPECIFIC TO CG METHODS IE ADV DENS H1 MODEl
 #ALSO 2ND ORDER HYPERVISCOSITY ONLY
 class Hyperviscosity(ForcingBase):
     def __init__(self, parameters, vars, spaces):

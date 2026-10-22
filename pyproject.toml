@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dimswe"
+version = "0.1.0"
+dependencies = [
+    "scipy",
+    "numpy",
+    "matplotlib",
+    "firedrake",
+    "h5py",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["dimswe*"]
+
+[tool.pytest.ini_options]
+pythonpath = [
+    ".",
+]
+testpaths = [
+    "tests"
+]
+markers = [
+    "integration: short integration tests that exercise multiple components",
+]

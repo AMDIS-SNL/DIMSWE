@@ -1,13 +1,4 @@
-#from .poisson_brackets import LiePoisson_AdvectedDensities_Bracket, CurlForm_AdvectedDensities_Bracket, EulerMaxwellCouplingBracket_LP, MHDBracket_LP, ScalarWaveBracket, MaxwellBracket
-#from .metric_brackets import ThermodynamicallyCompatibleViscousRegularization_CF, ThermodynamicallyCompatibleViscousRegularization_LP
-#from .hamiltonians import CompressibleEuler_Hamiltonian_CF, CompressibleEuler_Hamiltonian_LP
-#from .hamiltonians import Maxwell_Hamiltonian, EulerMaxwell_Hamiltonian_LP, ScalarWave_Hamiltonian, MHD_Hamiltonian_LP, get_thermo
 from .hamiltonians import ThermalShallowWater_Hamiltonian_CF
-#ThermalShallowWater_Hamiltonian_LP
-#from .hamiltonians import MoistThermalShallowWater_Hamiltonian_CF, MoistThermalShallowWater_Hamiltonian_LP, MoistThermalShallowWater_Hamiltonian_CF_H1
-#from .hamiltonians import IdealGasThermo_Entropy, IdealGasThermo_PotTemp
-#from .transport_operators import SVLieDerivative, VVLieDerivative, CVLieDerivative
-
 from firedrake import Function, inner, div, grad, dot, Constant, split, TrialFunction, TrialFunctions, TestFunction, TestFunctions, MixedFunctionSpace
 from .ufl_helpers import skewgrad, curl2D, rot2D
 
@@ -140,24 +131,6 @@ class Dynamics():
 
     def get_coeff_list(self):
         return self.coefflist
-
-    # def get_dfdx_aux_var_list(self):
-    #     return []
-    #
-    # def compute_dfdx_expressions(self, x, t, coeff, xhats):
-    #     return {}
-    #
-    # def get_q_aux_var_list(self):
-    #     return []
-    #
-    # def compute_q_aux_expressions(self, x, t, coeff, xhats):
-    #     return {}
-    #
-    # def get_aux_var_list(self, terms='all'):
-    #     return []
-    #
-    # def compute_aux_expressions(self, x, t, coeff, xhats, terms='all'):
-    #     return {}
 
     def get_x_test_vars(self):
         xhat = TestFunction(self.xspace)
@@ -536,9 +509,6 @@ class MetriplecticDynamics(Dynamics):
         self.logger = logger
         self.forcing_terms = forcing_terms
 
-        self.density_names = self.vars.active_density_names
-        self.total_density_func = self.vars.get_total_density_expr
-
         self.coeffspacelist = []
         self.coefflist = []
 #THIS ASSUMES NO COEFFS IN BRACKETS!
@@ -700,135 +670,3 @@ class MetriplecticDynamics(Dynamics):
     #     for term in self.forcing_terms:
     #         if terms == 'all' or term.name in terms:
     #             term.post_step(statevars)
-#
-# def get_forcing_terms(parameters, vars, spaces, initcond):
-#     forcing_terms = []
-#     for forcing_term in parameters['model']['forcing_terms']:
-#         if forcing_term == 'hyperviscosity':
-#             forcing_terms.append(Hyperviscosity(parameters, vars, spaces))
-#         elif forcing_term == 'threewayphysics':
-#             forcing_terms.append(ThreeWayPhysics(parameters, vars, spaces, initcond))
-#         elif forcing_term == 'dg1limiter':
-#             forcing_terms.append(DG1LimiterTransport(parameters, vars, spaces))
-#         elif forcing_term == 'cgtransport':
-#             forcing_terms.append(CGTransport(parameters, vars, spaces))
-#         else:
-#             raise ValueError("forcing term " + forcing_term + " is unknown")
-#     return forcing_terms
-#
-#
-# def get_dynamics(parameters, mesh, spaces, logger, initcond):
-#
-#     if parameters['model']['class'] == 'metriplectic':
-#         if parameters['model']['type'] in ['tswe-lp', 'ce-lp', 'mtswe-lp']:
-#             if parameters['model']['type'] == 'tswe-lp':
-#                 vars = ThermalShallowWaterVariables_LP(spaces, parameters['model']['tracer_names'])
-#                 hamiltonian = ThermalShallowWater_Hamiltonian_LP(vars)
-#             if parameters['model']['type'] == 'mtswe-lp':
-#                 vars = MoistThermalShallowWaterVariables_LP(spaces, parameters['model']['tracer_names'])
-#                 hamiltonian = ThermalShallowWater_Hamiltonian_LP(vars)
-#             if parameters['model']['type'] == 'ce-lp':
-#                 vars = CompressibleEulerVariables_LP(spaces, parameters['model']['tracer_names'])
-#                 thermo = get_thermo(parameters['model']['thermo'])
-#                 hamiltonian = CompressibleEuler_Hamiltonian_LP(vars, thermo)
-#                 initcond.set_thermo(hamiltonian.thermo)
-#                 hamiltonian.thermo.set_thermo_const(initcond)
-#             poisson_brackets = [LiePoisson_AdvectedDensities_Bracket(spaces, vars, parameters), ]
-#             metric_brackets = [ThermodynamicallyCompatibleViscousRegularization_LP(spaces, vars), ]
-#             entropy = SimpleEntropy(spaces, vars)
-#             statistics = AdvDensStatistics_LP(spaces, hamiltonian, vars, initcond, parameters['timestepping']['num_steps'] // parameters['output']['stat_freq'] + 1)
-#             diagnostics = AdvDensDiagnostics_LP(spaces, hamiltonian, vars, initcond, parameters['mesh']['dim'])
-#
-#         elif parameters['model']['class'] in ['tswe-cf', 'ce-cf', 'mtswe-cf']:
-#             if parameters['model'] == 'tswe-cf':
-#                 vars = ThermalShallowWaterVariables_CF(spaces, parameters['model']['tracer_names'])
-#                 hamiltonian = ThermalShallowWater_Hamiltonian_CF(vars)
-#             if parameters['model']['type'] == 'mtswe-cf':
-#                 vars = MoistThermalShallowWaterVariables_CF(spaces, parameters['model']['tracer_names'])
-#                 hamiltonian = ThermalShallowWater_Hamiltonian_CF(vars)
-#             if parameters['model']['type'] == 'ce-cf':
-#                 vars = CompressibleEulerVariables_CF(spaces, parameters['model']['tracer_names'])
-#                 thermo = get_thermo(parameters['model']['thermo'])
-#                 hamiltonian = CompressibleEuler_Hamiltonian_CF(vars, thermo)
-#                 initcond.set_thermo(hamiltonian.thermo)
-#                 hamiltonian.thermo.set_thermo_const(initcond)
-#             poisson_brackets = [CurlForm_AdvectedDensities_Bracket(spaces, vars, parameters), ]
-#             metric_brackets = [ThermodynamicallyCompatibleViscousRegularization_CF(spaces, vars), ]
-#             entropy = SimpleEntropy(spaces, vars)
-#             statistics = AdvDensStatistics_CF(spaces, hamiltonian, vars, initcond, parameters['timestepping']['num_steps'] // parameters['output']['stat_freq'] + 1)
-#             diagnostics = AdvDensDiagnostics_CF(spaces, hamiltonian, vars, initcond, parameters['mesh']['dim'])
-#
-#         elif parameters['model']['type'] == 'mhd':
-#             vars = MHDVariables_LP(spaces)
-#             poisson_brackets = [LiePoisson_AdvectedDensities_Bracket(spaces, vars, parameters), MHDBracket_LP(spaces, vars, parameters)]
-#             metric_brackets = [ThermodynamicallyCompatibleViscousRegularization(spaces, vars), ]
-#             entropy = SimpleEntropy(spaces, vars)
-#             hamiltonian = MHD_Hamiltonian_LP(vars)
-#             statistics = MHDStatistics(spaces, parameters['timestepping']['num_steps'] // parameters['output']['stat_freq'] + 1)
-#             diagnostics = MHDDiagnostics(spaces)
-#             initcond.set_thermo(hamiltonian.thermo)
-#             hamiltonian.thermo.set_thermo_const(initcond)
-#
-#         elif parameters['model']['type'] == 'maxwell':
-#             vars = MaxwellVariables(spaces)
-#             poisson_brackets = [MaxwellBracket(spaces),]
-#             metric_brackets = []
-#             entropy = SimpleEntropy(spaces, vars)
-#             hamiltonian = Maxwell_Hamiltonian(vars)
-#             statistics = MaxwellStatistics(spaces, hamiltonian, parameters['timestepping']['num_steps'] // parameters['output']['stat_freq'] + 1)
-#             diagnostics = MaxwellDiagnostics(spaces)
-#
-#         elif parameters['model']['type'] == 'eulermaxwell':
-#             vars = EulerMaxwellVariables_LP(spaces)
-#             poisson_brackets = [LiePoisson_AdvectedDensities_Bracket(spaces, vars, parameters), MaxwellBracket(spaces, vars, parameters), EulerMaxwellCouplingBracket_LP(spaces, vars, parameters)]
-#             metric_brackets = [ThermodynamicallyCompatibleViscousRegularization(spaces, vars), ]
-#             entropy = SimpleEntropy(spaces, vars)
-#             hamiltonian = EulerMaxwell_Hamiltonian_LP(spaces)
-#             statistics = EulerMaxwellStatistics(spaces, parameters['timestepping']['num_steps'] // parameters['output']['stat_freq'] + 1)
-#             diagnostics = EulerMaxwellDiagnostics(spaces)
-#             initcond.set_thermo(hamiltonian.thermo)
-#             hamiltonian.thermo.set_thermo_const(initcond)
-#
-#         elif parameters['model']['type'] == 'scalarwave':
-#             vars = ScalarWaveVariables(spaces)
-#             poisson_brackets = [ScalarWaveBracket(spaces),]
-#             metric_brackets = []
-#             entropy = None
-#             hamiltonian = ScalarWave_Hamiltonian(spaces)
-#             statistics = ScalarWaveStatistics(spaces, parameters['timestepping']['num_steps'] // parameters['output']['stat_freq'] + 1)
-#             diagnostics = ScalarWaveDiagnostics(spaces)
-#
-#         else:
-#             raise ValueError("model " + parameters['model']['type'] + " is unknown")
-#
-#         forcing_terms = get_forcing_terms(parameters, vars, spaces, initcond)
-#         return MetriplecticDynamics(mesh, spaces, vars, poisson_brackets, metric_brackets,
-#             hamiltonian, entropy, statistics, diagnostics, forcing_terms, logger)
-#
-#     elif parameters['model']['class'] == 'advdens-cf-h1':
-#
-#         if parameters['model']['type'] in ['tswe-cf-h1', 'mtswe-cf-h1']:
-#             if parameters['model']['type'] == 'tswe-cf-h1':
-#                 vars = ThermalShallowWaterVariables_CF_H1(spaces, parameters['model']['tracer_names'], parameters['model']['dg_tracer_names'])
-#                 hamiltonian = ThermalShallowWater_Hamiltonian_CF(vars)
-#             if parameters['model']['type'] == 'mtswe-cf-h1':
-#                 vars = MoistThermalShallowWaterVariables_CF_H1(spaces, parameters['model']['tracer_names'], parameters['model']['dg_tracer_names'])
-#                 hamiltonian = ThermalShallowWater_Hamiltonian_CF(vars)
-#             #poisson_brackets = [CurlForm_AdvectedDensities_Bracket_H1(spaces, vars, parameters), ]
-#     #DOES METRIC BRACKET HAVE TO CHANGE FOR H1 SPACES?
-#             #metric_brackets = [ThermodynamicallyCompatibleViscousRegularization_CF(spaces, vars), ]
-#             entropy = SimpleEntropy(spaces, vars)
-#             statistics = AdvDensStatistics_CF_H1(spaces, hamiltonian, vars, initcond, parameters['timestepping']['num_steps'] // parameters['output']['stat_freq'] + 1)
-#             diagnostics = AdvDensDiagnostics_CF_H1(spaces, hamiltonian, vars, initcond, parameters['mesh']['dim'])
-#
-#         else:
-#             raise ValueError("model " + parameters['model']['type'] + " is unknown")
-#
-#         forcing_terms = get_forcing_terms(parameters, vars, spaces, initcond)
-#         return AdvDensCF_H1_Dynamics(parameters, mesh, spaces, vars, hamiltonian, entropy, statistics, diagnostics, forcing_terms, logger, initcond)
-#
-#     elif parameters['modeltype']['class'] == 'advection':
-#         raise NotImplementedError
-#
-#     else:
-#         raise ValueError("modeltype " + parameters['modeltype']['class'] + " is unknown")

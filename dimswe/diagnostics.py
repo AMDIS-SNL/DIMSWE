@@ -14,11 +14,6 @@ from .physics import qsat
 
 #hamiltonian and variableset specific: temperature, pressure, specific entropy, probably some magnetic ones
 
-#SWAP TO THIS!
-#class Diagnostic
-
-
-#LOTS IS SHARED- COMBINE IT!
 class AdvDensDiagnostics():
     def __init__(self, spaces, hamiltonian, variableset, initcond, dim):
         self.spaces = spaces

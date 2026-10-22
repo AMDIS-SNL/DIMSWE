@@ -1,7 +1,7 @@
 import sys
-from .plot_adv_dens import plot_adv_dens
-from .plot_maxwell import plot_maxwell
-from .parameters import get_parameters
+from dimswe.plotting.plot_adv_dens import plot_adv_dens
+from dimswe.plotting.plot_maxwell import plot_maxwell
+from dimswe.parameters import get_parameters
 
 if __name__ == "__main__":
     cfgfile = sys.argv[1]

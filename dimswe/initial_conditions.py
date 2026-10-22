@@ -173,6 +173,8 @@ class RiemannProblem1(RiemannProblem):
         self.ur =  0.0
         self.pr = 0.1
 
+#UPDATE ALL THESE NAMES, AND ALSO THE MODIFIED SOD DISCONT POSITION
+
 #Toro Test 5
 #DOES THIS HAVE ANOTHER NAME?
 class RiemannProblem2(RiemannProblem):
@@ -432,7 +434,7 @@ class DoubleVortex(IC2D):
         self.yc1 = (0.5-self.oy) * self.Ly
         self.xc2 = (0.5+self.ox) * self.Lx
         self.yc2 = (0.5+self.oy) * self.Ly
-        
+
     def __init__(self, params):
         IC2D.__init__(self, params)
 

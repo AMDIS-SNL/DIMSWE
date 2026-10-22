@@ -104,7 +104,9 @@ def CVLieDerivative(degree, dim, u, a, ahat, afac_edge, afac, v, alpha_s, n, ord
     elif degree == 2 and dim == 3:
         raise NotImplementedError
     return expr
-#
+
+
+#THIS IS USEFUL FOR EVENTUAL ADVECTION MODEL
 # #EVENTUALLY ADD SOME TENSOR-VALUED BUNDLES ALSO? Unclear...
 #
 # #ADD THIS EVENTUALLY

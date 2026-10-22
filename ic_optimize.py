@@ -10,6 +10,9 @@ from dimswe.numpy_helpers import create_flattened_numpy_arr_from_mixed_function,
 from firedrake import norm
 from dimswe.plotting import plot_variable
 
+
+#PROBABLY EVENTUALLY MAKE THIS A CALLABLE FUNCTION, LIKE RUN_MODEL.PY
+
 solver_parameters=overall_solver_parameters.copy()
 basic_linear_system = { 'ksp_type': 'preonly', 'pc_type' : 'lu'} #'ksp_monitor_true_residual': None}
 #basic_linear_system = { 'ksp_type': 'cg', 'pc_type' : 'jacobi'} #'ksp_monitor_true_residual': None}

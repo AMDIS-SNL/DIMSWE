@@ -185,61 +185,6 @@ class ThermalShallowWater_Hamiltonian_CF(ThermalShallowWater_Hamiltonian_Base):
         #for tracer_name in self.vars.tracer_names:
         #    dfdx_linear_vars['B_' + tracer_name] = 0.0
 
-# class ThermalShallowWater_Hamiltonian_CF_H1(ThermalShallowWater_Hamiltonian_CF):
-#     def compute_dfdx_expressions(self, vars, expressions):
-#         ThermalShallowWater_Hamiltonian_CF.compute_dfdx_expressions(self, vars, expressions)
-#
-#         for tracer_name in self.vars.dg_tracer_names:
-#             tracerhat = self.testvars['B_' + tracer_name]
-#             tracertrial = self.trialvars['B_' + tracer_name]
-#             expressions['B_' + tracer_name] = make_a_L(Constant(0), tracertrial, tracerhat)
-#
-#     def compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars):
-#         ThermalShallowWater_Hamiltonian_CF.compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars)
-#         for tracer_name in self.vars.dg_tracer_names:
-#             dfdx_linear_vars['B_' + tracer_name] = 0.0
-#
-# class MoistThermalShallowWater_Hamiltonian_CF_H1(ThermalShallowWater_Hamiltonian_CF_H1):
-#     def compute_dfdx_expressions(self, vars, expressions):
-#         ThermalShallowWater_Hamiltonian_CF_H1.compute_dfdx_expressions(self, vars, expressions)
-#         for varname in ['Qv', 'Qr', 'Qc']:
-#             varhat = self.testvars['B_' + varname]
-#             vartrial = self.trialvars['B_' + varname]
-#             expressions['B_' + varname] = make_a_L(Constant(0), vartrial, varhat)
-#
-#     def compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars):
-#         ThermalShallowWater_Hamiltonian_CF_H1.compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars)
-#         for varname in ['Qv', 'Qr', 'Qc']:
-#             dfdx_linear_vars['B_' + varname] = 0.0
-#
-# class MoistThermalShallowWater_Hamiltonian_CF(ThermalShallowWater_Hamiltonian_CF):
-#     def compute_dfdx_expressions(self, vars, expressions):
-#         ThermalShallowWater_Hamiltonian_CF.compute_dfdx_expressions(self, vars, expressions)
-#         for varname in ['Qv', 'Qr', 'Qc']:
-#             varhat = self.testvars['B_' + varname]
-#             vartrial = self.trialvars['B_' + varname]
-#             expressions['B_' + varname] = make_a_L(Constant(0), vartrial, varhat)
-#
-#     def compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars):
-#         ThermalShallowWater_Hamiltonian_CF.compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars)
-#         for varname in ['Qv', 'Qr', 'Qc']:
-#             dfdx_linear_vars['B_' + varname] = 0.0
-#
-# class MoistThermalShallowWater_Hamiltonian_LP(ThermalShallowWater_Hamiltonian_LP):
-#     def compute_dfdx_expressions(self, vars, expressions):
-#         ThermalShallowWater_Hamiltonian_LP.compute_dfdx_expressions(self, vars, expressions)
-#         for varname in ['Qv', 'Qr', 'Qc']:
-#             varhat = self.testvars[varname]
-#             vartrial = self.trialvars[varname]
-#             expressions['B_' + varname] = make_a_L(Constant(0), vartrial, varhat)
-#
-#     def compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars):
-#         ThermalShallowWater_Hamiltonian_LP.compute_dfdx_linear(self, const_state, xstar, dfdx_linear_vars)
-#         for varname in ['Qv', 'Qr', 'Qc']:
-#             dfdx_linear_vars['B_' + varname] = 0.0
-
-
-
 #
 #
 # class CompressibleEuler_Hamiltonian_Base(Hamiltonian_Base):

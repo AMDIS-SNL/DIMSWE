@@ -1,8 +1,8 @@
-from .models import get_model
-from .output import Output
-from .timestepping import get_timestepper
-from .parameters import get_parameters, overall_solver_parameters
-from .logger import Logger
+from dimswe.models import get_model
+from dimswe.output import Output
+from dimswe.timestepping import get_timestepper
+from dimswe.parameters import get_parameters, overall_solver_parameters
+from dimswe.logger import Logger
 import sys
 from firedrake.petsc import PETSc
 

@@ -1,7 +1,7 @@
-from .models import get_model
-from .logger import Logger
+from ..models import get_model
+from ..logger import Logger
 
-from .meshes import set_dimension
+from ..meshes import set_dimension
 from .plotting import plot_mesh, plot_scalar2D, plot_scalar1D, plot_vector2D_mag, plot_vector2D_quiver, plot_variable, plot_statistic, animate_scalar2D
 from firedrake import CheckpointFile
 import numpy as np
