@@ -5,7 +5,7 @@
   - `dimswe/plotting` contains the plotting routines.
 - `hamiltonian_neural_odes/` contains some old code for testing structure-preserving time integrators for Hamiltonian ODEs
 - `ode_adjoint/` contains some old code for testing ODE-constrainted optimization using adjoints
-- `tests/` is split into `tests/unit/` and `tests/integration/`. 
+- `tests/` is split into `tests/unit/` and `tests/integration/`.
 - `runs/` contains data from various simulations, and is not part of the GitHub repository
 
 ## Build, Test, and Development Commands
