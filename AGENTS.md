@@ -7,6 +7,7 @@
 - `ode_adjoint/` contains some old code for testing ODE-constrainted optimization using adjoints
 - `tests/` is split into `tests/unit/` and `tests/integration/`.
 - `runs/` contains data from various simulations, and is not part of the GitHub repository
+- `workflows/` contains scripts and helpers for 
 
 ## Build, Test, and Development Commands
 - Only run py_compile, installation and testing is not possible.

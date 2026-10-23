@@ -2,6 +2,7 @@
 
 # Description
 - DIMSWE (Data-Integrated Moist thermal Shallow Water) is a Firedrake based code for simulation and PDE-constrained optimization of neutral and charged viscous fluids with learnable neural network components.
+- It can mimic the spatial and temporal numerics used in the HOMME dycore when the H1 formulation and appropriate forcings and LieSplit time integration is used
 
 # Design
 - It is designed around geometric mechanics formulations, specifically Hamiltonian formulations for inviscid fluids and metriplectic formulations for viscous fluids.
@@ -12,8 +13,8 @@
   - LP: Lie-Poisson Hamiltonian formulation for arbitrary advected quantities, discretized with DG for the momentum and the appropriate finite element spaces for the advected quantities (currently only advected densities)
   - H1: Curl form Hamiltonian formulation for advected densities, discretized with H^1 (CG) for the velocity and a choice of either H^1 or DG for the densities
 - There are currently two Hamiltonians implemented:
- - Thermal shallow water
- - Moist thermal shallow water
+  - Thermal shallow water
+  - Moist thermal shallow water
 
 - Forcing terms that fall outside of the geometric mechanics framework can be added, currently there are three forcings:
   - Three way physics for moist thermal shallow water (CF, LP and H1 formulations)
@@ -26,3 +27,4 @@
   - The time stepping schemes can take both forward and adjoint steps, where the latter leverages the built-in derivative capabilities of UFL
 
 - PDE-constrained optimization is done using scipy.optimize routines combined with the adjoint time stepping capabilities.
+  - Currently only a Jacobian can be calculated, limiting the model to 1st order optimization algorithms
