@@ -10,17 +10,27 @@ def calculate_timestep(cfl_const, mindx, wavespeed):
     return cfl_const * mindx / wavespeed
 
 
-def run_model(parameters):
+def run_model(parameters, mesh=None, initial_state=None, output_callback=None):
+    """Run a forward simulation and write its checkpoint and VTK output.
+
+    mesh: optional mesh to build the model on (for example one loaded from a truth checkpoint).
+    initial_state: optional callable initial_state(model, xn, t) that overwrites the prognostic
+        state xn[0] (and optionally the time t) after the analytic initialization, for example with
+        an optimized initial state or a truth state part way through a run. Forcing-term data such
+        as topography still comes from the analytic initial condition.
+    output_callback: optional callable output_callback(model, xn, xn_sub, t, step, output_step),
+        called on every output step after diagnostics are computed (including step 0).
+    """
 
     logger = Logger(parameters)
 
     logger.output('Setting up simulation', 0)
-    model = get_model(parameters, logger)
+    model = get_model(parameters, logger, mesh=mesh)
 
 #SUPER HACKY RIGHT NOW
 #THIS IS A HORRIBLE HACK FOR MAXWELL IN A BOX USING LOWEST ORDER SPACES
     if parameters['timestepping']['dt_type'] == 'cfl':
-        min_dx = min(min(mesh.dx, mesh.dy), mesh.dz)
+        min_dx = min(min(model.mesh.dx, model.mesh.dy), model.mesh.dz)
         wavespeed = model.get_max_wavespeed()
         parameters['timestepping']['dt'] = calculate_timestep(parameters['timestepping']['cfl_const'], min_dx, wavespeed)
         logger.output('calculated cfl-based dt as ' + str(parameters['timestepping']['dt']), 0)
@@ -44,6 +54,9 @@ def run_model(parameters):
     output = Output(xn, xn_sub, coeff_sub, parameters, model, logger)
 
     model.initialize(xn_sub, t)
+    if initial_state is not None:
+        logger.output('Overriding initial condition with a provided initial state', 0)
+        initial_state(model, xn, t)
     model.set_coeffs(parameters, coeff_sub)
     timestepper.set_coeff(coeff)
 
@@ -54,6 +67,8 @@ def run_model(parameters):
 
     dt = parameters['timestepping']['dt']
     output.output(t, 0, 0, 0)
+    if output_callback is not None:
+        output_callback(model, xn, xn_sub, t, 0, 0)
     for n in range(1, parameters['timestepping']['num_steps']+1):
         logger.output('taking time step n=' + str(n), 1)
         with PETSc.Log.Event("time step"):
@@ -64,8 +79,11 @@ def run_model(parameters):
         if ((n % parameters['output']['output_freq']) == 0):
             model.compute_diagnostics()
             output.output(t, n, n // parameters['output']['output_freq'], n // parameters['output']['stat_freq'])
+            if output_callback is not None:
+                output_callback(model, xn, xn_sub, t, n, n // parameters['output']['output_freq'])
 
     logger.output('Ended simulation', 0)
+    return model
 
 if __name__ == "__main__":
     cfgfile = sys.argv[1]

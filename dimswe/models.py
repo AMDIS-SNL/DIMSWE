@@ -146,6 +146,25 @@ class Model():
     def get_diagnostics(self):
         return self.diagnostics.get_diagnostics()
 
+    def create_initcond(self, parameters):
+        """Create the initial condition object this model uses for the given parameters.
+
+        Each model class chooses the family of initial conditions it supports. This is also used to
+        rebuild the initial condition with different parameters, for example symbolic parameter
+        values in dimswe.optimize.ParametricInitialCondition.
+        """
+        raise NotImplementedError
+
+    def get_initial_expressions(self, parameters, t):
+        """Return the initial-condition expressions for the given parameters, and set t to t0.
+
+        A fresh initial condition is created from parameters, so the model's own initial condition
+        (and the forcing-term data it was initialized with) is left unchanged.
+        """
+        initcond = self.create_initcond(parameters)
+        t.assign(initcond.get_t0())
+        return initcond.get_value(self.mesh, t)
+
     def initialize(self, xn, t, new_params=None):
         if not(new_params is None):
             self.initcond.set_params(new_params)
@@ -184,9 +203,13 @@ class Model():
         return self.dynamics.get_coeff_scaling_factors()
 
 class AdvDensH1Model(Model):
-    def __init__(self, parameters, logger, has_dynamics_statistics=True):
-        self.initcond = get_advdens_initcond(parameters)
-        self.mesh, self.spaces = get_mesh_and_spaces(parameters, self.initcond)
+    def create_initcond(self, parameters):
+        """Advected-density initial conditions (shallow water and moist shallow water)."""
+        return get_advdens_initcond(parameters)
+
+    def __init__(self, parameters, logger, has_dynamics_statistics=True, mesh=None):
+        self.initcond = self.create_initcond(parameters)
+        self.mesh, self.spaces = get_mesh_and_spaces(parameters, self.initcond, mesh=mesh)
 
         if parameters['model']['hamiltonian'] == 'tswe':
             vars = ThermalShallowWaterVariables_CF_H1(self.spaces, parameters['model']['tracer_names'], parameters['model']['dg_tracer_names'])
@@ -205,10 +228,15 @@ class AdvDensH1Model(Model):
         self.dynamics = AdvDensCF_H1_Dynamics(parameters, self.mesh, self.spaces, vars, hamiltonian, forcing_terms, logger)
 
 class MetriplecticModel(Model):
-    def __init__(self, parameters, logger, has_dynamics_statistics=True):
+    def create_initcond(self, parameters):
+        """Advected-density initial conditions for the advected-density Hamiltonians."""
         if parameters['model']['hamiltonian'] in ['tswe', 'mtswe', 'ce']:
-            self.initcond = get_advdens_initcond(parameters)
-        self.mesh, self.spaces = get_mesh_and_spaces(parameters, self.initcond)
+            return get_advdens_initcond(parameters)
+        raise ValueError("no initial conditions for hamiltonian " + parameters['model']['hamiltonian'])
+
+    def __init__(self, parameters, logger, has_dynamics_statistics=True, mesh=None):
+        self.initcond = self.create_initcond(parameters)
+        self.mesh, self.spaces = get_mesh_and_spaces(parameters, self.initcond, mesh=mesh)
 
 #EVENTUALLY GENERALIZE THIS TO CF OR LP VARIABLES WITH ARBITRARY ADVECTED QUANTITIES
 #THEN ADVS DENS IS JUST A SPECIAL CASE
@@ -253,11 +281,16 @@ class MetriplecticModel(Model):
         self.dynamics = MetriplecticDynamics(parameters, self.mesh, self.spaces, vars, poisson_brackets, metric_brackets, hamiltonian, entropy, forcing_terms, logger)
 
 
-def get_model(parameters, logger, has_dynamics_statistics=True):
+def get_model(parameters, logger, has_dynamics_statistics=True, mesh=None):
+    """Construct a model from parameters.
+
+    If mesh is given it is reused instead of building a new mesh (for example the mesh loaded from a
+    truth checkpoint), which makes functions loaded from that checkpoint directly usable by the model.
+    """
     if parameters['model']['type'] == 'advdens-cf-h1':
-        return AdvDensH1Model(parameters, logger, has_dynamics_statistics=has_dynamics_statistics)
+        return AdvDensH1Model(parameters, logger, has_dynamics_statistics=has_dynamics_statistics, mesh=mesh)
     elif parameters['model']['type'] == 'metriplectic':
-        return MetriplecticModel(parameters, logger, has_dynamics_statistics=has_dynamics_statistics)
+        return MetriplecticModel(parameters, logger, has_dynamics_statistics=has_dynamics_statistics, mesh=mesh)
     elif parameters['model']['type'] == 'advection':
         return AdvectionModel(parameters, logger, has_dynamics_statistics=has_dynamics_statistics)
     else:

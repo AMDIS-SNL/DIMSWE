@@ -35,7 +35,12 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("cfgs", nargs="*", help="Simulation cfg files to run")
     parser.add_argument("--manifest", help="Path to a generated sweep manifest")
-    parser.add_argument("--runs-root", help="Override the runs root directory")
+    parser.add_argument(
+        "--runs-root",
+        help="Runs root directory. Defaults to runs/ for cfg files; manifest runs default to the "
+        "run_directory recorded in the manifest (the sweep's output_root), and are moved under this "
+        "root only when it is given explicitly",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Print planned runs without executing")
     parser.add_argument("--skip-existing", action="store_true", help="Skip runs with existing sim.h5 output")
     parser.add_argument("--fail-fast", action="store_true", help="Stop on the first failed run")
@@ -47,8 +52,24 @@ def load_manifest(path: Path) -> dict[str, Any]:
     return load_yaml(path)
 
 
+def manifest_run_directory(run: dict[str, Any], manifest: dict[str, Any], runs_root_override: Path | None) -> Path:
+    """Return where a manifest run is written.
+
+    The manifest records each run's directory (under the sweep's output_root), and downstream
+    workflows such as optimize_params.py read the runs from there, so it is used unless an
+    explicit --runs-root moves the runs. Manifests from before run_directory was recorded fall
+    back to the manifest's runs_root.
+    """
+    if runs_root_override is not None:
+        return build_run_directory(runs_root_override, run["run_name"])
+    if run.get("run_directory"):
+        return resolve_path(run["run_directory"])
+    return build_run_directory(resolve_runs_root(manifest.get("runs_root")), run["run_name"])
+
+
 def build_run_specifications(args: argparse.Namespace) -> list[dict[str, Any]]:
-    """Build a normalized list of runs from args."""
+    """Build a normalized list of runs, each with the directory it is written to."""
+    runs_root_override = resolve_runs_root(args.runs_root) if args.runs_root else None
     run_specs: list[dict[str, Any]] = []
     if args.manifest:
         manifest_path = resolve_path(args.manifest)
@@ -58,9 +79,16 @@ def build_run_specifications(args: argparse.Namespace) -> list[dict[str, Any]]:
                 {
                     "cfg_path": resolve_path(run["cfg_path"]),
                     "run_name": run["run_name"],
+                    "run_directory": manifest_run_directory(run, manifest, runs_root_override),
                     "parameter_values": run.get("parameter_values", {}),
                     "source": str(manifest_path),
                 }
+            )
+        if runs_root_override is not None:
+            root_print(
+                f"Note: --runs-root moves manifest runs to {runs_root_override}; workflows that read "
+                "this manifest (for example optimize_params.py) will not find them there, so list the "
+                "run directories under truth.runs instead"
             )
     for cfg in args.cfgs:
         cfg_path = resolve_path(cfg)
@@ -68,6 +96,7 @@ def build_run_specifications(args: argparse.Namespace) -> list[dict[str, Any]]:
             {
                 "cfg_path": cfg_path,
                 "run_name": cfg_path.stem,
+                "run_directory": build_run_directory(resolve_runs_root(args.runs_root), cfg_path.stem),
                 "parameter_values": {},
                 "source": str(cfg_path),
             }
@@ -99,14 +128,13 @@ def write_run_metadata(run_directory: Path, metadata: dict[str, Any]) -> None:
 def prepare_run(
     cfg_path: Path,
     run_name: str,
-    runs_root: Path,
+    run_directory: Path,
     parameter_values: dict[str, Any],
     source: str,
 ) -> tuple[dict[str, Any], Path]:
-    """Load and patch parameters for a concrete run."""
+    """Load and patch parameters for a concrete run written to run_directory."""
     parameters = deep_copy_parameters(load_yaml(cfg_path))
     ensure_output_sections(parameters)
-    run_directory = build_run_directory(runs_root, run_name)
     output_basename = build_output_basename(run_directory)
     parameters["output"]["outfile_name"] = str(output_basename)
     metadata = {
@@ -169,7 +197,6 @@ def main() -> None:
     args = parse_args()
     root_print(f"Starting batch run on {WORLD_SIZE} MPI rank(s)")
     run_specs = build_run_specifications(args)
-    runs_root = resolve_runs_root(args.runs_root)
 
     if not run_specs:
         raise ValueError("Please provide cfg paths or --manifest")
@@ -180,7 +207,7 @@ def main() -> None:
         run_info, run_directory = prepare_run(
             run_spec["cfg_path"],
             run_spec["run_name"],
-            runs_root,
+            run_spec["run_directory"],
             run_spec["parameter_values"],
             run_spec["source"],
         )

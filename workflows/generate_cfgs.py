@@ -15,11 +15,14 @@ from workflows.common import (
     GENERATED_DIR,
     build_output_basename,
     build_run_directory,
+    check_paths_exist,
+    classify_parameter,
     deep_copy_parameters,
     derive_schedule_overrides,
     dump_yaml,
     ensure_output_sections,
     expand_parameter_grid,
+    expand_parameter_specs,
     expand_tied_parameter_sets,
     load_yaml,
     merge_parameter_overrides,
@@ -69,6 +72,8 @@ def build_manifest(
         "generated_cfg_dir": str(generated_cfg_dir),
         "runs_root": str(runs_root),
         "parameters": sweep_spec.get("parameters", {}),
+        "expanded_parameters": expand_parameter_specs(sweep_spec.get("parameters", {})),
+        "parameter_kinds": sweep_spec.get("_parameter_kinds", {}),
         "tied_parameter_sets": sweep_spec.get("tied_parameter_sets", []),
         "refinement_scaling": sweep_spec.get("refinement_scaling"),
         "fixed": sweep_spec.get("fixed", {}),
@@ -79,6 +84,34 @@ def build_manifest(
 def get_reference_refinement_set(sweep_spec: dict[str, Any]) -> dict[str, Any] | None:
     """Return the reference refinement set configuration, if present."""
     return sweep_spec.get("refinement_scaling")
+
+
+def collect_swept_paths(sweep_spec: dict[str, Any]) -> list[str]:
+    """Return every dotted path that the sweep varies or fixes."""
+    paths = list(sweep_spec.get("parameters", {}).keys())
+    for tied_set in sweep_spec.get("tied_parameter_sets") or []:
+        paths.extend(key for key in tied_set if key not in paths)
+    paths.extend(key for key in sweep_spec.get("fixed", {}) if key not in paths)
+    return paths
+
+
+def classify_swept_parameters(sweep_spec: dict[str, Any], template_parameters: dict[str, Any]) -> dict[str, str]:
+    """Tag each varied path as an initial-condition ('ic'), coefficient ('coeff') or 'other' parameter."""
+    varied = list(sweep_spec.get("parameters", {}).keys())
+    for tied_set in sweep_spec.get("tied_parameter_sets") or []:
+        varied.extend(key for key in tied_set if key not in varied)
+    return {path: classify_parameter(path, template_parameters) for path in varied}
+
+
+def validate_sweep_paths(sweep_spec: dict[str, Any], template_parameters: dict[str, Any]) -> None:
+    """Reject paths missing from the template unless strict_paths is disabled.
+
+    The output section is exempt because ensure_output_sections fills it in.
+    """
+    if not sweep_spec.get("strict_paths", True):
+        return
+    paths = [path for path in collect_swept_paths(sweep_spec) if not path.startswith("output.")]
+    check_paths_exist(template_parameters, paths, f"sweep '{sweep_spec.get('sweep_name')}'")
 
 
 def main() -> None:
@@ -92,6 +125,8 @@ def main() -> None:
     template_cfg_path = resolve_path(sweep_spec["template_cfg"], sweep_cfg_path.parent)
     template_parameters = load_yaml(template_cfg_path)
     runs_root = resolve_runs_root(sweep_spec.get("output_root"))
+    validate_sweep_paths(sweep_spec, template_parameters)
+    sweep_spec["_parameter_kinds"] = classify_swept_parameters(sweep_spec, template_parameters)
 
     if args.output_dir:
         generated_cfg_dir = resolve_path(args.output_dir)
@@ -99,7 +134,7 @@ def main() -> None:
         generated_cfg_dir = GENERATED_DIR / sweep_name
     generated_cfg_dir.mkdir(parents=True, exist_ok=True)
 
-    combinations = expand_parameter_grid(sweep_spec.get("parameters", {}))
+    combinations = expand_parameter_grid(expand_parameter_specs(sweep_spec.get("parameters", {})))
     tied_parameter_sets = expand_tied_parameter_sets(sweep_spec.get("tied_parameter_sets"))
     fixed_overrides = sweep_spec.get("fixed", {})
     run_name_template = sweep_spec.get("run_name_template")

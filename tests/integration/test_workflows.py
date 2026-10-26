@@ -1,9 +1,8 @@
-from pathlib import Path
-
 import pytest
 import yaml
 
 from workflows.common import (
+    WORKFLOWS_DIR,
     derive_schedule_overrides,
     expand_parameter_grid,
     expand_tied_parameter_sets,
@@ -98,27 +97,27 @@ def test_derive_schedule_overrides_rejects_noninteger_refinement_ratio():
 
 
 def test_example_compare_cfg_is_valid_yaml():
-    compare_cfg = Path("/projects/DIMSWE/workflows/examples/compare.cfg")
+    compare_cfg = WORKFLOWS_DIR / "examples" / "compare.cfg"
     data = yaml.safe_load(compare_cfg.read_text(encoding="utf-8"))
     assert "runs" in data
     assert "quantities" in data
 
 
 def test_run_batch_wrapper_uses_explicit_mpi_ranks():
-    wrapper = Path("/projects/DIMSWE/workflows/run_batch.sh").read_text(encoding="utf-8")
+    wrapper = (WORKFLOWS_DIR / "run_batch.sh").read_text(encoding="utf-8")
     assert 'MPI_RANKS="$1"' in wrapper
     assert 'mpiexec -n "$MPI_RANKS" python -m workflows.run_batch "$@"' in wrapper
 
 
 def test_run_batch_uses_safe_error_collection_for_python_strings():
-    run_batch = Path("/projects/DIMSWE/workflows/run_batch.py").read_text(encoding="utf-8")
+    run_batch = (WORKFLOWS_DIR / "run_batch.py").read_text(encoding="utf-8")
     assert "def collect_error_text" in run_batch
     assert "COMM.allgather(local_error_text)" in run_batch
     assert "COMM.allreduce(error_text, op=MPI.MAX)" not in run_batch
 
 
 def test_compare_runs_uses_horizontal_layout_and_funcanimation():
-    compare_runs = Path("/projects/DIMSWE/workflows/compare_runs.py").read_text(encoding="utf-8")
+    compare_runs = (WORKFLOWS_DIR / "compare_runs.py").read_text(encoding="utf-8")
     assert "width_ratios" in compare_runs
     assert "cax=colorbar_axis" in compare_runs
     assert "animation.FuncAnimation" in compare_runs
