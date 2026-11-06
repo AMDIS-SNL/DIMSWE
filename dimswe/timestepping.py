@@ -4,6 +4,8 @@ import numpy as np
 from firedrake import Constant, inner, grad, TestFunction, derivative, norm, assemble, Function, TestFunctions, split, TrialFunction, adjoint, action, replace
 from .numpy_helpers import set_mixed_function_from_flattened_array, create_flattened_numpy_arr_from_mixed_function
 from ufl.algorithms import extract_coefficients, expand_derivatives
+from .profiling import region
+from .assembly import PersistentAssembler
 
 class DummySolver():
     def solve(self):
@@ -309,6 +311,9 @@ class GeneralRK(TimeStepper):
         self.xtrial = xtrial
         self._create_second_order_vars()
         self._second_order_ready = False
+        # persistent assemblers of the increment forms L_delta_lambda, L_delta_grad, ...,
+        # created on first use (see _assemble_increment)
+        self._increment_assemblers = {}
 
 
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF
@@ -500,7 +505,14 @@ class GeneralRK(TimeStepper):
             return
         if not self.is_explicit:
             raise NotImplementedError('tangent-linear and second-order adjoint steps are only implemented for explicit RK')
+        # only the UFL form and solver construction is timed here; TSFC compilation of the new
+        # forms happens on their first assembly, inside the first tangent/SOA solves
+        with region("setup second order"):
+            self._build_second_order_solvers()
+        self._second_order_ready = True
 
+    def _build_second_order_solvers(self):
+        """Build the tangent-linear and second-order adjoint solvers (see _setup_second_order)."""
         sp = self.solver_parameters
         has_aux = self.model.has_aux()
         forward_pairs = self._forward_pairs()
@@ -540,37 +552,53 @@ class GeneralRK(TimeStepper):
             residual = directional_derivative(self.residual_grad, all_pairs)
             _, self.L_delta_grad_dot = extract_a_L_from_residual(residual, self.delta_grad_dot, self.grad_trial)
 
-        self._second_order_ready = True
+    def _assemble_increment(self, name):
+        """Assemble the increment form self.<name> and return it as a rank-local flattened array.
+
+        name is one of 'L_delta_lambda', 'L_delta_grad', 'L_delta_lambda_dot' and
+        'L_delta_grad_dot'. A bare assemble() of these large forms repeats its per-call setup and
+        cost 0.1-0.5 s per substep, so each form gets one PersistentAssembler that reuses its
+        assembler and output (plan item B0, docs/hvp_performance_plan.md). The result is a new
+        array, as create_flattened_numpy_arr_from_mixed_function(assemble(form)) returned before.
+        """
+        assembler = self._increment_assemblers.get(name)
+        if assembler is None:
+            assembler = PersistentAssembler(getattr(self, name))
+            self._increment_assemblers[name] = assembler
+        return assembler.assemble_flat()
 
     def _solve_forward_stages(self):
         """Solve the forward stage (and aux) equations from the current xk, t, dt and coeff."""
-        if self.is_explicit:
-            for i in range(self.nstages):
-                self.auxsolvers[i].solve()
-                self.Fsolvers[i].solve()
-        elif self.is_dirk:
-            for i in range(self.nstages):
-                self.Fauxsolvers[i].solve()
-        else:
-            self.Fauxsolver.solve()
+        with region("forward stages"):
+            if self.is_explicit:
+                for i in range(self.nstages):
+                    self.auxsolvers[i].solve()
+                    self.Fsolvers[i].solve()
+            elif self.is_dirk:
+                for i in range(self.nstages):
+                    self.Fauxsolvers[i].solve()
+            else:
+                self.Fauxsolver.solve()
 
     def _solve_tangent_stages(self):
         """Solve the tangent-linear stage equations; requires current forward stages and wk."""
-        for i in range(self.nstages):
-            self.tlm_auxsolvers[i].solve()
-            self.tlm_Fsolvers[i].solve()
+        with region("tangent stages"):
+            for i in range(self.nstages):
+                self.tlm_auxsolvers[i].solve()
+                self.tlm_Fsolvers[i].solve()
 
     def _solve_first_order_adjoint_stages(self):
         """Solve the first-order stage adjoints mu_i, nu_i backward over the stages."""
-        if self.is_explicit:
-            for i in range(self.nstages-1,-1,-1):
-                self.musolvers[i].solve()
-                self.muauxsolvers[i].solve()
-        elif self.is_dirk:
-            for i in range(self.nstages-1,-1,-1):
-                self.mufullsolvers.solve()
-        else:
-            self.mufullsolver.solve()
+        with region("adjoint stages"):
+            if self.is_explicit:
+                for i in range(self.nstages-1,-1,-1):
+                    self.musolvers[i].solve()
+                    self.muauxsolvers[i].solve()
+            elif self.is_dirk:
+                for i in range(self.nstages-1,-1,-1):
+                    self.mufullsolvers.solve()
+            else:
+                self.mufullsolver.solve()
 
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF
     def take_forward_step(self, xnp1, xnp1_sub, xn, tn, dt):
@@ -580,24 +608,8 @@ class GeneralRK(TimeStepper):
 #NEED SOME WAY OF DOING THIS FOR FULL SPACE, SINCE AUX INITIAL GUESS SHOULD GO IN FI...
         if len(self.xk) > 1:
             self.Fi[0][0][1].assign(xn[1])
-        #print('v', norm(self.xk[0].sub(0)))
-        #print('h', norm(self.xk[0].sub(1)))
-        #print('S', norm(self.xk[0].sub(2)))
-        if self.is_explicit:
-            for i in range(self.nstages):
-
-                self.auxsolvers[i].solve()
-                self.Fsolvers[i].solve()
-                #print('rhs', norm(self.Fi[i][0][0]))
-                #print('F', norm(self.Fi[i][0][1].sub(0)))
-                #print('B_h', norm(self.Fi[i][0][1].sub(1)))
-                #print('B_s', norm(self.Fi[i][0][1].sub(2)))
-
-        elif self.is_dirk:
-            for i in range(self.nstages):
-                self.Fauxsolvers[i].solve()
-        else:
-            self.Fauxsolver.solve()
+        # the same stage solves, in the same order, as every recompute of the stages
+        self._solve_forward_stages()
         #print('dt', self.dt)
         #print('xn', self.model.norm(xn[0]))
 
@@ -607,11 +619,12 @@ class GeneralRK(TimeStepper):
 
 #the general solution is to assign each variable separately using sub
 #this is maybe slower? probably not actually though...
-        xnp1[0].assign(xn[0] + self.dt * sum(float(self.b[i]) * self.Fi[i][0][0] for i in range(self.nstages)))
+        with region("update"):
+            xnp1[0].assign(xn[0] + self.dt * sum(float(self.b[i]) * self.Fi[i][0][0] for i in range(self.nstages)))
 
 #this gives a good initial guess at least?
-        if len(xnp1) > 1:
-            xnp1[1].assign(self.Fi[-1][0][1])
+            if len(xnp1) > 1:
+                xnp1[1].assign(self.Fi[-1][0][1])
 
         #print('xnp1', self.model.norm(xnp1[0]))
         #if len(xnp1) > 1:
@@ -637,16 +650,17 @@ class GeneralRK(TimeStepper):
         if self.model.has_coeff():
             #self.deltagradsolver.solve()
             #delta_grad.assign(self.delta_grad)
-#THIS IS VERY SLOW, LIKELY DUE TO SET UP COSTS
-#CAN WE MAKE IT FASTER SOMEHOW?\
-            delta_grad_rhs = create_flattened_numpy_arr_from_mixed_function(assemble(self.L_delta_grad))
+            # increments use persistent assemblers (_assemble_increment): a bare assemble() of
+            # these forms was the "very slow" set-up cost noted here
+            with region("gradient increments"):
+                delta_grad_rhs = self._assemble_increment('L_delta_grad')
 
         #compute lambda_n
-        self.deltalambdasolver.solve()
-        delta_lambda.assign(self.delta_lambda_var)
-#THIS IS VERY SLOW, LIKELY DUE TO SET UP COSTS
-#CAN WE MAKE IT FASTER SOMEHOW?
-        delta_lambda_rhs = create_flattened_numpy_arr_from_mixed_function(assemble(self.L_delta_lambda))
+        with region("lambda increment solve"):
+            self.deltalambdasolver.solve()
+            delta_lambda.assign(self.delta_lambda_var)
+        with region("gradient increments"):
+            delta_lambda_rhs = self._assemble_increment('L_delta_lambda')
         if self.model.has_coeff():
             return delta_lambda_rhs, delta_grad_rhs
         else:
@@ -669,12 +683,13 @@ class GeneralRK(TimeStepper):
         self.wk.assign(wn[0])
         self._solve_forward_stages()
         self._solve_tangent_stages()
-        wnp1[0].assign(wn[0] + self.dt * sum(float(self.b[i]) * self.Fdoti[i][0][0] for i in range(self.nstages)))
-        if xnp1 is not None:
-            xnp1[0].assign(xn[0] + self.dt * sum(float(self.b[i]) * self.Fi[i][0][0] for i in range(self.nstages)))
-            # same aux initial guess as take_forward_step
-            if len(xnp1) > 1 and xnp1[1] is not None:
-                xnp1[1].assign(self.Fi[-1][0][1])
+        with region("update"):
+            wnp1[0].assign(wn[0] + self.dt * sum(float(self.b[i]) * self.Fdoti[i][0][0] for i in range(self.nstages)))
+            if xnp1 is not None:
+                xnp1[0].assign(xn[0] + self.dt * sum(float(self.b[i]) * self.Fi[i][0][0] for i in range(self.nstages)))
+                # same aux initial guess as take_forward_step
+                if len(xnp1) > 1 and xnp1[1] is not None:
+                    xnp1[1].assign(self.Fi[-1][0][1])
 
     def take_second_order_adjoint_step(self, delta_lambda, delta_lambda_dot, lambda_np1, lambda_dot_np1, xn, wn, tnp1, dt):
         """Take one combined first-order and second-order adjoint step (eq. 2.11, forward-over-adjoint).
@@ -707,24 +722,31 @@ class GeneralRK(TimeStepper):
         self._solve_first_order_adjoint_stages()
 
         # second-order stage adjoints, backward over the stages like the first-order ones
-        for i in range(self.nstages-1,-1,-1):
-            self.soa_musolvers[i].solve()
-            self.soa_muauxsolvers[i].solve()
+        with region("soa stages"):
+            for i in range(self.nstages-1,-1,-1):
+                self.soa_musolvers[i].solve()
+                self.soa_muauxsolvers[i].solve()
 
         # first-order increments, identical to take_adjoint_step
         delta_grad_rhs = None
         delta_hess_coeff_rhs = None
         if self.model.has_coeff():
-            delta_grad_rhs = create_flattened_numpy_arr_from_mixed_function(assemble(self.L_delta_grad))
-            delta_hess_coeff_rhs = create_flattened_numpy_arr_from_mixed_function(assemble(self.L_delta_grad_dot))
-        self.deltalambdasolver.solve()
-        delta_lambda.assign(self.delta_lambda_var)
-        delta_lambda_rhs = create_flattened_numpy_arr_from_mixed_function(assemble(self.L_delta_lambda))
+            with region("gradient increments"):
+                delta_grad_rhs = self._assemble_increment('L_delta_grad')
+            with region("hessian increments"):
+                delta_hess_coeff_rhs = self._assemble_increment('L_delta_grad_dot')
+        with region("lambda increment solve"):
+            self.deltalambdasolver.solve()
+            delta_lambda.assign(self.delta_lambda_var)
+        with region("gradient increments"):
+            delta_lambda_rhs = self._assemble_increment('L_delta_lambda')
 
         # second-order increments
-        self.soa_deltalambdasolver.solve()
-        delta_lambda_dot.assign(self.delta_lambda_dot_var)
-        delta_lambda_dot_rhs = create_flattened_numpy_arr_from_mixed_function(assemble(self.L_delta_lambda_dot))
+        with region("lambda_dot increment solve"):
+            self.soa_deltalambdasolver.solve()
+            delta_lambda_dot.assign(self.delta_lambda_dot_var)
+        with region("hessian increments"):
+            delta_lambda_dot_rhs = self._assemble_increment('L_delta_lambda_dot')
         return delta_lambda_rhs, delta_grad_rhs, delta_lambda_dot_rhs, delta_hess_coeff_rhs
 
 
@@ -808,9 +830,14 @@ class LieSplittingIntegrator():
         self.solver_parameters = solver_parameters
 
         self.time_integrators = []
+        # profiling region names of the sub-integrators, e.g. "0:RK4(model)", so the cost of each
+        # dynamics/forcing substep can be told apart (dimswe/profiling.py)
+        self.profile_labels = []
         for i,time_integrator_name in enumerate(timestepper_list):
             time_integrator = get_time_integrator(time_integrator_name, None, solver_parameters)
             self.time_integrators.append(time_integrator(model, logger, solver_parameters, terms=termlist[i]))
+            terms = termlist[i] if isinstance(termlist[i], (list, tuple)) else [termlist[i]]
+            self.profile_labels.append(str(i) + ':' + str(time_integrator_name) + '(' + ','.join(str(term) for term in terms) + ')')
 
         self.lambda_k, self.lambda_sub, self.lambda_split = model.get_x_var('lambda_k')
         self.delta_lambda, _, _ = model.get_x_var('delta_lambda')
@@ -854,8 +881,9 @@ class LieSplittingIntegrator():
         for i,time_integrator in enumerate(self.time_integrators):
             sub_dt = dt / self.subcycle_list[i]
             for k in range(self.subcycle_list[i]):
-                time_integrator.reset_internal_vars()
-                time_integrator.take_forward_step(self.xks[l][0], self.xks[l][1], self.xks[l-1][0], tn + k * sub_dt, sub_dt)
+                with region(self.profile_labels[i]):
+                    time_integrator.reset_internal_vars()
+                    time_integrator.take_forward_step(self.xks[l][0], self.xks[l][1], self.xks[l-1][0], tn + k * sub_dt, sub_dt)
                 l = l +1
         xnp1[0].assign(self.xks[-1][0][0])
 
@@ -876,39 +904,46 @@ class LieSplittingIntegrator():
         delta_lambda_rhs = 0
         delta_grad_rhs = None
 
-        self.xks[0][0][0].assign(xn[0])
-        l = 1
-        for i,time_integrator in enumerate(self.time_integrators):
-            sub_dt = dt / self.subcycle_list[i]
-            for k in range(self.subcycle_list[i]):
-                time_integrator.reset_internal_vars()
-                time_integrator.take_forward_step(self.xks[l][0], self.xks[l][1], self.xks[l-1][0], tnp1 - dt + k * sub_dt, sub_dt)
-                l = l +1
+        # recompute the substep states from xn (checkpoint + recompute within the step)
+        with region("substep recompute"):
+            self.xks[0][0][0].assign(xn[0])
+            l = 1
+            for i,time_integrator in enumerate(self.time_integrators):
+                sub_dt = dt / self.subcycle_list[i]
+                for k in range(self.subcycle_list[i]):
+                    with region(self.profile_labels[i]):
+                        time_integrator.reset_internal_vars()
+                        time_integrator.take_forward_step(self.xks[l][0], self.xks[l][1], self.xks[l-1][0], tnp1 - dt + k * sub_dt, sub_dt)
+                    l = l +1
 
+        nintegrators = len(self.time_integrators)
         l = 0
         lt = len(self.xks)-1
-        for i,time_integrator in enumerate(reversed(self.time_integrators)):
-            sub_dt = dt / self.subcycle_list[len(self.time_integrators)-i-1]
-            for k in reversed(range(self.subcycle_list[len(self.time_integrators)-i-1])):
-                #print(i,k,l,lt-l-1,lt)
-                time_integrator.reset_internal_vars()
-                self.delta_lambda.assign(0)
-                if has_coeff:
-                    self.delta_grad_coeff.assign(0)
-                # take_adjoint_step expects the substep end time: substep k runs from
-                # tnp1 - dt + k*sub_dt to tnp1 - dt + (k+1)*sub_dt, matching take_forward_step
-                _delta_lambda_rhs, _delta_grad_rhs = time_integrator.take_adjoint_step(self.delta_grad_coeff, self.delta_lambda, self.lambda_k, self.xks[lt-l-1][0], tnp1 - dt + (k + 1) * sub_dt, sub_dt)
-                self.lambda_k.assign(self.lambda_k + self.delta_lambda)
-                delta_lambda.assign(delta_lambda + self.delta_lambda)
-                if has_coeff:
-                    delta_grad_coeff.assign(delta_grad_coeff + self.delta_grad_coeff)
-                # accumulate is None-aware: without coefficients delta_grad_rhs stays None, matching
-                # GeneralRK.take_adjoint_step
-                delta_grad_rhs = accumulate(delta_grad_rhs, _delta_grad_rhs)
-                delta_lambda_rhs = delta_lambda_rhs + _delta_lambda_rhs
-                #print(i,k,'grad coeff', _delta_grad_rhs)
-                #print(i,k,'delta lambda',_delta_lambda_rhs)
-                l = l + 1
+        with region("substep adjoints"):
+            for i,time_integrator in enumerate(reversed(self.time_integrators)):
+                label = self.profile_labels[nintegrators-i-1]
+                sub_dt = dt / self.subcycle_list[nintegrators-i-1]
+                for k in reversed(range(self.subcycle_list[nintegrators-i-1])):
+                    #print(i,k,l,lt-l-1,lt)
+                    with region(label):
+                        time_integrator.reset_internal_vars()
+                        self.delta_lambda.assign(0)
+                        if has_coeff:
+                            self.delta_grad_coeff.assign(0)
+                        # take_adjoint_step expects the substep end time: substep k runs from
+                        # tnp1 - dt + k*sub_dt to tnp1 - dt + (k+1)*sub_dt, matching take_forward_step
+                        _delta_lambda_rhs, _delta_grad_rhs = time_integrator.take_adjoint_step(self.delta_grad_coeff, self.delta_lambda, self.lambda_k, self.xks[lt-l-1][0], tnp1 - dt + (k + 1) * sub_dt, sub_dt)
+                        self.lambda_k.assign(self.lambda_k + self.delta_lambda)
+                        delta_lambda.assign(delta_lambda + self.delta_lambda)
+                        if has_coeff:
+                            delta_grad_coeff.assign(delta_grad_coeff + self.delta_grad_coeff)
+                        # accumulate is None-aware: without coefficients delta_grad_rhs stays None, matching
+                        # GeneralRK.take_adjoint_step
+                        delta_grad_rhs = accumulate(delta_grad_rhs, _delta_grad_rhs)
+                        delta_lambda_rhs = delta_lambda_rhs + _delta_lambda_rhs
+                    #print(i,k,'grad coeff', _delta_grad_rhs)
+                    #print(i,k,'delta lambda',_delta_lambda_rhs)
+                    l = l + 1
         return delta_lambda_rhs, delta_grad_rhs
 
     def _compute_substep_tangents(self, xn, wn, tn, dt):
@@ -923,8 +958,9 @@ class LieSplittingIntegrator():
         for i,time_integrator in enumerate(self.time_integrators):
             sub_dt = dt / self.subcycle_list[i]
             for k in range(self.subcycle_list[i]):
-                time_integrator.reset_internal_vars()
-                time_integrator.take_tangent_step(self.wks[l][0], self.wks[l-1][0], self.xks[l-1][0], tn + k * sub_dt, sub_dt, xnp1=self.xks[l][0])
+                with region(self.profile_labels[i]):
+                    time_integrator.reset_internal_vars()
+                    time_integrator.take_tangent_step(self.wks[l][0], self.wks[l-1][0], self.xks[l-1][0], tn + k * sub_dt, sub_dt, xnp1=self.xks[l][0])
                 l = l + 1
 
     def take_tangent_step(self, wnp1, wn, xn, tn, dt, xnp1=None):
@@ -955,31 +991,36 @@ class LieSplittingIntegrator():
         delta_lambda_dot_rhs = None
         delta_hess_coeff_rhs = None
 
-        self._compute_substep_tangents(xn, wn, tnp1 - dt, dt)
+        # recompute the substep states and tangents from (xn, wn)
+        with region("substep recompute"):
+            self._compute_substep_tangents(xn, wn, tnp1 - dt, dt)
 
         nintegrators = len(self.time_integrators)
         l = 0
         lt = len(self.xks)-1
-        for i,time_integrator in enumerate(reversed(self.time_integrators)):
-            nsub = self.subcycle_list[nintegrators-i-1]
-            sub_dt = dt / nsub
-            for k in reversed(range(nsub)):
-                time_integrator.reset_internal_vars()
-                self.delta_lambda.assign(0)
-                self.delta_lambda_dot.assign(0)
-                # substep k runs from tnp1 - dt + k*sub_dt to tnp1 - dt + (k+1)*sub_dt
-                increments = time_integrator.take_second_order_adjoint_step(self.delta_lambda, self.delta_lambda_dot,
-                    self.lambda_k, self.lambda_dot_k, self.xks[lt-l-1][0], self.wks[lt-l-1][0], tnp1 - dt + (k + 1) * sub_dt, sub_dt)
-                _delta_lambda_rhs, _delta_grad_rhs, _delta_lambda_dot_rhs, _delta_hess_coeff_rhs = increments
-                self.lambda_k.assign(self.lambda_k + self.delta_lambda)
-                self.lambda_dot_k.assign(self.lambda_dot_k + self.delta_lambda_dot)
-                delta_lambda.assign(delta_lambda + self.delta_lambda)
-                delta_lambda_dot.assign(delta_lambda_dot + self.delta_lambda_dot)
-                delta_lambda_rhs = accumulate(delta_lambda_rhs, _delta_lambda_rhs)
-                delta_grad_rhs = accumulate(delta_grad_rhs, _delta_grad_rhs)
-                delta_lambda_dot_rhs = accumulate(delta_lambda_dot_rhs, _delta_lambda_dot_rhs)
-                delta_hess_coeff_rhs = accumulate(delta_hess_coeff_rhs, _delta_hess_coeff_rhs)
-                l = l + 1
+        with region("substep adjoints"):
+            for i,time_integrator in enumerate(reversed(self.time_integrators)):
+                label = self.profile_labels[nintegrators-i-1]
+                nsub = self.subcycle_list[nintegrators-i-1]
+                sub_dt = dt / nsub
+                for k in reversed(range(nsub)):
+                    with region(label):
+                        time_integrator.reset_internal_vars()
+                        self.delta_lambda.assign(0)
+                        self.delta_lambda_dot.assign(0)
+                        # substep k runs from tnp1 - dt + k*sub_dt to tnp1 - dt + (k+1)*sub_dt
+                        increments = time_integrator.take_second_order_adjoint_step(self.delta_lambda, self.delta_lambda_dot,
+                            self.lambda_k, self.lambda_dot_k, self.xks[lt-l-1][0], self.wks[lt-l-1][0], tnp1 - dt + (k + 1) * sub_dt, sub_dt)
+                        _delta_lambda_rhs, _delta_grad_rhs, _delta_lambda_dot_rhs, _delta_hess_coeff_rhs = increments
+                        self.lambda_k.assign(self.lambda_k + self.delta_lambda)
+                        self.lambda_dot_k.assign(self.lambda_dot_k + self.delta_lambda_dot)
+                        delta_lambda.assign(delta_lambda + self.delta_lambda)
+                        delta_lambda_dot.assign(delta_lambda_dot + self.delta_lambda_dot)
+                        delta_lambda_rhs = accumulate(delta_lambda_rhs, _delta_lambda_rhs)
+                        delta_grad_rhs = accumulate(delta_grad_rhs, _delta_grad_rhs)
+                        delta_lambda_dot_rhs = accumulate(delta_lambda_dot_rhs, _delta_lambda_dot_rhs)
+                        delta_hess_coeff_rhs = accumulate(delta_hess_coeff_rhs, _delta_hess_coeff_rhs)
+                    l = l + 1
         return delta_lambda_rhs, delta_grad_rhs, delta_lambda_dot_rhs, delta_hess_coeff_rhs
 
     def set_coeff(self, coeff_val):

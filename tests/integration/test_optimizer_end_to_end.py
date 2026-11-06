@@ -1,7 +1,7 @@
 """End-to-end check of first- and second-order optimization, from the model to the comparison table.
 
 This covers stages 4-6 of the step 18 verification sequence (see workflows/verify_hessp.sh) in a
-single pytest process, on the small tests/tswe.cfg problem:
+single pytest process, on the small tests/tswe_small.cfg problem:
 
 1. recover the double-vortex offsets (ic-params: ox, oy) from a truth trajectory with L-BFGS-B,
 2. recover them again with Newton-CG, using Hessian-vector products,
@@ -34,7 +34,7 @@ pytestmark = pytest.mark.integration
 NSTEPS = 3
 OBS_STEPS = [1, 3]
 PARAM_NAMES = ["ox", "oy"]
-# starting point away from the truth of tests/tswe.cfg (ox = oy = 0.1), as in the HVP Taylor tests
+# starting point away from the truth of tests/tswe_small.cfg (ox = oy = 0.1), as in the HVP Taylor tests
 START_OFFSET = np.array([0.01, -0.005])
 SCALE = np.array([0.1, 0.1])
 

@@ -12,7 +12,7 @@ from tests.gradient_helpers import (
     setup_problem,
 )
 
-# double-vortex offsets away from the truth (ox=oy=0.1 in tests/tswe.cfg)
+# double-vortex offsets away from the truth (ox=oy=0.1 in tests/tswe_small.cfg)
 PERTURBED_IC = {'ox': 0.11, 'oy': 0.11}
 
 

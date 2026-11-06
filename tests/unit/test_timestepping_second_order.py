@@ -9,7 +9,7 @@ These are the per-step building blocks of the forward-over-adjoint Hessian-vecto
   the outputs of take_adjoint_step with respect to the start state, the coefficients and lambda,
 - and the first-order outputs of both steps must agree with the existing first-order steps.
 
-Each test runs for the timestepper of tests/tswe.cfg (a LieSplit of RK4 and Euler) and for a
+Each test runs for the timestepper of tests/tswe_small.cfg (a LieSplit of RK4 and Euler) and for a
 plain RK4 GeneralRK, and for directions perturbing the state, the coefficients, or both.
 """
 

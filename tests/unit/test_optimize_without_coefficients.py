@@ -2,12 +2,12 @@
 
 The workflow's ic-params and ic-field targets run the model with every forcing term's
 treat_as_coeffs false (as in mtswe.cfg), so the model has no coefficient space and
-model.get_coeff_var returns None. The other tests use tests/tswe.cfg, which sets
+model.get_coeff_var returns None. The other tests use tests/tswe_small.cfg, which sets
 hyperviscosity.treat_as_coeffs true, so this case was untested. LieSplittingIntegrator used to
 assign to its None coefficient-gradient variable, and every first- and second-order evaluation
 failed with "'NoneType' object has no attribute 'assign'".
 
-These tests run tests/tswe.cfg with treat_as_coeffs false, through the LieSplit timestepper, for
+These tests run tests/tswe_small.cfg with treat_as_coeffs false, through the LieSplit timestepper, for
 the initial-state and initial-condition-parameter targets.
 """
 
@@ -32,7 +32,7 @@ OBS_STEPS = [1, 3]
 
 @pytest.fixture
 def no_coeff_cfg(tmp_path):
-    """Write tests/tswe.cfg with every treat_as_coeffs flag false and return its path."""
+    """Write tests/tswe_small.cfg with every treat_as_coeffs flag false and return its path."""
     with open(DEFAULT_CFG, "r") as handle:
         parameters = yaml.safe_load(handle)
     for section in parameters.values():

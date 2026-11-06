@@ -13,6 +13,7 @@ This directory contains helper scripts for generating simulation cfg files, runn
 - `compare_optimizers.py`: compare optimization jobs across optimizer methods (iterations, function, gradient and Hessian-vector-product evaluations, final loss, status, time) from their `result.yaml` files.
 - `run_pipeline.sh`: chain truth generation, optimization, validation and plotting.
 - `optimizer_baseline.sh`: run the representative L-BFGS-B vs Newton-CG problem and save or check the optimizer regression baseline (see [Comparing optimizer methods](#comparing-optimizer-methods)).
+- `profile_hvp.sh`: profile the objective, gradient and Hessian-vector-product evaluations of one optimization job, with an optional PETSc flamegraph (see [Profiling evaluations](#profiling-evaluations)).
 - `verify_hessp.sh`: staged verification of the second-order (Hessian-vector-product) optimization support, from unit tests to an optional full workflow run (see [Checking gradients](#checking-gradients)).
 - `common.py`, `opt_helpers.py`, `losses.py`: shared helpers (pure-Python, Firedrake-side, and loss construction).
 - `generate_cfgs.sh`, `run_batch.sh`, `compare_runs.sh`, `optimize_params.sh`, `validate.sh`, `plot_validation.sh`, `compare_optimizers.sh`: thin Firedrake-environment wrappers for the Python scripts.
@@ -448,6 +449,23 @@ The baseline records, per job (`<optimization>/<job>`): method, target, success,
 - reaches a final loss worse than `--loss-factor` times the baseline (default 10).
 
 Wall time is reported as a ratio and only checked with `--time-factor`, since it depends on the machine. Finished jobs are reused, so delete `runs/optimizations/doublevortex-params*` to rerun the optimizations after a code change.
+
+### Profiling evaluations
+
+`workflows/profile_hvp.sh` measures where one job's evaluations spend their time ([docs/hvp_performance_plan.md](../docs/hvp_performance_plan.md), section 2):
+
+```bash
+bash workflows/profile_hvp.sh <mpi-ranks> <optimize-cfg> [--job SUBSTRING] [--repeats N] [--seed S] [--output-dir DIR] [--results RESULT.yaml ...] [--flamegraph] [PETSc options]
+bash workflows/profile_hvp.sh 4 workflows/examples/optimize_ic_params_newton_cg.cfg --job ox-0p086034__final --repeats 2
+```
+
+The truth runs must already exist. The script builds the job as `optimize_params.py` does, then evaluates `obj`, `jac` and `hessp` at the starting point: each one first call plus `--repeats` steady-state calls, then one extra `hessp` in a second direction. The report is printed and written to `runs/profiles/<optimization>/<job>/profile.yaml` and `profile-tree.txt`. It contains:
+- first-call, steady-state and setup seconds per evaluation;
+- the `jac/obj` and `hessp/jac` ratios next to the cost model;
+- the stage passes per step, the time per region, and the cost of one stage pass per sub-integrator;
+- an estimate of the optimizer run time from the job's `result.yaml` counts.
+
+`--flamegraph` also writes PETSc's nested log (`-log_view :…:ascii_flamegraph`) and renders it with `./flamegraph.pl`. The profiling regions then appear around PETSc's own events. Use a run without `--flamegraph` for the timings.
 
 ## Step 3: validation and plotting
 

@@ -2,6 +2,7 @@ from firedrake import assemble, inner, norm, LinearVariationalProblem, LinearVar
 import numpy as np
 from .numpy_helpers import set_mixed_function_from_flattened_array, create_flattened_numpy_arr_from_mixed_function
 import scipy as sp
+from .profiling import region, timed
 
 def create_states(model, nsteps):
     xns = []
@@ -398,6 +399,7 @@ class ParametricInitialCondition():
         for func, value in zip(self.param_funcs, params):
             func.assign(float(value))
 
+    @timed("ic map forward")
     def forward(self, params):
         """Return the rank-local flattened discrete initial state for parameter values params."""
         self.set_param_values(params)
@@ -406,6 +408,7 @@ class ParametricInitialCondition():
             self.x0_sub[var].project(expr, solver_parameters=self.projection_parameters)
         return create_flattened_numpy_arr_from_mixed_function(self.x0).copy()
 
+    @timed("ic map tangents")
     def tangents(self):
         """Return rank-local flattened tangents dx0/dp_j at the current parameter values."""
         tangent_arrs = []
@@ -459,6 +462,7 @@ class ParametricInitialCondition():
                 self._second_tangent_exprs[j][k] = exprs
         self._second_tangent_var = self.model.get_x_var('icparam_second_tangent')
 
+    @timed("ic map second tangents")
     def second_tangents(self):
         """Return the rank-local flattened second derivatives d^2 x0 / dp_j dp_k at the current values.
 
@@ -789,6 +793,7 @@ class _ODEConstrainedOptimization():
             #self.timestepper.set_numpy_coeff(coeffs_arr * self.coeff_scaling_factors)
             self.timestepper.set_numpy_coeff(coeffs_arr)
 
+    @timed("forward pass")
     def _compute_block_states(self, block_id, ics_arr):
         """Integrate one block from its data start state, or from ics_arr if given."""
         if ics_arr is None:
@@ -802,6 +807,7 @@ class _ODEConstrainedOptimization():
         data = self.objective.get_observation(block_id, self.obs_index[step])
         self.mismatch.assign(self.states[step][0] - data[0])
 
+    @timed("obj")
     def obj(self, coeffs_arr, ics_arr, coeffs0=None):
         self._set_coeffs(coeffs_arr, coeffs0)
 
@@ -811,13 +817,15 @@ class _ODEConstrainedOptimization():
 #WHY?????
             self.timestepper.reset_internal_vars()
             self._compute_block_states(i, ics_arr)
-            for step in self.obs_steps:
-                self._assign_mismatch(i, step)
-                l2loss += assemble(self.loss_form)
+            with region("loss"):
+                for step in self.obs_steps:
+                    self._assign_mismatch(i, step)
+                    l2loss += assemble(self.loss_form)
         return l2loss
 
 #EVENTUALLY ADD A CLASS WITH REGULARIZATION FOR CONSTRAINTS IE AUGMENTED LAGRANGIAN?
 class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
+    @timed("jac")
     def jac(self, coeffs_arr, ics_arr, coeffs0=None):
         if self.model.has_coeff():
             self.grad_coeffs[:] = 0.0
@@ -842,35 +850,37 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
             # each observation contributes a dual source r_n (the loss derivative with respect to x_n)
             # to the gradient, and M^{-1} r_n to the adjoint at step n. These are all computed before
             # the backward sweep, since the sweep is not guaranteed to leave self.states untouched.
-            for k, step in enumerate(self.obs_steps):
-                self._assign_mismatch(i, step)
-                self.lambda_np1_projector.solve()
-                self.obs_sources[k].assign(self.lambda_source)
-                self.grad_ics[i, :] = self.grad_ics[i, :] + create_flattened_numpy_arr_from_mixed_function(assemble(self.source_form))
+            with region("observation sources"):
+                for k, step in enumerate(self.obs_steps):
+                    self._assign_mismatch(i, step)
+                    self.lambda_np1_projector.solve()
+                    self.obs_sources[k].assign(self.lambda_source)
+                    self.grad_ics[i, :] = self.grad_ics[i, :] + create_flattened_numpy_arr_from_mixed_function(assemble(self.source_form))
 
-            for n in range(self.objective.nsteps,0,-1):
+            with region("adjoint sweep"):
+                for n in range(self.objective.nsteps,0,-1):
 
-                # lambda_n += M^{-1} r_n at observation steps
-                if n in self.obs_index:
-                    self.lambda_np1.assign(self.lambda_np1 + self.obs_sources[self.obs_index[n]])
+                    # lambda_n += M^{-1} r_n at observation steps
+                    if n in self.obs_index:
+                        self.lambda_np1.assign(self.lambda_np1 + self.obs_sources[self.obs_index[n]])
 
-                #IF THIS IS NOT DONE THEN THE STATES[N] CHANGES!
-                #WHY??
-                #BUT THIS ONLY FIXES THE LAST ONE, THE OTHERS ARE STILL BROKEN
-                self.timestepper.reset_internal_vars()
+                    #IF THIS IS NOT DONE THEN THE STATES[N] CHANGES!
+                    #WHY??
+                    #BUT THIS ONLY FIXES THE LAST ONE, THE OTHERS ARE STILL BROKEN
+                    self.timestepper.reset_internal_vars()
 
-                #take a forward step to populate internal variables within timestepper
-                #THIS IS A CHOICE/TYPE OF CHECKPOINT + RECOMPUTE\
-                #self.timestepper.take_forward_step(self.states[n], self.states_sub[n], self.states[n-1], self.tns[n-1], self.dt)
+                    #take a forward step to populate internal variables within timestepper
+                    #THIS IS A CHOICE/TYPE OF CHECKPOINT + RECOMPUTE\
+                    #self.timestepper.take_forward_step(self.states[n], self.states_sub[n], self.states[n-1], self.tns[n-1], self.dt)
 
-                delta_lambda_rhs, delta_grad_rhs = self.timestepper.take_adjoint_step(self.delta_grad_coeff, self.delta_lambda, self.lambda_np1, self.states[n-1], self.tns[n], self.dt)
-                self.lambda_np1.assign(self.lambda_np1 + self.delta_lambda)
+                    delta_lambda_rhs, delta_grad_rhs = self.timestepper.take_adjoint_step(self.delta_grad_coeff, self.delta_lambda, self.lambda_np1, self.states[n-1], self.tns[n], self.dt)
+                    self.lambda_np1.assign(self.lambda_np1 + self.delta_lambda)
 
-                if self.model.has_coeff():
-                    #self.grad_coeffs[:] = self.grad_coeffs[:] + delta_grad_rhs * self.coeff_scaling_factors
-                    self.grad_coeffs[:] = self.grad_coeffs[:] + delta_grad_rhs
+                    if self.model.has_coeff():
+                        #self.grad_coeffs[:] = self.grad_coeffs[:] + delta_grad_rhs * self.coeff_scaling_factors
+                        self.grad_coeffs[:] = self.grad_coeffs[:] + delta_grad_rhs
 
-                self.grad_ics[i, :] = self.grad_ics[i, :] + delta_lambda_rhs
+                    self.grad_ics[i, :] = self.grad_ics[i, :] + delta_lambda_rhs
         #print(self.grad_coeffs)
         #print(delta_grad_rhs.dat.data)
         #print(delta_grad_rhs.dat.data)
@@ -905,6 +915,12 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
         """
         if getattr(self, '_hvp_ready', False):
             return
+        with region("setup hvp"):
+            self._allocate_hvp_storage()
+        self._hvp_ready = True
+
+    def _allocate_hvp_storage(self):
+        """Create the HVP storage and the tangent source projector (see _setup_hvp)."""
         self.tangent_states = create_tangent_states(self.model, self.objective.nsteps)
         self.tangent_ic, _, _ = self.model.get_x_var('tangent_ic')
         self.lambda_dot_np1, _, _ = self.model.get_x_var('lambda_dot_np1')
@@ -924,13 +940,13 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
         tangent_source_problem = LinearVariationalProblem(a, self.tangent_source_form, self.lambda_dot_source, constant_jacobian=True)
         self.lambda_dot_projector = LinearVariationalSolver(tangent_source_problem,
             solver_parameters={'ksp_type': 'preonly', 'pc_type': 'lu'}, options_prefix='opt-proj-tangent')
-        self._hvp_ready = True
 
     def _set_coeff_direction(self, coeffs_dir_arr):
         """Set the timestepper coefficient direction theta_dot (None means zero)."""
         if self.model.has_coeff():
             self.timestepper.set_numpy_coeff_direction(coeffs_dir_arr)
 
+    @timed("forward+tangent pass")
     def _compute_block_states_and_tangents(self, block_id, ics_arr, ics_dir_arr):
         """Integrate one block's states and tangents, storing both trajectories.
 
@@ -950,6 +966,7 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
         compute_states_and_tangents(self.states, self.tns, self.tangent_states, self.timestepper,
             self.objective.nsteps, self.dt, x0, w0, self.objective.t_blocks[block_id][0])
 
+    @timed("observation sources")
     def _compute_observation_sources(self, block_id):
         """Compute the first- and second-order adjoint sources at every observation step.
 
@@ -1014,31 +1031,33 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
                 grad_ics[i, :] += grad_sum
                 hess_ics[i, :] += hess_sum
 
-                for n in range(self.objective.nsteps, 0, -1):
-                    # lambda_n += M^{-1} s_n and lambda_dot_n += M^{-1} sdot_n at observation steps
-                    if n in self.obs_index:
-                        k = self.obs_index[n]
-                        self.lambda_np1.assign(self.lambda_np1 + self.obs_sources[k])
-                        self.lambda_dot_np1.assign(self.lambda_dot_np1 + self.obs_tangent_sources[k])
+                with region("second-order adjoint sweep"):
+                    for n in range(self.objective.nsteps, 0, -1):
+                        # lambda_n += M^{-1} s_n and lambda_dot_n += M^{-1} sdot_n at observation steps
+                        if n in self.obs_index:
+                            k = self.obs_index[n]
+                            self.lambda_np1.assign(self.lambda_np1 + self.obs_sources[k])
+                            self.lambda_dot_np1.assign(self.lambda_dot_np1 + self.obs_tangent_sources[k])
 
-                    # same per-step reset as jac, for repeatability
-                    self.timestepper.reset_internal_vars()
-                    delta_lambda_rhs, delta_grad_rhs, delta_lambda_dot_rhs, delta_hess_coeff_rhs = self.timestepper.take_second_order_adjoint_step(
-                        self.delta_lambda, self.delta_lambda_dot, self.lambda_np1, self.lambda_dot_np1,
-                        self.states[n-1], self.tangent_states[n-1], self.tns[n], self.dt)
-                    self.lambda_np1.assign(self.lambda_np1 + self.delta_lambda)
-                    self.lambda_dot_np1.assign(self.lambda_dot_np1 + self.delta_lambda_dot)
+                        # same per-step reset as jac, for repeatability
+                        self.timestepper.reset_internal_vars()
+                        delta_lambda_rhs, delta_grad_rhs, delta_lambda_dot_rhs, delta_hess_coeff_rhs = self.timestepper.take_second_order_adjoint_step(
+                            self.delta_lambda, self.delta_lambda_dot, self.lambda_np1, self.lambda_dot_np1,
+                            self.states[n-1], self.tangent_states[n-1], self.tns[n], self.dt)
+                        self.lambda_np1.assign(self.lambda_np1 + self.delta_lambda)
+                        self.lambda_dot_np1.assign(self.lambda_dot_np1 + self.delta_lambda_dot)
 
-                    if has_coeff:
-                        grad_coeffs += delta_grad_rhs
-                        hess_coeffs += delta_hess_coeff_rhs
-                    grad_ics[i, :] += delta_lambda_rhs
-                    hess_ics[i, :] += delta_lambda_dot_rhs
+                        if has_coeff:
+                            grad_coeffs += delta_grad_rhs
+                            hess_coeffs += delta_hess_coeff_rhs
+                        grad_ics[i, :] += delta_lambda_rhs
+                        hess_ics[i, :] += delta_lambda_dot_rhs
         finally:
             # leave no stale direction behind for later first-order or HVP calls
             self._set_coeff_direction(None)
         return grad_coeffs, grad_ics, hess_coeffs, hess_ics
 
+    @timed("hessp")
     def hessp(self, coeffs_arr, ics_arr, coeffs_dir_arr=None, ics_dir_arr=None, coeffs0=None):
         """Full-space Hessian-vector product of the objective, in the same layout as jac.
 
@@ -1064,6 +1083,7 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
             print('hessp norm', np.linalg.norm(result))
         return result.copy()
 
+    @timed("hessp")
     def ic_params_hessp(self, ic_map, params, direction, coeffs0=None):
         """Hessian-vector product for analytic initial-condition parameters (opt_type 'ic-params').
 

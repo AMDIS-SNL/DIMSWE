@@ -309,7 +309,7 @@ The resulting HVP is therefore the exact derivative of the discrete gradient tha
 
 **LieSplit time fix.** `LieSplittingIntegrator.take_adjoint_step` used to pass the substep *start* time `tnp1 - dt + k*sub_dt` as the sub-integrator's end time, so the adjoint was evaluated one substep early. This only matters for time-dependent right-hand sides. It now passes `tnp1 - dt + (k+1)*sub_dt`, consistent with `take_forward_step` and with the new second-order step.
 
-**Tests.** `tests/unit/test_timestepping_second_order.py` runs a Taylor test of each step against the first-order step it differentiates, for the `tests/tswe.cfg` LieSplit and for plain RK4, with state-only, coefficient-only and combined directions.
+**Tests.** `tests/unit/test_timestepping_second_order.py` runs a Taylor test of each step against the first-order step it differentiates, for the `tests/tswe_small.cfg` LieSplit and for plain RK4, with state-only, coefficient-only and combined directions.
 
 ---
 
@@ -538,7 +538,7 @@ Tests: `tests/integration/test_compare_optimizers.py`, on fake roots written to 
 1. **plumbing:** `test_reduced_problem_hvp.py`, `test_optimizer_methods.py`, `test_workflow_optimizer_tables.py` (pure Python).
 2. **taylor:** `test_timestepping_second_order.py`, `test_optimize_hvp_storage.py`, `test_optimize_hvp.py`, `test_optimize_hvp_repeatability.py`. It also reruns the first-order gradient tests, to show they are unchanged.
 3. **reporting:** `test_optimization_workflows.py`, `test_compare_optimizers.py`.
-4. **end-to-end:** `tests/integration/test_optimizer_end_to_end.py`. It recovers `ox`, `oy` (`ic-params`) on `tests/tswe.cfg` with L-BFGS-B and with Newton-CG, and checks that:
+4. **end-to-end:** `tests/integration/test_optimizer_end_to_end.py`. It recovers `ox`, `oy` (`ic-params`) on `tests/tswe_small.cfg` with L-BFGS-B and with Newton-CG, and checks that:
    - both runs reduce the loss by at least `1e-4` and cut the parameter error by at least 20x;
    - only Newton-CG performs HVPs;
    - `optimize()` reports the problem's own counters;
@@ -551,7 +551,7 @@ A test in `test_compare_optimizers.py` checks that the script references only ex
 
 **Models without coefficients (bug found in stage 5).** The workflow's `ic-params` and `ic-field` targets run with every `treat_as_coeffs` false, as in `mtswe.cfg`, so `model.get_coeff_var` returns `None`. `LieSplittingIntegrator.reset_internal_vars` and `take_adjoint_step` assigned to that `None` without a guard. That code predates the HVP work, and it broke every first-order evaluation too. Both now check `model.has_coeff()`, as `GeneralRK` does, and `take_adjoint_step` returns `delta_grad_rhs = None` in that case.
 
-The unit tests had missed this because `tests/tswe.cfg` sets `hyperviscosity.treat_as_coeffs: true`. `tests/unit/test_optimize_without_coefficients.py` now covers the case: gradient and HVP Taylor tests for `ics` and `ic-params` without coefficients, through LieSplit. Separately, `optimize_params.py` now prints the full traceback of a failed job.
+The unit tests had missed this because `tests/tswe_small.cfg` sets `hyperviscosity.treat_as_coeffs: true`. `tests/unit/test_optimize_without_coefficients.py` now covers the case: gradient and HVP Taylor tests for `ics` and `ic-params` without coefficients, through LieSplit. Separately, `optimize_params.py` now prints the full traceback of a failed job.
 
 ## 19. Representative comparison and regression baseline
 
@@ -568,3 +568,34 @@ The unit tests had missed this because `tests/tswe.cfg` sets `hyperviscosity.tre
 - **Tests.** `tests/integration/test_compare_optimizers.py` covers save/check round trips, each regression type, the count tolerance and the exit status.
 
 The baseline file must be produced on the target machine, with `--save`, after the stage 5 workflow run passes. It is not committed with this change.
+
+## 20. Performance measurement tooling
+
+The performance plan is in `docs/hvp_performance_plan.md`. Its section 2 (measure first) is implemented as follows:
+
+- **`dimswe/profiling.py`.** Nested timing regions (`region`, `@timed`), keyed by the path of enclosing regions. Each one also opens a PETSc log event, so it shows up in `-log_view` flamegraphs. Timing is off unless a driver calls `enable()`, so normal runs only pay for the PETSc event calls. The module never imports petsc4py itself, so it cannot initialize PETSc before Firedrake has read the command-line options.
+- **Instrumentation.**
+  - `obj`, `jac`, `hessp` / `ic_params_hessp`, and their passes and sweeps.
+  - The LieSplit substep recompute and the substep adjoints, with one region per sub-integrator (`LieSplittingIntegrator.profile_labels`).
+  - Inside GeneralRK: the four kinds of stage pass, the increment assemblies and solves, the updates, and `_setup_second_order`. Its form construction moved to `_build_second_order_solvers`, so that it can be timed on its own.
+  - The forward stage solves of `take_forward_step` now go through `_solve_forward_stages`: the same solves in the same order.
+
+  None of this changes the numerics.
+- **`workflows/profile_hvp.py` / `profile_hvp.sh`.**
+  - Builds a workflow job as `optimize_params.py` does.
+  - Times a first call and steady-state calls of `obj`, `jac` and `hessp` (two directions) at the starting point.
+  - Writes `profile.yaml` / `profile-tree.txt`: setup vs steady state, measured ratios and stage passes against the cost model, a per-region breakdown, the per-sub-integrator cost of a stage pass, and an optimizer run-time estimate from `result.yaml`.
+- **Tests.** `tests/unit/test_profiling.py` and `tests/integration/test_profile_hvp.py`. The latter includes a Firedrake test asserting that the instrumented gradient and HVP of `tests/tswe_small.cfg` perform exactly the stage passes of the plan's cost model: 3 forward passes per substep for `jac`, and 3 forward plus 3 tangent passes for `hessp`. Plan items A2/A3 must update that table (`COST_MODEL_STAGE_PASSES`).
+
+The step 19 baseline already gives about 3.8 gradients per HVP, against 2 in the solve-count model, and HVPs taking 82-91% of the Newton-CG run time (plan section 2.2). The profiler runs fill in plan section 2.3.
+
+## 21. Persistent increment assembly (plan item B0)
+
+The profile in plan section 2.3 showed the bare `assemble()` calls on the increment forms taking 52% of an HVP and 31% of a gradient. The forms are `L_delta_lambda` and `L_delta_grad` in `take_adjoint_step`, and additionally `L_delta_lambda_dot` and `L_delta_grad_dot` in `take_second_order_adjoint_step`. Each call repeated the form's symbolic processing and parloop construction, taking 0.1-0.5 s, while the kernels themselves take milliseconds.
+
+`GeneralRK._assemble_increment(name)` now keeps one `dimswe.assembly.PersistentAssembler` per form. It assembles into a reused Cofunction and returns a new flattened array, as before.
+- **Strategies.** The persistent API depends on the Firedrake version, so the assembler tries `get_assembler(form).assemble(tensor=)`, then `create_assembly_callable(form, tensor=)`, then `assemble(form, tensor=)`.
+- **Validation.** Each strategy is checked against a plain `assemble()` on its first two uses (relative tolerance 1e-10), and the decision is made collectively across ranks.
+- **Fallback.** A strategy that disagrees, for example by missing coefficient updates or accumulating into the old tensor, or that raises, is dropped. If none works, the assembler falls back to plain assembly.
+
+The numerics are unchanged: the same forms are assembled with the same kernels.

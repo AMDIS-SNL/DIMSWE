@@ -32,7 +32,8 @@ from dimswe.timestepping import get_timestepper
 
 from firedrake import action, assemble, replace
 
-DEFAULT_CFG = 'tests/tswe.cfg'
+# small 8x8 mesh, see the header of tests/tswe_small.cfg; tests/tswe.cfg is the original 50x50 setup
+DEFAULT_CFG = 'tests/tswe_small.cfg'
 
 # Direct solves make the forward and adjoint steps consistent to round-off, so Taylor remainders
 # converge cleanly. A copy is used so the package-wide defaults are not modified.

@@ -142,7 +142,7 @@ def test_reduced_hessp_taylor_with_scaling_and_free_mask():
     assert problem.nhvp == 1
 
 
-# perturbations away from the truth in tests/tswe.cfg (c0=0.07, s=3.2, ox=oy=0.1), as in the
+# perturbations away from the truth in tests/tswe_small.cfg (c0=0.07, s=3.2, ox=oy=0.1), as in the
 # gradient tests
 PERTURBED_COEFFS = {'hyperviscosity': {'c0': 0.05, 's': 2.8}}
 PERTURBED_IC = {'ox': 0.11, 'oy': 0.11}
