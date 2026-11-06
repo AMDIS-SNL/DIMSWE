@@ -6,8 +6,11 @@ needs, and minimizes the loss with dimswe.optimize. Each optimization writes its
 
     <output_root>/<optimization_name>/<truth-run>__<loss-label>/
         optimize.cfg       resolved optimization spec for this job
-        result.yaml        initial, optimal and true values, final loss, optimizer status
-        history.csv        loss, gradient norm and parameters per optimizer iteration
+        result.yaml        initial, optimal and true values, final loss, optimizer status,
+                           evaluation counts (nit, nfev, njev, nhvp, hessp_used) and the
+                           optimizer wall time (optimize_seconds)
+        history.csv        loss, gradient norm, parameters and cumulative nfev/njev/nhvp per
+                           optimizer iteration
         optimal.cfg        truth cfg with the optimal parameters written back
         optimal_ic.h5      optimized initial state (ic-field target only)
         taylor-test.yaml   gradient check results (when optimizer.check_gradient is enabled)
@@ -18,6 +21,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 import sys
+import time
 from typing import Any
 
 if __package__ is None or __package__ == "":
@@ -52,7 +56,33 @@ DEFAULT_OPTIMIZER = {
     # relative: gtol is a fraction of the initial gradient's largest component, so stopping does
     # not depend on the overall size of the loss; absolute: gtol is passed to scipy unchanged
     "tolerance": "relative",
+    # Hessian-vector products: null passes them to every method that uses them (Newton-CG,
+    # trust-ncg, trust-krylov, trust-constr), true requires them, false never passes them
+    "use_hessp": None,
+    # false optimizes without bounds, including the model's default coefficient bounds; needed for
+    # second-order methods that cannot handle bounds (Newton-CG, trust-ncg, trust-krylov)
+    "use_bounds": True,
+    # step tolerance, only used by Newton-CG (its only stopping tolerance) and trust-constr;
+    # null keeps scipy's default
+    "xtol": None,
 }
+
+# scipy.optimize.minimize methods, upper case. These tables mirror dimswe.optimize (which cannot
+# be imported here without Firedrake); tests/unit/test_workflow_optimizer_tables.py keeps them in sync.
+KNOWN_METHODS = (
+    "NELDER-MEAD", "POWELL", "CG", "BFGS", "NEWTON-CG", "L-BFGS-B", "TNC", "COBYLA", "COBYQA",
+    "SLSQP", "TRUST-CONSTR", "DOGLEG", "TRUST-NCG", "TRUST-EXACT", "TRUST-KRYLOV",
+)
+# methods that consume Hessian-vector products
+HESSP_METHODS = ("NEWTON-CG", "TRUST-NCG", "TRUST-KRYLOV", "TRUST-CONSTR")
+# HVP methods that cannot run without them
+HESSP_REQUIRED_METHODS = ("TRUST-NCG", "TRUST-KRYLOV")
+# methods that need the full Hessian matrix, which DIMSWE does not provide
+FULL_HESSIAN_METHODS = ("DOGLEG", "TRUST-EXACT")
+# methods that honour bounds
+BOUNDED_METHODS = ("L-BFGS-B", "TNC", "SLSQP", "TRUST-CONSTR", "NELDER-MEAD", "POWELL", "COBYLA", "COBYQA")
+# methods that use xtol
+XTOL_METHODS = ("NEWTON-CG", "TRUST-CONSTR")
 
 
 def parse_args() -> argparse.Namespace:
@@ -106,6 +136,67 @@ def normalize_parameter_specs(target: str, parameter_specs: dict[str, Any]) -> d
     return normalized
 
 
+def target_has_bounds(target: str, use_bounds: bool) -> bool:
+    """Return True if an optimization target passes bounds to scipy.
+
+    The coeffs target always has bounds (the model's coefficient bounds, possibly narrowed per
+    parameter) unless use_bounds is false. ic-params rejects bounds and ic-field has none.
+    """
+    return target == "coeffs" and use_bounds
+
+
+def validate_optimizer_spec(optimizer_spec: dict[str, Any], target: str, parameter_specs: dict[str, dict[str, Any]]) -> None:
+    """Validate the optimizer section of a spec, including second-order method restrictions.
+
+    optimizer_spec must already include the defaults. Raises ValueError for unknown methods,
+    methods needing a full Hessian, invalid use_hessp / use_bounds / xtol values, HVPs requested
+    for a method that does not use them (or disabled for one that requires them), and bounds
+    combined with a second-order method that would ignore them. First-order methods are only
+    checked for a known name, so existing configurations validate as before.
+    """
+    method = optimizer_spec["method"]
+    if not isinstance(method, str) or method.upper() not in KNOWN_METHODS:
+        raise ValueError(f"Unknown optimizer.method {method!r}; expected one of the scipy.optimize.minimize methods")
+    name = method.upper()
+    if name in FULL_HESSIAN_METHODS:
+        raise ValueError(
+            f"optimizer.method {method} needs the full Hessian matrix, which DIMSWE does not provide; "
+            f"use a Hessian-vector-product method instead: {', '.join(HESSP_METHODS)}"
+        )
+
+    use_hessp = optimizer_spec["use_hessp"]
+    if use_hessp not in (None, True, False):
+        raise ValueError("optimizer.use_hessp must be true, false or null")
+    if use_hessp is True and name not in HESSP_METHODS:
+        raise ValueError(
+            f"optimizer.use_hessp is true, but {method} does not use Hessian-vector products; "
+            f"use one of {', '.join(HESSP_METHODS)}"
+        )
+    if use_hessp is False and name in HESSP_REQUIRED_METHODS:
+        raise ValueError(f"optimizer.method {method} requires Hessian-vector products; do not set optimizer.use_hessp: false")
+
+    use_bounds = optimizer_spec["use_bounds"]
+    if not isinstance(use_bounds, bool):
+        raise ValueError("optimizer.use_bounds must be true or false")
+    if not use_bounds:
+        bounded = [path for path, entry in parameter_specs.items() if entry.get("bounds") is not None]
+        if bounded:
+            raise ValueError(f"Parameters {bounded} set bounds, but optimizer.use_bounds is false, so they would be ignored")
+    if target_has_bounds(target, use_bounds) and name in HESSP_METHODS and name not in BOUNDED_METHODS:
+        raise ValueError(
+            f"optimizer.method {method} cannot handle bounds, and the {target} target is bounded by the model's "
+            "coefficient bounds; use trust-constr (or a first-order method such as L-BFGS-B), or set "
+            "optimizer.use_bounds: false to optimize without bounds"
+        )
+
+    xtol = optimizer_spec["xtol"]
+    if xtol is not None:
+        if isinstance(xtol, bool) or not isinstance(xtol, (int, float)) or xtol <= 0:
+            raise ValueError("optimizer.xtol must be a positive number or null")
+        if name not in XTOL_METHODS:
+            raise ValueError(f"optimizer.xtol is only used by {', '.join(XTOL_METHODS)}, not {method}")
+
+
 def load_spec(path: Path) -> dict[str, Any]:
     """Load, default and validate an optimization spec."""
     spec = load_yaml(path)
@@ -142,6 +233,7 @@ def load_spec(path: Path) -> dict[str, Any]:
         for entry in spec["parameters"].values():
             if entry["bounds"] is not None or entry["scale"] is not None or entry["fixed"]:
                 raise ValueError("ic-field parameters only set the initial guess; bounds/scale/fixed are not used")
+    validate_optimizer_spec(spec["optimizer"], target, spec["parameters"])
     return spec
 
 
@@ -241,11 +333,23 @@ def resolve_parameter_values(spec: dict[str, Any], truth_parameters: dict[str, A
     return resolved
 
 
-class History:
-    """Collect optimizer iterations and write them as CSV."""
+# cumulative evaluation counters recorded per iteration in history.csv; they come after the
+# existing columns so consumers that read columns by name (or position) are unaffected
+HISTORY_COUNTERS = ("nfev", "njev", "nhvp")
 
-    def __init__(self, names: list[str] | None):
+
+class History:
+    """Collect optimizer iterations and write them as CSV.
+
+    Each row holds the iteration, loss, gradient norm and parameter values. If a problem is given
+    (an object with nfev / njev / nhvp counters, normally the ReducedProblem), the cumulative
+    numbers of objective, gradient and Hessian-vector-product evaluations so far are appended,
+    which shows the cost per iteration of first- versus second-order methods.
+    """
+
+    def __init__(self, names: list[str] | None, problem: Any = None):
         self.names = names
+        self.problem = problem
         self.rows: list[dict[str, Any]] = []
 
     def __call__(self, iteration: int, x_full: Any, fun_value: float | None, grad_norm: float | None) -> None:
@@ -257,6 +361,9 @@ class History:
         if self.names is not None:
             for name, value in zip(self.names, x_full, strict=True):
                 row[name] = float(value)
+        if self.problem is not None:
+            for counter in HISTORY_COUNTERS:
+                row[counter] = int(getattr(self.problem, counter, 0))
         self.rows.append(row)
         root_print(f"  iteration {iteration}: loss={row['loss']:.6e} |grad|={row['grad_norm']:.3e}")
 
@@ -333,14 +440,17 @@ class Job:
                 if resolved[name]["bounds"] is not None:
                     lb[k], ub[k] = resolved[name]["bounds"]
             free = np.array([resolved[name]["free"] for name in names])
-            outside = [name for k, name in enumerate(names) if free[k] and not lb[k] <= initial[k] <= ub[k]]
-            if outside:
-                raise ValueError(f"Initial values of {outside} lie outside their bounds {list(zip(lb, ub))}")
-            # L-BFGS-B projects the gradient onto the bounds, so a parameter starting on a bound with
-            # an outward-pointing gradient contributes zero and can make the optimizer stop at once
-            on_bound = [name for k, name in enumerate(names) if free[k] and initial[k] in (lb[k], ub[k])]
-            if on_bound:
-                root_print(f"  warning: {on_bound} start exactly on a bound and may be unable to move; start strictly inside the bounds")
+            # with optimizer.use_bounds false the bounds are never passed to scipy, so the start
+            # point need not lie inside them
+            if self.spec["optimizer"]["use_bounds"]:
+                outside = [name for k, name in enumerate(names) if free[k] and not lb[k] <= initial[k] <= ub[k]]
+                if outside:
+                    raise ValueError(f"Initial values of {outside} lie outside their bounds {list(zip(lb, ub))}")
+                # L-BFGS-B projects the gradient onto the bounds, so a parameter starting on a bound with
+                # an outward-pointing gradient contributes zero and can make the optimizer stop at once
+                on_bound = [name for k, name in enumerate(names) if free[k] and initial[k] in (lb[k], ub[k])]
+                if on_bound:
+                    root_print(f"  warning: {on_bound} start exactly on a bound and may be unable to move; start strictly inside the bounds")
             # fixed coefficients are excluded by free_mask, so their bounds must just contain them
             lb[~free] = np.minimum(lb[~free], initial[~free])
             ub[~free] = np.maximum(ub[~free], initial[~free])
@@ -466,6 +576,30 @@ def true_values(job: dict[str, Any], names: list[str]) -> dict[str, float] | Non
     return {name: float(get_by_dotted_path(job["truth_runs"][0]["parameters"], name)) for name in names}
 
 
+def optimizer_summary(optimizer_spec: dict[str, Any], result: Any, problem: Any, gtol: float) -> dict[str, Any]:
+    """Return the optimizer section of result.yaml.
+
+    Contains the resolved optimizer spec (including method, use_hessp, use_bounds, xtol) and the
+    outcome: scipy's success, status and message, the gtol actually used, the number of optimizer
+    iterations, and the problem's counts of actual objective, gradient and Hessian-vector-product
+    evaluations (nfev, njev, nhvp; memoized repeats are not counted). hessp_used records whether
+    HVPs were passed to scipy, since use_hessp: null resolves per method. Results written before
+    HVP support lack nhvp and hessp_used; readers should default them to 0 and false.
+    """
+    return {
+        **optimizer_spec,
+        "success": bool(result.success),
+        "status": int(result.status),
+        "message": str(result.message),
+        "gtol_used": gtol,
+        "nit": int(getattr(result, "nit", -1)),
+        "nfev": int(problem.nfev),
+        "njev": int(problem.njev),
+        "nhvp": int(getattr(problem, "nhvp", 0)),
+        "hessp_used": bool(getattr(result, "hessp_used", False)),
+    }
+
+
 def run_job(spec: dict[str, Any], job: dict[str, Any], check_gradient: bool) -> None:
     """Run one optimization job and write its outputs."""
     from mpi4py import MPI
@@ -501,9 +635,12 @@ def run_job(spec: dict[str, Any], job: dict[str, Any], check_gradient: bool) -> 
     if report["grad_max"] == 0.0:
         raise RuntimeError(ZERO_GRADIENT_MESSAGE.format(loss=report["loss"]))
 
-    history = History(names)
+    history = History(names, problem=problem)
     optimizer_spec = spec["optimizer"]
     gtol = optimizer_gtol(optimizer_spec, report)
+    # wall time of the optimizer loop alone (excluding setup, the gradient report and output), so
+    # first- and second-order methods can be compared by cost as well as by evaluation counts
+    start_time = time.perf_counter()
     x_opt, result = state.optimizer.optimize(
         None,
         method=optimizer_spec["method"],
@@ -513,10 +650,15 @@ def run_job(spec: dict[str, Any], job: dict[str, Any], check_gradient: bool) -> 
         callback=history,
         return_result=True,
         problem=problem,
+        use_hessp=optimizer_spec["use_hessp"],
+        use_bounds=bool(optimizer_spec["use_bounds"]),
+        xtol=None if optimizer_spec["xtol"] is None else float(optimizer_spec["xtol"]),
     )
+    optimize_seconds = time.perf_counter() - start_time
     initial_loss = history.rows[0]["loss"] if history.rows else float("nan")
     final_loss = float(result.fun)
     root_print(f"  finished: {result.message} loss {initial_loss:.6e} -> {final_loss:.6e} after {int(getattr(result, 'nit', -1))} iteration(s)")
+    root_print(f"  evaluations: nfev={problem.nfev} njev={problem.njev} nhvp={problem.nhvp} (method {optimizer_spec['method']})")
     if int(getattr(result, "nit", 0)) == 0:
         root_print(
             "  warning: the optimizer stopped without taking a step; see initial_gradient in "
@@ -534,18 +676,10 @@ def run_job(spec: dict[str, Any], job: dict[str, Any], check_gradient: bool) -> 
         "window": spec["window"],
         "schedule": job["schedule"],
         "normalize": spec["normalize"],
-        "optimizer": {
-            **optimizer_spec,
-            "success": bool(result.success),
-            "status": int(result.status),
-            "message": str(result.message),
-            "gtol_used": gtol,
-            "nit": int(getattr(result, "nit", -1)),
-            "nfev": int(problem.nfev),
-            "njev": int(problem.njev),
-        },
+        "optimizer": optimizer_summary(optimizer_spec, result, problem, gtol),
         "initial_loss": initial_loss,
         "final_loss": final_loss,
+        "optimize_seconds": optimize_seconds,
         "initial_gradient": report,
         "mpi_world_size": MPI.COMM_WORLD.Get_size(),
     }

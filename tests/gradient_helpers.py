@@ -137,6 +137,45 @@ def reduced_taylor_test(make_problem, direction, eps_list=None):
     return taylor_test(make_problem(), np.asarray(direction, dtype=float), eps_list=eps_list)
 
 
+def hessian_taylor_test(full_jac, full_hessp, x, direction, eps_list=None):
+    """Taylor-test a Hessian-vector product against gradient differences.
+
+    Uses the gradient expansion g(x + eps d) = g(x) + eps H(x) d + O(eps^2), so
+    remainder = ||g(x + eps d) - g(x) - eps H(x) d|| converges at rate 2 for a correct HVP.
+    full_jac(x) and full_hessp(x, d) are full-space callables, for example the full_jac of a
+    ReducedProblem and the matching Lagrangian_ODEConstrainedOptimization.full_hessp. Returns
+    (eps, remainders, rates, change), with change = max_eps ||g(x + eps d) - g(x)|| for
+    assert_taylor_convergence's linearity check.
+    """
+    if eps_list is None:
+        eps_list = list(1e-2 * 0.5 ** np.arange(0, 6))
+    x = np.asarray(x, dtype=float)
+    direction = np.asarray(direction, dtype=float)
+    assert np.any(direction != 0), 'Taylor test direction is zero, so the test cannot detect anything'
+    g0 = np.asarray(full_jac(x.copy()), dtype=float)
+    hd = np.asarray(full_hessp(x.copy(), direction.copy()), dtype=float)
+    remainders = []
+    change = 0.0
+    for eps in eps_list:
+        gp = np.asarray(full_jac(x + eps * direction), dtype=float)
+        remainders.append(float(np.linalg.norm(gp - g0 - eps * hd)))
+        change = max(change, float(np.linalg.norm(gp - g0)))
+    return np.array(eps_list), np.array(remainders), convergence_rates(eps_list, remainders), change
+
+
+def reduced_hessian_taylor_test(make_problem, direction, eps_list=None):
+    """Taylor-test the HVP of a ReducedProblem built by make_problem() at its initial point.
+
+    The HVP counterpart of reduced_taylor_test: a fresh problem is built for every call, and its
+    reduced gradient and Hessian-vector product are checked with hessian_taylor_test, so the
+    scaling and free_mask are included. direction is in reduced variables. Returns
+    (eps, remainders, rates, change); pass it to assert_repeatable to check repeatability too.
+    """
+    problem = make_problem()
+    assert problem.has_hessp(), 'the ReducedProblem has no Hessian-vector product'
+    return hessian_taylor_test(problem.jac, problem.hessp, problem.z0, direction, eps_list=eps_list)
+
+
 def convergence_rates(eps_list, remainders):
     """Return the observed convergence rates between consecutive Taylor remainders."""
     rates = []
@@ -210,8 +249,10 @@ def assert_taylor_convergence(rates, remainders=None, change=None, expected_rate
 def assert_repeatable(run_test):
     """Run a Taylor test twice and assert identical results, returning the first.
 
-    run_test() must return (eps, remainders, rates). Repeating the test catches state that leaks
-    between forward or adjoint evaluations (for example timestepper internal variables).
+    run_test() must return (eps, remainders, rates, ...); extra entries, such as the change
+    returned by hessian_taylor_test, are passed through. Repeating the test catches state that
+    leaks between forward, adjoint or second-order evaluations (for example timestepper internal
+    variables, or a stale coefficient direction).
     """
     first = run_test()
     second = run_test()

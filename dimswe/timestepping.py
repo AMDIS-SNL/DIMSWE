@@ -3,11 +3,49 @@ from .parameters import overall_solver_parameters
 import numpy as np
 from firedrake import Constant, inner, grad, TestFunction, derivative, norm, assemble, Function, TestFunctions, split, TrialFunction, adjoint, action, replace
 from .numpy_helpers import set_mixed_function_from_flattened_array, create_flattened_numpy_arr_from_mixed_function
-from ufl.algorithms import extract_coefficients
+from ufl.algorithms import extract_coefficients, expand_derivatives
 
 class DummySolver():
     def solve(self):
         pass
+
+
+def is_zero_form(form):
+    """Return True if form is the integer/float placeholder 0 used for absent residuals."""
+    return isinstance(form, (int, float)) and form == 0
+
+
+def depends_on(form, func):
+    """Return True if the UFL form contains the Function func as a coefficient."""
+    return any(coefficient is func for coefficient in extract_coefficients(form))
+
+
+def directional_derivative(form, pairs):
+    """Return the Gateaux derivative of form in the direction given by (Function, direction) pairs.
+
+    The result is sum_k derivative(form, u_k, du_k) over the pairs whose Function u_k actually
+    appears in form, with derivatives expanded so that the directions du_k appear explicitly
+    (later derivatives with respect to a direction, as done when extracting a linear solve for
+    it, then work). Returns None if form depends on none of the Functions.
+    """
+    result = None
+    for func, direction in pairs:
+        if func is None or not depends_on(form, func):
+            continue
+        term = derivative(form, func, direction)
+        result = term if result is None else result + term
+    if result is None:
+        return None
+    return expand_derivatives(result)
+
+
+def accumulate(total, increment):
+    """Add increment to total, where either may be None (meaning no contribution)."""
+    if increment is None:
+        return total
+    if total is None:
+        return increment
+    return total + increment
 
 def get_time_integrator(name, parameters, solver_parameters):
     if name == 'RK4':
@@ -61,6 +99,10 @@ class TimeStepper():
         self.delta_grad, self.delta_grad_sub, self.delta_grad_split = self.model.get_coeff_var('delta_grad')
         self.grad_test, self.grad_test_subs, self.grad_trial, self.grad_trial_subs = self.model.get_coeff_test_trial_vars()
 
+        # coefficient direction theta_dot for tangent-linear and second-order adjoint steps; it is
+        # an input like coeff, so reset_internal_vars does not touch it
+        self.coeff_dir, _, _ = self.model.get_coeff_var('coeff_dir')
+
         self.t = Constant(1.)
         self.dt = Constant(1.)
 
@@ -70,6 +112,22 @@ class TimeStepper():
 
     def set_numpy_coeff(self, coeff_val_arr):
         set_mixed_function_from_flattened_array(self.coeff, coeff_val_arr)
+
+    def set_coeff_direction(self, coeff_dir_val):
+        """Set the coefficient direction theta_dot from a Function, or zero it if coeff_dir_val is None."""
+        if self.model.has_coeff():
+            if coeff_dir_val is None:
+                self.coeff_dir.assign(0)
+            else:
+                self.coeff_dir.assign(coeff_dir_val)
+
+    def set_numpy_coeff_direction(self, coeff_dir_arr):
+        """Set the coefficient direction theta_dot from a flattened array (None zeroes it)."""
+        if self.model.has_coeff():
+            if coeff_dir_arr is None:
+                self.coeff_dir.assign(0)
+            else:
+                set_mixed_function_from_flattened_array(self.coeff_dir, coeff_dir_arr)
 
 class AdditiveGeneralRK(TimeStepper):
     def __init__(self, model, logger, A1, A2, b1, b2, c1, c2, nstages, solver_parameters, terms='all'):
@@ -240,6 +298,18 @@ class GeneralRK(TimeStepper):
             residuals_mu.append(residual_mu)
             residuals_muaux.append(residual_muaux)
 
+        # keep the stage and first-order adjoint residuals: the tangent-linear and second-order
+        # adjoint forms are their directional derivatives, built lazily by _setup_second_order
+        self.residuals_F = residuals_F
+        self.residuals_aux = residuals_aux
+        self.residuals_mu = residuals_mu
+        self.residuals_muaux = residuals_muaux
+        self.residual_xk = residual_xk
+        self.residual_grad = residual_grad if model.has_coeff() else None
+        self.xtrial = xtrial
+        self._create_second_order_vars()
+        self._second_order_ready = False
+
 
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF
         #construct solvers
@@ -347,6 +417,160 @@ class GeneralRK(TimeStepper):
             if self.model.has_aux():
                 self.mui[i][0][1].assign(0)
                 self.Fi[i][0][1].assign(0)
+        self._reset_second_order_vars()
+
+    def _create_second_order_vars(self):
+        """Create the Functions used by take_tangent_step and take_second_order_adjoint_step.
+
+        Following the notation of docs/hessian_vector_products.md:
+        - wk: tangent w_n of the step's start state xk
+        - Fdoti[i]: tangent stage values (Fdot_i, Wdot_i), same layout as Fi[i]
+        - mudoti[i]: second-order stage adjoints (mu_dot_i, nu_dot_i), same layout as mui[i]
+        - lambda_dot_var: second-order adjoint lambda_dot_{n+1} at the end of the step
+        - delta_lambda_dot_var: increment lambda_dot_n - lambda_dot_{n+1} (primal)
+        - delta_grad_dot: coefficient-space unknown whose residual yields the coefficient
+          Hessian-vector-product increment
+        """
+        self.wk, _, _ = self.model.get_x_var('wk')
+        self.lambda_dot_var, _, _ = self.model.get_x_var('lambda_dot')
+        self.delta_lambda_dot_var, _, _ = self.model.get_x_var('delta_lambda_dot')
+        self.Fdoti = []
+        self.mudoti = []
+        for i in range(self.nstages):
+            self.Fdoti.append(self.model.get_full_var('Fdot'+str(i), split_x_and_aux=self.is_explicit))
+            self.mudoti.append(self.model.get_full_var('mudot'+str(i), split_x_and_aux=self.is_explicit))
+        self.delta_grad_dot, _, _ = self.model.get_coeff_var('delta_grad_dot')
+
+    def _reset_second_order_vars(self):
+        """Zero the tangent and second-order adjoint internal variables (not coeff_dir)."""
+        self.wk.assign(0)
+        self.lambda_dot_var.assign(0)
+        self.delta_lambda_dot_var.assign(0)
+        if self.model.has_coeff():
+            self.delta_grad_dot.assign(0)
+        for i in range(self.nstages):
+            for func in list(self.Fdoti[i][0]) + list(self.mudoti[i][0]):
+                if func is not None:
+                    func.assign(0)
+
+    def _forward_pairs(self):
+        """Return (Function, direction) pairs for all forward quantities a stage form depends on.
+
+        These are the step start state xk, every stage value F_j and aux value W_j, and the
+        coefficients, paired with their tangents.
+        """
+        pairs = [(self.xk[0], self.wk)]
+        for i in range(self.nstages):
+            pairs.append((self.Fi[i][0][0], self.Fdoti[i][0][0]))
+            if self.model.has_aux():
+                pairs.append((self.Fi[i][0][1], self.Fdoti[i][0][1]))
+        if self.model.has_coeff():
+            pairs.append((self.coeff, self.coeff_dir))
+        return pairs
+
+    def _adjoint_pairs(self):
+        """Return (Function, direction) pairs for the first-order adjoint quantities.
+
+        These are lambda_{n+1}, the stage adjoints (mu_i, nu_i) and the unknowns of the
+        delta_lambda and delta_grad residuals, paired with their second-order counterparts.
+        """
+        pairs = [(self.lambda_var, self.lambda_dot_var), (self.delta_lambda_var, self.delta_lambda_dot_var)]
+        for i in range(self.nstages):
+            pairs.append((self.mui[i][0][0], self.mudoti[i][0][0]))
+            if self.model.has_aux():
+                pairs.append((self.mui[i][0][1], self.mudoti[i][0][1]))
+        if self.model.has_coeff():
+            pairs.append((self.delta_grad, self.delta_grad_dot))
+        return pairs
+
+    def _setup_second_order(self):
+        """Build the tangent-linear and second-order adjoint forms and solvers on first use.
+
+        Tangent-linear stage residuals are directional derivatives of the forward stage residuals
+        (residuals_F, residuals_aux) in the direction of all forward tangents. Second-order adjoint
+        residuals are directional derivatives of the first-order adjoint residuals (residuals_mu,
+        residuals_muaux, residual_xk, residual_grad) in the direction of all forward tangents and
+        all first-order adjoint tangents, so the resulting Hessian-vector product is the exact
+        derivative of the gradient computed by take_adjoint_step. Each derivative is linear in
+        its own unknown (Fdot_i, Wdot_i, mu_dot_i, ...), with the same mass-matrix operator as
+        the corresponding first-order solve. The construction is lazy because compiling these
+        second-derivative forms is costly and only needed for Hessian-vector products.
+        """
+        if self._second_order_ready:
+            return
+        if not self.is_explicit:
+            raise NotImplementedError('tangent-linear and second-order adjoint steps are only implemented for explicit RK')
+
+        sp = self.solver_parameters
+        has_aux = self.model.has_aux()
+        forward_pairs = self._forward_pairs()
+        all_pairs = forward_pairs + self._adjoint_pairs()
+
+        # tangent-linear stage solvers, M_W Wdot_i = ... and M Fdot_i = ...
+        self.tlm_Fsolvers = []
+        self.tlm_auxsolvers = []
+        for i in range(self.nstages):
+            if (not has_aux) or is_zero_form(self.residuals_aux[i]):
+                self.tlm_auxsolvers.append(DummySolver())
+            else:
+                residual = directional_derivative(self.residuals_aux[i], forward_pairs)
+                self.tlm_auxsolvers.append(create_linear_solver_from_residual(residual, self.Fdoti[i][0][1], self.xtrial[1], constant_jacobian=True, solver_parameters=sp['erkstage-aux'], options_prefix='erk-tlm-aux')[0])
+            residual = directional_derivative(self.residuals_F[i], forward_pairs)
+            self.tlm_Fsolvers.append(create_linear_solver_from_residual(residual, self.Fdoti[i][0][0], self.xtrial[0], constant_jacobian=True, solver_parameters=sp['erkstage-f'], options_prefix='erk-tlm-f')[0])
+
+        # second-order adjoint stage solvers, M mu_dot_i = ... and M_W nu_dot_i = ...
+        self.soa_musolvers = []
+        self.soa_muauxsolvers = []
+        for i in range(self.nstages):
+            residual = directional_derivative(self.residuals_mu[i], all_pairs)
+            self.soa_musolvers.append(create_linear_solver_from_residual(residual, self.mudoti[i][0][0], self.xtrial[0], constant_jacobian=True, solver_parameters=sp['erkstage-mu'], options_prefix='erk-soa-mu')[0])
+            # mirror the first-order muauxsolvers, which exist exactly when the aux residual does
+            if (not has_aux) or is_zero_form(self.residuals_aux[i]) or is_zero_form(self.residuals_muaux[i]):
+                self.soa_muauxsolvers.append(DummySolver())
+            else:
+                residual = directional_derivative(self.residuals_muaux[i], all_pairs)
+                self.soa_muauxsolvers.append(create_linear_solver_from_residual(residual, self.mudoti[i][0][1], self.xtrial[1], constant_jacobian=True, solver_parameters=sp['erkstage-muaux'], options_prefix='erk-soa-muaux')[0])
+
+        # second-order lambda increment: M delta_lambda_dot = rdot^lam, with rdot^lam = L_delta_lambda_dot
+        residual = directional_derivative(self.residual_xk, all_pairs)
+        self.soa_deltalambdasolver, _, self.L_delta_lambda_dot = create_linear_solver_from_residual(residual, self.delta_lambda_dot_var, self.xtrial[0], constant_jacobian=True, solver_parameters=sp['erk-dlambda'], options_prefix='erk-soa-lambda')
+
+        # coefficient Hessian-vector-product increment rdot^theta = L_delta_grad_dot (dual)
+        if self.model.has_coeff():
+            residual = directional_derivative(self.residual_grad, all_pairs)
+            _, self.L_delta_grad_dot = extract_a_L_from_residual(residual, self.delta_grad_dot, self.grad_trial)
+
+        self._second_order_ready = True
+
+    def _solve_forward_stages(self):
+        """Solve the forward stage (and aux) equations from the current xk, t, dt and coeff."""
+        if self.is_explicit:
+            for i in range(self.nstages):
+                self.auxsolvers[i].solve()
+                self.Fsolvers[i].solve()
+        elif self.is_dirk:
+            for i in range(self.nstages):
+                self.Fauxsolvers[i].solve()
+        else:
+            self.Fauxsolver.solve()
+
+    def _solve_tangent_stages(self):
+        """Solve the tangent-linear stage equations; requires current forward stages and wk."""
+        for i in range(self.nstages):
+            self.tlm_auxsolvers[i].solve()
+            self.tlm_Fsolvers[i].solve()
+
+    def _solve_first_order_adjoint_stages(self):
+        """Solve the first-order stage adjoints mu_i, nu_i backward over the stages."""
+        if self.is_explicit:
+            for i in range(self.nstages-1,-1,-1):
+                self.musolvers[i].solve()
+                self.muauxsolvers[i].solve()
+        elif self.is_dirk:
+            for i in range(self.nstages-1,-1,-1):
+                self.mufullsolvers.solve()
+        else:
+            self.mufullsolver.solve()
 
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF
     def take_forward_step(self, xnp1, xnp1_sub, xn, tn, dt):
@@ -402,28 +626,12 @@ class GeneralRK(TimeStepper):
 
         #take a forward step from xn to populate Fi
         self.xk[0].assign(xn[0])
-        if self.is_explicit:
-            for i in range(self.nstages):
-                self.auxsolvers[i].solve()
-                self.Fsolvers[i].solve()
-        elif self.is_dirk:
-            for i in range(self.nstages):
-                self.Fauxsolvers[i].solve()
-        else:
-            self.Fauxsolver.solve()
+        self._solve_forward_stages()
         #print("lambda var norm", norm(self.lambda_var))
 
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF?
         #compute mu's
-        if self.is_explicit:
-            for i in range(self.nstages-1,-1,-1):
-                self.musolvers[i].solve()
-                self.muauxsolvers[i].solve()
-        elif self.is_dirk:
-            for i in range(self.nstages-1,-1,-1):
-                self.mufullsolvers.solve()
-        else:
-            self.mufullsolver.solve()
+        self._solve_first_order_adjoint_stages()
 
         #compute grad
         if self.model.has_coeff():
@@ -443,6 +651,81 @@ class GeneralRK(TimeStepper):
             return delta_lambda_rhs, delta_grad_rhs
         else:
             return delta_lambda_rhs, None
+
+    def take_tangent_step(self, wnp1, wn, xn, tn, dt, xnp1=None):
+        """Propagate a tangent-linear perturbation through one step (the boxed terms of eq. 2.11).
+
+        Computes w_{n+1} = dN/dx(x_n) w_n + dN/dtheta(x_n) theta_dot, where theta_dot is the
+        coefficient direction set with set_coeff_direction / set_numpy_coeff_direction. wn, wnp1,
+        xn and (optionally) xnp1 are [x, aux] lists as used by take_forward_step; only their x
+        entries are used for the tangents. The forward stages are recomputed from xn. If xnp1 is
+        given, the forward update x_{n+1} is also written to it, so the forward and tangent
+        trajectories can be advanced together without a second forward solve.
+        """
+        self._setup_second_order()
+        self.t.assign(tn)
+        self.dt.assign(dt)
+        self.xk[0].assign(xn[0])
+        self.wk.assign(wn[0])
+        self._solve_forward_stages()
+        self._solve_tangent_stages()
+        wnp1[0].assign(wn[0] + self.dt * sum(float(self.b[i]) * self.Fdoti[i][0][0] for i in range(self.nstages)))
+        if xnp1 is not None:
+            xnp1[0].assign(xn[0] + self.dt * sum(float(self.b[i]) * self.Fi[i][0][0] for i in range(self.nstages)))
+            # same aux initial guess as take_forward_step
+            if len(xnp1) > 1 and xnp1[1] is not None:
+                xnp1[1].assign(self.Fi[-1][0][1])
+
+    def take_second_order_adjoint_step(self, delta_lambda, delta_lambda_dot, lambda_np1, lambda_dot_np1, xn, wn, tnp1, dt):
+        """Take one combined first-order and second-order adjoint step (eq. 2.11, forward-over-adjoint).
+
+        Inputs are lambda_{n+1} (lambda_np1), lambda_dot_{n+1} (lambda_dot_np1), the step start
+        state x_n (xn) and its tangent w_n (wn), as [x, aux] lists for xn and wn, plus the
+        coefficient direction set with set_coeff_direction. The forward stages, tangent stages and
+        first-order stage adjoints are recomputed internally; the second-order stage adjoints are
+        then solved backward over the stages.
+
+        delta_lambda and delta_lambda_dot are set to the primal increments lambda_n - lambda_{n+1}
+        and lambda_dot_n - lambda_dot_{n+1}. Returns the flattened dual increments
+        (delta_lambda_rhs, delta_grad_rhs, delta_lambda_dot_rhs, delta_hess_coeff_rhs): the first
+        two equal the outputs of take_adjoint_step, the last two are their directional
+        derivatives, i.e. this step's contributions to H_x0 v and H_theta v. The coefficient
+        entries are None when the model has no coefficients.
+        """
+        self._setup_second_order()
+        self.dt.assign(dt)
+        self.t.assign(tnp1 - dt)
+        self.lambda_var.assign(lambda_np1)
+        self.lambda_dot_var.assign(lambda_dot_np1)
+        self.xk[0].assign(xn[0])
+        self.wk.assign(wn[0])
+
+        # forward stages, tangent stages and first-order stage adjoints are all inputs to the
+        # second-order stage equations
+        self._solve_forward_stages()
+        self._solve_tangent_stages()
+        self._solve_first_order_adjoint_stages()
+
+        # second-order stage adjoints, backward over the stages like the first-order ones
+        for i in range(self.nstages-1,-1,-1):
+            self.soa_musolvers[i].solve()
+            self.soa_muauxsolvers[i].solve()
+
+        # first-order increments, identical to take_adjoint_step
+        delta_grad_rhs = None
+        delta_hess_coeff_rhs = None
+        if self.model.has_coeff():
+            delta_grad_rhs = create_flattened_numpy_arr_from_mixed_function(assemble(self.L_delta_grad))
+            delta_hess_coeff_rhs = create_flattened_numpy_arr_from_mixed_function(assemble(self.L_delta_grad_dot))
+        self.deltalambdasolver.solve()
+        delta_lambda.assign(self.delta_lambda_var)
+        delta_lambda_rhs = create_flattened_numpy_arr_from_mixed_function(assemble(self.L_delta_lambda))
+
+        # second-order increments
+        self.soa_deltalambdasolver.solve()
+        delta_lambda_dot.assign(self.delta_lambda_dot_var)
+        delta_lambda_dot_rhs = create_flattened_numpy_arr_from_mixed_function(assemble(self.L_delta_lambda_dot))
+        return delta_lambda_rhs, delta_grad_rhs, delta_lambda_dot_rhs, delta_hess_coeff_rhs
 
 
 class Euler(GeneralRK):
@@ -537,12 +820,26 @@ class LieSplittingIntegrator():
             for k in range(self.subcycle_list[i]):
                 self.xks.append(model.get_full_var('x'+str(i)+'_'+str(k), split_x_and_aux=True))
 
+        # second-order variables: substep tangents w (parallel to xks), and the second-order
+        # adjoint lambda_dot carried backward over the substeps
+        self.lambda_dot_k, _, _ = model.get_x_var('lambda_dot_k')
+        self.delta_lambda_dot, _, _ = model.get_x_var('delta_lambda_dot')
+        self.wks = []
+        self.wks.append(model.get_full_var('w0', split_x_and_aux=True))
+        for i in range(len(self.time_integrators)):
+            for k in range(self.subcycle_list[i]):
+                self.wks.append(model.get_full_var('w'+str(i)+'_'+str(k), split_x_and_aux=True))
+
     def reset_internal_vars(self):
         self.lambda_k.assign(0)
         self.delta_lambda.assign(0)
         self.delta_grad_coeff.assign(0)
         for xk, _, _ in self.xks:
             xk[0].assign(0)
+        self.lambda_dot_k.assign(0)
+        self.delta_lambda_dot.assign(0)
+        for wk, _, _ in self.wks:
+            wk[0].assign(0)
         for time_integrator in self.time_integrators:
             time_integrator.reset_internal_vars()
 
@@ -584,7 +881,9 @@ class LieSplittingIntegrator():
                 time_integrator.reset_internal_vars()
                 self.delta_lambda.assign(0)
                 self.delta_grad_coeff.assign(0)
-                _delta_lambda_rhs, _delta_grad_rhs = time_integrator.take_adjoint_step(self.delta_grad_coeff, self.delta_lambda, self.lambda_k, self.xks[lt-l-1][0], tnp1 - dt + k * sub_dt, sub_dt)
+                # take_adjoint_step expects the substep end time: substep k runs from
+                # tnp1 - dt + k*sub_dt to tnp1 - dt + (k+1)*sub_dt, matching take_forward_step
+                _delta_lambda_rhs, _delta_grad_rhs = time_integrator.take_adjoint_step(self.delta_grad_coeff, self.delta_lambda, self.lambda_k, self.xks[lt-l-1][0], tnp1 - dt + (k + 1) * sub_dt, sub_dt)
                 self.lambda_k.assign(self.lambda_k + self.delta_lambda)
                 delta_lambda.assign(delta_lambda + self.delta_lambda)
                 delta_grad_coeff.assign(delta_grad_coeff + self.delta_grad_coeff)
@@ -595,6 +894,77 @@ class LieSplittingIntegrator():
                 l = l + 1
         return delta_lambda_rhs, delta_grad_rhs
 
+    def _compute_substep_tangents(self, xn, wn, tn, dt):
+        """Recompute the substep states xks and tangents wks from x_n and w_n.
+
+        Each sub-integrator advances the state and its tangent together with take_tangent_step,
+        so xks matches what take_forward_step computes.
+        """
+        self.xks[0][0][0].assign(xn[0])
+        self.wks[0][0][0].assign(wn[0])
+        l = 1
+        for i,time_integrator in enumerate(self.time_integrators):
+            sub_dt = dt / self.subcycle_list[i]
+            for k in range(self.subcycle_list[i]):
+                time_integrator.reset_internal_vars()
+                time_integrator.take_tangent_step(self.wks[l][0], self.wks[l-1][0], self.xks[l-1][0], tn + k * sub_dt, sub_dt, xnp1=self.xks[l][0])
+                l = l + 1
+
+    def take_tangent_step(self, wnp1, wn, xn, tn, dt, xnp1=None):
+        """Propagate a tangent-linear perturbation through one split step.
+
+        Same interface as GeneralRK.take_tangent_step: the tangent is composed through the
+        substeps of every sub-integrator, and x_{n+1} is also written to xnp1 if given.
+        """
+        self._compute_substep_tangents(xn, wn, tn, dt)
+        wnp1[0].assign(self.wks[-1][0][0])
+        if xnp1 is not None:
+            xnp1[0].assign(self.xks[-1][0][0])
+
+    def take_second_order_adjoint_step(self, delta_lambda, delta_lambda_dot, lambda_np1, lambda_dot_np1, xn, wn, tnp1, dt):
+        """Take one combined first-order and second-order adjoint split step.
+
+        Same interface and return values as GeneralRK.take_second_order_adjoint_step. The substep
+        states and tangents are recomputed forward, then lambda and lambda_dot are carried
+        backward through the substeps in reverse order, summing the dual increments.
+        """
+        self.lambda_k.assign(lambda_np1)
+        self.lambda_dot_k.assign(lambda_dot_np1)
+        delta_lambda.assign(0)
+        delta_lambda_dot.assign(0)
+
+        delta_lambda_rhs = None
+        delta_grad_rhs = None
+        delta_lambda_dot_rhs = None
+        delta_hess_coeff_rhs = None
+
+        self._compute_substep_tangents(xn, wn, tnp1 - dt, dt)
+
+        nintegrators = len(self.time_integrators)
+        l = 0
+        lt = len(self.xks)-1
+        for i,time_integrator in enumerate(reversed(self.time_integrators)):
+            nsub = self.subcycle_list[nintegrators-i-1]
+            sub_dt = dt / nsub
+            for k in reversed(range(nsub)):
+                time_integrator.reset_internal_vars()
+                self.delta_lambda.assign(0)
+                self.delta_lambda_dot.assign(0)
+                # substep k runs from tnp1 - dt + k*sub_dt to tnp1 - dt + (k+1)*sub_dt
+                increments = time_integrator.take_second_order_adjoint_step(self.delta_lambda, self.delta_lambda_dot,
+                    self.lambda_k, self.lambda_dot_k, self.xks[lt-l-1][0], self.wks[lt-l-1][0], tnp1 - dt + (k + 1) * sub_dt, sub_dt)
+                _delta_lambda_rhs, _delta_grad_rhs, _delta_lambda_dot_rhs, _delta_hess_coeff_rhs = increments
+                self.lambda_k.assign(self.lambda_k + self.delta_lambda)
+                self.lambda_dot_k.assign(self.lambda_dot_k + self.delta_lambda_dot)
+                delta_lambda.assign(delta_lambda + self.delta_lambda)
+                delta_lambda_dot.assign(delta_lambda_dot + self.delta_lambda_dot)
+                delta_lambda_rhs = accumulate(delta_lambda_rhs, _delta_lambda_rhs)
+                delta_grad_rhs = accumulate(delta_grad_rhs, _delta_grad_rhs)
+                delta_lambda_dot_rhs = accumulate(delta_lambda_dot_rhs, _delta_lambda_dot_rhs)
+                delta_hess_coeff_rhs = accumulate(delta_hess_coeff_rhs, _delta_hess_coeff_rhs)
+                l = l + 1
+        return delta_lambda_rhs, delta_grad_rhs, delta_lambda_dot_rhs, delta_hess_coeff_rhs
+
     def set_coeff(self, coeff_val):
         for time_integrator in self.time_integrators:
             time_integrator.set_coeff(coeff_val)
@@ -603,6 +973,16 @@ class LieSplittingIntegrator():
     def set_numpy_coeff(self, coeff_val_arr):
         for time_integrator in self.time_integrators:
             time_integrator.set_numpy_coeff(coeff_val_arr)
+
+    def set_coeff_direction(self, coeff_dir_val):
+        """Set the coefficient direction theta_dot on every sub-integrator (None zeroes it)."""
+        for time_integrator in self.time_integrators:
+            time_integrator.set_coeff_direction(coeff_dir_val)
+
+    def set_numpy_coeff_direction(self, coeff_dir_arr):
+        """Set the coefficient direction theta_dot on every sub-integrator from a flattened array."""
+        for time_integrator in self.time_integrators:
+            time_integrator.set_numpy_coeff_direction(coeff_dir_arr)
 
 
 

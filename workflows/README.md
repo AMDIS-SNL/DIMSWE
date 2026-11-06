@@ -10,9 +10,11 @@ This directory contains helper scripts for generating simulation cfg files, runn
 - `optimize_params.py`: find optimal coefficients or initial conditions against a set of truth runs.
 - `validate.py`: rerun the model with optimized parameters and compute L2/Linf errors against the truth.
 - `plot_validation.py`: plot truth vs optimized runs, error histories, optimizer histories and parameter recovery.
+- `compare_optimizers.py`: compare optimization jobs across optimizer methods (iterations, function, gradient and Hessian-vector-product evaluations, final loss, status, time) from their `result.yaml` files.
 - `run_pipeline.sh`: chain truth generation, optimization, validation and plotting.
+- `verify_hessp.sh`: staged verification of the second-order (Hessian-vector-product) optimization support, from unit tests to an optional full workflow run (see [Checking gradients](#checking-gradients)).
 - `common.py`, `opt_helpers.py`, `losses.py`: shared helpers (pure-Python, Firedrake-side, and loss construction).
-- `generate_cfgs.sh`, `run_batch.sh`, `compare_runs.sh`, `optimize_params.sh`, `validate.sh`, `plot_validation.sh`: thin Firedrake-environment wrappers for the Python scripts.
+- `generate_cfgs.sh`, `run_batch.sh`, `compare_runs.sh`, `optimize_params.sh`, `validate.sh`, `plot_validation.sh`, `compare_optimizers.sh`: thin Firedrake-environment wrappers for the Python scripts.
 
 The Python entrypoints can also be called directly as scripts from the repository root, for example `python -I workflows/generate_cfgs.py ...`, which keeps imports isolated while still allowing the scripts to add the project root to `sys.path` explicitly.
 
@@ -197,6 +199,13 @@ Examples for every target:
 | `examples/truth_ic_sweep.cfg` | `examples/optimize_ic_params.cfg` | `ic-params` |
 | `examples/truth_ic_sweep.cfg` | `examples/optimize_ic_field.cfg` | `ic-field` (serial only) |
 
+Second-order counterparts solve the same problems with Hessian-vector products. Each one differs from its L-BFGS-B example only in `optimization_name` and the `optimizer` section, so the two output roots can be compared job by job using `nit`, `nfev`, `njev` and `nhvp` in `result.yaml`:
+
+| First-order example | Second-order example | Method | Target |
+|---|---|---|---|
+| `examples/optimize_coeff.cfg` | `examples/optimize_coeff_trust_constr.cfg` | `trust-constr` (handles the coefficient bounds) | `coeffs` |
+| `examples/optimize_ic_params.cfg` | `examples/optimize_ic_params_newton_cg.cfg` | `Newton-CG` (no bounds) | `ic-params` |
+
 ## Step 1: truth data
 
 Truth runs are ordinary sweeps (see [Sweep generation](#sweep-generation)), so any dotted path, including coefficients and initial-condition parameters, can be varied. Three additions make parameter sweeps easier:
@@ -264,12 +273,15 @@ losses:
 normalize: true
 overrides: {}                           # optional dotted-path changes to the truth cfg
 optimizer:
-  method: L-BFGS-B                      # any scipy.optimize.minimize method using gradients
+  method: L-BFGS-B                      # a scipy.optimize.minimize method; see "Optimizer methods"
   gtol: 1.0e-8
   ftol: 1.0e-12
   maxiter: 60
   check_gradient: false
   tolerance: relative                   # gtol relative to the initial gradient (default), or absolute
+  use_hessp: null                       # Hessian-vector products: null = use them when the method can
+  use_bounds: true                      # false: optimize coeffs without bounds (allows Newton-CG etc.)
+  xtol: null                            # step/trust-radius tolerance for Newton-CG and trust-constr
 output_root: runs/optimizations
 ```
 
@@ -280,6 +292,35 @@ Parameter entries:
 - `scale`: the optimizer works with `value / scale`. Pick something like the parameter's typical size, so parameters of very different magnitude (`qprecip` ~ 1e-4 next to `L` ~ 10) are equally well conditioned. Defaults to `|initial|`.
 - `fixed: <value>` (or `fixed: true`): hold the parameter at that value.
 - For `coeffs`, every coefficient of a section being optimized is part of the problem. Coefficients you don't list keep their truth value and stay fixed.
+
+### Optimizer methods
+
+`optimizer.method` is passed to `scipy.optimize.minimize`. Every job has the gradient. Every job also has Hessian-vector products (HVPs), so second-order methods can be used too:
+
+| Method | Order | Uses | Bounds | Stops on |
+|---|---|---|---|---|
+| `L-BFGS-B` (default), `TNC` | first | gradient | yes | `gtol`, `ftol` |
+| `SLSQP` | first | gradient | yes | `ftol` |
+| `CG`, `BFGS` | first | gradient | ignored by scipy (with a warning) | `gtol` |
+| `Newton-CG` | second | gradient + HVPs (or finite differences of the gradient with `use_hessp: false`) | no | `xtol` |
+| `trust-ncg`, `trust-krylov` | second | gradient + HVPs (required) | no | `gtol` |
+| `trust-constr` | second | gradient + HVPs | yes | `gtol`, `xtol` |
+
+Hessian-vector products use a **forward-over-adjoint** scheme, following equation 2.11 of `petsc-opt.pdf`. Each one costs:
+- a forward sweep that also integrates the tangent-linear model in the direction `v`;
+- one backward sweep that integrates the first-order adjoint and the second-order adjoint together.
+
+The tangent-linear and second-order adjoint forms are UFL directional derivatives of the same forward and adjoint step forms the gradient uses. The HVP is therefore the exact derivative of the gradient, not a finite-difference approximation. It works in the same scaled, reduced variables as the gradient, so `scale`, `fixed` parameters and `ic-params` tangents are included. One HVP costs roughly twice a gradient evaluation. See `docs/hessian_vector_products.md` for the details.
+
+Restrictions, all checked when the spec is loaded (also with `--dry-run`):
+
+- **Bounds.** The `coeffs` target is always bounded by the model's coefficient bounds, and per-parameter `bounds` can narrow them. Of the second-order methods, only `trust-constr` handles bounds. `Newton-CG`, `trust-ncg` and `trust-krylov` are rejected for `coeffs` unless you set `use_bounds: false`. That setting drops the bounds entirely, and is itself rejected if any parameter sets `bounds`. `ic-params` and `ic-field` have no bounds, so every method works for them.
+- **No full Hessian.** `dogleg` and `trust-exact` need the full Hessian matrix, which DIMSWE does not form. Use an HVP method instead.
+- **`use_hessp`.** The default `null` uses HVPs for the second-order methods and leaves first-order methods unchanged. `true` with a first-order method is an error. `false` with `trust-ncg` or `trust-krylov`, which require HVPs, is an error too.
+- **`xtol`.** Only `Newton-CG` and `trust-constr` accept `xtol`. Newton-CG stops only on `xtol` and ignores `gtol`.
+- **Time stepping.** HVPs are implemented for explicit RK (`GeneralRK`) and for `LieSplit` composed of explicit RK sub-integrators, as in the template `mtswe.cfg`. These are the only time steppers DIMSWE implements; the DIRK and implicit RK placeholders raise `NotImplementedError` already when they are constructed.
+
+The examples `examples/optimize_ic_params_newton_cg.cfg` and `examples/optimize_coeff_trust_constr.cfg` solve the same problems as their L-BFGS-B counterparts (see the [Quick start](#quick-start) tables). Use [Comparing optimizer methods](#comparing-optimizer-methods) to compare the results.
 
 ### Targets
 
@@ -312,14 +353,30 @@ Each observation contributes `0.5 * sum_var w_var * ||x_var - truth_var||^2`. Wi
 ```
 runs/optimizations/<optimization_name>/<truth-run>__<loss-label>/
   optimize.cfg        resolved spec, truth run(s), loss, and observation schedule for this job
-  result.yaml         initial/optimal/true values and errors, initial and final loss, scipy status
-  history.csv         loss, gradient norm and parameter values per optimizer iteration
+  result.yaml         initial/optimal/true values and errors, initial and final loss, scipy status,
+                      evaluation counts and optimizer wall time
+  history.csv         loss, gradient norm, parameter values and cumulative evaluation counts per
+                      optimizer iteration
   optimal.cfg         the (overridden) truth cfg with the optimal values written back
   initial_guess.cfg   the same with the initial values
   optimal_ic.h5       optimized initial state (ic-field)
   initial_guess_ic.h5 starting initial state (ic-field)
   taylor-test.yaml    gradient check (with --check-gradient or check_gradient: true)
 ```
+
+Optimizer fields in `result.yaml`:
+
+| Field | Meaning |
+|---|---|
+| `optimizer.method`, `use_hessp`, `use_bounds`, `xtol`, ... | the resolved optimizer spec |
+| `optimizer.success`, `status`, `message` | scipy's outcome |
+| `optimizer.gtol_used` | the `gtol` passed to scipy (after `tolerance: relative`) |
+| `optimizer.nit` | optimizer iterations |
+| `optimizer.nfev`, `njev`, `nhvp` | actual objective, gradient and Hessian-vector-product evaluations (repeated evaluations at the same point are not counted twice) |
+| `optimizer.hessp_used` | whether HVPs were passed to scipy (`use_hessp: null` resolves per method) |
+| `optimize_seconds` | wall time of the optimizer loop alone |
+
+`history.csv` appends cumulative `nfev`, `njev` and `nhvp` columns after the parameter columns. Results written before HVP support lack `nhvp`, `hessp_used` and `optimize_seconds`. The readers use defaults for them (0, false, NaN).
 
 In `joint` mode the job directory is named `joint__<loss-label>` (or `<truth.label>__<loss-label>`), and true values are reported only when all truth runs share them. All jointly optimized truth runs must share the mesh, discretization, time step and output frequency, and be loaded with the same MPI rank count that wrote them.
 
@@ -335,7 +392,46 @@ Before optimizing, each job prints the loss, the gradient norm and each free par
 
 ### Checking gradients
 
-`--check-gradient` runs a Taylor test in a fixed random direction before optimizing, and writes `taylor-test.yaml`. The remainder `|J(z + eps d) - J(z) - eps dJ.d|` should fall at rate ~2. Rates near 1 indicate a wrong gradient; very small or noisy remainders mean `eps` has reached round-off.
+`--check-gradient` checks the gradient only, with a Taylor test in a fixed random direction before optimizing, and writes `taylor-test.yaml`. The remainder `|J(z + eps d) - J(z) - eps dJ.d|` should fall at rate ~2. Rates near 1 indicate a wrong gradient; very small or noisy remainders mean `eps` has reached round-off. Hessian-vector products are checked by the unit tests (`tests/unit/test_optimize_hvp.py`), with Taylor tests of `g(z + eps v) - g(z) - eps H v`.
+
+To verify the second-order support as a whole, run the stages in order:
+
+```bash
+bash workflows/verify_hessp.sh                  # stages 1-4: tests and a small in-process end-to-end check
+bash workflows/verify_hessp.sh --workflow 4     # also stage 5: the real double-vortex workflow with both methods
+bash workflows/verify_hessp.sh --from taylor    # restart at a stage after fixing a failure
+```
+
+The stages are:
+1. plumbing: pure-Python tests;
+2. Firedrake HVP Taylor tests, plus the unchanged gradient tests;
+3. workflow config and reporting tests;
+4. one small L-BFGS-B and one Newton-CG optimization, with the comparison script run on their results;
+5. optionally, `optimize_ic_params.cfg` and `optimize_ic_params_newton_cg.cfg` through the shell workflow, followed by `compare_optimizers`.
+
+The script stops at the first failing stage.
+
+### Comparing optimizer methods
+
+`compare_optimizers.py` compares finished jobs across optimizer methods. It reads `result.yaml` only, needs neither Firedrake nor MPI, and never reruns the model. Pass optimization roots or job directories:
+
+```bash
+bash workflows/optimize_params.sh 4 workflows/examples/optimize_ic_params.cfg
+bash workflows/optimize_params.sh 4 workflows/examples/optimize_ic_params_newton_cg.cfg
+bash workflows/compare_optimizers.sh runs/optimizations/doublevortex-params runs/optimizations/doublevortex-params-newton-cg
+```
+
+Jobs with the same target and job name (`<truth-run>__<loss-label>`) solve the same problem and are listed together. The script:
+- prints a table of method, success, `nit`, `nfev`, `njev`, `nhvp`, final loss, final loss relative to the best job of the problem, and optimizer wall time;
+- writes `optimizer-comparison.csv`, one row per job with every metric and the parameter errors;
+- writes `optimizer-comparison.yaml`, which also records, per problem, the jobs with the lowest final loss, the fewest gradients and the shortest time.
+
+The files go to `--output-dir`, by default the common parent of the optimization roots (here `runs/optimizations`). Other options:
+- `--no-save` prints the table only;
+- `--only <substring>...` keeps jobs whose `<optimization>/<job>` contains a substring;
+- `--columns <column>...` chooses the printed columns.
+
+Put options after the targets.
 
 ## Step 3: validation and plotting
 
@@ -366,7 +462,7 @@ errors-summary.yaml        final, max and mean of every error, plus maxima insid
 errors.h5                  difference fields (run - truth) per output, used by the plots
 ```
 
-It also writes `<optimization-root>/summary.csv`, with one row per job and case: true and recovered values, recovery errors, losses, optimizer counts, and final/max relative errors per field.
+It also writes `<optimization-root>/summary.csv`, with one row per job and case: true and recovered values, recovery errors, losses, optimizer counts (`nit`, `nfev`, and `method`, `njev`, `nhvp`, `hessp_used`), and final/max relative errors per field. To compare methods across optimization roots, use `compare_optimizers.py` instead.
 
 Plots, under `<job-dir>/plots/`:
 
@@ -388,6 +484,12 @@ Run `plot_validation.sh` on one process; it reads whole checkpoints.
 - `dimswe.optimize.ObservationL2Objective` compares with data at any set of steps within each block, with optional per-variable weights. The adjoint sweep adds `M^{-1} r_n` to the adjoint at every observation step. `L2Objective` is unchanged and remains the final-state special case.
 - `dimswe.optimize.ParametricInitialCondition` maps analytic initial-condition parameters to the discrete initial state, with UFL-derived tangents.
 - `_ODEConstrainedOptimization.optimize` accepts `maxiter`, `bounds`, `scaling_factors`, `free_mask`, `ic_map`, `callback` and `return_result`, and supports `opt_type='ic-params'`. `reduced_problem` builds the scaled, reduced problem, and `taylor_test` checks its gradient.
+- Hessian-vector products (forward-over-adjoint, `petsc-opt.pdf` eq. 2.11):
+  - `GeneralRK` and `LieSplittingIntegrator` gain `take_tangent_step` and `take_second_order_adjoint_step`, plus a coefficient direction (`set_coeff_direction`).
+  - `Lagrangian_ODEConstrainedOptimization` gains `hessp`, `ic_params_hessp` and `full_hessp`.
+  - `ParametricInitialCondition` gains second-order tangents.
+  - `ReducedProblem.hessp` applies the scaling and free mask and counts evaluations in `nhvp`.
+  - `optimize()` accepts `use_hessp`, `use_bounds` and `xtol`, passes `hessp` to scipy for the second-order methods, and records `hessp_used` and the problem's evaluation counts on the result.
 - `get_model(..., mesh=...)` and `get_mesh_and_spaces(..., mesh=...)` reuse an existing mesh (for example one loaded from a truth checkpoint), so truth states can be used directly.
 - `run_model(parameters, mesh=None, initial_state=None, output_callback=None)` builds on a given mesh, can overwrite the initial state, calls a hook at every output, and returns the model. The defaults keep the previous behaviour.
 
@@ -397,7 +499,8 @@ Run `plot_validation.sh` on one process; it reads whole checkpoints.
 - Coefficients must be R-space scalars (all current forcing-term coefficients are).
 - `ic-field` is serial only. `ic-params` and `coeffs` run with MPI.
 - Checkpoints that pair a saved state with the truth mesh (`optimal_ic.h5`) must be loaded with the MPI rank count that wrote them.
-- Every state of a training window is kept in memory, so keep `window.num_steps` modest.
+- Every state of a training window is kept in memory, so keep `window.num_steps` modest. A Hessian-vector product also keeps the tangent state of every step, which doubles this.
+- Hessian-vector products are implemented for the explicit RK and LieSplit time steppers (DIRK and implicit RK are not implemented at all). Second-order methods other than `trust-constr` cannot be used with bounds.
 
 ## Notes
 
