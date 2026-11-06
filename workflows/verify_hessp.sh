@@ -54,7 +54,8 @@ fi
 
 if stage 2 taylor; then
   python -m pytest -q -s tests/unit/test_timestepping_second_order.py tests/unit/test_optimize_hvp_storage.py \
-    tests/unit/test_optimize_hvp.py tests/unit/test_optimize_hvp_repeatability.py
+    tests/unit/test_optimize_hvp.py tests/unit/test_optimize_hvp_repeatability.py \
+    tests/unit/test_optimize_without_coefficients.py
   # the first-order gradients must be unaffected by the second-order changes
   python -m pytest -q tests/unit/test_optimize_gradients.py tests/unit/test_timestepping_coeff_gradients.py \
     tests/unit/test_timestepping_ic_gradients.py tests/unit/test_dynamics_gradients.py

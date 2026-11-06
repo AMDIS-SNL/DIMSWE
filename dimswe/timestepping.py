@@ -799,6 +799,9 @@ class SOMEIMPLICITRK(GeneralRK):
 class LieSplittingIntegrator():
     def __init__(self, model, logger, timestepper_list, termlist, subcycle_list, solver_parameters):
 
+        # kept so the coefficient-gradient bookkeeping can be skipped for models without
+        # coefficients, for which get_coeff_var returns None (as GeneralRK does)
+        self.model = model
         self.subcycle_list = subcycle_list
         self.timestepper_list = timestepper_list
         self.termlist = termlist
@@ -833,7 +836,8 @@ class LieSplittingIntegrator():
     def reset_internal_vars(self):
         self.lambda_k.assign(0)
         self.delta_lambda.assign(0)
-        self.delta_grad_coeff.assign(0)
+        if self.model.has_coeff():
+            self.delta_grad_coeff.assign(0)
         for xk, _, _ in self.xks:
             xk[0].assign(0)
         self.lambda_dot_k.assign(0)
@@ -856,12 +860,21 @@ class LieSplittingIntegrator():
         xnp1[0].assign(self.xks[-1][0][0])
 
     def take_adjoint_step(self, delta_grad_coeff, delta_lambda, lambda_np1, xn, tnp1, dt):
+        """Take one first-order adjoint split step, carrying lambda backward through the substeps.
+
+        The substep states are recomputed forward from xn, then the sub-integrators' adjoint steps
+        are taken in reverse order. Returns (delta_lambda_rhs, delta_grad_rhs), the summed dual
+        increments; delta_grad_rhs is None for a model without coefficients, in which case
+        delta_grad_coeff (also None then) is not touched.
+        """
+        has_coeff = self.model.has_coeff()
         self.lambda_k.assign(lambda_np1)
-        delta_grad_coeff.assign(0)
+        if has_coeff:
+            delta_grad_coeff.assign(0)
         delta_lambda.assign(0)
 
         delta_lambda_rhs = 0
-        delta_grad_rhs = 0
+        delta_grad_rhs = None
 
         self.xks[0][0][0].assign(xn[0])
         l = 1
@@ -880,14 +893,18 @@ class LieSplittingIntegrator():
                 #print(i,k,l,lt-l-1,lt)
                 time_integrator.reset_internal_vars()
                 self.delta_lambda.assign(0)
-                self.delta_grad_coeff.assign(0)
+                if has_coeff:
+                    self.delta_grad_coeff.assign(0)
                 # take_adjoint_step expects the substep end time: substep k runs from
                 # tnp1 - dt + k*sub_dt to tnp1 - dt + (k+1)*sub_dt, matching take_forward_step
                 _delta_lambda_rhs, _delta_grad_rhs = time_integrator.take_adjoint_step(self.delta_grad_coeff, self.delta_lambda, self.lambda_k, self.xks[lt-l-1][0], tnp1 - dt + (k + 1) * sub_dt, sub_dt)
                 self.lambda_k.assign(self.lambda_k + self.delta_lambda)
                 delta_lambda.assign(delta_lambda + self.delta_lambda)
-                delta_grad_coeff.assign(delta_grad_coeff + self.delta_grad_coeff)
-                delta_grad_rhs = delta_grad_rhs + _delta_grad_rhs
+                if has_coeff:
+                    delta_grad_coeff.assign(delta_grad_coeff + self.delta_grad_coeff)
+                # accumulate is None-aware: without coefficients delta_grad_rhs stays None, matching
+                # GeneralRK.take_adjoint_step
+                delta_grad_rhs = accumulate(delta_grad_rhs, _delta_grad_rhs)
                 delta_lambda_rhs = delta_lambda_rhs + _delta_lambda_rhs
                 #print(i,k,'grad coeff', _delta_grad_rhs)
                 #print(i,k,'delta lambda',_delta_lambda_rhs)

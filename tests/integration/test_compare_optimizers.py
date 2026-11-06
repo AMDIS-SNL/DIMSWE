@@ -274,3 +274,110 @@ def test_verification_script_runs_existing_tests_and_examples():
     # every HVP test file is run by the script
     hvp_tests = {f"tests/unit/{path.name}" for path in (PROJECT_ROOT / "tests" / "unit").glob("test_*hvp*.py")}
     assert hvp_tests <= test_files
+
+
+# Step 19: regression baselines.
+
+
+def test_baseline_round_trip_passes(paired_roots, tmp_path, capsys):
+    from workflows.compare_optimizers import main
+
+    roots = [str(root) for root in paired_roots]
+    baseline_path = tmp_path / "baselines" / "pair.yaml"
+    main(roots + ["--no-save", "--save-baseline", str(baseline_path)])
+    baseline = load_yaml(baseline_path)
+    assert set(baseline["jobs"]) == {
+        "doublevortex-params/ox-0.1__final", "doublevortex-params/ox-0.1__trajectory-4",
+        "doublevortex-params-newton-cg/ox-0.1__final", "doublevortex-params-newton-cg/ox-0.1__trajectory-4",
+    }
+    entry = baseline["jobs"]["doublevortex-params-newton-cg/ox-0.1__final"]
+    assert (entry["method"], entry["nit"], entry["nfev"], entry["njev"], entry["nhvp"]) == ("Newton-CG", 5, 6, 6, 15)
+    assert entry["final_loss"] == 1.0e-9 and entry["optimize_seconds"] == 25.0
+    capsys.readouterr()
+
+    # the same results pass the check
+    main(roots + ["--no-save", "--check-baseline", str(baseline_path)])
+    out = capsys.readouterr().out
+    assert "passed: 4 baseline job(s)" in out and "REGRESSION" not in out
+
+
+def check(rows, baseline, **kwargs):
+    """Run check_against_baseline and return (regressions, notes)."""
+    from workflows.compare_optimizers import check_against_baseline
+
+    return check_against_baseline(rows, baseline, **kwargs)
+
+
+def test_baseline_check_flags_regressions_and_notes_improvements(paired_roots, tmp_path):
+    from workflows.compare_optimizers import baseline_from_rows
+
+    first, second = paired_roots
+    baseline = baseline_from_rows(collect_comparison_rows([str(first), str(second)]))
+
+    # Newton-CG on the final loss: more HVPs, lost convergence, a much worse loss
+    write_job(second, "ox-0.1__final", "Newton-CG", (6, 6, 40), final_loss=1.0e-6, nit=5, seconds=25.0, success=False)
+    # L-BFGS-B on the final loss: fewer evaluations and a lower loss
+    write_job(first, "ox-0.1__final", "L-BFGS-B", (10, 10, 0), final_loss=1.0e-9, nit=9, seconds=60.0)
+    regressions, notes = check(collect_comparison_rows([str(first), str(second)]), baseline)
+    text = "\n".join(regressions)
+    assert len(regressions) == 3, regressions
+    assert "converged in the baseline but not now" in text
+    assert "nhvp 40 exceeds the baseline 15" in text
+    assert "final_loss 1.000e-06 is worse than 10 x" in text
+    assert all("doublevortex-params-newton-cg/ox-0.1__final" in line for line in regressions)
+    assert any("nfev 10 is below the baseline 14" in note for note in notes)
+    assert any("final_loss 1.000e-09 is below the baseline 2.000e-09" in note for note in notes)
+    # wall time is reported, but only checked with time_factor
+    assert any("optimize_seconds 2.00 x the baseline" in note for note in notes)
+    regressions, _ = check(collect_comparison_rows([str(first), str(second)]), baseline, time_factor=1.5)
+    assert any("optimize_seconds 60.0 is 2.00 x the baseline" in line for line in regressions)
+
+
+def test_baseline_count_tolerance(paired_roots):
+    from workflows.compare_optimizers import baseline_from_rows
+
+    first, second = paired_roots
+    baseline = baseline_from_rows(collect_comparison_rows([str(second)]))
+    # 15 HVPs in the baseline: up to 15 * 1.25 + 1 = 19.75 are allowed by default
+    write_job(second, "ox-0.1__final", "Newton-CG", (6, 6, 19), final_loss=1.0e-9, nit=5, seconds=25.0)
+    assert check(collect_comparison_rows([str(second)]), baseline)[0] == []
+    write_job(second, "ox-0.1__final", "Newton-CG", (6, 6, 20), final_loss=1.0e-9, nit=5, seconds=25.0)
+    assert len(check(collect_comparison_rows([str(second)]), baseline)[0]) == 1
+    assert check(collect_comparison_rows([str(second)]), baseline, count_rtol=0.5)[0] == []
+
+
+def test_baseline_check_flags_missing_and_changed_jobs(paired_roots):
+    from workflows.compare_optimizers import baseline_from_rows
+
+    first, second = paired_roots
+    baseline = baseline_from_rows(collect_comparison_rows([str(first), str(second)]))
+    write_job(second, "ox-0.1__final", "trust-ncg", (6, 6, 15), final_loss=1.0e-9)
+    write_job(second, "ox-0.2__final", "Newton-CG", (6, 6, 15), final_loss=1.0e-9)
+    regressions, notes = check(collect_comparison_rows([str(second)]), baseline)
+    text = "\n".join(regressions)
+    assert "doublevortex-params/ox-0.1__final: missing" in text
+    assert "doublevortex-params/ox-0.1__trajectory-4: missing" in text
+    assert "method changed from the baseline" in text
+    assert any("ox-0.2__final: not in the baseline" in note for note in notes)
+
+
+def test_failed_baseline_check_exits_with_status_1(paired_roots, tmp_path, capsys):
+    from workflows.compare_optimizers import main
+
+    first, second = paired_roots
+    baseline_path = tmp_path / "pair.yaml"
+    main([str(first), str(second), "--no-save", "--save-baseline", str(baseline_path)])
+    write_job(second, "ox-0.1__final", "Newton-CG", (6, 6, 40), final_loss=1.0e-9, nit=5)
+    with pytest.raises(SystemExit) as exit_info:
+        main([str(first), str(second), "--no-save", "--check-baseline", str(baseline_path)])
+    assert exit_info.value.code == 1
+    assert "REGRESSION: doublevortex-params-newton-cg/ox-0.1__final: nhvp 40" in capsys.readouterr().out
+
+
+def test_baseline_script_runs_both_methods_and_checks_the_baseline():
+    from workflows.common import WORKFLOWS_DIR
+
+    script = (WORKFLOWS_DIR / "optimizer_baseline.sh").read_text(encoding="utf-8")
+    for text in ("optimize_ic_params.cfg", "optimize_ic_params_newton_cg.cfg", "--save-baseline", "--check-baseline",
+                 "workflows/baselines/doublevortex-params.yaml", "--skip-existing"):
+        assert text in script, text

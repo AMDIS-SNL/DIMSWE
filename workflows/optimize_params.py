@@ -22,6 +22,7 @@ import argparse
 from pathlib import Path
 import sys
 import time
+import traceback
 from typing import Any
 
 if __package__ is None or __package__ == "":
@@ -761,7 +762,10 @@ def main() -> None:
         try:
             run_job(spec, job, args.check_gradient)
         except Exception as exc:  # pragma: no cover - defensive error reporting
-            error_text = str(exc)
+            error_text = f"{type(exc).__name__}: {exc}"
+            # the job summary below only carries the message, so print the full traceback from the
+            # failing rank (not root_print: the root rank may not be the one that failed)
+            print(f"[rank {MPI.COMM_WORLD.Get_rank()}] job {job['name']} failed:\n{traceback.format_exc()}", flush=True)
         else:
             error_text = None
         errors = [text for text in MPI.COMM_WORLD.allgather(error_text) if text]

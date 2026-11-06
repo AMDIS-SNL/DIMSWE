@@ -12,6 +12,7 @@ This directory contains helper scripts for generating simulation cfg files, runn
 - `plot_validation.py`: plot truth vs optimized runs, error histories, optimizer histories and parameter recovery.
 - `compare_optimizers.py`: compare optimization jobs across optimizer methods (iterations, function, gradient and Hessian-vector-product evaluations, final loss, status, time) from their `result.yaml` files.
 - `run_pipeline.sh`: chain truth generation, optimization, validation and plotting.
+- `optimizer_baseline.sh`: run the representative L-BFGS-B vs Newton-CG problem and save or check the optimizer regression baseline (see [Comparing optimizer methods](#comparing-optimizer-methods)).
 - `verify_hessp.sh`: staged verification of the second-order (Hessian-vector-product) optimization support, from unit tests to an optional full workflow run (see [Checking gradients](#checking-gradients)).
 - `common.py`, `opt_helpers.py`, `losses.py`: shared helpers (pure-Python, Firedrake-side, and loss construction).
 - `generate_cfgs.sh`, `run_batch.sh`, `compare_runs.sh`, `optimize_params.sh`, `validate.sh`, `plot_validation.sh`, `compare_optimizers.sh`: thin Firedrake-environment wrappers for the Python scripts.
@@ -432,6 +433,21 @@ The files go to `--output-dir`, by default the common parent of the optimization
 - `--columns <column>...` chooses the printed columns.
 
 Put options after the targets.
+
+**Regression baseline.** `workflows/optimizer_baseline.sh` runs one small representative problem with both methods. The problem is the double-vortex offset recovery of `optimize_ic_params.cfg` (L-BFGS-B) and `optimize_ic_params_newton_cg.cfg` (Newton-CG), by default with the final-state loss only. The script then compares the two and saves or checks a baseline:
+
+```bash
+bash workflows/optimizer_baseline.sh 4 --save     # record workflows/baselines/doublevortex-params.yaml
+bash workflows/optimizer_baseline.sh 4 --check    # after a change: fail on a regression
+```
+
+The baseline records, per job (`<optimization>/<job>`): method, target, success, status, `nit`, `nfev`, `njev`, `nhvp`, initial and final loss, and `optimize_seconds`. `--check` (`compare_optimizers.py --check-baseline FILE`) exits with status 1 if a job:
+- is missing, or its method or target changed;
+- no longer converges;
+- uses more evaluations than `(1 + --count-rtol) * baseline + 1` (default `--count-rtol 0.25`);
+- reaches a final loss worse than `--loss-factor` times the baseline (default 10).
+
+Wall time is reported as a ratio and only checked with `--time-factor`, since it depends on the machine. Finished jobs are reused, so delete `runs/optimizations/doublevortex-params*` to rerun the optimizations after a code change.
 
 ## Step 3: validation and plotting
 
