@@ -65,27 +65,32 @@ EVALUATION_KINDS = ("obj", "jac", "hessp")
 # stage-solve regions of GeneralRK; one call is one pass over all stages of one substep
 STAGE_KINDS = ("forward stages", "tangent stages", "adjoint stages", "soa stages")
 
-# Cost model of docs/hvp_performance_plan.md, section 1: stage passes per substep and time step
-# for the LieSplit timestepper. The forward stages are solved in the forward pass, again in the
-# LieSplit substep recompute, and again inside every GeneralRK adjoint step; the HVP does the
-# same for the tangent stages. A change that stores stage values (plan items A2, A3) must update
-# this table.
+# Cost model of docs/hvp_performance_plan.md, section 1: stage passes per substep and time step.
+# The forward stages are solved in the forward pass and again when the adjoint sweep recomputes
+# the step (LieSplit substep recompute, or the GeneralRK adjoint step of a single RK
+# timestepper); the HVP does the same for the tangent stages. A LieSplit with stage reuse (plan
+# item A3, timestepping.reuse_stages, the default) restores the recomputed stages in its substep
+# adjoint steps instead of solving them a third time. A change that stores more stage values
+# (plan item A2) must update this table.
 COST_MODEL_STAGE_PASSES = {
-    "obj": {"forward stages": 1},
-    "jac": {"forward stages": 3, "adjoint stages": 1},
-    "hessp": {"forward stages": 3, "tangent stages": 3, "adjoint stages": 1, "soa stages": 1},
-}
-# a single GeneralRK timestepper has no substep recompute, so one forward/tangent pass less
-COST_MODEL_STAGE_PASSES_RK = {
     "obj": {"forward stages": 1},
     "jac": {"forward stages": 2, "adjoint stages": 1},
     "hessp": {"forward stages": 2, "tangent stages": 2, "adjoint stages": 1, "soa stages": 1},
 }
-# the same model in stage solves, assuming every stage pass costs the same: obj S, jac 4S, hessp 8S
-COST_MODEL_RATIOS = {"jac/obj": 4.0, "hessp/jac": 2.0, "hessp/obj": 8.0}
+# LieSplit with reuse_stages false: the substep adjoint steps re-solve the stages once more
+COST_MODEL_STAGE_PASSES_RECOMPUTE = {
+    "obj": {"forward stages": 1},
+    "jac": {"forward stages": 3, "adjoint stages": 1},
+    "hessp": {"forward stages": 3, "tangent stages": 3, "adjoint stages": 1, "soa stages": 1},
+}
+# the same models in stage solves, assuming every stage pass costs the same: obj S, jac 3S,
+# hessp 6S (with recompute: jac 4S, hessp 8S)
+COST_MODEL_RATIOS = {"jac/obj": 3.0, "hessp/jac": 2.0, "hessp/obj": 6.0}
+COST_MODEL_RATIOS_RECOMPUTE = {"jac/obj": 4.0, "hessp/jac": 2.0, "hessp/obj": 8.0}
 
 # leaf regions that do the actual numerical work; time outside them is overhead
 WORK_REGIONS = STAGE_KINDS + (
+    "restore stages",
     "update",
     "gradient increments",
     "hessian increments",
@@ -260,13 +265,15 @@ def cost_ratios(seconds: dict[str, dict[str, float]]) -> dict[str, float | None]
     return {"jac/obj": ratio("jac", "obj"), "hessp/jac": ratio("hessp", "jac"), "hessp/obj": ratio("hessp", "obj")}
 
 
-def stage_passes(record: dict[str, Any], nsteps: int, nsubsteps: int, split: bool = True) -> dict[str, dict[str, float | None]]:
+def stage_passes(record: dict[str, Any], nsteps: int, nsubsteps: int,
+                 recompute_stages: bool = False) -> dict[str, dict[str, float | None]]:
     """Return stage passes per time step and substep for one call, next to the cost model.
 
-    split selects the cost model: True for the LieSplit timestepper, False for a single RK one.
+    recompute_stages selects COST_MODEL_STAGE_PASSES_RECOMPUTE (LieSplit with reuse_stages off)
+    instead of COST_MODEL_STAGE_PASSES (see timestepper_layout).
     """
     totals = profiling_module().totals_by_name(strip_top(record["regions"], record["label"]))
-    model = (COST_MODEL_STAGE_PASSES if split else COST_MODEL_STAGE_PASSES_RK)[record["kind"]]
+    model = (COST_MODEL_STAGE_PASSES_RECOMPUTE if recompute_stages else COST_MODEL_STAGE_PASSES)[record["kind"]]
     result = {}
     for kind in STAGE_KINDS:
         calls = totals.get(kind, {"calls": 0})["calls"]
@@ -365,18 +372,18 @@ def optimizer_estimate(result: dict[str, Any], seconds: dict[str, dict[str, floa
 
 
 def summarize(records: list[dict[str, Any]], nsteps: int, nsubsteps: int,
-              results: list[dict[str, Any]] | None = None, split: bool = True) -> dict[str, Any]:
+              results: list[dict[str, Any]] | None = None, recompute_stages: bool = False) -> dict[str, Any]:
     """Build the summary section of profile.yaml from the profiled calls (see the module doc).
 
-    nsteps and nsubsteps are the time steps per data block and substeps per time step, split
-    whether the timestepper is LieSplit (which selects the stage-pass cost model), and results
-    the result.yaml contents to combine with the measured costs.
+    nsteps and nsubsteps are the time steps per data block and substeps per time step,
+    recompute_stages selects the cost model (see timestepper_layout), and results holds the
+    result.yaml contents to combine with the measured costs.
     """
     seconds = evaluation_seconds(records)
     summary: dict[str, Any] = {
         "seconds": seconds,
         "ratios": cost_ratios(seconds),
-        "cost_model_ratios": dict(COST_MODEL_RATIOS),
+        "cost_model_ratios": dict(COST_MODEL_RATIOS_RECOMPUTE if recompute_stages else COST_MODEL_RATIOS),
         "stage_passes_per_substep": {},
         "breakdown": {},
         "stage_costs": {},
@@ -385,7 +392,7 @@ def summarize(records: list[dict[str, Any]], nsteps: int, nsubsteps: int,
         record = steady_record(records, kind)
         if record is None:
             continue
-        summary["stage_passes_per_substep"][kind] = stage_passes(record, nsteps, nsubsteps, split)
+        summary["stage_passes_per_substep"][kind] = stage_passes(record, nsteps, nsubsteps, recompute_stages)
         summary["breakdown"][kind] = breakdown(record)
         summary["stage_costs"][kind] = stage_costs(record)
     first_hessp = next((record for record in records if record["kind"] == "hessp"), None)
@@ -469,28 +476,31 @@ def select_job(spec_path: Path, job_filter: str | None) -> tuple[dict[str, Any],
 
 
 def timestepper_layout(timestepper: Any) -> tuple[int, bool]:
-    """Return (substeps per time step, is LieSplit) for a timestepper.
+    """Return (substeps per time step, recompute_stages) for a timestepper.
 
     A LieSplit timestepper takes sum(subcycle_list) substeps per step; a single RK one takes one.
+    recompute_stages is True for a LieSplit with reuse_stages off, whose substep adjoint steps
+    re-solve the stages (COST_MODEL_STAGE_PASSES_RECOMPUTE).
     """
     subcycles = getattr(timestepper, "subcycle_list", None)
     if subcycles is None:
         return 1, False
-    return int(sum(subcycles)), True
+    return int(sum(subcycles)), not getattr(timestepper, "reuse_stages", False)
 
 
 def build_job_problem(spec: dict[str, Any], job: dict[str, Any]) -> tuple[Any, int, int, bool]:
     """Build the job's ReducedProblem exactly as optimize_params.run_job does.
 
-    Returns (problem, nsteps, nsubsteps, split): the time steps per data block, the substeps per
-    time step and whether the timestepper is LieSplit (see timestepper_layout).
+    Returns (problem, nsteps, nsubsteps, recompute_stages): the time steps per data block, the
+    substeps per time step and whether the stages are re-solved in the adjoint substeps (see
+    timestepper_layout).
     """
     from workflows.optimize_params import Job
 
     state = Job(spec, job)
     problem, _, _ = state.build_problem()
-    nsubsteps, split = timestepper_layout(state.timestepper)
-    return problem, int(state.objective.nsteps), nsubsteps, split
+    nsubsteps, recompute_stages = timestepper_layout(state.timestepper)
+    return problem, int(state.objective.nsteps), nsubsteps, recompute_stages
 
 
 def load_results(paths: list[str] | None, job: dict[str, Any]) -> list[dict[str, Any]]:
@@ -519,14 +529,14 @@ def main(argv: list[str] | None = None) -> dict[str, Any] | None:
         return None
 
     start = time.perf_counter()
-    problem, nsteps, nsubsteps, split = build_job_problem(spec, job)
+    problem, nsteps, nsubsteps, recompute_stages = build_job_problem(spec, job)
     build_seconds = time.perf_counter() - start
     root_print(f"  built the model and problem in {build_seconds:.3f} s ({nsteps} steps x {nsubsteps} substeps, "
                f"{problem.z0.size} optimization variables)")
 
     records = profile_evaluations(problem, repeats=args.repeats, seed=args.seed)
     results = load_results(args.results, job)
-    summary = summarize(records, nsteps, nsubsteps, results, split=split)
+    summary = summarize(records, nsteps, nsubsteps, results, recompute_stages=recompute_stages)
 
     world_size, barrier = mpi_world()
     profile = {
@@ -540,7 +550,7 @@ def main(argv: list[str] | None = None) -> dict[str, Any] | None:
         "petsc_options": args.petsc_options,
         "nsteps": nsteps,
         "nsubsteps": nsubsteps,
-        "lie_split": split,
+        "recompute_stages": recompute_stages,
         "nvariables": int(problem.z0.size),
         "repeats": args.repeats,
         "seed": args.seed,

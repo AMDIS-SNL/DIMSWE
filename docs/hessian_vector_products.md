@@ -599,3 +599,19 @@ The profile in plan section 2.3 showed the bare `assemble()` calls on the increm
 - **Fallback.** A strategy that disagrees, for example by missing coefficient updates or accumulating into the old tensor, or that raises, is dropped. If none works, the assembler falls back to plain assembly.
 
 The numerics are unchanged: the same forms are assembled with the same kernels.
+
+## 22. Stage reuse within a LieSplit step (plan item A3)
+
+Before this change, a `LieSplit` adjoint step solved every substep's stages twice:
+- once while recomputing the substep states from x_n;
+- again inside each sub-integrator's `take_adjoint_step`, which re-solved its forward stages from the substep start state.
+
+The second-order step did the same for the forward and the tangent stages.
+
+Now the recompute stores each substep's stage values F_i, W_i, plus Fdot_i, Wdot_i for HVPs, with `GeneralRK.store_stages(slot, tangents)`. The slot is the substep index `l` of the recompute. The reverse loop passes `stages_slot = lt - l` to `take_adjoint_step` / `take_second_order_adjoint_step`, which restore the stages instead of solving them.
+- **Storage.** A `(slot, tangents)` entry is created on first use and overwritten on every step. It holds nsubsteps × nstages × (x, aux) Functions, doubled for tangents.
+- **Exactness.** The restored values are the ones the re-solve would produce from the same state, coefficients and dt. The only difference is the time, which is computed as `tnp1 - dt + (k+1)*sub_dt - sub_dt` instead of `tnp1 - dt + k*sub_dt`, so the results agree to round-off.
+- **Off switch.** `timestepping.reuse_stages: false` (`LieSplittingIntegrator(reuse_stages=False)`) keeps the old path for comparison.
+- **Scope.** A single `GeneralRK` timestepper had no in-step recompute, so it is unchanged.
+
+Stage passes per substep are now 2 forward + 1 adjoint for `jac`, and 2 forward + 2 tangent + 1 adjoint + 1 SOA for `hessp`, down from 3/3. That is jac ≈ 3S and hessp ≈ 6S. `tests/unit/test_stage_reuse.py` checks the agreement with the recompute path to 1e-10 and the pass counts for both settings.

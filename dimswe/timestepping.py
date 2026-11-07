@@ -62,8 +62,10 @@ def get_time_integrator(name, parameters, solver_parameters):
         timestepper_list = parameters['timestepping']['timestepper_list']
         termlist = parameters['timestepping']['termlist']
         subcycle_list = parameters['timestepping']['subcycle_list']
+        # optional: false re-solves the stages in every adjoint substep instead of reusing them
+        reuse_stages = parameters['timestepping'].get('reuse_stages', True)
 
-        return lambda model, logger, coeffs: LieSplittingIntegrator(model, logger, timestepper_list, termlist, subcycle_list, solver_parameters)
+        return lambda model, logger, coeffs: LieSplittingIntegrator(model, logger, timestepper_list, termlist, subcycle_list, solver_parameters, reuse_stages=reuse_stages)
     else:
         raise ValueError("time step method " + name + " is unknown")
 
@@ -314,6 +316,8 @@ class GeneralRK(TimeStepper):
         # persistent assemblers of the increment forms L_delta_lambda, L_delta_grad, ...,
         # created on first use (see _assemble_increment)
         self._increment_assemblers = {}
+        # stage values saved by store_stages, keyed by (slot, tangents); see store_stages
+        self._stage_store = {}
 
 
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF
@@ -552,6 +556,44 @@ class GeneralRK(TimeStepper):
             residual = directional_derivative(self.residual_grad, all_pairs)
             _, self.L_delta_grad_dot = extract_a_L_from_residual(residual, self.delta_grad_dot, self.grad_trial)
 
+    def _stage_functions(self, tangents=False):
+        """Return the Functions holding the current stage values, x and aux parts, in stage order.
+
+        With tangents=True these are the tangent stages (Fdot_i, Wdot_i) instead of (F_i, W_i).
+        """
+        stages = self.Fdoti if tangents else self.Fi
+        return [func for i in range(self.nstages) for func in stages[i][0] if func is not None]
+
+    def store_stages(self, slot, tangents=False):
+        """Copy the current stage values into storage slot (plan item A3).
+
+        A LieSplit step solves each substep's stages while it recomputes the substep states, and
+        the adjoint steps of the same substeps used to solve them again. The split integrator
+        stores them here under the substep index (slot) and passes the slot to take_adjoint_step
+        or take_second_order_adjoint_step, which restore them instead of re-solving. With
+        tangents=True the tangent stages are stored as well. Only explicit RK keeps its stages in
+        separate Functions; for other schemes this does nothing and returns False.
+        """
+        if not self.is_explicit:
+            return False
+        kinds = [False, True] if tangents else [False]
+        for kind in kinds:
+            current = self._stage_functions(kind)
+            saved = self._stage_store.get((slot, kind))
+            if saved is None:
+                self._stage_store[(slot, kind)] = [func.copy(deepcopy=True) for func in current]
+            else:
+                for target, func in zip(saved, current):
+                    target.assign(func)
+        return True
+
+    def _restore_stages(self, slot, tangents=False):
+        """Assign stored stage values (and tangent stages if tangents) back to the stage Functions."""
+        kinds = [False, True] if tangents else [False]
+        for kind in kinds:
+            for func, saved in zip(self._stage_functions(kind), self._stage_store[(slot, kind)]):
+                func.assign(saved)
+
     def _assemble_increment(self, name):
         """Assemble the increment form self.<name> and return it as a rank-local flattened array.
 
@@ -631,15 +673,26 @@ class GeneralRK(TimeStepper):
 #IDEALLY THIS IS AUX VARS EVALUATED AT XNP1- provides a good initial guess at least?
         #    xnp1[1].assign(self.Fi[-1][0][1])
 
-    def take_adjoint_step(self, delta_grad, delta_lambda, lambda_np1, xn, tnp1, dt):
+    def take_adjoint_step(self, delta_grad, delta_lambda, lambda_np1, xn, tnp1, dt, stages_slot=None):
+        """Take one first-order adjoint step from lambda_{n+1}, for the step that started at xn.
 
+        Sets delta_lambda to the primal increment lambda_n - lambda_{n+1} and returns the dual
+        increments (delta_lambda_rhs, delta_grad_rhs); delta_grad_rhs is None without
+        coefficients. The forward stages are re-solved from xn, unless stages_slot names stage
+        values saved with store_stages for exactly this step (plan item A3), which are restored
+        instead.
+        """
         self.dt.assign(dt)
         self.t.assign(tnp1 - dt)
         self.lambda_var.assign(lambda_np1)
 
-        #take a forward step from xn to populate Fi
+        #take a forward step from xn to populate Fi (or restore the stages of that step)
         self.xk[0].assign(xn[0])
-        self._solve_forward_stages()
+        if stages_slot is None:
+            self._solve_forward_stages()
+        else:
+            with region("restore stages"):
+                self._restore_stages(stages_slot)
         #print("lambda var norm", norm(self.lambda_var))
 
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF?
@@ -691,7 +744,7 @@ class GeneralRK(TimeStepper):
                 if len(xnp1) > 1 and xnp1[1] is not None:
                     xnp1[1].assign(self.Fi[-1][0][1])
 
-    def take_second_order_adjoint_step(self, delta_lambda, delta_lambda_dot, lambda_np1, lambda_dot_np1, xn, wn, tnp1, dt):
+    def take_second_order_adjoint_step(self, delta_lambda, delta_lambda_dot, lambda_np1, lambda_dot_np1, xn, wn, tnp1, dt, stages_slot=None):
         """Take one combined first-order and second-order adjoint step (eq. 2.11, forward-over-adjoint).
 
         Inputs are lambda_{n+1} (lambda_np1), lambda_dot_{n+1} (lambda_dot_np1), the step start
@@ -706,6 +759,10 @@ class GeneralRK(TimeStepper):
         two equal the outputs of take_adjoint_step, the last two are their directional
         derivatives, i.e. this step's contributions to H_x0 v and H_theta v. The coefficient
         entries are None when the model has no coefficients.
+
+        If stages_slot is given, the forward and tangent stages are restored from values saved
+        with store_stages(stages_slot, tangents=True) for exactly this step instead of being
+        re-solved (plan item A3).
         """
         self._setup_second_order()
         self.dt.assign(dt)
@@ -717,8 +774,12 @@ class GeneralRK(TimeStepper):
 
         # forward stages, tangent stages and first-order stage adjoints are all inputs to the
         # second-order stage equations
-        self._solve_forward_stages()
-        self._solve_tangent_stages()
+        if stages_slot is None:
+            self._solve_forward_stages()
+            self._solve_tangent_stages()
+        else:
+            with region("restore stages"):
+                self._restore_stages(stages_slot, tangents=True)
         self._solve_first_order_adjoint_stages()
 
         # second-order stage adjoints, backward over the stages like the first-order ones
@@ -819,11 +880,21 @@ class SOMEIMPLICITRK(GeneralRK):
 
 
 class LieSplittingIntegrator():
-    def __init__(self, model, logger, timestepper_list, termlist, subcycle_list, solver_parameters):
+    def __init__(self, model, logger, timestepper_list, termlist, subcycle_list, solver_parameters, reuse_stages=True):
+        """Compose explicit RK sub-integrators, each advancing its terms with subcycling.
+
+        reuse_stages (plan item A3, docs/hvp_performance_plan.md): the adjoint and second-order
+        adjoint steps recompute the substep states, which solves every substep's stages; with
+        reuse_stages those stage values are kept per substep and restored in the substep adjoint
+        steps instead of being solved a second time. False keeps the original recompute (one
+        forward pass, and for HVPs one tangent pass, more per substep); the results agree to
+        round-off.
+        """
 
         # kept so the coefficient-gradient bookkeeping can be skipped for models without
         # coefficients, for which get_coeff_var returns None (as GeneralRK does)
         self.model = model
+        self.reuse_stages = bool(reuse_stages)
         self.subcycle_list = subcycle_list
         self.timestepper_list = timestepper_list
         self.termlist = termlist
@@ -890,8 +961,9 @@ class LieSplittingIntegrator():
     def take_adjoint_step(self, delta_grad_coeff, delta_lambda, lambda_np1, xn, tnp1, dt):
         """Take one first-order adjoint split step, carrying lambda backward through the substeps.
 
-        The substep states are recomputed forward from xn, then the sub-integrators' adjoint steps
-        are taken in reverse order. Returns (delta_lambda_rhs, delta_grad_rhs), the summed dual
+        The substep states are recomputed forward from xn (storing their stage values with
+        reuse_stages, so the adjoint steps need not solve them again), then the sub-integrators'
+        adjoint steps are taken in reverse order. Returns (delta_lambda_rhs, delta_grad_rhs), the summed dual
         increments; delta_grad_rhs is None for a model without coefficients, in which case
         delta_grad_coeff (also None then) is not touched.
         """
@@ -904,7 +976,9 @@ class LieSplittingIntegrator():
         delta_lambda_rhs = 0
         delta_grad_rhs = None
 
-        # recompute the substep states from xn (checkpoint + recompute within the step)
+        # recompute the substep states from xn (checkpoint + recompute within the step); with
+        # reuse_stages, substep l's stage values are stored under slot l for its adjoint step
+        stored = {}
         with region("substep recompute"):
             self.xks[0][0][0].assign(xn[0])
             l = 1
@@ -914,6 +988,8 @@ class LieSplittingIntegrator():
                     with region(self.profile_labels[i]):
                         time_integrator.reset_internal_vars()
                         time_integrator.take_forward_step(self.xks[l][0], self.xks[l][1], self.xks[l-1][0], tnp1 - dt + k * sub_dt, sub_dt)
+                        if self.reuse_stages:
+                            stored[l] = time_integrator.store_stages(l)
                     l = l +1
 
         nintegrators = len(self.time_integrators)
@@ -932,7 +1008,9 @@ class LieSplittingIntegrator():
                             self.delta_grad_coeff.assign(0)
                         # take_adjoint_step expects the substep end time: substep k runs from
                         # tnp1 - dt + k*sub_dt to tnp1 - dt + (k+1)*sub_dt, matching take_forward_step
-                        _delta_lambda_rhs, _delta_grad_rhs = time_integrator.take_adjoint_step(self.delta_grad_coeff, self.delta_lambda, self.lambda_k, self.xks[lt-l-1][0], tnp1 - dt + (k + 1) * sub_dt, sub_dt)
+                        # this is substep lt-l of the recompute (start state xks[lt-l-1])
+                        slot = lt - l if stored.get(lt - l) else None
+                        _delta_lambda_rhs, _delta_grad_rhs = time_integrator.take_adjoint_step(self.delta_grad_coeff, self.delta_lambda, self.lambda_k, self.xks[lt-l-1][0], tnp1 - dt + (k + 1) * sub_dt, sub_dt, stages_slot=slot)
                         self.lambda_k.assign(self.lambda_k + self.delta_lambda)
                         delta_lambda.assign(delta_lambda + self.delta_lambda)
                         if has_coeff:
@@ -946,12 +1024,15 @@ class LieSplittingIntegrator():
                     l = l + 1
         return delta_lambda_rhs, delta_grad_rhs
 
-    def _compute_substep_tangents(self, xn, wn, tn, dt):
+    def _compute_substep_tangents(self, xn, wn, tn, dt, store=False):
         """Recompute the substep states xks and tangents wks from x_n and w_n.
 
         Each sub-integrator advances the state and its tangent together with take_tangent_step,
-        so xks matches what take_forward_step computes.
+        so xks matches what take_forward_step computes. With store (and reuse_stages), substep
+        l's forward and tangent stage values are stored under slot l for its second-order adjoint
+        step. Returns {slot: stored} for the substeps whose stages were stored.
         """
+        stored = {}
         self.xks[0][0][0].assign(xn[0])
         self.wks[0][0][0].assign(wn[0])
         l = 1
@@ -961,7 +1042,10 @@ class LieSplittingIntegrator():
                 with region(self.profile_labels[i]):
                     time_integrator.reset_internal_vars()
                     time_integrator.take_tangent_step(self.wks[l][0], self.wks[l-1][0], self.xks[l-1][0], tn + k * sub_dt, sub_dt, xnp1=self.xks[l][0])
+                    if store and self.reuse_stages:
+                        stored[l] = time_integrator.store_stages(l, tangents=True)
                 l = l + 1
+        return stored
 
     def take_tangent_step(self, wnp1, wn, xn, tn, dt, xnp1=None):
         """Propagate a tangent-linear perturbation through one split step.
@@ -978,8 +1062,9 @@ class LieSplittingIntegrator():
         """Take one combined first-order and second-order adjoint split step.
 
         Same interface and return values as GeneralRK.take_second_order_adjoint_step. The substep
-        states and tangents are recomputed forward, then lambda and lambda_dot are carried
-        backward through the substeps in reverse order, summing the dual increments.
+        states and tangents are recomputed forward (storing the stages with reuse_stages), then
+        lambda and lambda_dot are carried backward through the substeps in reverse order,
+        summing the dual increments.
         """
         self.lambda_k.assign(lambda_np1)
         self.lambda_dot_k.assign(lambda_dot_np1)
@@ -993,7 +1078,7 @@ class LieSplittingIntegrator():
 
         # recompute the substep states and tangents from (xn, wn)
         with region("substep recompute"):
-            self._compute_substep_tangents(xn, wn, tnp1 - dt, dt)
+            stored = self._compute_substep_tangents(xn, wn, tnp1 - dt, dt, store=True)
 
         nintegrators = len(self.time_integrators)
         l = 0
@@ -1009,8 +1094,11 @@ class LieSplittingIntegrator():
                         self.delta_lambda.assign(0)
                         self.delta_lambda_dot.assign(0)
                         # substep k runs from tnp1 - dt + k*sub_dt to tnp1 - dt + (k+1)*sub_dt
+                        # substep lt-l of the recompute; restore its stored stages if available
+                        slot = lt - l if stored.get(lt - l) else None
                         increments = time_integrator.take_second_order_adjoint_step(self.delta_lambda, self.delta_lambda_dot,
-                            self.lambda_k, self.lambda_dot_k, self.xks[lt-l-1][0], self.wks[lt-l-1][0], tnp1 - dt + (k + 1) * sub_dt, sub_dt)
+                            self.lambda_k, self.lambda_dot_k, self.xks[lt-l-1][0], self.wks[lt-l-1][0], tnp1 - dt + (k + 1) * sub_dt, sub_dt,
+                            stages_slot=slot)
                         _delta_lambda_rhs, _delta_grad_rhs, _delta_lambda_dot_rhs, _delta_hess_coeff_rhs = increments
                         self.lambda_k.assign(self.lambda_k + self.delta_lambda)
                         self.lambda_dot_k.assign(self.lambda_dot_k + self.delta_lambda_dot)

@@ -158,7 +158,16 @@ Conclusions so far:
 - **`jac`** drops from 4S to 2S if `obj` or the first-order forward stores stages too.
 - **Memory:** nsteps × nsubsteps × nstages states per stored quantity. That's small for the workflow windows, but it must be optional (for example `checkpoint: states | stages`), with the current recompute path as the default until it is validated.
 
-**A3. Without full stage storage, keep the stages of one step.** In `LieSplittingIntegrator`, the substep states are recomputed forward and then traversed in reverse within the same step. Keeping each substep's stage values (only nsubsteps × nstages states, for the current step) lets the `GeneralRK` SOA and adjoint steps skip re-solving their forward (and tangent) stages.
+**A3. Without full stage storage, keep the stages of one step. Implemented:**
+- `GeneralRK.store_stages(slot, tangents)` and `stages_slot` arguments to `take_adjoint_step` / `take_second_order_adjoint_step`.
+- `LieSplittingIntegrator` stores each substep's stages (and tangent stages) while recomputing the substep states, and restores them in the substep adjoint steps. This is on by default; `timestepping.reuse_stages: false` restores the old recompute path.
+- The cost model is now jac 2 forward + 1 adjoint pass per substep, and hessp 2 forward + 2 tangent + 1 adjoint + 1 SOA (`COST_MODEL_STAGE_PASSES` in `workflows/profile_hvp.py`).
+- Tests: `tests/unit/test_stage_reuse.py` checks that reuse matches recompute to 1e-10, and the stage-pass counts both ways.
+- To do: re-profile and run the baseline check.
+
+The original description follows.
+
+ In `LieSplittingIntegrator`, the substep states are recomputed forward and then traversed in reverse within the same step. Keeping each substep's stage values (only nsubsteps × nstages states, for the current step) lets the `GeneralRK` SOA and adjoint steps skip re-solving their forward (and tangent) stages.
 - **Saves:** S per step for `jac` (4S → 3S) and 2S for `hessp` (8S → 6S).
 - **Memory:** negligible, and it is independent of A1/A2. This is a good first change: it is local to `timestepping.py` and can be checked with the existing step-level Taylor tests.
 
@@ -207,7 +216,7 @@ Revised after the measurements in section 2.3:
 
 1. Measurements (section 2): done; see section 2.3.
 2. **B0** (persistent increment assemblers): done. HVP 46 → 22 s, gradient 15.4 → 10.4 s.
-3. **A3** (stage reuse within a step): about 17% of an HVP and 18% of a gradient.
+3. **A3** (stage reuse within a step): about 17% of an HVP and 18% of a gradient. Implemented; to be re-profiled.
 4. **Cache the initial-condition tangents and second tangents per parameter point:** about 13-15% of an HVP and 8% of a gradient.
 5. **A1/A2** (cache per point, optional stage checkpointing) behind a configuration option. Stage solves are now 70% of an HVP, so these are the remaining large gains.
 6. **C2** (reuse the model across jobs) for the per-job setup of about 54 s; C1 only if a later profile shows factorizations mattering. C3 and B3 are not needed (section 2.3, findings 2 and 3); B4 is small.

@@ -1,7 +1,8 @@
 """Tests for the HVP profiling driver workflows/profile_hvp.py (HVP performance plan, section 2).
 
 Most tests use a fake problem that opens the same profiling regions, in the same nesting, as
-Lagrangian_ODEConstrainedOptimization with a two-integrator LieSplit timestepper. A clock that
+Lagrangian_ODEConstrainedOptimization with a two-integrator LieSplit timestepper that reuses
+the recomputed stages in its substep adjoint steps (plan item A3). A clock that
 only advances when the fake does "work" makes every time exact, so the summary arithmetic
 (setup costs, ratios, stage passes, per-region breakdown, cost per stage pass, optimizer
 estimate) is checked exactly. The CLI is run on the fake problem as well. The last test runs the
@@ -38,6 +39,8 @@ NSUBSTEPS = len(LABELS)
 COST = {
     "forward stages": 1.0, "tangent stages": 2.0, "adjoint stages": 2.0, "soa stages": 4.0,
     "setup second order": 10.0, "setup hvp": 5.0,
+    # restoring stored stages is a few assigns; free here, so stage costs stay exact
+    "restore stages": 0.0,
 }
 
 
@@ -95,7 +98,7 @@ class FakeProblem:
                     with region("substep recompute"):
                         self.substeps(["forward stages"])
                     with region("substep adjoints"):
-                        self.substeps(["forward stages", "adjoint stages"])
+                        self.substeps(["restore stages", "adjoint stages"])
         return np.zeros(2)
 
     def full_hessp(self, x, v):
@@ -117,7 +120,7 @@ class FakeProblem:
                     with region("substep recompute"):
                         self.substeps(["forward stages", "tangent stages"])
                     with region("substep adjoints"):
-                        self.substeps(["forward stages", "tangent stages", "adjoint stages", "soa stages"])
+                        self.substeps(["restore stages", "adjoint stages", "soa stages"])
         return np.zeros(2)
 
 
@@ -140,8 +143,8 @@ def records(clock):
 
 # exact fake costs, per call: obj NSTEPS * 2 substeps * forward; see FakeProblem
 OBJ = NSTEPS * NSUBSTEPS * 1.0
-JAC = NSTEPS * NSUBSTEPS * (1.0 + 1.0 + 1.0 + 2.0)
-HESSP = NSTEPS * NSUBSTEPS * ((1.0 + 2.0) * 2 + 1.0 + 2.0 + 2.0 + 4.0)
+JAC = NSTEPS * NSUBSTEPS * (1.0 + 1.0 + 2.0)
+HESSP = NSTEPS * NSUBSTEPS * ((1.0 + 2.0) * 2 + 2.0 + 4.0)
 HESSP_SETUP = COST["setup hvp"] + NSUBSTEPS * COST["setup second order"]
 
 
@@ -192,7 +195,8 @@ def test_breakdown_accounts_for_every_second(records):
     summary = summarize(records, NSTEPS, NSUBSTEPS)
     hessp = summary["breakdown"]["hessp"]
     assert hessp["soa stages"]["seconds"] == NSTEPS * NSUBSTEPS * 4.0
-    assert hessp["tangent stages"]["calls"] == 3 * NSTEPS * NSUBSTEPS
+    assert hessp["tangent stages"]["calls"] == 2 * NSTEPS * NSUBSTEPS
+    assert hessp["restore stages"]["calls"] == NSTEPS * NSUBSTEPS
     # the fake does no work outside the stage regions
     assert hessp["other"]["seconds"] == pytest.approx(0.0)
     assert sum(entry["share"] for entry in hessp.values()) == pytest.approx(1.0)
@@ -225,20 +229,29 @@ def test_optimizer_estimate_combines_counts_with_steady_costs(records):
     assert first_order["estimate_vs_recorded"] is None
 
 
-def test_plain_rk_cost_model_has_no_substep_recompute(records):
-    passes = summarize(records, NSTEPS, NSUBSTEPS, split=False)["stage_passes_per_substep"]
-    assert passes["jac"]["forward stages"]["model"] == 2.0
-    assert passes["hessp"]["tangent stages"]["model"] == 2.0
+def test_recompute_cost_model_has_one_more_stage_pass(records):
+    summary = summarize(records, NSTEPS, NSUBSTEPS, recompute_stages=True)
+    passes = summary["stage_passes_per_substep"]
+    assert passes["jac"]["forward stages"]["model"] == 3.0
+    assert passes["hessp"]["tangent stages"]["model"] == 3.0
+    assert summary["cost_model_ratios"]["jac/obj"] == 4.0
+    assert summarize(records, NSTEPS, NSUBSTEPS)["cost_model_ratios"]["jac/obj"] == 3.0
 
 
 def test_timestepper_layout_counts_lie_split_substeps():
-    class Split:
+    class SplitReusing:
         subcycle_list = [2, 1, 2, 1]
+        reuse_stages = True
+
+    class SplitRecomputing:
+        subcycle_list = [2, 1]
+        reuse_stages = False
 
     class Single:
         pass
 
-    assert timestepper_layout(Split()) == (6, True)
+    assert timestepper_layout(SplitReusing()) == (6, False)
+    assert timestepper_layout(SplitRecomputing()) == (3, True)
     assert timestepper_layout(Single()) == (1, False)
 
 
@@ -259,7 +272,7 @@ def fake_job(monkeypatch, clock, tmp_path):
     job = {"name": "fake__final", "job_dir": tmp_path / "optimizations" / "fake__final"}
     monkeypatch.setattr(profile_hvp, "select_job", lambda spec_path, job_filter: (spec, job))
     monkeypatch.setattr(profile_hvp, "build_job_problem",
-                        lambda spec, job: (FakeProblem(clock), NSTEPS, NSUBSTEPS, True))
+                        lambda spec, job: (FakeProblem(clock), NSTEPS, NSUBSTEPS, False))
     return spec, job
 
 
@@ -280,7 +293,7 @@ def test_cli_writes_profile_yaml_and_tree(fake_job, tmp_path, capsys):
     written = load_yaml(output_dir / "profile.yaml")
     assert written["job_name"] == "fake__final" and written["method"] == "Newton-CG"
     assert written["petsc_options"] == ["-log_view", ":x.txt:ascii_flamegraph"]
-    assert written["nsteps"] == NSTEPS and written["nsubsteps"] == NSUBSTEPS and written["lie_split"] is True
+    assert written["nsteps"] == NSTEPS and written["nsubsteps"] == NSUBSTEPS and written["recompute_stages"] is False
     assert [record["label"] for record in written["evaluations"]] == [label for label, _, _ in evaluation_plan(1)]
     assert written["summary"]["seconds"]["hessp"]["steady"] == HESSP
     # the job's own result.yaml is used by default
@@ -319,11 +332,12 @@ def test_real_gradient_and_hvp_match_the_stage_pass_cost_model():
     params = ic_map.get_initial_values(setup.parameters) + np.array([0.01, -0.005])
     problem = setup.optimizer.reduced_problem(params, opt_type="ic-params", coeffs0=setup.coeff, ic_map=ic_map,
                                               scaling_factors=np.array([0.1, 0.1]))
-    nsubsteps, split = timestepper_layout(setup.timestepper)
-    assert split and nsubsteps == 3  # tests/tswe_small.cfg: RK4 x 2, Euler x 1
+    nsubsteps, recompute_stages = timestepper_layout(setup.timestepper)
+    # tests/tswe_small.cfg: LieSplit of RK4 x 2 and Euler x 1, reusing stages by default
+    assert not recompute_stages and nsubsteps == 3
 
     records = profile_evaluations(problem, repeats=1, seed=5)
-    summary = summarize(records, nsteps, nsubsteps, split=split)
+    summary = summarize(records, nsteps, nsubsteps, recompute_stages=recompute_stages)
     print(profile_hvp.format_summary(summary))
     for kind, passes in summary["stage_passes_per_substep"].items():
         for stage_kind, entry in passes.items():

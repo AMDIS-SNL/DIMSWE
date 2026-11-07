@@ -320,7 +320,7 @@ Restrictions, all checked when the spec is loaded (also with `--dry-run`):
 - **No full Hessian.** `dogleg` and `trust-exact` need the full Hessian matrix, which DIMSWE does not form. Use an HVP method instead.
 - **`use_hessp`.** The default `null` uses HVPs for the second-order methods and leaves first-order methods unchanged. `true` with a first-order method is an error. `false` with `trust-ncg` or `trust-krylov`, which require HVPs, is an error too.
 - **`xtol`.** Only `Newton-CG` and `trust-constr` accept `xtol`. Newton-CG stops only on `xtol` and ignores `gtol`.
-- **Time stepping.** HVPs are implemented for explicit RK (`GeneralRK`) and for `LieSplit` composed of explicit RK sub-integrators, as in the template `mtswe.cfg`. These are the only time steppers DIMSWE implements; the DIRK and implicit RK placeholders raise `NotImplementedError` already when they are constructed.
+- **Time stepping.** HVPs are implemented for explicit RK (`GeneralRK`) and for `LieSplit` composed of explicit RK sub-integrators, as in the template `mtswe.cfg`. These are the only time steppers DIMSWE implements; the DIRK and implicit RK placeholders raise `NotImplementedError` already when they are constructed. A `LieSplit` keeps the stage values it computes while recomputing each step's substeps, and its adjoint and second-order adjoint substeps reuse them instead of solving them again. Set `timestepping.reuse_stages: false` to switch this off; the results agree to round-off.
 
 The examples `examples/optimize_ic_params_newton_cg.cfg` and `examples/optimize_coeff_trust_constr.cfg` solve the same problems as their L-BFGS-B counterparts (see the [Quick start](#quick-start) tables). Use [Comparing optimizer methods](#comparing-optimizer-methods) to compare the results.
 
