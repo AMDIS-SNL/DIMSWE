@@ -19,6 +19,7 @@ from workflows import profile_hvp
 from workflows.common import load_yaml
 from workflows.profile_hvp import (
     COST_MODEL_STAGE_PASSES,
+    COST_MODEL_RATIOS_RECOMPUTE,
     evaluation_plan,
     main,
     optimizer_estimate,
@@ -272,7 +273,8 @@ def fake_job(monkeypatch, clock, tmp_path):
     job = {"name": "fake__final", "job_dir": tmp_path / "optimizations" / "fake__final"}
     monkeypatch.setattr(profile_hvp, "select_job", lambda spec_path, job_filter: (spec, job))
     monkeypatch.setattr(profile_hvp, "build_job_problem",
-                        lambda spec, job: (FakeProblem(clock), NSTEPS, NSUBSTEPS, False))
+                        lambda spec, job, recompute_stages=False: (FakeProblem(clock), NSTEPS, NSUBSTEPS,
+                                                                   recompute_stages))
     return spec, job
 
 
@@ -308,9 +310,21 @@ def test_cli_default_output_dir_and_dry_run(fake_job, capsys):
     out = capsys.readouterr().out.strip().splitlines()
     assert Path(out[-1]).parts[-3:] == ("profiles", "fake-params-newton-cg", "fake__final")
 
+    # the recompute A/B run does not overwrite the default profile
+    assert main(["spec.cfg", "--print-output-dir", "--recompute-stages"]) is None
+    out = capsys.readouterr().out.strip().splitlines()
+    assert Path(out[-1]).parts[-1] == "fake__final__recompute"
+
     assert main(["spec.cfg", "--dry-run", "--repeats", "2"]) is None
     out = capsys.readouterr().out
     assert "hessp-4" in out and "Seconds per evaluation" not in out
+
+
+def test_cli_recompute_stages_selects_the_recompute_cost_model(fake_job, tmp_path, capsys):
+    profile = main(["spec.cfg", "--output-dir", str(tmp_path / "recompute"), "--recompute-stages"])
+    capsys.readouterr()
+    assert profile["recompute_stages"] is True
+    assert profile["summary"]["cost_model_ratios"] == COST_MODEL_RATIOS_RECOMPUTE
 
 
 def test_profile_script_wraps_the_driver_and_the_flamegraph():

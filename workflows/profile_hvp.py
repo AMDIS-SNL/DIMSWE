@@ -148,6 +148,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                              "(default: the profiled job's own result.yaml, if it exists)")
     parser.add_argument("--min-share", type=float, default=0.005,
                         help="Hide regions below this share of their evaluation in the printed tree")
+    parser.add_argument("--recompute-stages", action="store_true",
+                        help="Switch LieSplit stage reuse off (reuse_stages false) for an A/B comparison with the "
+                             "default; the default output directory gets a __recompute suffix")
     parser.add_argument("--dry-run", action="store_true", help="Print the selected job and evaluation plan only")
     parser.add_argument("--print-output-dir", action="store_true",
                         help="Print only the output directory and exit (used by profile_hvp.sh --flamegraph)")
@@ -488,17 +491,21 @@ def timestepper_layout(timestepper: Any) -> tuple[int, bool]:
     return int(sum(subcycles)), not getattr(timestepper, "reuse_stages", False)
 
 
-def build_job_problem(spec: dict[str, Any], job: dict[str, Any]) -> tuple[Any, int, int, bool]:
+def build_job_problem(spec: dict[str, Any], job: dict[str, Any],
+                      recompute_stages: bool = False) -> tuple[Any, int, int, bool]:
     """Build the job's ReducedProblem exactly as optimize_params.run_job does.
 
-    Returns (problem, nsteps, nsubsteps, recompute_stages): the time steps per data block, the
-    substeps per time step and whether the stages are re-solved in the adjoint substeps (see
-    timestepper_layout).
+    With recompute_stages, a LieSplit timestepper's stage reuse is switched off afterwards, so the
+    same build can be profiled on the old recompute path (--recompute-stages). Returns (problem,
+    nsteps, nsubsteps, recompute_stages): the time steps per data block, the substeps per time
+    step and whether the stages are re-solved in the adjoint substeps (see timestepper_layout).
     """
     from workflows.optimize_params import Job
 
     state = Job(spec, job)
     problem, _, _ = state.build_problem()
+    if recompute_stages and hasattr(state.timestepper, "reuse_stages"):
+        state.timestepper.reuse_stages = False
     nsubsteps, recompute_stages = timestepper_layout(state.timestepper)
     return problem, int(state.objective.nsteps), nsubsteps, recompute_stages
 
@@ -517,7 +524,8 @@ def main(argv: list[str] | None = None) -> dict[str, Any] | None:
     spec_path = resolve_path(args.optimize_cfg)
     spec, job = select_job(spec_path, args.job)
     output_dir = (resolve_path(args.output_dir) if args.output_dir
-                  else resolve_runs_root(DEFAULT_OUTPUT_ROOT) / spec["optimization_name"] / job["name"])
+                  else resolve_runs_root(DEFAULT_OUTPUT_ROOT) / spec["optimization_name"]
+                  / (job["name"] + ("__recompute" if args.recompute_stages else "")))
     if args.print_output_dir:
         root_print(str(output_dir))
         return None
@@ -529,7 +537,7 @@ def main(argv: list[str] | None = None) -> dict[str, Any] | None:
         return None
 
     start = time.perf_counter()
-    problem, nsteps, nsubsteps, recompute_stages = build_job_problem(spec, job)
+    problem, nsteps, nsubsteps, recompute_stages = build_job_problem(spec, job, recompute_stages=args.recompute_stages)
     build_seconds = time.perf_counter() - start
     root_print(f"  built the model and problem in {build_seconds:.3f} s ({nsteps} steps x {nsubsteps} substeps, "
                f"{problem.z0.size} optimization variables)")

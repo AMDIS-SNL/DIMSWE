@@ -138,7 +138,41 @@ Conclusions so far:
 - **The step 19 baseline's `optimize_seconds` predates B0.** Rerun `optimizer_baseline.sh --check`, then `--save`.
 - **L-BFGS-B is still faster on this problem:** about 7 × (2.6 + 10.4) ≈ 91 s, against about 241 s for Newton-CG. See section 2.2.
 
-**Next items, by size:**
+**After A3** (stage reuse within a LieSplit step; same run settings and job, `--repeats 3`):
+
+| quantity | after B0 | after A3 |
+|---|---|---|
+| obj / jac / hessp steady seconds | 2.61 / 10.45 / 22.12 | 2.79 / 9.29 / 20.45 |
+| jac/obj, hessp/jac (model 3, 2 with reuse) | 4.01, 2.12 | 3.34, 2.20 |
+| stage passes per substep | jac 3 forward; hessp 3 forward + 3 tangent | jac 2 forward; hessp 2 forward + 2 tangent (exactly the model) |
+| hessp forward / tangent stage seconds | 5.51 / 5.84 | 4.21 / 4.35 |
+| hessp seconds per pass: forward / tangent / adjoint / soa | 1.84 / 1.95 / 1.92 / 2.12 | 2.11 / 2.17 / 2.21 / 2.34 |
+| `restore stages` (jac, hessp) | - | 0.11 s, 0.22 s (about 1%) |
+| hessp setup (first - steady) | 34.2 s | 35.5 s |
+
+- **The passes are gone as intended,** and restoring costs about 1%. The measured stage-pass counts match the new model exactly.
+- **Compared with the previous run, the gain looked smaller than predicted:** jac -11% and hessp -7.5%, against about 18% and 17%. In that run every kind of stage pass, and `obj`, was 7-15% slower, including code A3 does not touch.
+- **A/B in one session** (`--repeats 2`, the default run and then `--recompute-stages`) confirms the full gain:
+
+| quantity | recompute (`reuse_stages: false`) | reuse (default) | change |
+|---|---|---|---|
+| obj steady seconds | 2.79 | 2.71 | (no A3 change) |
+| jac steady seconds | 11.74 | 9.24 | -21% |
+| hessp steady seconds | 23.80 | 19.12 | -20% |
+| jac/obj, hessp/jac | 4.20, 2.03 (model 4, 2) | 3.41, 2.07 (model 3, 2) | |
+| jac forward stages | 6.48 s | 3.94 s | -2.53 s |
+| hessp forward / tangent stages | 6.06 / 6.38 s | 3.79 / 3.94 s | -4.71 s |
+| hessp adjoint / soa stages | 2.09 / 2.27 s | 1.99 / 2.12 s | no cache penalty |
+| `restore stages` (jac, hessp) | - | 0.11 / 0.22 s | |
+
+  The saving is exactly one forward pass per gradient, and one forward plus one tangent pass per HVP, minus the restores. The adjoint and SOA solves do not get slower when they no longer follow a stage solve, so there is no cache effect. Against the after-B0 run the totals are HVP 22.1 → 19.1 s and gradient 10.45 → 9.24 s.
+- **The initial-condition map is now the largest single item outside the stage solves.** It takes 3.4 s (18%) of an HVP and 1.35 s (15%) of a gradient, including `ic map forward`.
+
+**Next items, by size (after A3):**
+1. **Caching the initial-condition map** (tangents and second tangents, per parameter point): about 3.0 s (16%) of a 19.1 s HVP and 0.9 s (10%) of a 9.2 s gradient.
+2. **A1/A2:** the remaining gains, behind a configuration option.
+
+**Next items, by size (after B0, kept for reference):**
 1. **A3** (keep the stage values within a step): removes one of the three forward and one of the three tangent passes, about 3.8 s (17%) of an HVP and 1.8 s (18%) of a gradient.
 2. **Caching the initial-condition map** (tangents and second tangents, per parameter point): about 2.8-3.3 s (13-15%) of an HVP and 0.85 s (8%) of a gradient.
 3. **A1/A2:** the remaining gains, behind a configuration option.
@@ -163,7 +197,7 @@ Conclusions so far:
 - `LieSplittingIntegrator` stores each substep's stages (and tangent stages) while recomputing the substep states, and restores them in the substep adjoint steps. This is on by default; `timestepping.reuse_stages: false` restores the old recompute path.
 - The cost model is now jac 2 forward + 1 adjoint pass per substep, and hessp 2 forward + 2 tangent + 1 adjoint + 1 SOA (`COST_MODEL_STAGE_PASSES` in `workflows/profile_hvp.py`).
 - Tests: `tests/unit/test_stage_reuse.py` checks that reuse matches recompute to 1e-10, and the stage-pass counts both ways.
-- To do: re-profile and run the baseline check.
+- Re-profiled (section 2.3): the stage-pass counts match the model, and an A/B run in one session (`profile_hvp.py --recompute-stages`) gives jac 11.74 → 9.24 s (-21%) and hessp 23.80 → 19.12 s (-20%). Still to do: the baseline check.
 
 The original description follows.
 
@@ -216,7 +250,7 @@ Revised after the measurements in section 2.3:
 
 1. Measurements (section 2): done; see section 2.3.
 2. **B0** (persistent increment assemblers): done. HVP 46 → 22 s, gradient 15.4 → 10.4 s.
-3. **A3** (stage reuse within a step): about 17% of an HVP and 18% of a gradient. Implemented; to be re-profiled.
+3. **A3** (stage reuse within a step): done. Stage passes per substep 3 → 2; A/B in one session: jac -21%, hessp -20% (section 2.3).
 4. **Cache the initial-condition tangents and second tangents per parameter point:** about 13-15% of an HVP and 8% of a gradient.
 5. **A1/A2** (cache per point, optional stage checkpointing) behind a configuration option. Stage solves are now 70% of an HVP, so these are the remaining large gains.
 6. **C2** (reuse the model across jobs) for the per-job setup of about 54 s; C1 only if a later profile shows factorizations mattering. C3 and B3 are not needed (section 2.3, findings 2 and 3); B4 is small.

@@ -455,7 +455,7 @@ Wall time is reported as a ratio and only checked with `--time-factor`, since it
 `workflows/profile_hvp.sh` measures where one job's evaluations spend their time ([docs/hvp_performance_plan.md](../docs/hvp_performance_plan.md), section 2):
 
 ```bash
-bash workflows/profile_hvp.sh <mpi-ranks> <optimize-cfg> [--job SUBSTRING] [--repeats N] [--seed S] [--output-dir DIR] [--results RESULT.yaml ...] [--flamegraph] [PETSc options]
+bash workflows/profile_hvp.sh <mpi-ranks> <optimize-cfg> [--job SUBSTRING] [--repeats N] [--seed S] [--output-dir DIR] [--results RESULT.yaml ...] [--recompute-stages] [--flamegraph] [PETSc options]
 bash workflows/profile_hvp.sh 4 workflows/examples/optimize_ic_params_newton_cg.cfg --job ox-0p086034__final --repeats 2
 ```
 
@@ -464,6 +464,8 @@ The truth runs must already exist. The script builds the job as `optimize_params
 - the `jac/obj` and `hessp/jac` ratios next to the cost model;
 - the stage passes per step, the time per region, and the cost of one stage pass per sub-integrator;
 - an estimate of the optimizer run time from the job's `result.yaml` counts.
+
+`--recompute-stages` switches a `LieSplit` timestepper's stage reuse off (`reuse_stages: false`) and writes to `<job>__recompute`. Run it right after a default run to compare both paths on the same machine state.
 
 `--flamegraph` also writes PETSc's nested log (`-log_view :…:ascii_flamegraph`) and renders it with `./flamegraph.pl`. The profiling regions then appear around PETSc's own events. Use a run without `--flamegraph` for the timings.
 
