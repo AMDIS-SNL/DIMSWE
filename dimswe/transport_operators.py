@@ -77,6 +77,13 @@ def VVLieDerivative(degree, dim, u, a, ahat, afac_edge, afac, v, alpha_s, n, ord
 
 #MISSING LOTS OF THESE EXPRESSIONS...
 def CVLieDerivative(degree, dim, u, a, ahat, afac_edge, afac, v, alpha_s, n, order, dx, dS):
+    """Return the DG weak form of the Lie derivative of a covector-valued form a, tested with ahat.
+
+    For volume forms (degree == dim) this discretizes int ahat . L_u (a/afac) dx, where
+    (L_u a)_i = d_j(u_j a_i) + a_j d_i u_j. The form is antisymmetric in (u, ahat), as needed by
+    the Lie-Poisson bracket. The facet value of a is upwinded with velocity v (alpha_s = 1 gives
+    full upwinding, 0 centered), and afac_edge / afac scale a on facets / in cells.
+    """
     alpha = alpha_s * sign(dot(v('+'),n('+')))
     atilde = 0.5 * ((1. + alpha) * a('+') + (1. - alpha)*a('-'))
     uavg = (u('+') + u('-'))/2.0
@@ -90,9 +97,13 @@ def CVLieDerivative(degree, dim, u, a, ahat, afac_edge, afac, v, alpha_s, n, ord
         expr = (dot(ahat('+'),atilde/afac_edge)*inner(uavg, n('+')) + dot(ahat('-'),atilde/afac_edge)*inner(uavg, n('-')))*dS
         expr = expr - (dot(u('+'),atilde/afac_edge)*inner(ahatavg, n('+')) + dot(u('-'),atilde/afac_edge)*inner(ahatavg, n('-')))*dS
 
+        # Broken volume terms of the weak Lie derivative, with (L_u a)_i = d_j(u_j a_i) + a_j d_i u_j.
+        # Since grad(w)[i, j] = d_j w_i in UFL, the covector a must be the first argument of outer:
+        # outer(a, u) : grad(ahat) = a_i u_j d_j ahat_i. Reversing it (outer(u, a)) still gives an
+        # antisymmetric bracket, but the wrong dynamics.
         if order >1:
-            expr = expr - inner(outer(u,a/afac), grad(ahat))*dx
-            expr = expr + inner(outer(ahat,a/afac), grad(u))*dx
+            expr = expr - inner(outer(a/afac, u), grad(ahat))*dx
+            expr = expr + inner(outer(a/afac, ahat), grad(u))*dx
 #PROBABLY NEED TO DISTINGUISH BETWEEN 1-FORMS AND N-1 FORMS HERE!
     #1-forms in 2D
     elif degree == 1 and dim == 2:
