@@ -106,6 +106,12 @@ class ThreeWayPhysics(ForcingBase):
             Dqr = ufl.max_value(0.0, coeff['gamma_r'] * (qc-coeff['qprecip'])/self.tau_r)
         else:
             Dqr = ufl.max_value(0.0, self.gamma_r * (qc-self.qprecip)/self.tau_r)
+        # Cap rain production by the cloud water left after evaporation, so that one Euler step of
+        # length dt keeps qc >= 0 pointwise: qc + dt*(Dqv - Dqc - Dqr) >= qc - dt*Dqc - dt*Dqr >= 0.
+        # Without it, subsaturated air that evaporates all its cloud in one step (dt*Dqc = qc) while
+        # qc > qprecip would end with qc = -gamma_r*(qc - qprecip) < 0. Condensation and evaporation
+        # are mutually exclusive, so the cap is only active in that case.
+        Dqr = ufl.min_value(Dqr, ufl.max_value(0.0, qc/self.dt - Dqc))
         Sv = Dqc - Dqv
         Sr = Dqr
         Sc = Dqv - Dqc - Dqr
