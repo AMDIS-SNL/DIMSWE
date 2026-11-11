@@ -5,7 +5,13 @@ import pytest
 import yaml
 
 from workflows.common import WORKFLOWS_DIR
-from workflows.compare_runs import combine_limits, grid_axis_points, merge_limits, resolve_comparison_options
+from workflows.compare_runs import (
+    combine_limits,
+    grid_axis_points,
+    merge_limits,
+    resolve_comparison_options,
+    resolve_render_movies,
+)
 
 
 def test_resolve_comparison_options_defaults_to_first_run():
@@ -107,3 +113,23 @@ def test_example_compare_mtswe_physics_cfg_compares_moisture_against_cf():
     assert options["reference"] == "CF" and options["differences"] is True
     assert {"Qv", "Qc", "Qr"} <= set(data["quantities"]["fields"])
     assert "total_water" in data["quantities"]["statistics"]
+
+
+@pytest.mark.parametrize(
+    "output_cfg, no_movies_flag, expected",
+    [
+        ({}, False, True),
+        ({"movies": False}, False, False),
+        ({"movies": True}, True, False),
+        ({}, True, False),
+    ],
+)
+def test_resolve_render_movies(output_cfg, no_movies_flag, expected):
+    """Movies default on, can be disabled in the config, and --no-movies always wins."""
+    assert resolve_render_movies(output_cfg, no_movies_flag) is expected
+
+
+def test_resolve_render_movies_rejects_non_boolean():
+    """output.movies must be a boolean."""
+    with pytest.raises(ValueError):
+        resolve_render_movies({"movies": "no"}, False)

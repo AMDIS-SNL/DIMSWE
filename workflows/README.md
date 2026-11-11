@@ -128,6 +128,12 @@ Create comparison plots and movies from existing runs:
 bash workflows/compare_runs.sh workflows/examples/compare.cfg
 ```
 
+Skip the movies (the slowest part, especially when differences are sampled) and render only PNG frames and statistic plots:
+
+```bash
+bash workflows/compare_runs.sh --no-movies workflows/examples/compare.cfg
+```
+
 Validate the comparison config without rendering outputs:
 
 ```bash
@@ -141,6 +147,7 @@ The comparison config currently supports:
 - `quantities.statistics`: scalar statistics stored in the checkpoint HDF5 file
 - `time_selection.frames`: output indices to render as PNG frames
 - `output.outdir`: destination directory for comparison artifacts
+- `output.movies` (optional, default `true`): render the WEBP movies; set `false` (or pass `--no-movies`) to render only the PNG frames and statistic plots
 - `reference` (optional): label of the run that differences are taken against (default: the first run)
 - `differences` (optional, default `true`): draw `<run> − <reference>` panels for every other run
 - `samples_per_cell` (optional, default `4`): sampling density for differences between differently numbered meshes

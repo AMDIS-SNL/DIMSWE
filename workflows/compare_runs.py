@@ -25,7 +25,20 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("compare_cfg", help="Path to the comparison YAML file")
     parser.add_argument("--dry-run", action="store_true", help="Validate inputs without rendering")
+    parser.add_argument(
+        "--no-movies",
+        action="store_true",
+        help="Skip the WEBP movies (overrides output.movies in the config); PNG frames are still rendered",
+    )
     return parser.parse_args()
+
+
+def resolve_render_movies(output_cfg: dict[str, Any], no_movies_flag: bool) -> bool:
+    """Return whether to render movies: output.movies (default true), unless --no-movies is given."""
+    movies = output_cfg.get("movies", True)
+    if not isinstance(movies, bool):
+        raise ValueError(f"'output.movies' must be true or false, got {movies!r}")
+    return movies and not no_movies_flag
 
 
 def resolve_run_entry(entry: dict[str, Any], base_dir: Path) -> dict[str, Any]:
@@ -518,6 +531,7 @@ def main() -> None:
 
     output_cfg = compare_cfg.get("output", {})
     outdir = resolve_path(output_cfg.get("outdir", "workflows/output"), base_dir)
+    render_movies = resolve_render_movies(output_cfg, args.no_movies)
     quantities_cfg = compare_cfg.get("quantities", {})
     field_quantities = quantities_cfg.get("fields", [])
     statistic_quantities = quantities_cfg.get("statistics", [])
@@ -535,6 +549,7 @@ def main() -> None:
         print(f"Field quantities: {field_quantities}")
         print(f"Statistic quantities: {statistic_quantities}")
         print(f"Reference run: {options['reference']} (differences: {options['differences']})")
+        print(f"Movies: {render_movies}")
         return
 
     outdir.mkdir(parents=True, exist_ok=True)
@@ -544,7 +559,8 @@ def main() -> None:
     for quantity in field_quantities:
         for output_index in frame_indices:
             render_field_frame(run_contexts, quantity, output_index, outdir, options)
-        render_field_movie(run_contexts, quantity, outdir, options)
+        if render_movies:
+            render_field_movie(run_contexts, quantity, outdir, options)
 
 
 if __name__ == "__main__":
