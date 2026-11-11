@@ -66,7 +66,18 @@ DEFAULT_OPTIMIZER = {
     # step tolerance, only used by Newton-CG (its only stopping tolerance) and trust-constr;
     # null keeps scipy's default
     "xtol": None,
+    # storage of the gradient and HVP sweeps (docs/hvp_performance_plan.md, items A1/A2): states
+    # stores the trajectory and recomputes stage values within each step; stages also stores the
+    # stage values and stage adjoints during each gradient, so the gradient skips the recompute
+    # and HVPs at the gradient's point only solve the tangent and second-order adjoint stages.
+    # null (the default) selects stages whenever the timestepper supports it (explicit RK and
+    # LieSplit of those), else states (dimswe.optimize.resolve_checkpoint)
+    "checkpoint": None,
 }
+
+# allowed optimizer.checkpoint values (dimswe.optimize.CHECKPOINT_MODES, kept in sync by
+# tests/unit/test_workflow_optimizer_tables.py)
+CHECKPOINT_MODES = ("states", "stages")
 
 # scipy.optimize.minimize methods, upper case. These tables mirror dimswe.optimize (which cannot
 # be imported here without Firedrake); tests/unit/test_workflow_optimizer_tables.py keeps them in sync.
@@ -189,6 +200,11 @@ def validate_optimizer_spec(optimizer_spec: dict[str, Any], target: str, paramet
             "coefficient bounds; use trust-constr (or a first-order method such as L-BFGS-B), or set "
             "optimizer.use_bounds: false to optimize without bounds"
         )
+
+    # null defers the choice to the timestepper (dimswe.optimize.resolve_checkpoint)
+    if optimizer_spec["checkpoint"] is not None and optimizer_spec["checkpoint"] not in CHECKPOINT_MODES:
+        raise ValueError(f"optimizer.checkpoint must be null or one of {', '.join(CHECKPOINT_MODES)}, "
+                         f"not {optimizer_spec['checkpoint']!r}")
 
     xtol = optimizer_spec["xtol"]
     if xtol is not None:
@@ -421,7 +437,8 @@ class Job:
         self.coeff, self.coeff_sub, _ = self.model.get_coeff_var("coeff")
         self.model.set_coeffs(parameters, self.coeff_sub)
         self.timestepper.set_coeff(self.coeff)
-        self.optimizer = Lagrangian_ODEConstrainedOptimization(self.model, self.timestepper, self.objective, self.dt)
+        self.optimizer = Lagrangian_ODEConstrainedOptimization(self.model, self.timestepper, self.objective, self.dt,
+                                                               checkpoint=spec["optimizer"]["checkpoint"])
         self.optimizer.verbose = False
 
     def build_problem(self) -> tuple[Any, list[str] | None, dict[str, Any]]:
@@ -637,7 +654,8 @@ def run_job(spec: dict[str, Any], job: dict[str, Any], check_gradient: bool) -> 
         raise RuntimeError(ZERO_GRADIENT_MESSAGE.format(loss=report["loss"]))
 
     history = History(names, problem=problem)
-    optimizer_spec = spec["optimizer"]
+    # record the checkpoint mode actually used (null in the spec resolves per timestepper)
+    optimizer_spec = {**spec["optimizer"], "checkpoint": state.optimizer.checkpoint}
     gtol = optimizer_gtol(optimizer_spec, report)
     # wall time of the optimizer loop alone (excluding setup, the gradient report and output), so
     # first- and second-order methods can be compared by cost as well as by evaluation counts

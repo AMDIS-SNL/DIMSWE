@@ -19,6 +19,7 @@ from workflows import profile_hvp
 from workflows.common import load_yaml
 from workflows.profile_hvp import (
     COST_MODEL_STAGE_PASSES,
+    COST_MODEL_RATIOS_CHECKPOINT,
     COST_MODEL_RATIOS_RECOMPUTE,
     evaluation_plan,
     main,
@@ -26,6 +27,9 @@ from workflows.profile_hvp import (
     parse_args,
     profile_evaluations,
     profiling_module,
+    format_strategies,
+    solver_strategies,
+    stage_costs,
     summarize,
     timestepper_layout,
 )
@@ -171,6 +175,17 @@ def test_profile_evaluations_records_one_table_per_call(records):
     assert not any(path.endswith("setup second order") for path in records[5]["regions"])
 
 
+def test_profile_evaluations_clears_caches_before_obj_and_jac_only(clock):
+    order = []
+    problem = FakeProblem(clock)
+    for name in ("full_fun", "full_jac", "full_hessp"):
+        original = getattr(problem, name)
+        setattr(problem, name, lambda *args, _name=name, _original=original: (order.append(_name), _original(*args))[1])
+    profile_evaluations(problem, repeats=1, clear_caches=lambda: order.append("clear"))
+    assert order == ["clear", "full_fun", "clear", "full_fun", "clear", "full_jac", "clear", "full_jac",
+                     "full_hessp", "full_hessp", "full_hessp"]
+
+
 def test_profile_evaluations_leaves_timing_disabled(clock):
     profile_evaluations(FakeProblem(clock), repeats=1)
     assert not profiling.is_enabled()
@@ -211,6 +226,52 @@ def test_stage_costs_are_per_sub_integrator_and_relative_to_a_forward_pass(recor
         assert costs[label]["tangent stages"]["vs_forward"] == 2.0
         assert costs[label]["soa stages"]["vs_forward"] == 4.0
         assert costs[label]["soa stages"]["calls"] == NSTEPS
+
+
+def test_stage_costs_fall_back_to_the_reference_forward_pass_without_forward_solves():
+    # a checkpointed HVP restores the forward stages, so it has no forward pass of its own
+    label = LABELS[0]
+    obj = {"label": "obj-2", "regions": {
+        "obj-2": {"calls": 1, "seconds": 2.0},
+        f"obj-2/{label}": {"calls": 2, "seconds": 2.0},
+        f"obj-2/{label}/forward stages": {"calls": 2, "seconds": 2.0}}}
+    hessp = {"label": "hessp-2", "regions": {
+        "hessp-2": {"calls": 1, "seconds": 6.0},
+        f"hessp-2/{label}": {"calls": 2, "seconds": 6.0},
+        f"hessp-2/{label}/tangent stages": {"calls": 2, "seconds": 6.0}}}
+    reference = stage_costs(obj)
+    assert reference[label]["forward reference"] == {"seconds_per_pass": 1.0, "source": "call"}
+    costs = stage_costs(hessp, reference)
+    assert costs[label]["forward reference"] == {"seconds_per_pass": 1.0, "source": "reference"}
+    assert costs[label]["tangent stages"]["vs_forward"] == 3.0
+    # without a reference there is nothing to compare with
+    alone = stage_costs(hessp)
+    assert alone[label]["forward reference"]["source"] is None
+    assert alone[label]["tangent stages"]["vs_forward"] is None
+
+
+def test_solver_strategies_report_each_sub_integrator_and_flag_fallbacks():
+    from types import SimpleNamespace
+
+    mass, reference = SimpleNamespace(strategy="mass"), SimpleNamespace(strategy="reference")
+    fast = SimpleNamespace(_increment_assemblers={"L_delta_grad": SimpleNamespace(strategy="get_assembler")},
+                           _increment_solvers={"L_delta_lambda": mass},
+                           _stage_solvers={"F0": mass, "mu0": mass})
+    slow = SimpleNamespace(_increment_assemblers={"L_delta_grad": SimpleNamespace(strategy="assemble")},
+                           _increment_solvers={"L_delta_lambda": reference},
+                           _stage_solvers={"F0": mass, "mu0": reference, "F1": reference})
+    split = SimpleNamespace(time_integrators=[fast, slow], profile_labels=list(LABELS))
+    strategies = solver_strategies(split)
+    assert strategies == {
+        LABELS[0]: {"assemble L_delta_grad": "get_assembler", "solve L_delta_lambda": "mass", "stage solves": "2 mass"},
+        LABELS[1]: {"assemble L_delta_grad": "assemble", "solve L_delta_lambda": "reference",
+                    "stage solves": "1 mass, 2 reference (F1, mu0)"},
+    }
+    text = format_strategies(strategies)
+    assert text.count("(FALLBACK)") == 3
+    # a plain RK timestepper is reported as "rk"; one without solvers yet as "-"
+    assert solver_strategies(fast) == {"rk": strategies[LABELS[0]]}
+    assert "-" in format_strategies(solver_strategies(SimpleNamespace()))
 
 
 def test_optimizer_estimate_combines_counts_with_steady_costs(records):
@@ -272,9 +333,12 @@ def fake_job(monkeypatch, clock, tmp_path):
     spec = {"optimization_name": "fake-params-newton-cg", "target": "ic-params", "optimizer": {"method": "Newton-CG"}}
     job = {"name": "fake__final", "job_dir": tmp_path / "optimizations" / "fake__final"}
     monkeypatch.setattr(profile_hvp, "select_job", lambda spec_path, job_filter: (spec, job))
-    monkeypatch.setattr(profile_hvp, "build_job_problem",
-                        lambda spec, job, recompute_stages=False: (FakeProblem(clock), NSTEPS, NSUBSTEPS,
-                                                                   recompute_stages))
+    def build(spec, job, recompute_stages=False, checkpoint=None):
+        layout = {"nsteps": NSTEPS, "nsubsteps": NSUBSTEPS, "recompute_stages": recompute_stages,
+                  "checkpoint_stages": checkpoint == "stages"}
+        return FakeProblem(clock), layout, None
+
+    monkeypatch.setattr(profile_hvp, "build_job_problem", build)
     return spec, job
 
 
@@ -327,6 +391,25 @@ def test_cli_recompute_stages_selects_the_recompute_cost_model(fake_job, tmp_pat
     assert profile["summary"]["cost_model_ratios"] == COST_MODEL_RATIOS_RECOMPUTE
 
 
+def test_cli_checkpoint_override_selects_the_checkpoint_cost_model(fake_job, tmp_path, capsys):
+    profile = main(["spec.cfg", "--output-dir", str(tmp_path / "stages"), "--checkpoint", "stages"])
+    capsys.readouterr()
+    assert profile["checkpoint_stages"] is True and profile["recompute_stages"] is False
+    assert profile["summary"]["cost_model_ratios"] == COST_MODEL_RATIOS_CHECKPOINT
+    assert main(["spec.cfg", "--print-output-dir", "--checkpoint", "stages"]) is None
+    out = capsys.readouterr().out.strip().splitlines()
+    assert Path(out[-1]).parts[-1] == "fake__final__stages"
+    with pytest.raises(SystemExit):
+        parse_args(["spec.cfg", "--checkpoint", "everything"])
+
+
+def test_checkpoint_cost_model_takes_precedence_and_halves_the_hvp():
+    assert profile_hvp.cost_model(True, True) == profile_hvp.cost_model(False, True)
+    passes, ratios = profile_hvp.cost_model(checkpoint_stages=True)
+    assert sum(passes["hessp"].values()) == 2 and sum(passes["jac"].values()) == 2
+    assert ratios["hessp/jac"] == 1.0
+
+
 def test_profile_script_wraps_the_driver_and_the_flamegraph():
     script = (Path(__file__).resolve().parents[2] / "workflows" / "profile_hvp.sh").read_text(encoding="utf-8")
     assert "python -m workflows.profile_hvp" in script
@@ -347,11 +430,12 @@ def test_real_gradient_and_hvp_match_the_stage_pass_cost_model():
     problem = setup.optimizer.reduced_problem(params, opt_type="ic-params", coeffs0=setup.coeff, ic_map=ic_map,
                                               scaling_factors=np.array([0.1, 0.1]))
     nsubsteps, recompute_stages = timestepper_layout(setup.timestepper)
-    # tests/tswe_small.cfg: LieSplit of RK4 x 2 and Euler x 1, reusing stages by default
+    # tests/tswe_small.cfg: LieSplit of RK4 x 2 and Euler x 1, on the default stage checkpoint
     assert not recompute_stages and nsubsteps == 3
+    assert setup.optimizer.checkpoint == "stages"
 
-    records = profile_evaluations(problem, repeats=1, seed=5)
-    summary = summarize(records, nsteps, nsubsteps, recompute_stages=recompute_stages)
+    records = profile_evaluations(problem, repeats=1, seed=5, clear_caches=ic_map.clear_cache)
+    summary = summarize(records, nsteps, nsubsteps, recompute_stages=recompute_stages, checkpoint_stages=True)
     print(profile_hvp.format_summary(summary))
     for kind, passes in summary["stage_passes_per_substep"].items():
         for stage_kind, entry in passes.items():
@@ -362,3 +446,11 @@ def test_real_gradient_and_hvp_match_the_stage_pass_cost_model():
     assert set(summary["stage_costs"]["hessp"]) == set(setup.timestepper.profile_labels)
     assert all(record["seconds"] > 0 for record in records)
     assert summary["breakdown"]["hessp"]["other"]["share"] < 1.0
+    # the fast increment paths are in use in every sub-integrator, none fell back
+    strategies = solver_strategies(setup.timestepper)
+    print(profile_hvp.format_strategies(strategies))
+    for label, entry in strategies.items():
+        assert entry["solve L_delta_lambda"] == "mass" and entry["solve L_delta_lambda_dot"] == "mass", label
+        # every stage solve uses the shared factorization (plan item C1)
+        assert "reference" not in entry["stage solves"], label
+        assert "assemble" not in entry.values() and "reference" not in entry.values(), label

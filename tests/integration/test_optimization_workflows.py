@@ -327,6 +327,8 @@ def test_default_optimizer_spec_is_unchanged_first_order():
     assert DEFAULT_OPTIMIZER["use_hessp"] is None
     assert DEFAULT_OPTIMIZER["use_bounds"] is True
     assert DEFAULT_OPTIMIZER["xtol"] is None
+    # null: stages when the timestepper supports it, else states (dimswe.optimize.resolve_checkpoint)
+    assert DEFAULT_OPTIMIZER["checkpoint"] is None
     for target in ("coeffs", "ic-params", "ic-field"):
         validate_optimizer_spec(optimizer_spec_with(), target, {})
 
@@ -343,6 +345,9 @@ def test_default_optimizer_spec_is_unchanged_first_order():
         ({"method": "newton-cg", "use_hessp": False}, "ic-field"),  # finite differences of the gradient
         ({"method": "CG"}, "coeffs"),  # first-order methods keep scipy's warn-and-ignore bounds behaviour
         ({"method": "TNC"}, "coeffs"),
+        ({"method": "Newton-CG", "checkpoint": "stages"}, "ic-params"),  # stage checkpoint (A1/A2)
+        ({"checkpoint": "stages"}, "coeffs"),  # also speeds up first-order gradients
+        ({"checkpoint": "states"}, "ic-params"),  # the recompute path, for memory-bound windows
     ],
 )
 def test_second_order_optimizer_specs_are_accepted(changes, target):
@@ -355,6 +360,7 @@ def test_second_order_optimizer_specs_are_accepted(changes, target):
     "changes, target, parameters, message",
     [
         ({"method": "not-a-method"}, "coeffs", {}, "Unknown optimizer.method"),
+        ({"checkpoint": "everything"}, "coeffs", {}, "optimizer.checkpoint"),
         ({"method": "dogleg"}, "ic-params", {}, "full Hessian"),
         ({"method": "trust-exact"}, "ic-field", {}, "full Hessian"),
         ({"method": "Newton-CG"}, "coeffs", {}, "cannot handle bounds"),

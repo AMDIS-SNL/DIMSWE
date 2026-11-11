@@ -284,6 +284,7 @@ optimizer:
   use_hessp: null                       # Hessian-vector products: null = use them when the method can
   use_bounds: true                      # false: optimize coeffs without bounds (allows Newton-CG etc.)
   xtol: null                            # step/trust-radius tolerance for Newton-CG and trust-constr
+  checkpoint: null                      # null = stages when the timestepper allows it; states: less memory, slower
 output_root: runs/optimizations
 ```
 
@@ -320,6 +321,13 @@ Restrictions, all checked when the spec is loaded (also with `--dry-run`):
 - **No full Hessian.** `dogleg` and `trust-exact` need the full Hessian matrix, which DIMSWE does not form. Use an HVP method instead.
 - **`use_hessp`.** The default `null` uses HVPs for the second-order methods and leaves first-order methods unchanged. `true` with a first-order method is an error. `false` with `trust-ncg` or `trust-krylov`, which require HVPs, is an error too.
 - **`xtol`.** Only `Newton-CG` and `trust-constr` accept `xtol`. Newton-CG stops only on `xtol` and ignores `gtol`.
+- **`checkpoint`.** This sets what the gradient and HVP sweeps store. The default `null` selects `stages` for the explicit RK and LieSplit timesteppers, and `states` for any other. `result.yaml` records the mode used.
+  - `states` stores the trajectory and recomputes every step's stage values in the reverse sweep. Set it explicitly if a long window does not fit in memory.
+  - `stages` also stores every step's stage values, stage adjoints and adjoints during each gradient. The gradient then skips the recompute: 2 stage passes per substep instead of 3.
+  - An HVP at the point of the last gradient, as in Newton-CG's inner iterations, only solves the tangent and second-order adjoint stages: 2 passes instead of 6. It reuses the stored gradient.
+  - The cost is memory: about three copies of the stage values per step and substep over the window.
+  - Measured on the Newton-CG example: an HVP went from 16.8 s to 7.5 s and a gradient from 9.8 s to 7.3-7.9 s, with unchanged evaluation counts and losses.
+  - It helps first-order methods too. The results agree with `states` to round-off. See plan items A1/A2 in [docs/hvp_performance_plan.md](../docs/hvp_performance_plan.md).
 - **Time stepping.** HVPs are implemented for explicit RK (`GeneralRK`) and for `LieSplit` composed of explicit RK sub-integrators, as in the template `mtswe.cfg`. These are the only time steppers DIMSWE implements; the DIRK and implicit RK placeholders raise `NotImplementedError` already when they are constructed. A `LieSplit` keeps the stage values it computes while recomputing each step's substeps, and its adjoint and second-order adjoint substeps reuse them instead of solving them again. Set `timestepping.reuse_stages: false` to switch this off; the results agree to round-off.
 
 The examples `examples/optimize_ic_params_newton_cg.cfg` and `examples/optimize_coeff_trust_constr.cfg` solve the same problems as their L-BFGS-B counterparts (see the [Quick start](#quick-start) tables). Use [Comparing optimizer methods](#comparing-optimizer-methods) to compare the results.
@@ -455,17 +463,21 @@ Wall time is reported as a ratio and only checked with `--time-factor`, since it
 `workflows/profile_hvp.sh` measures where one job's evaluations spend their time ([docs/hvp_performance_plan.md](../docs/hvp_performance_plan.md), section 2):
 
 ```bash
-bash workflows/profile_hvp.sh <mpi-ranks> <optimize-cfg> [--job SUBSTRING] [--repeats N] [--seed S] [--output-dir DIR] [--results RESULT.yaml ...] [--recompute-stages] [--flamegraph] [PETSc options]
+bash workflows/profile_hvp.sh <mpi-ranks> <optimize-cfg> [--job SUBSTRING] [--repeats N] [--seed S] [--output-dir DIR] [--results RESULT.yaml ...] [--recompute-stages] [--checkpoint states|stages] [--flamegraph] [PETSc options]
 bash workflows/profile_hvp.sh 4 workflows/examples/optimize_ic_params_newton_cg.cfg --job ox-0p086034__final --repeats 2
 ```
 
-The truth runs must already exist. The script builds the job as `optimize_params.py` does, then evaluates `obj`, `jac` and `hessp` at the starting point: each one first call plus `--repeats` steady-state calls, then one extra `hessp` in a second direction. The report is printed and written to `runs/profiles/<optimization>/<job>/profile.yaml` and `profile-tree.txt`. It contains:
+The truth runs must already exist. The script builds the job as `optimize_params.py` does, then evaluates `obj`, `jac` and `hessp` at the starting point: each one first call plus `--repeats` steady-state calls, then one extra `hessp` in a second direction. For `ic-params` jobs the initial-condition map's point cache is cleared before every `obj` and `jac` call, so they are timed as at a new point. The HVPs reuse what `jac` computed, as in Newton-CG. The report is printed and written to `runs/profiles/<optimization>/<job>/profile.yaml` and `profile-tree.txt`. It contains:
 - first-call, steady-state and setup seconds per evaluation;
 - the `jac/obj` and `hessp/jac` ratios next to the cost model;
 - the stage passes per step, the time per region, and the cost of one stage pass per sub-integrator;
 - an estimate of the optimizer run time from the job's `result.yaml` counts.
 
 `--recompute-stages` switches a `LieSplit` timestepper's stage reuse off (`reuse_stages: false`) and writes to `<job>__recompute`. Run it right after a default run to compare both paths on the same machine state.
+
+`--checkpoint states|stages` replaces the spec's `optimizer.checkpoint` and writes to `<job>__<mode>`, for comparing the two storage modes on the same job.
+
+The report ends with the strategy of every increment assembler, increment solver and the stage solves per sub-integrator (`solver_strategies` in profile.yaml). `stage solves` counts the stage, adjoint, tangent and second-order adjoint solves on the shared-factorization path (`mass`) and names any that use the old `LinearVariationalSolver` (`reference`). `assemble` or `reference` marks a fallback to the slow path, which also explains a slow `gradient increments`, stage or increment-solve region. With iterative stage solver parameters every solve reports `reference`; the optimization workflows use direct solves.
 
 `--flamegraph` also writes PETSc's nested log (`-log_view :…:ascii_flamegraph`) and renders it with `./flamegraph.pl`. The profiling regions then appear around PETSc's own events. Use a run without `--flamegraph` for the timings.
 

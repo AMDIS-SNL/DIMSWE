@@ -2,10 +2,10 @@ from firedrake import NonlinearVariationalProblem, NonlinearVariationalSolver, L
 from .parameters import overall_solver_parameters
 import numpy as np
 from firedrake import Constant, inner, grad, TestFunction, derivative, norm, assemble, Function, TestFunctions, split, TrialFunction, adjoint, action, replace
-from .numpy_helpers import set_mixed_function_from_flattened_array, create_flattened_numpy_arr_from_mixed_function
+from .numpy_helpers import set_mixed_function_from_flattened_array, create_flattened_numpy_arr_from_mixed_function, copy_function_values
 from ufl.algorithms import extract_coefficients, expand_derivatives
 from .profiling import region
-from .assembly import PersistentAssembler
+from .assembly import AffineSolver, PersistentAssembler, is_direct_solver, shared_mass_solver
 
 class DummySolver():
     def solve(self):
@@ -30,9 +30,12 @@ def directional_derivative(form, pairs):
     (later derivatives with respect to a direction, as done when extracting a linear solve for
     it, then work). Returns None if form depends on none of the Functions.
     """
+    # one walk of the form for its coefficients, instead of one per pair (depends_on); the
+    # second-order setup calls this for large forms with 2 x nstages + 3 pairs
+    present = {id(coefficient) for coefficient in extract_coefficients(form)}
     result = None
     for func, direction in pairs:
-        if func is None or not depends_on(form, func):
+        if func is None or id(func) not in present:
             continue
         term = derivative(form, func, direction)
         result = term if result is None else result + term
@@ -215,6 +218,8 @@ class GeneralRK(TimeStepper):
         #construct residuals for F and aux
         residuals_F = []
         residuals_aux = []
+        # the W-dependent left-hand side of each aux residual, whose derivative is the aux operator
+        aux_lhss = []
         for i in range(nstages):
         #this sign is due to writing things as dxdt + F(x) = 0
             rhs_Fi = -model.rhs(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
@@ -225,6 +230,7 @@ class GeneralRK(TimeStepper):
 #MIGHT HAVE TO MODIFY THIS INNER PRODUCT A LITTLE FOR IRK GENERALITY
 
             residual_aux = 0
+            aux_lhs = 0
             if self.model.has_aux():
                 aux_expressions = self.model.compute_aux_expressions(self.xk_split, self.t, self.coeff_split, xhat_subs, terms=terms)
                 rhs_W = 0
@@ -234,9 +240,11 @@ class GeneralRK(TimeStepper):
                     lhs_W = lhs_W + aux_expressions[var][0]
                 if not (lhs_W == 0):
                     residual_aux = replace(lhs_W - rhs_W, xi_splits[i])
+                    aux_lhs = replace(lhs_W, xi_splits[i])
 
 
             residuals_aux.append(residual_aux)
+            aux_lhss.append(aux_lhs)
             residuals_F.append(residual_F)
 
         #construct residuals for mu and muaux
@@ -313,37 +321,65 @@ class GeneralRK(TimeStepper):
         self.xtrial = xtrial
         self._create_second_order_vars()
         self._second_order_ready = False
-        # persistent assemblers of the increment forms L_delta_lambda, L_delta_grad, ...,
-        # created on first use (see _assemble_increment)
+        # persistent assemblers of the coefficient increment forms L_delta_grad and
+        # L_delta_grad_dot, created on first use (see _assemble_increment); the lambda increments
+        # have their own assemblers inside their AffineSolvers
         self._increment_assemblers = {}
-        # stage values saved by store_stages, keyed by (slot, tangents); see store_stages
+        # AffineSolvers of the lambda and lambda_dot increments, keyed by the old right-hand side
+        # names L_delta_lambda / L_delta_lambda_dot (see _solve_increment), and of the stage
+        # equations, keyed by stage kind and index ('F0', 'aux0', 'mu0', 'tlm_F0', 'soa_mu0', ...)
+        self._increment_solvers = {}
+        self._stage_solvers = {}
+        # factored operator matrices, keyed by mass_solver_key; shared by all sub-integrators of
+        # the model, so a LieSplit of four integrators factors the x-space mass matrix once
+        self._mass_solvers = model.__dict__.setdefault('_shared_mass_solvers', {})
+        # stage values saved by _store_stage_kind, keyed by (slot, kind) with kind 'forward',
+        # 'tangent' or 'adjoint'; integer slots are LieSplit substeps within one step (plan item
+        # A3), tuple slots are steps of a checkpointed trajectory (plan items A1/A2)
         self._stage_store = {}
+        # whether the trajectory stage checkpoint (store_slot / checkpoint_slot arguments) works;
+        # only explicit RK keeps its stage values in separate Functions
+        self.supports_stage_checkpoint = self.is_explicit
 
 
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF
         #construct solvers
         if self.is_explicit:
+            # operators of the stage equations (see _affine_solver): every x-space residual
+            # (F_i, mu_i, delta_lambda and their second-order counterparts) is
+            # inner(var, xhat[0])*dx plus terms without var; the aux residuals are lhs_W(W_i)
+            # plus terms without W_i, and the aux adjoints inner(nu_i, xhat[1])*dx plus the rest
+            self.mass_x = inner(xtrial[0], xhat[0])*self.dx
+            self.mass_aux = []
+            self.mass_muaux = inner(xtrial[1], xhat[1])*self.dx if self.model.has_aux() else None
             self.Fsolvers = []
             self.auxsolvers = []
             self.musolvers = []
             self.muauxsolvers = []
             for i in range(self.nstages):
                 #print('creating solvers', i)
-                if (not self.model.has_aux()) or residuals_aux[i] == 0:
+                if (not self.model.has_aux()) or is_zero_form(residuals_aux[i]):
+                    self.mass_aux.append(None)
                     self.auxsolvers.append(DummySolver())
                     self.muauxsolvers.append(DummySolver())
                 else:
 #THIS IS GOING TO FAIL WHEN AUXILIARY VARIABLES HAVE NON-CONSTANT JACOBIANS
 #CAN/SHOULD MAYBE SPLIT THESE INTO SEPARATE SOLVERS FOR EACH AUX VAR?
 #THIS WILL BE A MESS FOR COMPUTING ADJOINT STUFF, BUT MANAGEABLE!
-                    self.auxsolvers.append(create_linear_solver_from_residual(residuals_aux[i], self.Fi[i][0][1], xtrial[1], constant_jacobian=True, solver_parameters=self.solver_parameters['erkstage-aux'], options_prefix = 'erk-aux')[0])
-                    self.muauxsolvers.append(create_linear_solver_from_residual(residuals_muaux[i], self.mui[i][0][1], xtrial[1], constant_jacobian=True, solver_parameters=self.solver_parameters['erkstage-muaux'], options_prefix = 'erk-muaux')[0])
+                    # a small form: only the left-hand side is differentiated
+                    self.mass_aux.append(expand_derivatives(derivative(aux_lhss[i], self.Fi[i][0][1], xtrial[1])))
+                    self.auxsolvers.append(self._affine_solver('aux'+str(i), residuals_aux[i], self.Fi[i][0][1], self.mass_aux[i], xtrial[1], 'erkstage-aux', 'erk-aux'))
+                    self.muauxsolvers.append(self._affine_solver('muaux'+str(i), residuals_muaux[i], self.mui[i][0][1], self.mass_muaux, xtrial[1], 'erkstage-muaux', 'erk-muaux'))
 
-                self.Fsolvers.append(create_linear_solver_from_residual(residuals_F[i], self.Fi[i][0][0], xtrial[0], constant_jacobian=True, solver_parameters=self.solver_parameters['erkstage-f'], options_prefix = 'erk-f')[0])
-                self.musolvers.append(create_linear_solver_from_residual(residuals_mu[i], self.mui[i][0][0], xtrial[0], constant_jacobian=True, solver_parameters=self.solver_parameters['erkstage-mu'], options_prefix = 'erk-mu')[0])
-            self.deltalambdasolver, _, self.L_delta_lambda = create_linear_solver_from_residual(residual_xk, self.delta_lambda_var, xtrial[0], constant_jacobian=True, solver_parameters=self.solver_parameters['erk-dlambda'], options_prefix = 'erk-lambda')
+                self.Fsolvers.append(self._affine_solver('F'+str(i), residuals_F[i], self.Fi[i][0][0], self.mass_x, xtrial[0], 'erkstage-f', 'erk-f'))
+                self.musolvers.append(self._affine_solver('mu'+str(i), residuals_mu[i], self.mui[i][0][0], self.mass_x, xtrial[0], 'erkstage-mu', 'erk-mu'))
+            self._increment_solvers['L_delta_lambda'] = self._affine_solver(None, residual_xk, self.delta_lambda_var, self.mass_x, xtrial[0], 'erk-dlambda', 'erk-lambda', returns_rhs=True)
             if model.has_coeff():
-                _, self.L_delta_grad = extract_a_L_from_residual(residual_grad, self.delta_grad, self.grad_trial)
+                # delta_grad is never solved for and stays zero, so the old right-hand side
+                # action(a, delta_grad) - residual_grad is -residual_grad at delta_grad = 0;
+                # _assemble_increment zeroes it before assembling. This avoids a UFL expansion of
+                # the whole form in action().
+                self.L_delta_grad = -residual_grad
                 #self.deltagradsolver, _, self.L_delta_grad = create_linear_solver_from_residual(residual_grad, self.delta_grad, self.grad_trial, constant_jacobian=True, solver_parameters=self.solver_parameters['erk-grad'], options_prefix = 'erk-grad')
         elif self.is_dirk:
             raise NotImplementedError('dirk not done yet')
@@ -522,6 +558,11 @@ class GeneralRK(TimeStepper):
         forward_pairs = self._forward_pairs()
         all_pairs = forward_pairs + self._adjoint_pairs()
 
+        # Each residual below is affine in its unknown with the operator of the corresponding
+        # first-order solve (mass_x, mass_aux[i], mass_muaux), so they all share the first-order
+        # factorizations (_affine_solver). Only the directional derivatives themselves are built
+        # here; no action() expansions or LinearVariationalSolvers, which were most of this setup.
+
         # tangent-linear stage solvers, M_W Wdot_i = ... and M Fdot_i = ...
         self.tlm_Fsolvers = []
         self.tlm_auxsolvers = []
@@ -530,39 +571,99 @@ class GeneralRK(TimeStepper):
                 self.tlm_auxsolvers.append(DummySolver())
             else:
                 residual = directional_derivative(self.residuals_aux[i], forward_pairs)
-                self.tlm_auxsolvers.append(create_linear_solver_from_residual(residual, self.Fdoti[i][0][1], self.xtrial[1], constant_jacobian=True, solver_parameters=sp['erkstage-aux'], options_prefix='erk-tlm-aux')[0])
+                self.tlm_auxsolvers.append(self._affine_solver('tlm_aux'+str(i), residual, self.Fdoti[i][0][1], self.mass_aux[i], self.xtrial[1], 'erkstage-aux', 'erk-tlm-aux'))
             residual = directional_derivative(self.residuals_F[i], forward_pairs)
-            self.tlm_Fsolvers.append(create_linear_solver_from_residual(residual, self.Fdoti[i][0][0], self.xtrial[0], constant_jacobian=True, solver_parameters=sp['erkstage-f'], options_prefix='erk-tlm-f')[0])
+            self.tlm_Fsolvers.append(self._affine_solver('tlm_F'+str(i), residual, self.Fdoti[i][0][0], self.mass_x, self.xtrial[0], 'erkstage-f', 'erk-tlm-f'))
 
         # second-order adjoint stage solvers, M mu_dot_i = ... and M_W nu_dot_i = ...
         self.soa_musolvers = []
         self.soa_muauxsolvers = []
         for i in range(self.nstages):
             residual = directional_derivative(self.residuals_mu[i], all_pairs)
-            self.soa_musolvers.append(create_linear_solver_from_residual(residual, self.mudoti[i][0][0], self.xtrial[0], constant_jacobian=True, solver_parameters=sp['erkstage-mu'], options_prefix='erk-soa-mu')[0])
+            self.soa_musolvers.append(self._affine_solver('soa_mu'+str(i), residual, self.mudoti[i][0][0], self.mass_x, self.xtrial[0], 'erkstage-mu', 'erk-soa-mu'))
             # mirror the first-order muauxsolvers, which exist exactly when the aux residual does
             if (not has_aux) or is_zero_form(self.residuals_aux[i]) or is_zero_form(self.residuals_muaux[i]):
                 self.soa_muauxsolvers.append(DummySolver())
             else:
                 residual = directional_derivative(self.residuals_muaux[i], all_pairs)
-                self.soa_muauxsolvers.append(create_linear_solver_from_residual(residual, self.mudoti[i][0][1], self.xtrial[1], constant_jacobian=True, solver_parameters=sp['erkstage-muaux'], options_prefix='erk-soa-muaux')[0])
+                self.soa_muauxsolvers.append(self._affine_solver('soa_muaux'+str(i), residual, self.mudoti[i][0][1], self.mass_muaux, self.xtrial[1], 'erkstage-muaux', 'erk-soa-muaux'))
 
-        # second-order lambda increment: M delta_lambda_dot = rdot^lam, with rdot^lam = L_delta_lambda_dot
+        # second-order lambda increment: M delta_lambda_dot = rdot^lam, where the returned
+        # rdot^lam is the old right-hand side L_delta_lambda_dot
         residual = directional_derivative(self.residual_xk, all_pairs)
-        self.soa_deltalambdasolver, _, self.L_delta_lambda_dot = create_linear_solver_from_residual(residual, self.delta_lambda_dot_var, self.xtrial[0], constant_jacobian=True, solver_parameters=sp['erk-dlambda'], options_prefix='erk-soa-lambda')
+        self._increment_solvers['L_delta_lambda_dot'] = self._affine_solver(None, residual, self.delta_lambda_dot_var, self.mass_x, self.xtrial[0], 'erk-dlambda', 'erk-soa-lambda', returns_rhs=True)
 
-        # coefficient Hessian-vector-product increment rdot^theta = L_delta_grad_dot (dual)
+        # coefficient Hessian-vector-product increment rdot^theta = L_delta_grad_dot (dual); as
+        # for L_delta_grad, delta_grad_dot is never solved for and is zeroed before assembly
         if self.model.has_coeff():
             residual = directional_derivative(self.residual_grad, all_pairs)
-            _, self.L_delta_grad_dot = extract_a_L_from_residual(residual, self.delta_grad_dot, self.grad_trial)
+            self.L_delta_grad_dot = -residual
 
-    def _stage_functions(self, tangents=False):
-        """Return the Functions holding the current stage values, x and aux parts, in stage order.
+    def _affine_solver(self, name, residual, var, mass_form, trial, parameters_key, options_prefix, returns_rhs=False):
+        """Return an AffineSolver for residual(var) = 0, registered in _stage_solvers under name (if given).
 
-        With tangents=True these are the tangent stages (Fdot_i, Wdot_i) instead of (F_i, W_i).
+        residual is affine in var with operator mass_form, so the solve is one assembly of the
+        residual at var = 0 and a solve with the model's shared factorization of mass_form
+        (dimswe/assembly.py, plan item C1). With iterative solver parameters, or if the residual
+        check of the first solves fails, it uses the old LinearVariationalSolver, which is only
+        built then. returns_rhs: solve() returns the flattened dual increment (the old
+        right-hand side L = action(a, var) - residual at any var), as the increments need.
         """
-        stages = self.Fdoti if tangents else self.Fi
-        return [func for i in range(self.nstages) for func in stages[i][0] if func is not None]
+        solver_parameters = self.solver_parameters[parameters_key]
+
+        def make_reference():
+            """The previous solver of this equation (the fallback)."""
+            return create_linear_solver_from_residual(residual, var, trial, constant_jacobian=True,
+                                                      solver_parameters=solver_parameters, options_prefix=options_prefix)[0]
+
+        mass_solver = None
+        if is_direct_solver(solver_parameters):
+            mass_solver = shared_mass_solver(self._mass_solvers, mass_form, solver_parameters)
+        solver = AffineSolver(residual, var, mass_solver, make_reference, returns_rhs=returns_rhs)
+        if name is not None:
+            self._stage_solvers[name] = solver
+        return solver
+
+    def _stage_functions(self, kind):
+        """Return the Functions holding one kind of stage values, x and aux parts, in stage order.
+
+        kind is 'forward' for (F_i, W_i), 'tangent' for (Fdot_i, Wdot_i), or 'adjoint' for the
+        first-order stage adjoints (mu_i, nu_i) followed by lambda_var, the adjoint lambda_{n+1}
+        they were solved with, and delta_lambda_var, the solved increment lambda_n - lambda_{n+1}
+        (all inputs or unknowns of the first-order part of the second-order adjoint step).
+        """
+        if kind == 'adjoint':
+            stages = self.mui
+        elif kind == 'tangent':
+            stages = self.Fdoti
+        elif kind == 'forward':
+            stages = self.Fi
+        else:
+            raise ValueError('unknown stage kind ' + str(kind))
+        funcs = [func for i in range(self.nstages) for func in stages[i][0] if func is not None]
+        if kind == 'adjoint':
+            funcs += [self.lambda_var, self.delta_lambda_var]
+        return funcs
+
+    def _store_stage_kind(self, slot, kind):
+        """Copy the current stage values of one kind into storage slot (allocated on first use)."""
+        with region("store stages"):
+            current = self._stage_functions(kind)
+            saved = self._stage_store.get((slot, kind))
+            if saved is None:
+                self._stage_store[(slot, kind)] = [func.copy(deepcopy=True) for func in current]
+            else:
+                # plain value copies: an assign per Function cost ~0.3 ms (see copy_function_values)
+                for target, func in zip(saved, current):
+                    copy_function_values(func, target)
+
+    def _restore_stage_kind(self, slot, kind):
+        """Assign the stage values of one kind stored under slot back to the stage Functions."""
+        saved = self._stage_store.get((slot, kind))
+        if saved is None:
+            raise KeyError('no ' + kind + ' stage values stored for slot ' + str(slot))
+        for func, value in zip(self._stage_functions(kind), saved):
+            copy_function_values(value, func)
 
     def store_stages(self, slot, tangents=False):
         """Copy the current stage values into storage slot (plan item A3).
@@ -576,29 +677,22 @@ class GeneralRK(TimeStepper):
         """
         if not self.is_explicit:
             return False
-        kinds = [False, True] if tangents else [False]
-        for kind in kinds:
-            current = self._stage_functions(kind)
-            saved = self._stage_store.get((slot, kind))
-            if saved is None:
-                self._stage_store[(slot, kind)] = [func.copy(deepcopy=True) for func in current]
-            else:
-                for target, func in zip(saved, current):
-                    target.assign(func)
+        self._store_stage_kind(slot, 'forward')
+        if tangents:
+            self._store_stage_kind(slot, 'tangent')
         return True
 
     def _restore_stages(self, slot, tangents=False):
         """Assign stored stage values (and tangent stages if tangents) back to the stage Functions."""
-        kinds = [False, True] if tangents else [False]
-        for kind in kinds:
-            for func, saved in zip(self._stage_functions(kind), self._stage_store[(slot, kind)]):
-                func.assign(saved)
+        self._restore_stage_kind(slot, 'forward')
+        if tangents:
+            self._restore_stage_kind(slot, 'tangent')
 
     def _assemble_increment(self, name):
         """Assemble the increment form self.<name> and return it as a rank-local flattened array.
 
-        name is one of 'L_delta_lambda', 'L_delta_grad', 'L_delta_lambda_dot' and
-        'L_delta_grad_dot'. A bare assemble() of these large forms repeats its per-call setup and
+        name is 'L_delta_grad' or 'L_delta_grad_dot' (the lambda increments are assembled by their
+        AffineSolvers, see _solve_increment). A bare assemble() of these large forms repeats its per-call setup and
         cost 0.1-0.5 s per substep, so each form gets one PersistentAssembler that reuses its
         assembler and output (plan item B0, docs/hvp_performance_plan.md). The result is a new
         array, as create_flattened_numpy_arr_from_mixed_function(assemble(form)) returned before.
@@ -607,7 +701,23 @@ class GeneralRK(TimeStepper):
         if assembler is None:
             assembler = PersistentAssembler(getattr(self, name))
             self._increment_assemblers[name] = assembler
+        # the forms are -residual, equal to the old action(a, delta) - residual only at delta = 0
+        # (the unknowns are never solved for, so this only guards that invariant)
+        unknown = {'L_delta_grad': self.delta_grad, 'L_delta_grad_dot': self.delta_grad_dot}.get(name)
+        if unknown is not None:
+            unknown.dat.zero()
         return assembler.assemble_flat()
+
+    def _solve_increment(self, name):
+        """Solve the increment equation of right-hand side name; return that right-hand side flattened.
+
+        name is 'L_delta_lambda' (unknown delta_lambda_var) or 'L_delta_lambda_dot' (unknown
+        delta_lambda_dot_var). The AffineSolver assembles the increment residual once, at a zero
+        unknown, which gives minus the right-hand side, and solves with the model's factored
+        x-space mass matrix. The returned array equals the old right-hand side form assembled
+        after the solve.
+        """
+        return self._increment_solvers[name].solve()
 
     def _solve_forward_stages(self):
         """Solve the forward stage (and aux) equations from the current xk, t, dt and coeff."""
@@ -643,7 +753,13 @@ class GeneralRK(TimeStepper):
                 self.mufullsolver.solve()
 
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF
-    def take_forward_step(self, xnp1, xnp1_sub, xn, tn, dt):
+    def take_forward_step(self, xnp1, xnp1_sub, xn, tn, dt, store_slot=None):
+        """Advance xn by one step of size dt from time tn into xnp1.
+
+        With store_slot, the stage values are also stored under that slot for the trajectory
+        stage checkpoint (plan items A1/A2): the adjoint, tangent and second-order adjoint steps
+        of the same step then restore them via checkpoint_slot instead of solving them again.
+        """
         self.t.assign(tn)
         self.dt.assign(dt)
         self.xk[0].assign(xn[0])
@@ -652,6 +768,8 @@ class GeneralRK(TimeStepper):
             self.Fi[0][0][1].assign(xn[1])
         # the same stage solves, in the same order, as every recompute of the stages
         self._solve_forward_stages()
+        if store_slot is not None:
+            self._store_stage_kind(store_slot, 'forward')
         #print('dt', self.dt)
         #print('xn', self.model.norm(xn[0]))
 
@@ -673,15 +791,22 @@ class GeneralRK(TimeStepper):
 #IDEALLY THIS IS AUX VARS EVALUATED AT XNP1- provides a good initial guess at least?
         #    xnp1[1].assign(self.Fi[-1][0][1])
 
-    def take_adjoint_step(self, delta_grad, delta_lambda, lambda_np1, xn, tnp1, dt, stages_slot=None):
+    def take_adjoint_step(self, delta_grad, delta_lambda, lambda_np1, xn, tnp1, dt, stages_slot=None,
+                          store_slot=None, checkpoint_slot=None):
         """Take one first-order adjoint step from lambda_{n+1}, for the step that started at xn.
 
         Sets delta_lambda to the primal increment lambda_n - lambda_{n+1} and returns the dual
         increments (delta_lambda_rhs, delta_grad_rhs); delta_grad_rhs is None without
         coefficients. The forward stages are re-solved from xn, unless stages_slot names stage
-        values saved with store_stages for exactly this step (plan item A3), which are restored
-        instead.
+        values saved for exactly this step (store_stages, plan item A3, or take_forward_step's
+        store_slot), which are restored instead. With store_slot, the first-order stage adjoints,
+        lambda_{n+1} and the solved delta_lambda are stored under it for
+        take_second_order_adjoint_step's adjoint_slot.
+        checkpoint_slot is shorthand for stages_slot = store_slot = checkpoint_slot, the
+        trajectory stage checkpoint of plan items A1/A2.
         """
+        if checkpoint_slot is not None:
+            stages_slot = store_slot = checkpoint_slot
         self.dt.assign(dt)
         self.t.assign(tnp1 - dt)
         self.lambda_var.assign(lambda_np1)
@@ -692,7 +817,7 @@ class GeneralRK(TimeStepper):
             self._solve_forward_stages()
         else:
             with region("restore stages"):
-                self._restore_stages(stages_slot)
+                self._restore_stage_kind(stages_slot, 'forward')
         #print("lambda var norm", norm(self.lambda_var))
 
 #EVENTUALLY MAKE THESE SPECIFIC TO A GIVEN TYPE OF RK IE SUBCLASS STUFF?
@@ -708,18 +833,20 @@ class GeneralRK(TimeStepper):
             with region("gradient increments"):
                 delta_grad_rhs = self._assemble_increment('L_delta_grad')
 
-        #compute lambda_n
+        #compute lambda_n: one assembly of the right-hand side, which is also the dual
+        # increment, and a solve with the factored mass matrix (_solve_increment)
         with region("lambda increment solve"):
-            self.deltalambdasolver.solve()
+            delta_lambda_rhs = self._solve_increment('L_delta_lambda')
             delta_lambda.assign(self.delta_lambda_var)
-        with region("gradient increments"):
-            delta_lambda_rhs = self._assemble_increment('L_delta_lambda')
+        if store_slot is not None:
+            # stage adjoints, lambda_{n+1} and the solved delta_lambda, for adjoint_slot
+            self._store_stage_kind(store_slot, 'adjoint')
         if self.model.has_coeff():
             return delta_lambda_rhs, delta_grad_rhs
         else:
             return delta_lambda_rhs, None
 
-    def take_tangent_step(self, wnp1, wn, xn, tn, dt, xnp1=None):
+    def take_tangent_step(self, wnp1, wn, xn, tn, dt, xnp1=None, stages_slot=None, store_slot=None, checkpoint_slot=None):
         """Propagate a tangent-linear perturbation through one step (the boxed terms of eq. 2.11).
 
         Computes w_{n+1} = dN/dx(x_n) w_n + dN/dtheta(x_n) theta_dot, where theta_dot is the
@@ -728,14 +855,28 @@ class GeneralRK(TimeStepper):
         entries are used for the tangents. The forward stages are recomputed from xn. If xnp1 is
         given, the forward update x_{n+1} is also written to it, so the forward and tangent
         trajectories can be advanced together without a second forward solve.
+
+        With stages_slot, the forward stages are restored from that slot (stored by
+        take_forward_step's store_slot) instead of being solved; with store_slot, the tangent
+        stages are stored under it for take_second_order_adjoint_step. checkpoint_slot is
+        shorthand for both (plan items A1/A2). The restored stages are the ones the solve would
+        produce, so x_{n+1} is unchanged.
         """
+        if checkpoint_slot is not None:
+            stages_slot = store_slot = checkpoint_slot
         self._setup_second_order()
         self.t.assign(tn)
         self.dt.assign(dt)
         self.xk[0].assign(xn[0])
         self.wk.assign(wn[0])
-        self._solve_forward_stages()
+        if stages_slot is None:
+            self._solve_forward_stages()
+        else:
+            with region("restore stages"):
+                self._restore_stage_kind(stages_slot, 'forward')
         self._solve_tangent_stages()
+        if store_slot is not None:
+            self._store_stage_kind(store_slot, 'tangent')
         with region("update"):
             wnp1[0].assign(wn[0] + self.dt * sum(float(self.b[i]) * self.Fdoti[i][0][0] for i in range(self.nstages)))
             if xnp1 is not None:
@@ -744,7 +885,8 @@ class GeneralRK(TimeStepper):
                 if len(xnp1) > 1 and xnp1[1] is not None:
                     xnp1[1].assign(self.Fi[-1][0][1])
 
-    def take_second_order_adjoint_step(self, delta_lambda, delta_lambda_dot, lambda_np1, lambda_dot_np1, xn, wn, tnp1, dt, stages_slot=None):
+    def take_second_order_adjoint_step(self, delta_lambda, delta_lambda_dot, lambda_np1, lambda_dot_np1, xn, wn, tnp1, dt, stages_slot=None,
+                                       adjoint_slot=None, checkpoint_slot=None):
         """Take one combined first-order and second-order adjoint step (eq. 2.11, forward-over-adjoint).
 
         Inputs are lambda_{n+1} (lambda_np1), lambda_dot_{n+1} (lambda_dot_np1), the step start
@@ -761,9 +903,22 @@ class GeneralRK(TimeStepper):
         entries are None when the model has no coefficients.
 
         If stages_slot is given, the forward and tangent stages are restored from values saved
-        with store_stages(stages_slot, tangents=True) for exactly this step instead of being
-        re-solved (plan item A3).
+        for exactly this step (store_stages(stages_slot, tangents=True), plan item A3, or the
+        store_slot of take_forward_step and take_tangent_step) instead of being re-solved.
+
+        If adjoint_slot is given, the first-order stage adjoints, lambda_{n+1} and the solved
+        delta_lambda are restored from the values take_adjoint_step stored under it (lambda_np1
+        is then ignored), and the first-order part is skipped: no first-order solves or
+        increment assemblies; delta_lambda is set to the restored increment, and
+        delta_lambda_rhs and delta_grad_rhs are returned as None. The caller takes the gradient
+        from the gradient sweep that stored them. Every Function the second-order forms can see
+        has the value it has in the full step (delta_grad is never solved in either path), so
+        the second-order increments are unchanged.
+        checkpoint_slot is shorthand for stages_slot = adjoint_slot = checkpoint_slot (plan items
+        A1/A2).
         """
+        if checkpoint_slot is not None:
+            stages_slot = adjoint_slot = checkpoint_slot
         self._setup_second_order()
         self.dt.assign(dt)
         self.t.assign(tnp1 - dt)
@@ -780,7 +935,11 @@ class GeneralRK(TimeStepper):
         else:
             with region("restore stages"):
                 self._restore_stages(stages_slot, tangents=True)
-        self._solve_first_order_adjoint_stages()
+        if adjoint_slot is None:
+            self._solve_first_order_adjoint_stages()
+        else:
+            with region("restore stages"):
+                self._restore_stage_kind(adjoint_slot, 'adjoint')
 
         # second-order stage adjoints, backward over the stages like the first-order ones
         with region("soa stages"):
@@ -788,26 +947,28 @@ class GeneralRK(TimeStepper):
                 self.soa_musolvers[i].solve()
                 self.soa_muauxsolvers[i].solve()
 
-        # first-order increments, identical to take_adjoint_step
+        # first-order increments, identical to take_adjoint_step (skipped with adjoint_slot)
+        first_order = adjoint_slot is None
         delta_grad_rhs = None
         delta_hess_coeff_rhs = None
+        delta_lambda_rhs = None
         if self.model.has_coeff():
-            with region("gradient increments"):
-                delta_grad_rhs = self._assemble_increment('L_delta_grad')
+            if first_order:
+                with region("gradient increments"):
+                    delta_grad_rhs = self._assemble_increment('L_delta_grad')
             with region("hessian increments"):
                 delta_hess_coeff_rhs = self._assemble_increment('L_delta_grad_dot')
-        with region("lambda increment solve"):
-            self.deltalambdasolver.solve()
+        if first_order:
+            with region("lambda increment solve"):
+                delta_lambda_rhs = self._solve_increment('L_delta_lambda')
+                delta_lambda.assign(self.delta_lambda_var)
+        else:
             delta_lambda.assign(self.delta_lambda_var)
-        with region("gradient increments"):
-            delta_lambda_rhs = self._assemble_increment('L_delta_lambda')
 
         # second-order increments
         with region("lambda_dot increment solve"):
-            self.soa_deltalambdasolver.solve()
+            delta_lambda_dot_rhs = self._solve_increment('L_delta_lambda_dot')
             delta_lambda_dot.assign(self.delta_lambda_dot_var)
-        with region("hessian increments"):
-            delta_lambda_dot_rhs = self._assemble_increment('L_delta_lambda_dot')
         return delta_lambda_rhs, delta_grad_rhs, delta_lambda_dot_rhs, delta_hess_coeff_rhs
 
 
@@ -931,6 +1092,32 @@ class LieSplittingIntegrator():
             for k in range(self.subcycle_list[i]):
                 self.wks.append(model.get_full_var('w'+str(i)+'_'+str(k), split_x_and_aux=True))
 
+        # trajectory stage checkpoint (plan items A1/A2): substep states 'x' and tangents 'w'
+        # of checkpointed steps, keyed by (slot, substep index, kind); the stage values live in
+        # the sub-integrators under the slot (slot, substep index)
+        self._substep_store = {}
+        self.supports_stage_checkpoint = all(getattr(integrator, 'supports_stage_checkpoint', False)
+                                             for integrator in self.time_integrators)
+
+    def _store_substep(self, slot, l, kind, func):
+        """Copy a substep state ('x') or tangent ('w') Function into the trajectory store."""
+        with region("store stages"):
+            saved = self._substep_store.get((slot, l, kind))
+            if saved is None:
+                self._substep_store[(slot, l, kind)] = func.copy(deepcopy=True)
+            else:
+                copy_function_values(func, saved)
+
+    def _restore_substeps(self, slot, kind):
+        """Assign the stored substep states ('x', into xks) or tangents ('w', into wks) of a step."""
+        targets = self.xks if kind == 'x' else self.wks
+        with region("restore stages"):
+            for l, (funcs, _, _) in enumerate(targets):
+                saved = self._substep_store.get((slot, l, kind))
+                if saved is None:
+                    raise KeyError('no substep ' + kind + ' stored for slot ' + str(slot))
+                copy_function_values(saved, funcs[0])
+
     def reset_internal_vars(self):
         self.lambda_k.assign(0)
         self.delta_lambda.assign(0)
@@ -946,19 +1133,31 @@ class LieSplittingIntegrator():
             time_integrator.reset_internal_vars()
 
 #DOES THIS NEED TO RESET INTERNAL VARS TO ENSURE REPEATABILITY?
-    def take_forward_step(self, xnp1, xnp1_sub, xn, tn, dt):
+    def take_forward_step(self, xnp1, xnp1_sub, xn, tn, dt, store_slot=None):
+        """Advance xn through all substeps into xnp1.
+
+        With store_slot (trajectory stage checkpoint, plan items A1/A2), every substep's stage
+        values are stored in its sub-integrator under (store_slot, l), and the substep states
+        under (store_slot, l, 'x'), for the checkpoint_slot of the adjoint steps.
+        """
         self.xks[0][0][0].assign(xn[0])
+        if store_slot is not None:
+            self._store_substep(store_slot, 0, 'x', self.xks[0][0][0])
         l = 1
         for i,time_integrator in enumerate(self.time_integrators):
             sub_dt = dt / self.subcycle_list[i]
             for k in range(self.subcycle_list[i]):
                 with region(self.profile_labels[i]):
                     time_integrator.reset_internal_vars()
-                    time_integrator.take_forward_step(self.xks[l][0], self.xks[l][1], self.xks[l-1][0], tn + k * sub_dt, sub_dt)
+                    sub_slot = None if store_slot is None else (store_slot, l)
+                    time_integrator.take_forward_step(self.xks[l][0], self.xks[l][1], self.xks[l-1][0], tn + k * sub_dt, sub_dt,
+                                                      store_slot=sub_slot)
+                    if store_slot is not None:
+                        self._store_substep(store_slot, l, 'x', self.xks[l][0][0])
                 l = l +1
         xnp1[0].assign(self.xks[-1][0][0])
 
-    def take_adjoint_step(self, delta_grad_coeff, delta_lambda, lambda_np1, xn, tnp1, dt):
+    def take_adjoint_step(self, delta_grad_coeff, delta_lambda, lambda_np1, xn, tnp1, dt, checkpoint_slot=None):
         """Take one first-order adjoint split step, carrying lambda backward through the substeps.
 
         The substep states are recomputed forward from xn (storing their stage values with
@@ -966,6 +1165,11 @@ class LieSplittingIntegrator():
         adjoint steps are taken in reverse order. Returns (delta_lambda_rhs, delta_grad_rhs), the summed dual
         increments; delta_grad_rhs is None for a model without coefficients, in which case
         delta_grad_coeff (also None then) is not touched.
+
+        With checkpoint_slot (plan items A1/A2), the step was taken by take_forward_step with
+        store_slot=checkpoint_slot: the substep states and stages are restored instead of
+        recomputed, and every substep's stage adjoints and lambda are stored for
+        take_second_order_adjoint_step(checkpoint_slot=...).
         """
         has_coeff = self.model.has_coeff()
         self.lambda_k.assign(lambda_np1)
@@ -978,19 +1182,12 @@ class LieSplittingIntegrator():
 
         # recompute the substep states from xn (checkpoint + recompute within the step); with
         # reuse_stages, substep l's stage values are stored under slot l for its adjoint step
-        stored = {}
-        with region("substep recompute"):
-            self.xks[0][0][0].assign(xn[0])
-            l = 1
-            for i,time_integrator in enumerate(self.time_integrators):
-                sub_dt = dt / self.subcycle_list[i]
-                for k in range(self.subcycle_list[i]):
-                    with region(self.profile_labels[i]):
-                        time_integrator.reset_internal_vars()
-                        time_integrator.take_forward_step(self.xks[l][0], self.xks[l][1], self.xks[l-1][0], tnp1 - dt + k * sub_dt, sub_dt)
-                        if self.reuse_stages:
-                            stored[l] = time_integrator.store_stages(l)
-                    l = l +1
+        if checkpoint_slot is not None:
+            # trajectory checkpoint: states and stages of this step were stored by the forward pass
+            stored = {}
+            self._restore_substeps(checkpoint_slot, 'x')
+        else:
+            stored = self._recompute_substeps(xn, tnp1, dt)
 
         nintegrators = len(self.time_integrators)
         l = 0
@@ -1009,8 +1206,12 @@ class LieSplittingIntegrator():
                         # take_adjoint_step expects the substep end time: substep k runs from
                         # tnp1 - dt + k*sub_dt to tnp1 - dt + (k+1)*sub_dt, matching take_forward_step
                         # this is substep lt-l of the recompute (start state xks[lt-l-1])
-                        slot = lt - l if stored.get(lt - l) else None
-                        _delta_lambda_rhs, _delta_grad_rhs = time_integrator.take_adjoint_step(self.delta_grad_coeff, self.delta_lambda, self.lambda_k, self.xks[lt-l-1][0], tnp1 - dt + (k + 1) * sub_dt, sub_dt, stages_slot=slot)
+                        if checkpoint_slot is not None:
+                            # restore the stored stages and store the stage adjoints and lambda
+                            slots = {'checkpoint_slot': (checkpoint_slot, lt - l)}
+                        else:
+                            slots = {'stages_slot': lt - l if stored.get(lt - l) else None}
+                        _delta_lambda_rhs, _delta_grad_rhs = time_integrator.take_adjoint_step(self.delta_grad_coeff, self.delta_lambda, self.lambda_k, self.xks[lt-l-1][0], tnp1 - dt + (k + 1) * sub_dt, sub_dt, **slots)
                         self.lambda_k.assign(self.lambda_k + self.delta_lambda)
                         delta_lambda.assign(delta_lambda + self.delta_lambda)
                         if has_coeff:
@@ -1024,47 +1225,88 @@ class LieSplittingIntegrator():
                     l = l + 1
         return delta_lambda_rhs, delta_grad_rhs
 
-    def _compute_substep_tangents(self, xn, wn, tn, dt, store=False):
+    def _recompute_substeps(self, xn, tnp1, dt):
+        """Recompute the substep states xks of the step ending at tnp1 from xn (within-step recompute).
+
+        With reuse_stages, substep l's stage values are stored under slot l for its adjoint step
+        (plan item A3). Returns {slot: stored} for the substeps whose stages were stored.
+        """
+        stored = {}
+        with region("substep recompute"):
+            self.xks[0][0][0].assign(xn[0])
+            l = 1
+            for i,time_integrator in enumerate(self.time_integrators):
+                sub_dt = dt / self.subcycle_list[i]
+                for k in range(self.subcycle_list[i]):
+                    with region(self.profile_labels[i]):
+                        time_integrator.reset_internal_vars()
+                        time_integrator.take_forward_step(self.xks[l][0], self.xks[l][1], self.xks[l-1][0], tnp1 - dt + k * sub_dt, sub_dt)
+                        if self.reuse_stages:
+                            stored[l] = time_integrator.store_stages(l)
+                    l = l +1
+        return stored
+
+    def _compute_substep_tangents(self, xn, wn, tn, dt, store=False, checkpoint_slot=None):
         """Recompute the substep states xks and tangents wks from x_n and w_n.
 
         Each sub-integrator advances the state and its tangent together with take_tangent_step,
         so xks matches what take_forward_step computes. With store (and reuse_stages), substep
         l's forward and tangent stage values are stored under slot l for its second-order adjoint
         step. Returns {slot: stored} for the substeps whose stages were stored.
+
+        With checkpoint_slot (plan items A1/A2), the forward stages stored by take_forward_step
+        are restored instead of solved, and the tangent stages and substep tangents are stored
+        under the slot for take_second_order_adjoint_step(checkpoint_slot=...).
         """
         stored = {}
         self.xks[0][0][0].assign(xn[0])
         self.wks[0][0][0].assign(wn[0])
+        if checkpoint_slot is not None:
+            self._store_substep(checkpoint_slot, 0, 'w', self.wks[0][0][0])
         l = 1
         for i,time_integrator in enumerate(self.time_integrators):
             sub_dt = dt / self.subcycle_list[i]
             for k in range(self.subcycle_list[i]):
                 with region(self.profile_labels[i]):
                     time_integrator.reset_internal_vars()
-                    time_integrator.take_tangent_step(self.wks[l][0], self.wks[l-1][0], self.xks[l-1][0], tn + k * sub_dt, sub_dt, xnp1=self.xks[l][0])
-                    if store and self.reuse_stages:
+                    sub_slot = None if checkpoint_slot is None else (checkpoint_slot, l)
+                    time_integrator.take_tangent_step(self.wks[l][0], self.wks[l-1][0], self.xks[l-1][0], tn + k * sub_dt, sub_dt, xnp1=self.xks[l][0],
+                                                      checkpoint_slot=sub_slot)
+                    if checkpoint_slot is not None:
+                        self._store_substep(checkpoint_slot, l, 'w', self.wks[l][0][0])
+                    elif store and self.reuse_stages:
                         stored[l] = time_integrator.store_stages(l, tangents=True)
                 l = l + 1
         return stored
 
-    def take_tangent_step(self, wnp1, wn, xn, tn, dt, xnp1=None):
+    def take_tangent_step(self, wnp1, wn, xn, tn, dt, xnp1=None, checkpoint_slot=None):
         """Propagate a tangent-linear perturbation through one split step.
 
         Same interface as GeneralRK.take_tangent_step: the tangent is composed through the
-        substeps of every sub-integrator, and x_{n+1} is also written to xnp1 if given.
+        substeps of every sub-integrator, and x_{n+1} is also written to xnp1 if given. With
+        checkpoint_slot, the stored forward stages of the step are restored instead of solved
+        and the tangents are stored (see _compute_substep_tangents).
         """
-        self._compute_substep_tangents(xn, wn, tn, dt)
+        self._compute_substep_tangents(xn, wn, tn, dt, checkpoint_slot=checkpoint_slot)
         wnp1[0].assign(self.wks[-1][0][0])
         if xnp1 is not None:
             xnp1[0].assign(self.xks[-1][0][0])
 
-    def take_second_order_adjoint_step(self, delta_lambda, delta_lambda_dot, lambda_np1, lambda_dot_np1, xn, wn, tnp1, dt):
+    def take_second_order_adjoint_step(self, delta_lambda, delta_lambda_dot, lambda_np1, lambda_dot_np1, xn, wn, tnp1, dt,
+                                       checkpoint_slot=None):
         """Take one combined first-order and second-order adjoint split step.
 
         Same interface and return values as GeneralRK.take_second_order_adjoint_step. The substep
         states and tangents are recomputed forward (storing the stages with reuse_stages), then
         lambda and lambda_dot are carried backward through the substeps in reverse order,
         summing the dual increments.
+
+        With checkpoint_slot (plan items A1/A2), the substep states, tangents, stages, tangent
+        stages, stage adjoints and lambdas stored for this step by take_forward_step,
+        take_adjoint_step and take_tangent_step are restored, so only the second-order stage
+        adjoints and increments are solved. The first-order part is skipped as for
+        GeneralRK's adjoint_slot: delta_lambda is the stored increment and the first-order
+        increments are None.
         """
         self.lambda_k.assign(lambda_np1)
         self.lambda_dot_k.assign(lambda_dot_np1)
@@ -1076,9 +1318,15 @@ class LieSplittingIntegrator():
         delta_lambda_dot_rhs = None
         delta_hess_coeff_rhs = None
 
-        # recompute the substep states and tangents from (xn, wn)
-        with region("substep recompute"):
-            stored = self._compute_substep_tangents(xn, wn, tnp1 - dt, dt, store=True)
+        if checkpoint_slot is not None:
+            # trajectory checkpoint: everything first-order and tangent was stored for this step
+            stored = {}
+            self._restore_substeps(checkpoint_slot, 'x')
+            self._restore_substeps(checkpoint_slot, 'w')
+        else:
+            # recompute the substep states and tangents from (xn, wn)
+            with region("substep recompute"):
+                stored = self._compute_substep_tangents(xn, wn, tnp1 - dt, dt, store=True)
 
         nintegrators = len(self.time_integrators)
         l = 0
@@ -1095,10 +1343,13 @@ class LieSplittingIntegrator():
                         self.delta_lambda_dot.assign(0)
                         # substep k runs from tnp1 - dt + k*sub_dt to tnp1 - dt + (k+1)*sub_dt
                         # substep lt-l of the recompute; restore its stored stages if available
-                        slot = lt - l if stored.get(lt - l) else None
+                        if checkpoint_slot is not None:
+                            slots = {'checkpoint_slot': (checkpoint_slot, lt - l)}
+                        else:
+                            slots = {'stages_slot': lt - l if stored.get(lt - l) else None}
                         increments = time_integrator.take_second_order_adjoint_step(self.delta_lambda, self.delta_lambda_dot,
                             self.lambda_k, self.lambda_dot_k, self.xks[lt-l-1][0], self.wks[lt-l-1][0], tnp1 - dt + (k + 1) * sub_dt, sub_dt,
-                            stages_slot=slot)
+                            **slots)
                         _delta_lambda_rhs, _delta_grad_rhs, _delta_lambda_dot_rhs, _delta_hess_coeff_rhs = increments
                         self.lambda_k.assign(self.lambda_k + self.delta_lambda)
                         self.lambda_dot_k.assign(self.lambda_dot_k + self.delta_lambda_dot)

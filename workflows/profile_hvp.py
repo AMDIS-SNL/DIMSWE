@@ -70,8 +70,8 @@ STAGE_KINDS = ("forward stages", "tangent stages", "adjoint stages", "soa stages
 # the step (LieSplit substep recompute, or the GeneralRK adjoint step of a single RK
 # timestepper); the HVP does the same for the tangent stages. A LieSplit with stage reuse (plan
 # item A3, timestepping.reuse_stages, the default) restores the recomputed stages in its substep
-# adjoint steps instead of solving them a third time. A change that stores more stage values
-# (plan item A2) must update this table.
+# adjoint steps instead of solving them a third time. The trajectory stage checkpoint
+# (optimizer.checkpoint: stages, plan items A1/A2) has its own table below.
 COST_MODEL_STAGE_PASSES = {
     "obj": {"forward stages": 1},
     "jac": {"forward stages": 2, "adjoint stages": 1},
@@ -83,14 +83,37 @@ COST_MODEL_STAGE_PASSES_RECOMPUTE = {
     "jac": {"forward stages": 3, "adjoint stages": 1},
     "hessp": {"forward stages": 3, "tangent stages": 3, "adjoint stages": 1, "soa stages": 1},
 }
+# optimizer.checkpoint stages: jac stores the stages in its forward pass and restores them in the
+# adjoint sweep, and an HVP at the point of the last jac restores the forward stages, stage
+# adjoints and lambdas, solving only the tangent and second-order adjoint stages
+COST_MODEL_STAGE_PASSES_CHECKPOINT = {
+    "obj": {"forward stages": 1},
+    "jac": {"forward stages": 1, "adjoint stages": 1},
+    "hessp": {"tangent stages": 1, "soa stages": 1},
+}
 # the same models in stage solves, assuming every stage pass costs the same: obj S, jac 3S,
-# hessp 6S (with recompute: jac 4S, hessp 8S)
+# hessp 6S (with recompute: jac 4S, hessp 8S; with the stage checkpoint: jac 2S, hessp 2S)
 COST_MODEL_RATIOS = {"jac/obj": 3.0, "hessp/jac": 2.0, "hessp/obj": 6.0}
 COST_MODEL_RATIOS_RECOMPUTE = {"jac/obj": 4.0, "hessp/jac": 2.0, "hessp/obj": 8.0}
+COST_MODEL_RATIOS_CHECKPOINT = {"jac/obj": 2.0, "hessp/jac": 1.0, "hessp/obj": 2.0}
+
+
+def cost_model(recompute_stages: bool = False, checkpoint_stages: bool = False) -> tuple[dict, dict]:
+    """Return (stage passes, ratios) of the cost model for a storage layout.
+
+    The stage checkpoint takes precedence: with it, no step is recomputed, so reuse_stages
+    does not matter.
+    """
+    if checkpoint_stages:
+        return COST_MODEL_STAGE_PASSES_CHECKPOINT, COST_MODEL_RATIOS_CHECKPOINT
+    if recompute_stages:
+        return COST_MODEL_STAGE_PASSES_RECOMPUTE, COST_MODEL_RATIOS_RECOMPUTE
+    return COST_MODEL_STAGE_PASSES, COST_MODEL_RATIOS
 
 # leaf regions that do the actual numerical work; time outside them is overhead
 WORK_REGIONS = STAGE_KINDS + (
     "restore stages",
+    "store stages",
     "update",
     "gradient increments",
     "hessian increments",
@@ -151,6 +174,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--recompute-stages", action="store_true",
                         help="Switch LieSplit stage reuse off (reuse_stages false) for an A/B comparison with the "
                              "default; the default output directory gets a __recompute suffix")
+    parser.add_argument("--checkpoint", choices=("states", "stages"), default=None,
+                        help="Override optimizer.checkpoint of the spec (stages: trajectory stage checkpoint, plan "
+                             "items A1/A2); an override adds a __<mode> suffix to the default output directory")
     parser.add_argument("--dry-run", action="store_true", help="Print the selected job and evaluation plan only")
     parser.add_argument("--print-output-dir", action="store_true",
                         help="Print only the output directory and exit (used by profile_hvp.sh --flamegraph)")
@@ -165,6 +191,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         parser.error("--repeats must be at least 1")
     args.petsc_options = unknown
     return args
+
+
+# evaluations profiled as at a new point, with the per-point caches cleared before each call (an
+# optimizer evaluates obj and jac at new points, and its HVPs at the point of the last jac)
+COLD_KINDS = ("obj", "jac")
 
 
 def evaluation_plan(repeats: int) -> list[tuple[str, str, int]]:
@@ -192,7 +223,8 @@ def random_directions(size: int, seed: int) -> tuple[Any, Any]:
     return directions[0], directions[1]
 
 
-def profile_evaluations(problem: Any, repeats: int = 1, seed: int = 2020) -> list[dict[str, Any]]:
+def profile_evaluations(problem: Any, repeats: int = 1, seed: int = 2020,
+                        clear_caches: Callable[[], None] | None = None) -> list[dict[str, Any]]:
     """Evaluate obj, jac and hessp at the problem's starting point and profile every call.
 
     problem is a ReducedProblem (or anything with z0, to_full, direction_to_full, full_fun,
@@ -205,6 +237,10 @@ def profile_evaluations(problem: Any, repeats: int = 1, seed: int = 2020) -> lis
 
     Calls are timed with the clock of the timing table (profiling.now), so the call times and the
     region times are consistent.
+
+    clear_caches, if given, drops the per-point caches (the initial-condition map's) before every
+    call of a kind in COLD_KINDS. obj and jac are then timed as at a new point, as in an optimizer,
+    while the HVPs reuse what jac computed at the point, as Newton-CG's inner iterations do.
     """
     profiling = profiling_module()
     x = problem.to_full(problem.z0)
@@ -221,6 +257,8 @@ def profile_evaluations(problem: Any, repeats: int = 1, seed: int = 2020) -> lis
     records = []
     try:
         for label, kind, direction in evaluation_plan(repeats):
+            if clear_caches is not None and kind in COLD_KINDS:
+                clear_caches()
             profiling.reset()
             start = profiling.now()
             with profiling.region(label):
@@ -268,15 +306,15 @@ def cost_ratios(seconds: dict[str, dict[str, float]]) -> dict[str, float | None]
     return {"jac/obj": ratio("jac", "obj"), "hessp/jac": ratio("hessp", "jac"), "hessp/obj": ratio("hessp", "obj")}
 
 
-def stage_passes(record: dict[str, Any], nsteps: int, nsubsteps: int,
-                 recompute_stages: bool = False) -> dict[str, dict[str, float | None]]:
+def stage_passes(record: dict[str, Any], nsteps: int, nsubsteps: int, recompute_stages: bool = False,
+                 checkpoint_stages: bool = False) -> dict[str, dict[str, float | None]]:
     """Return stage passes per time step and substep for one call, next to the cost model.
 
-    recompute_stages selects COST_MODEL_STAGE_PASSES_RECOMPUTE (LieSplit with reuse_stages off)
-    instead of COST_MODEL_STAGE_PASSES (see timestepper_layout).
+    recompute_stages (LieSplit with reuse_stages off) and checkpoint_stages (optimizer.checkpoint
+    stages) select the cost model table, see cost_model.
     """
     totals = profiling_module().totals_by_name(strip_top(record["regions"], record["label"]))
-    model = (COST_MODEL_STAGE_PASSES_RECOMPUTE if recompute_stages else COST_MODEL_STAGE_PASSES)[record["kind"]]
+    model = cost_model(recompute_stages, checkpoint_stages)[0][record["kind"]]
     result = {}
     for kind in STAGE_KINDS:
         calls = totals.get(kind, {"calls": 0})["calls"]
@@ -305,13 +343,19 @@ def breakdown(record: dict[str, Any]) -> dict[str, Any]:
     return dict(sorted(categories.items(), key=lambda item: -item[1]["seconds"]))
 
 
-def stage_costs(record: dict[str, Any]) -> dict[str, dict[str, dict[str, float | None]]]:
+def stage_costs(record: dict[str, Any],
+                reference: dict[str, dict[str, dict[str, float | None]]] | None = None,
+                ) -> dict[str, dict[str, dict[str, float | None]]]:
     """Return the cost of one stage pass per sub-integrator and stage kind, for one call.
 
     Stage regions are attributed to the nearest enclosing sub-integrator region (named like
     "0:RK4(model)"), or to "rk" for a plain GeneralRK timestepper. vs_forward is the cost of a
-    pass relative to a forward-stage pass of the same sub-integrator in the same call, which
-    measures how much larger the tangent, adjoint and second-order adjoint forms are.
+    pass relative to a forward-stage pass of the same sub-integrator, which measures how much
+    larger the tangent, adjoint and second-order adjoint forms are. The forward pass is taken
+    from the same call when it solves forward stages; otherwise (a checkpointed HVP restores
+    them) from reference, the stage_costs of another call such as the steady obj. Each
+    sub-integrator gets a "forward reference" entry with the seconds per forward pass used and
+    its source ("call", "reference" or None when neither has one).
     """
     regions = strip_top(record["regions"], record["label"])
     table: dict[str, dict[str, dict[str, float]]] = {}
@@ -327,7 +371,12 @@ def stage_costs(record: dict[str, Any]) -> dict[str, dict[str, dict[str, float |
     for label in sorted(table):
         forward = table[label].get("forward stages")
         forward_per_pass = forward["seconds"] / forward["calls"] if forward and forward["calls"] else None
-        result[label] = {}
+        source = "call" if forward_per_pass else None
+        if not forward_per_pass and reference:
+            # no forward solves in this call: compare with the reference call's forward pass
+            forward_per_pass = reference.get(label, {}).get("forward stages", {}).get("seconds_per_pass")
+            source = "reference" if forward_per_pass else None
+        result[label] = {"forward reference": {"seconds_per_pass": forward_per_pass, "source": source}}
         for kind in STAGE_KINDS:
             if kind not in table[label]:
                 continue
@@ -375,18 +424,20 @@ def optimizer_estimate(result: dict[str, Any], seconds: dict[str, dict[str, floa
 
 
 def summarize(records: list[dict[str, Any]], nsteps: int, nsubsteps: int,
-              results: list[dict[str, Any]] | None = None, recompute_stages: bool = False) -> dict[str, Any]:
+              results: list[dict[str, Any]] | None = None, recompute_stages: bool = False,
+              checkpoint_stages: bool = False) -> dict[str, Any]:
     """Build the summary section of profile.yaml from the profiled calls (see the module doc).
 
     nsteps and nsubsteps are the time steps per data block and substeps per time step,
-    recompute_stages selects the cost model (see timestepper_layout), and results holds the
-    result.yaml contents to combine with the measured costs.
+    recompute_stages and checkpoint_stages select the cost model (see cost_model and
+    timestepper_layout), and results holds the result.yaml contents to combine with the
+    measured costs.
     """
     seconds = evaluation_seconds(records)
     summary: dict[str, Any] = {
         "seconds": seconds,
         "ratios": cost_ratios(seconds),
-        "cost_model_ratios": dict(COST_MODEL_RATIOS_RECOMPUTE if recompute_stages else COST_MODEL_RATIOS),
+        "cost_model_ratios": dict(cost_model(recompute_stages, checkpoint_stages)[1]),
         "stage_passes_per_substep": {},
         "breakdown": {},
         "stage_costs": {},
@@ -395,9 +446,11 @@ def summarize(records: list[dict[str, Any]], nsteps: int, nsubsteps: int,
         record = steady_record(records, kind)
         if record is None:
             continue
-        summary["stage_passes_per_substep"][kind] = stage_passes(record, nsteps, nsubsteps, recompute_stages)
+        summary["stage_passes_per_substep"][kind] = stage_passes(record, nsteps, nsubsteps, recompute_stages,
+                                                                 checkpoint_stages)
         summary["breakdown"][kind] = breakdown(record)
-        summary["stage_costs"][kind] = stage_costs(record)
+        # EVALUATION_KINDS starts with obj, so its forward passes are the reference for later kinds
+        summary["stage_costs"][kind] = stage_costs(record, summary["stage_costs"].get("obj"))
     first_hessp = next((record for record in records if record["kind"] == "hessp"), None)
     if first_hessp is not None:
         # form/solver construction only; the rest of the setup cost is compilation in the first solves
@@ -440,11 +493,14 @@ def format_summary(summary: dict[str, Any]) -> str:
                 lines.append(f"  {name:<28} {entry['seconds']:10.3f} s {entry['share']:7.1%}")
     hessp_costs = summary["stage_costs"].get("hessp", {})
     if hessp_costs:
-        lines.append("Cost of one stage pass in hessp, relative to a forward pass of the same sub-integrator:")
+        lines.append("Cost of one stage pass in hessp, relative to a forward pass of the same sub-integrator "
+                     "(* = forward pass of the steady obj):")
         for label, kinds in hessp_costs.items():
-            cells = ", ".join(f"{kind.split()[0]} {format_number(entry['vs_forward'], 2)}" for kind, entry in kinds.items())
-            forward = kinds.get("forward stages", {}).get("seconds_per_pass")
-            lines.append(f"  {label:<28} forward pass {format_number(forward, 4)} s; {cells}")
+            cells = ", ".join(f"{kind.split()[0]} {format_number(entry['vs_forward'], 2)}" for kind, entry in kinds.items()
+                              if kind in STAGE_KINDS)
+            forward = kinds["forward reference"]
+            marker = "*" if forward["source"] == "reference" else ""
+            lines.append(f"  {label:<28} forward pass {format_number(forward['seconds_per_pass'], 4)} s{marker}; {cells}")
     for estimate in summary["optimizer"]:
         lines.append(
             f"Optimizer run {estimate['job']} ({estimate['method']}, nit {estimate['nit']}, nfev {estimate['nfev']}, "
@@ -491,23 +547,91 @@ def timestepper_layout(timestepper: Any) -> tuple[int, bool]:
     return int(sum(subcycles)), not getattr(timestepper, "reuse_stages", False)
 
 
-def build_job_problem(spec: dict[str, Any], job: dict[str, Any],
-                      recompute_stages: bool = False) -> tuple[Any, int, int, bool]:
+def stage_solver_summary(solvers: dict[str, Any]) -> str | None:
+    """Summarize the AffineSolver strategies of one sub-integrator's stage solves in one string.
+
+    Returns, for example, "16 mass" or "14 mass, 2 reference (F0, mu1)", naming the solves on the
+    old path; None if there are no stage solvers (yet).
+    """
+    if not solvers:
+        return None
+    mass = sum(1 for solver in solvers.values() if solver.strategy == "mass")
+    slow = sorted(name for name, solver in solvers.items() if solver.strategy != "mass")
+    text = f"{mass} mass"
+    if slow:
+        text += f", {len(slow)} reference ({', '.join(slow)})"
+    return text
+
+
+def solver_strategies(timestepper: Any) -> dict[str, dict[str, str]]:
+    """Return the strategy of every increment assembler and solver and of the stage solves, per sub-integrator.
+
+    The keys are the sub-integrator profile labels (as in the region tree, or "rk" for a plain
+    GeneralRK). The values map "assemble <form>" to the PersistentAssembler strategy (B0; the
+    slow fallback is "assemble"), "solve <form>" to the lambda / lambda_dot increment
+    AffineSolver strategy ("mass", or "reference" after a failed residual check or with
+    iterative solver parameters) and "stage solves" to stage_solver_summary of the stage
+    AffineSolvers (C1). Call it after the evaluations, since everything is validated on first use.
+    """
+    integrators = list(getattr(timestepper, "time_integrators", None) or [timestepper])
+    labels = list(getattr(timestepper, "profile_labels", None) or ["rk"] * len(integrators))
+    strategies = {}
+    for label, integrator in zip(labels, integrators):
+        entry = {f"assemble {name}": assembler.strategy
+                 for name, assembler in getattr(integrator, "_increment_assemblers", {}).items()}
+        entry.update({f"solve {name}": solver.strategy
+                      for name, solver in getattr(integrator, "_increment_solvers", {}).items()})
+        stages = stage_solver_summary(getattr(integrator, "_stage_solvers", {}))
+        if stages is not None:
+            entry["stage solves"] = stages
+        strategies[label] = entry
+    return strategies
+
+
+def is_fallback(strategy: str) -> bool:
+    """Return True for a strategy string that names a slow fallback path ("assemble" or "reference")."""
+    return strategy == "assemble" or "reference" in strategy
+
+
+def format_strategies(strategies: dict[str, dict[str, str]]) -> str:
+    """Format solver_strategies for the printed report, flagging fallbacks to the slow paths."""
+    lines = ["Increment and stage solve strategies (fallbacks: assemble, reference):"]
+    for label, entry in strategies.items():
+        cells = ", ".join(f"{name} {strategy}" + (" (FALLBACK)" if is_fallback(strategy) else "")
+                          for name, strategy in sorted(entry.items()))
+        lines.append(f"  {label:<28} {cells or '-'}")
+    return "\n".join(lines)
+
+
+def build_job_problem(spec: dict[str, Any], job: dict[str, Any], recompute_stages: bool = False,
+                      checkpoint: str | None = None) -> tuple[Any, dict[str, Any], Callable[[], None] | None]:
     """Build the job's ReducedProblem exactly as optimize_params.run_job does.
 
     With recompute_stages, a LieSplit timestepper's stage reuse is switched off afterwards, so the
-    same build can be profiled on the old recompute path (--recompute-stages). Returns (problem,
-    nsteps, nsubsteps, recompute_stages): the time steps per data block, the substeps per time
-    step and whether the stages are re-solved in the adjoint substeps (see timestepper_layout).
+    same build can be profiled on the old recompute path (--recompute-stages); checkpoint, if
+    given, replaces the spec's optimizer.checkpoint (--checkpoint). Returns (problem, layout,
+    clear_caches). layout holds nsteps and nsubsteps (time steps per data block, substeps per
+    time step), recompute_stages (stages re-solved in the adjoint substeps, see
+    timestepper_layout), checkpoint_stages (optimizer.checkpoint is stages) and strategies, a
+    callable returning solver_strategies of the timestepper. clear_caches is
+    the initial-condition map's clear_cache for 'ic-params' jobs (None otherwise; see
+    profile_evaluations).
     """
     from workflows.optimize_params import Job
 
+    if checkpoint is not None:
+        spec = {**spec, "optimizer": {**spec["optimizer"], "checkpoint": checkpoint}}
     state = Job(spec, job)
     problem, _, _ = state.build_problem()
     if recompute_stages and hasattr(state.timestepper, "reuse_stages"):
         state.timestepper.reuse_stages = False
     nsubsteps, recompute_stages = timestepper_layout(state.timestepper)
-    return problem, int(state.objective.nsteps), nsubsteps, recompute_stages
+    ic_map = getattr(state, "ic_map", None)
+    clear_caches = getattr(ic_map, "clear_cache", None)
+    layout = {"nsteps": int(state.objective.nsteps), "nsubsteps": nsubsteps, "recompute_stages": recompute_stages,
+              "checkpoint_stages": state.optimizer.checkpoint == "stages",
+              "strategies": lambda: solver_strategies(state.timestepper)}
+    return problem, layout, clear_caches
 
 
 def load_results(paths: list[str] | None, job: dict[str, Any]) -> list[dict[str, Any]]:
@@ -525,7 +649,8 @@ def main(argv: list[str] | None = None) -> dict[str, Any] | None:
     spec, job = select_job(spec_path, args.job)
     output_dir = (resolve_path(args.output_dir) if args.output_dir
                   else resolve_runs_root(DEFAULT_OUTPUT_ROOT) / spec["optimization_name"]
-                  / (job["name"] + ("__recompute" if args.recompute_stages else "")))
+                  / (job["name"] + ("__recompute" if args.recompute_stages else "")
+                     + (f"__{args.checkpoint}" if args.checkpoint else "")))
     if args.print_output_dir:
         root_print(str(output_dir))
         return None
@@ -537,14 +662,20 @@ def main(argv: list[str] | None = None) -> dict[str, Any] | None:
         return None
 
     start = time.perf_counter()
-    problem, nsteps, nsubsteps, recompute_stages = build_job_problem(spec, job, recompute_stages=args.recompute_stages)
+    problem, layout, clear_caches = build_job_problem(spec, job, recompute_stages=args.recompute_stages,
+                                                      checkpoint=args.checkpoint)
+    nsteps, nsubsteps = layout["nsteps"], layout["nsubsteps"]
+    recompute_stages, checkpoint_stages = layout["recompute_stages"], layout["checkpoint_stages"]
     build_seconds = time.perf_counter() - start
     root_print(f"  built the model and problem in {build_seconds:.3f} s ({nsteps} steps x {nsubsteps} substeps, "
                f"{problem.z0.size} optimization variables)")
 
-    records = profile_evaluations(problem, repeats=args.repeats, seed=args.seed)
+    records = profile_evaluations(problem, repeats=args.repeats, seed=args.seed, clear_caches=clear_caches)
     results = load_results(args.results, job)
-    summary = summarize(records, nsteps, nsubsteps, results, recompute_stages=recompute_stages)
+    summary = summarize(records, nsteps, nsubsteps, results, recompute_stages=recompute_stages,
+                        checkpoint_stages=checkpoint_stages)
+    # whether the fast increment paths are in use (known only after the evaluations)
+    strategies = layout["strategies"]() if layout.get("strategies") else {}
 
     world_size, barrier = mpi_world()
     profile = {
@@ -559,20 +690,23 @@ def main(argv: list[str] | None = None) -> dict[str, Any] | None:
         "nsteps": nsteps,
         "nsubsteps": nsubsteps,
         "recompute_stages": recompute_stages,
+        "checkpoint_stages": checkpoint_stages,
         "nvariables": int(problem.z0.size),
         "repeats": args.repeats,
         "seed": args.seed,
         "build_seconds": build_seconds,
+        "solver_strategies": strategies,
         "summary": summary,
         "evaluations": records,
     }
     trees = format_trees(records, args.min_share)
     root_print("\n" + trees)
-    root_print(format_summary(summary))
+    report = format_summary(summary) + ("\n" + format_strategies(strategies) if strategies else "")
+    root_print(report)
     if is_mpi_root():
         output_dir.mkdir(parents=True, exist_ok=True)
         dump_yaml(to_builtin(profile), output_dir / PROFILE_YAML)
-        (output_dir / PROFILE_TREE).write_text(trees + "\n" + format_summary(summary) + "\n", encoding="utf-8")
+        (output_dir / PROFILE_TREE).write_text(trees + "\n" + report + "\n", encoding="utf-8")
         root_print(f"\nWrote {output_dir / PROFILE_YAML} and {output_dir / PROFILE_TREE}")
     barrier()
     return profile

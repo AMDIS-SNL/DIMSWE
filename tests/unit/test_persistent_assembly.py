@@ -182,7 +182,10 @@ def test_rk_adjoint_steps_use_persistent_assemblers_and_stay_repeatable():
     for hvp in hvps[1:]:
         np.testing.assert_allclose(hvp, hvps[0], rtol=1e-12, atol=0.0)
     for integrator in setup.timestepper.time_integrators:
-        assemblers = integrator._increment_assemblers
-        assert "L_delta_lambda" in assemblers and "L_delta_lambda_dot" in assemblers
+        # the lambda increments assemble inside their AffineSolvers (plan item C1), the coefficient
+        # increments (if any) in _increment_assemblers
+        assemblers = dict(integrator._increment_assemblers)
+        for name in ("L_delta_lambda", "L_delta_lambda_dot"):
+            assemblers[name] = integrator._increment_solvers[name].assembler
         print(integrator, {name: a.strategy for name, a in assemblers.items()})
         assert all(a.strategy != "assemble" for a in assemblers.values())

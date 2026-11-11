@@ -13,6 +13,9 @@ def test_hessp_method_tables_match():
     assert set(optimize_params.HESSP_METHODS) == set(dimswe_optimize.HESSP_METHODS)
     assert set(optimize_params.HESSP_REQUIRED_METHODS) == set(dimswe_optimize.HESSP_REQUIRED_METHODS)
     assert set(optimize_params.BOUNDED_METHODS) == set(dimswe_optimize.BOUNDED_METHODS)
+    assert tuple(optimize_params.CHECKPOINT_MODES) == tuple(dimswe_optimize.CHECKPOINT_MODES)
+    # the workflow default null is passed through and resolved by dimswe (stages when supported)
+    assert optimize_params.DEFAULT_OPTIMIZER["checkpoint"] is None
 
 
 def test_workflow_validation_agrees_with_runtime_checks():

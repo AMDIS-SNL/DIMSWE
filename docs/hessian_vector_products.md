@@ -615,3 +615,74 @@ Now the recompute stores each substep's stage values F_i, W_i, plus Fdot_i, Wdot
 - **Scope.** A single `GeneralRK` timestepper had no in-step recompute, so it is unchanged.
 
 Stage passes per substep are now 2 forward + 1 adjoint for `jac`, and 2 forward + 2 tangent + 1 adjoint + 1 SOA for `hessp`, down from 3/3. That is jac ≈ 3S and hessp ≈ 6S. `tests/unit/test_stage_reuse.py` checks the agreement with the recompute path to 1e-10 and the pass counts for both settings.
+
+## 23. Initial-condition map point cache
+
+`ParametricInitialCondition` projects three things, which depend only on the parameter values p:
+- the initial state x0(p) (`forward`);
+- the tangents dx0/dp_j (`tangents`, used by `backward` and `tangent_action`);
+- the second tangents d^2 x0/dp_j dp_k (`second_tangents`, used by `second_order_backward`).
+
+Before the cache, an `ic-params` HVP projected the tangents twice and the second tangents once, which was about 18% of its time after A3. They don't depend on the HVP direction, so every HVP at a point repeated the same projections.
+
+With `cache=True` (the default), the map keeps all three for the most recent point:
+- `set_param_values` (called by `forward`) compares the new values exactly with the current point. A different point clears the cache.
+- Each quantity is projected on first use at the point and then returned from the cache. Callers always get copies, so modifying a returned array cannot corrupt the cache.
+- Nothing is cached before the first `forward` (the parameter Functions then hold their construction values), or with `cache=False`.
+- The parameters are replicated on every rank, so all ranks hit or miss together and the collective projections stay matched.
+- `clear_cache()` drops the values. `workflows/profile_hvp.py` uses it before each `obj` and `jac` call so they are timed as at a new point.
+
+In Newton-CG the gradient at a point computes the state and the tangents, the first HVP adds the second tangents, and every further HVP at the point projects nothing. The results are unchanged, since the cached arrays are the projections themselves. `tests/unit/test_ic_map_cache.py` checks the projection counts, equality with `cache=False`, the copies, and invalidation.
+
+## 24. Trajectory stage checkpoint (plan items A1/A2)
+
+With `checkpoint='stages'` (`optimizer.checkpoint: stages` in a workflow spec), the gradient sweep stores everything first-order that an HVP at the same point needs. A slot names one step of one block, `(block, n)`, and a substep `l` within it is `((block, n), l)`.
+
+| call | stores under the slot | restores |
+|---|---|---|
+| `jac` forward pass (`take_forward_step(store_slot)`) | forward stages F_i, W_i; substep states | – |
+| `jac` adjoint sweep (`take_adjoint_step(checkpoint_slot)`) | stage adjoints mu_i, nu_i, lambda_{n+1} and delta_lambda | substep states, forward stages |
+| HVP tangent pass (`take_tangent_step(checkpoint_slot)`) | tangent stages Fdot_i, Wdot_i; substep tangents | forward stages |
+| HVP reverse sweep (`take_second_order_adjoint_step(checkpoint_slot)`) | – | everything above |
+
+- **Point key.** `jac` records its point: the coefficient values (or `coeffs0`'s values) and the initial states. `_hvp_sweep` reuses the checkpoint only if its own point is bitwise equal on every rank (`_checkpoint_matches`, an allreduce). Otherwise it runs the recompute path of sections 4 and 22.
+  - `jac` clears the key before it starts, so an interrupted sweep cannot leave a stale checkpoint.
+  - `obj` neither stores nor clears anything: it writes `self.states`, which the reuse path rebuilds in its tangent pass from the same stored stages.
+- **What an HVP still solves.** The tangent stages, and per reverse substep the SOA stages and the `delta_lambda_dot` increment.
+  - With `adjoint_slot`, `GeneralRK.take_second_order_adjoint_step` skips the first-order stage solves, `deltalambdasolver` and the first-order increment assemblies, and returns `None` for those increments.
+  - The stored adjoint values include the solved `delta_lambda`, which is restored too. Every Function the second-order forms can see therefore has the same value as in the full step, so the result is exact without relying on the forms' structure. `delta_grad` is never solved on either path.
+  - The gradient returned with the HVP is the one `jac` stored.
+- **Cost.** Per substep, jac goes from 2 forward + 1 adjoint pass (with A3) to 1 + 1, and an HVP from 2 forward + 2 tangent + 1 adjoint + 1 SOA to 1 tangent + 1 SOA.
+- **Memory.** The stores are allocated on first use and reused by every later `jac` and HVP: about 3 × nstages × (x + aux) Functions per step and substep, plus the substep state and tangent.
+- **Default.** `checkpoint=None` (the default) resolves to `stages` when the timestepper has `supports_stage_checkpoint`, and to `states` otherwise (`resolve_checkpoint`). An explicit `stages` on an unsupported timestepper is an error. `tests/unit/test_stage_checkpoint.py` checks agreement with `states` to 1e-10. The default was switched after profiling, the optimizer baseline check, and a memory check (docs/hvp_performance_plan.md, section 2.3).
+
+## 25. Increment solves and stage copies
+
+The λ and λ̇ increments of every RK adjoint step solve M δ = r and also return the dual increment r (sections 4 and 22).
+- **One assembly per increment.** `GeneralRK._solve_increment` used `dimswe.assembly.IncrementSolver` (since replaced by the `AffineSolver` of section 26, which does the same with a cheaper check):
+  - it zeroes δ, so the M·δ terms of `L = action(M, δ) - residual` cancel exactly;
+  - it assembles L = r once, with the same `PersistentAssembler` as `_assemble_increment`, and returns that as the dual increment;
+  - it solves M δ = r with a `MassSolver`, assembled and factored on first use and shared by λ and λ̇.
+  - Before, the `LinearVariationalSolver` assembled the large right-hand side form inside its residual, and `_assemble_increment` assembled it a second time.
+- **Validation.** The first two solves of each increment are compared with the old `deltalambdasolver` / `soa_deltalambdasolver`. If they disagree or raise on any rank, every rank uses the old solver from then on.
+- **Stage copies.** The stage checkpoint and A3 stores and restores copy values with `dimswe.numpy_helpers.copy_function_values`, a numpy copy of each component's owned dofs, instead of `Function.assign`.
+- Tests: the equality tests of sections 22 and 24 (and, for the increments, section 26).
+
+## 26. Shared factorizations for all stage solves (plan item C1)
+
+Every explicit RK equation solved per substep is affine in its unknown, with the mass matrix of the unknown's space as operator:
+
+| equation | unknown | operator |
+|---|---|---|
+| forward stage, tangent stage | F_i, Fdot_i | x-space mass `mass_x` |
+| aux stage, tangent aux stage | W_i, Wdot_i | derivative of the aux left-hand side `mass_aux[i]` |
+| stage adjoint, second-order stage adjoint | mu_i, mu_dot_i | `mass_x` |
+| aux adjoint, second-order aux adjoint | nu_i, nu_dot_i | aux mass `mass_muaux` |
+| λ and λ̇ increments | delta_lambda, delta_lambda_dot | `mass_x` |
+
+- **One solver type.** Each of them is a `dimswe.assembly.AffineSolver` (`GeneralRK._affine_solver`). It zeroes the unknown, assembles the residual once (giving r0, the residual at zero) and solves M var = -r0. For the increments, -r0 is the returned dual increment (the old L).
+- **Shared factorizations.** The operator comes from a `MassSolver`, assembled and LU-factored on its first solve. `shared_mass_solver` keeps one per operator in a cache on the model (key: form signature, coefficients, argument spaces, solver parameters). All sub-integrators of a LieSplit therefore share one x-space factorization, instead of every stage, adjoint, tangent, SOA and increment solver factoring its own copy.
+- **No action() expansions.** The residuals are used as they are. The old `create_linear_solver_from_residual` built `L = action(a, var) - residual`, and the `LinearVariationalProblem` built `action(a, var) - L` again. Each `action` expanded the whole form in UFL, which for the second-order forms is very large. The coefficient increments `L_delta_grad` and `L_delta_grad_dot` are now `-residual` too, assembled with their (never-solved) unknowns zeroed.
+- **Check and fallback.** The first two solves with a nonzero r0 assemble the residual again at the solution. It must vanish on every rank to `VALIDATION_RTOL` relative to r0. A wrong operator, or an assembler that misses updates or accumulates, fails this check. On a failure or error, the solver switches for good to the old `LinearVariationalSolver`, built only then. Iterative solver parameters (anything but `preonly` with LU or Cholesky) use the old solver from the start, so forward simulations with the default CG parameters are unchanged.
+- **Steady state.** Each stage solve is one assembly and one triangular solve, without the SNES residual evaluation and update of a `LinearVariationalSolver`.
+- Tests: `tests/unit/test_affine_solver.py` (strategy logic with fakes; on `tswe_small`, the shared x-space factorization and equality with the old solvers to 1e-10).

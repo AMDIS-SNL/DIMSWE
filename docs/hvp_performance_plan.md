@@ -169,8 +169,98 @@ Conclusions so far:
 - **The initial-condition map is now the largest single item outside the stage solves.** It takes 3.4 s (18%) of an HVP and 1.35 s (15%) of a gradient, including `ic map forward`.
 
 **Next items, by size (after A3):**
-1. **Caching the initial-condition map** (tangents and second tangents, per parameter point): about 3.0 s (16%) of a 19.1 s HVP and 0.9 s (10%) of a 9.2 s gradient.
+1. **Caching the initial-condition map** (forward state, tangents and second tangents, per parameter point). **Implemented:**
+   - `ParametricInitialCondition` keeps the three for the most recent point and drops them when the parameters change (`cache=True` by default; `clear_cache()`).
+   - Expected: an HVP at the point of the last `jac` projects nothing, about 3.4 s (18%) of a 19.1 s HVP. A gradient only saves the forward projection when `obj` ran at the same point (0.4 s); its tangents are new at every point.
+   - The profiler clears the cache before every `obj` and `jac` call, so those are timed as at a new point. The HVPs reuse what `jac` computed, as in Newton-CG; the first HVP projects the second tangents.
+   - Tests: `tests/unit/test_ic_map_cache.py`.
+   - **Re-profiled** (`--repeats 2`): steady hessp 19.12 → 16.84 s (-12%). The steady HVPs no longer show any `ic map` region. `hessp-1` only projects the second tangents (1.77 s), because `jac` left the state and tangents in the cache.
+   - The cache removed the full 3.4 s. Without the ic map, the previous run's HVP was 15.72 s. The other 1.1 s is a slower machine state: every kind of stage pass was 5-10% slower, as was `obj` (2.71 → 2.81 s) and `jac` (9.24 → 9.79 s), whose ic map work is unchanged by design.
+   - hessp/jac is now 1.72, below the model's 2, because `jac` still pays the projections (1.3 s) and the HVPs do not.
+   - New hessp profile: stage solves 76% (tangent 25.7%, forward 23.9%, soa 13.8%, adjoint 12.8%), increment solves 10.4%, other + update 7.8%, increments 4.1%, restores 1.3%.
 2. **A1/A2:** the remaining gains, behind a configuration option.
+
+**After A1/A2** (`profile_hvp.sh 4 ... --repeats 2 --checkpoint stages`, steady = mean of the calls after the first):
+
+| | after ic cache (`states`) | `stages` | change |
+|---|---|---|---|
+| steady obj | 2.81 s | 2.63 s | machine state |
+| steady jac | 9.79 s | 7.90 s (jac-3 7.31 s) | -19% (-25%) |
+| steady hessp | 16.84 s | 7.50 s | -55% |
+| stage passes jac / hessp | 2F+1A / 2F+2T+1A+1SOA | 1F+1A / 1T+1SOA | match the model |
+
+- **An HVP at the gradient point now costs about one gradient** (hessp/jac 0.95). Since the original 46 s it is 6.1× faster; the gradient is 1.9-2.1× faster than the original 15.4 s.
+- **jac/obj is 3.0 against the model's 2.0**, because the model only counts stage passes. On top of 1.9 s of forward and 2.0 s of adjoint stages, `jac` pays the ic map tangents (0.96 s), the λ increment solves (0.71 s), stores and restores (0.47 s) and the gradient increments (0.23 s).
+- **The second-order forms cost 1.0-1.3 forward passes.** Per pass, against the steady obj: tangent RK4 1.04, hyperviscosity 1.22, dg1limiter 1.16, threewayphysics 1.13; SOA 1.19 / 1.16 / 1.33 / 1.23. The form size is not a problem (C3 stays unneeded).
+- **jac-2 is 1.2 s slower than jac-3.** All of it is in the RK4 forward stages (1.42 vs 0.80 s), so it is a one-off, probably the first allocation of the stage store. 7.3 s is the representative gradient.
+- **The first calls are now a large share of a short run.** One-off setup: hessp 36.7 s (11.8 s of it form and solver construction), jac 13.2 s, obj 7.5 s. The profiler's estimate for the Newton-CG job (nit 5, nhvp 7) is 131 s, and 37 s of it is the HVP setup. The recorded 253.8 s is the old `states` run.
+- Steady hessp by region: SOA stages 2.37 s (32%), tangent stages 2.09 s (28%), λ̇ increment solve 0.99 s (13%), other 0.57 s (8%), restores 0.53 s (7%), Hessian increments 0.49 s (7%), update 0.20 s, stores 0.16 s.
+- The profiler's per-stage-pass cost table printed "-": a checkpointed HVP has no forward stages to compare with. It now falls back to the steady obj's forward pass of the same sub-integrator, marked `*`.
+
+**Next items, by size (after A1/A2):**
+1. **The one-off setup** (37 s per process for the HVP, 13 s for the gradient), now about 30% of a Newton-CG job:
+   - Check first whether the compilation part (about 25 s) is a disk-cache miss: profile twice in a row and compare `hessp-1`.
+   - Then consider C2 (reuse the model across jobs), and cheaper construction in `_setup_second_order` (11.8 s).
+2. **The λ and λ̇ increment solves.** These are 0.99 s (13%) of an HVP and 0.71 s (10%) of a gradient. One RK4 λ̇ solve takes about 14 ms, while one RK4 tangent stage solve takes about 6.5 ms. **Implemented:**
+   - The cause: each substep assembled the large adjoint right-hand side twice. The `LinearVariationalSolver` assembled it inside its residual, and `_assemble_increment` assembled it again for the returned dual increment.
+   - `dimswe/assembly.py` `IncrementSolver` now zeroes the unknown, so the cancelling M·δ terms of `L = action(M, δ) - residual` are exactly zero. It assembles `L` once with the persistent assembler; that result is also the returned increment. It then solves M δ = r with a `MassSolver`, whose mass matrix is assembled and factored once and shared by λ and λ̇ (same expanded form signature).
+   - As with B0, the first two uses of each increment solver are checked against the old solver (to `VALIDATION_RTOL`, on all ranks); on a mismatch or error it falls back to the old solver for good.
+   - `GeneralRK._solve_increment`. The `lambda increment solve` / `lambda_dot increment solve` regions now include the single right-hand side assembly, which used to be under `gradient increments` / `hessian increments`.
+   - Tests: `tests/unit/test_increment_solver.py` covers the strategy logic with fakes, and on `tswe_small` checks that each sub-integrator shares one mass solver and matches the old solver to 1e-10.
+   - Expected: about half of the solve regions, roughly -0.4 to -0.5 s per HVP and -0.3 s per gradient. Measured: -0.3 s per HVP and -0.05 s per gradient (section 2.3, after the increment solves).
+3. **Stores and restores.** These are 0.69 s (9%) of an HVP and 0.47 s (6%) of a gradient, for about 3 ms per call. **Implemented:**
+   - They copied with `Function.assign`, about 0.3 ms per Function, mostly Python-side expression machinery.
+   - `dimswe/numpy_helpers.py` `copy_function_values` copies each component's owned values with numpy (`data_ro` → `data_wo`, which marks the halos for update, as `assign` does). It is used by the `GeneralRK` stage store and restore and by the LieSplit substep store and restore.
+   - Covered by the existing checkpoint and stage-reuse equality tests. Measured: 0.69 → 0.10 s per HVP and 0.47 → 0.05 s per gradient.
+4. **Hessian increments, update and other** (1.3 s together): small individually; revisit after 1-3.
+
+**After the increment solves and stage copies** (same job, `--repeats 2`, default `stages`):
+
+| | after A1/A2 | now | change |
+|---|---|---|---|
+| steady obj | 2.63 s | 2.81 s | machine state (`ic map forward` 0.37 → 0.53 s) |
+| steady jac | 7.31 s (jac-3) | 6.64-6.78 s | -9% |
+| steady hessp | 7.50 s | 6.19-6.36 s | -17% |
+| stores + restores, jac / hessp | 0.47 / 0.69 s | 0.05 / 0.10 s | as expected |
+| λ increment (solve + its assembly), jac | 0.94 s | 0.90 s | -0.05 s, less than expected |
+| λ̇ increment (solve + its assembly), hessp | 1.44 s | 1.15 s | -0.3 s |
+
+- **Since the original code:** HVP 46 → 6.2 s (7.4×), gradient 15.4 → 6.7 s (2.3×). The recorded Newton-CG run took 127.0 s, against 253.8 s in the old baseline; the profiler's estimate is 118.9 s.
+- **The stage copies (item 3) did what was expected.** They removed 0.6 s per HVP and 0.4 s per gradient.
+- **The increment solves (item 2) saved less than expected,** most clearly for the gradient.
+  - One increment still costs about one stage solve. RK4: 9.6 ms (λ) and 15.8 ms (λ̇) per call. Euler sub-integrators: 8-9 ms, against 6-10 ms for their single SOA stage solve.
+  - So the remaining cost is the one assembly of Σ_i J_iᵀ μ_i (and its second-order counterpart) plus the factored mass solve; the second assembly the old solver did was cheap.
+  - The profiler now prints the increment assembler and solver strategies (`solver_strategies`), to confirm that no sub-integrator fell back to the old solver. If one did, its solve region is the old cost plus the new assembly.
+- **Steady HVP by region:** SOA stages 2.18 s (35%), tangent stages 1.99 s (32%), λ̇ increment 1.15 s (19%), other 0.53 s (9%), update 0.20 s, restores 0.10 s. Steady gradient: adjoint stages 1.97 s (30%), forward stages 1.92 s (29%), λ increment 0.90 s (13%), ic map tangents 0.84 s (13%), ic map forward 0.40 s, other 0.41 s.
+- **The first calls are now about 60 s per process:** hessp 37.3 s, jac 16.2 s, obj 7.1 s. That is about half of the 119-127 s Newton-CG run.
+
+**Next items, by size (after the increment solves and stage copies):**
+1. **The one-off setup** (about 60 s per process). First check whether the roughly 25 s of compilation is a disk-cache miss: profile twice in a row and compare the first calls. Then C2, and the 11.3 s of form construction in `_setup_second_order`. **Analysed and partly implemented (C1), see "First-call setup" below.**
+2. **The stage solves themselves** (67% of an HVP, 59% of a gradient). The pass counts are at the minimum for this formulation, and the second-order passes cost 0.94-1.20 forward passes. Further gains need cheaper kernels: C3, the quadrature degree of the forcing terms, or `lump_mass` for the x-space solves.
+3. **The λ and λ̇ increments** (13-19%). Removing the remaining assembly needs a reformulation:
+   - Solve for g_j = M⁻¹ J_jᵀ μ_j instead of μ_j. Then μ_i = dt b_i λ + dt Σ_j A_ji g_j, and δλ = Σ_j g_j is a vector sum with no extra form.
+   - This is a large change to the first-order adjoint (aux terms included) and to the directionally differentiated SOA forms. Only worth it after items 1 and 2.
+
+**First-call setup** (the 60 s above: obj 6.2 s, jac 15.7 s, hessp 36.7 s, first call minus steady):
+
+- **Where it goes, by region.**
+  - hessp: `setup second order` 10.9 s; first tangent stages +6.6 s, first SOA stages +7.6 s and first λ̇ increments +9.1 s over steady.
+  - jac: first adjoint stages +6.7 s and first λ increments +6.9 s.
+  - obj: first forward stages +6.0 s.
+  - Per solver that is about 0.5-0.75 s on first use. RK4's single λ̇ increment alone adds 5.1 s: the old solver it was validated against built its own right-hand side kernel, matrix and factorization.
+- **Where it goes, by PETSc event.** The `--flamegraph` log of the Nov 6 run (before B0, same solver structure) splits the first calls (obj + jac + hessp, first minus steady):
+  - LU factorizations (`MatLUFactorSym` + `MatLUFactorNum`, MUMPS) about 16 s. Each of the ~50 stage and increment `LinearVariationalSolver`s factored its own copy of the same mass matrix.
+  - Kernel compilation and loading about 22 s (`compile_form` 11.6 s, `pyop2.compilation.load` 6.7 s, wrapper code generation 3.7 s). Only this part can be a disk-cache question.
+  - UFL construction about 8 s in hessp (`action` 3.1 s, `adjoint` 1.3 s, `NonlinearVariationalSolver.__init__` 2.2 s, plus `setup second order` itself). `create_linear_solver_from_residual` builds `L = action(a, var) - residual`, and `LinearVariationalProblem` builds `action(a, var) - L` again. Each `action` expands the whole form, which for the directional-derivative forms is very large.
+- **Implemented: C1 with cheap construction** (`dimswe/assembly.py` `AffineSolver`, `MassSolver`, `shared_mass_solver`; `GeneralRK._affine_solver`; docs/hessian_vector_products.md section 26):
+  - every stage, adjoint, tangent, SOA and increment equation is solved as an affine residual: zero the unknown, assemble the residual once, solve with a mass matrix factored once per operator and shared by all sub-integrators of the model (one x-space factorization for the whole LieSplit);
+  - no `action` expansions and no `LinearVariationalSolver` construction; `L_delta_grad` / `L_delta_grad_dot` are `-residual`;
+  - `directional_derivative` collects the form's coefficients once instead of once per pair;
+  - checked on the first two informative solves by re-assembling the residual at the solution (one extra assembly, no extra kernels or factorizations); a failure falls back to the old solver, built only then. The old λ/λ̇ validation needed the old solver up front.
+  - Iterative solver parameters keep the old solvers.
+  - Expected: most of the ~16 s of factorizations, the ~8 s of UFL construction, and the old λ/λ̇ validation solvers, so roughly 25-30 s of the 60 s. A small steady-state gain is also expected from dropping the SNES residual evaluation per stage solve.
+  - The new residual forms are new kernels. **Profile twice:** the first run after the change compiles them, and the second shows the steady setup and answers the disk-cache question.
+- **Left:** compilation (one kernel per residual form), and C2 for jobs after the first in one process.
 
 **Next items, by size (after B0, kept for reference):**
 1. **A3** (keep the stage values within a step): removes one of the three forward and one of the three tangent passes, about 3.8 s (17%) of an HVP and 1.8 s (18%) of a gradient.
@@ -180,6 +270,24 @@ Conclusions so far:
 ## 3. Changes, in proposed order
 
 ### A. Reuse direction-independent work at a fixed point (largest expected gain)
+
+**A1 + A2. Implemented together as `optimizer.checkpoint: stages`** (`Lagrangian_ODEConstrainedOptimization(..., checkpoint='stages')`; the default `states` is the previous path):
+- **`jac` stores.** `compute_states(store_prefix=block)` stores every step's forward stages and substep states. The adjoint sweep passes `checkpoint_slot=(block, n)`, so it restores them instead of recomputing the step (a gradient drops from 3S to 2S), and stores the stage adjoints μ_i, ν_i and each substep's λ.
+- **Key.** `jac` remembers the point (coefficients and initial states, compared exactly and reduced over the ranks) and its gradient.
+- **`hessp` at that point.**
+  - The tangent pass restores the forward stages and only solves the tangent stages, storing those too.
+  - Each reverse step restores the states, tangents, forward and tangent stages, stage adjoints and λ. It only solves the SOA stages and the λ̇ increment, so an HVP is 2S instead of 6S.
+  - The first-order increments are skipped and the gradient comes from `jac`.
+  - At any other point the HVP recomputes as before.
+- **Timestepper API.** `GeneralRK` takes `store_slot` / `stages_slot` / `adjoint_slot` / `checkpoint_slot`, and `LieSplittingIntegrator` takes `store_slot` / `checkpoint_slot`. Stores are allocated once per slot and overwritten by every later `jac`.
+- **Memory.** Per step and substep: forward stages, stage adjoints and tangent stages (3 × nstages × (x + aux)), plus the substep state and tangent.
+- **Cost model.** jac 1 forward + 1 adjoint pass, hessp 1 tangent + 1 SOA (`COST_MODEL_STAGE_PASSES_CHECKPOINT`). `profile_hvp.py --checkpoint stages` profiles it.
+- **Tests.** `tests/unit/test_stage_checkpoint.py` checks that gradients and HVPs (LieSplit and single RK4, coefficient + initial-state directions, and `ic-params`) match `states` to 1e-10. It also checks the fallback away from the `jac` point, that `obj` elsewhere is harmless, and the stage-pass counts.
+- **Profiled** (section 2.3, after A1/A2): steady hessp 16.84 → 7.50 s (-55%), jac 9.79 → 7.90 s (7.31 s without a one-off). The stage passes match the model.
+- **Default.** The tests, the `states` and `stages` baseline checks, the end-to-end comparison and the memory check all passed. `stages` is now the default wherever the timestepper supports it: `checkpoint=None`, resolved by `dimswe.optimize.resolve_checkpoint`; `optimizer.checkpoint: null` in the workflows. `states` stays available for memory-bound windows.
+- **Still to do:** save a new baseline with the faster times (`optimizer_baseline.sh 4 --save`).
+
+The original descriptions follow.
 
 **A1. Cache the forward trajectory and first-order adjoint per point.** Key the cache on the exact point, as the `ReducedProblem` fun/jac memo already does. For coefficient directions, also key it on the coefficient values.
 - **Store:** `jac` already computes and stores x_n. It would also store λ_n for every step, at the cost of one more state per step.
@@ -228,7 +336,7 @@ Check with the step 10-12 Taylor and repeatability tests, `optimizer_baseline.sh
 
 ### C. Setup cost
 
-**C1. Share one factorization per space.** Every stage solver (forward, aux, adjoint, tangent, SOA, Δλ, Δλ̇) solves with the same mass matrix of its space. Use one `LinearSolver` per space (x and aux) with a preassembled matrix and its factorization, and solve with different right-hand sides. That gives 2 factorizations per sub-integrator instead of up to 8 × nstages + 2. With `lump_mass: true` the x-space solve is a pointwise division and needs no factorization at all.
+**C1. Share one factorization per space.** **Implemented** (section 2.3, first-call setup): `AffineSolver` and `shared_mass_solver` in `dimswe/assembly.py`, one factorization per operator for the whole model. Every stage solver (forward, aux, adjoint, tangent, SOA, Δλ, Δλ̇) solves with the same mass matrix of its space. Use one `LinearSolver` per space (x and aux) with a preassembled matrix and its factorization, and solve with different right-hand sides. That gives 2 factorizations per sub-integrator instead of up to 8 × nstages + 2. With `lump_mass: true` the x-space solve is a pointwise division and needs no factorization at all.
 
 **C2. Reuse the model across jobs.** Build the model and timestepper once per (truth run, spec) in `optimize_params`, instead of once per job, so `_setup_second_order` and the solvers are built once per process. Jobs of the same truth run differ only in the objective.
 
@@ -251,9 +359,9 @@ Revised after the measurements in section 2.3:
 1. Measurements (section 2): done; see section 2.3.
 2. **B0** (persistent increment assemblers): done. HVP 46 → 22 s, gradient 15.4 → 10.4 s.
 3. **A3** (stage reuse within a step): done. Stage passes per substep 3 → 2; A/B in one session: jac -21%, hessp -20% (section 2.3).
-4. **Cache the initial-condition tangents and second tangents per parameter point:** about 13-15% of an HVP and 8% of a gradient.
-5. **A1/A2** (cache per point, optional stage checkpointing) behind a configuration option. Stage solves are now 70% of an HVP, so these are the remaining large gains.
-6. **C2** (reuse the model across jobs) for the per-job setup of about 54 s; C1 only if a later profile shows factorizations mattering. C3 and B3 are not needed (section 2.3, findings 2 and 3); B4 is small.
+4. **Cache the initial-condition map per parameter point:** done. HVP 19.1 → 16.8 s; the ic map is gone from the steady HVPs (section 2.3, next items).
+5. **A1/A2** (cache per point, optional stage checkpointing): implemented as `optimizer.checkpoint: stages` (section 3, A1 + A2). Expected: HVP about 16.8 → 7 s and gradient about 9.8 → 7.5 s. Measured: HVP 16.8 → 7.5 s and gradient 9.8 → 7.3-7.9 s (section 2.3, after A1/A2). Validated end to end and made the default where supported.
+6. **Setup and the remaining per-substep work** (section 2.3, next items after A1/A2): C1 is implemented, since the flamegraph showed about 16 s of factorizations in the first calls, together with cheaper solver construction (section 2.3, first-call setup). Next: profile twice for the disk-cache check, then C2 (reuse the model across jobs) for the per-job setup. C3 and B3 are not needed (section 2.3, findings 2 and 3); B4 is small.
 7. **D1** with the comparison tooling; save a new baseline with the improved times.
 
 For each step:

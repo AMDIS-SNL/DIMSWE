@@ -16,7 +16,12 @@ def create_states(model, nsteps):
         tns.append(t)
     return xns, xn_subs, tns
 
-def compute_states(xns, xn_subs, tns, model, timestepper, nsteps, dt, x0, t0):
+def compute_states(xns, xn_subs, tns, model, timestepper, nsteps, dt, x0, t0, store_prefix=None):
+    """Integrate x0 from t0 over nsteps steps, storing every state in xns.
+
+    With store_prefix, step n also stores its stage values in the timestepper under the slot
+    (store_prefix, n), for the trajectory stage checkpoint (plan items A1/A2).
+    """
     xns[0][0].assign(x0[0])
 #DO WE NEED TO DO SOMETHING LIKE THIS?
 #    xns[0][1].assign(x0[1])
@@ -25,7 +30,8 @@ def compute_states(xns, xn_subs, tns, model, timestepper, nsteps, dt, x0, t0):
 #WHY DO WE NEED TO DO?
 #THERE IS SOME SORT OF DATA BEING CARRIED BETWEEN STEPS...
         timestepper.reset_internal_vars()
-        timestepper.take_forward_step(xns[n+1], xn_subs[n+1], xns[n], tns[n], dt)
+        slots = {} if store_prefix is None else {'store_slot': (store_prefix, n)}
+        timestepper.take_forward_step(xns[n+1], xn_subs[n+1], xns[n], tns[n], dt, **slots)
         tns[n+1].assign(tns[n] + dt)
 
 def create_tangent_states(model, nsteps):
@@ -41,13 +47,15 @@ def create_tangent_states(model, nsteps):
         wns.append([w])
     return wns
 
-def compute_states_and_tangents(xns, tns, wns, timestepper, nsteps, dt, x0, w0, t0):
+def compute_states_and_tangents(xns, tns, wns, timestepper, nsteps, dt, x0, w0, t0, checkpoint_prefix=None):
     """Integrate the state and its tangent-linear perturbation together, storing every step.
 
     x0 is the [x, aux] start state as for compute_states, w0 the x-space start tangent (a
     Function, or None for zero, as for coefficient-only directions), and t0 the start time. The
     coefficient direction must already be set on the timestepper with set_numpy_coeff_direction.
     take_tangent_step also writes the forward update, so the states cost no extra forward solves.
+    With checkpoint_prefix, step n restores its stage values from the slot (checkpoint_prefix,
+    n) stored by compute_states instead of solving them, and stores its tangent stages there.
     """
     xns[0][0].assign(x0[0])
     if w0 is None:
@@ -58,7 +66,8 @@ def compute_states_and_tangents(xns, tns, wns, timestepper, nsteps, dt, x0, w0, 
     for n in range(nsteps):
         # same reset per step as compute_states, so the stage solvers see the same initial guesses
         timestepper.reset_internal_vars()
-        timestepper.take_tangent_step(wns[n+1], wns[n], xns[n], tns[n], dt, xnp1=xns[n+1])
+        slots = {} if checkpoint_prefix is None else {'checkpoint_slot': (checkpoint_prefix, n)}
+        timestepper.take_tangent_step(wns[n+1], wns[n], xns[n], tns[n], dt, xnp1=xns[n+1], **slots)
         tns[n+1].assign(tns[n] + dt)
 
 def compute_state_block(model, timestepper, nblocks, nsteps, dt, x0, t0):
@@ -331,9 +340,17 @@ class ParametricInitialCondition():
 
     Only the prognostic x variables are differentiated. Quantities that are interpolated once at
     model initialization (coriolis, bottom topography) are held fixed.
+
+    Point cache (HVP performance plan, initial-condition map caching): the initial state, the
+    tangents and the second tangents depend only on the parameter values, not on the HVP
+    direction or the model trajectory. With cache=True (the default) they are kept for the most
+    recent parameter point and reused until the parameters change. An optimizer calls jac and
+    then many hessp at one point, so all of them after the first projection are free. The
+    parameters are replicated, so every rank hits or misses the cache together. clear_cache()
+    drops the cached values, for example to time a cold evaluation.
     """
 
-    def __init__(self, model, parameters, param_names):
+    def __init__(self, model, parameters, param_names, cache=True):
         from copy import deepcopy
         from firedrake import Function, FunctionSpace
         import ufl
@@ -389,20 +406,56 @@ class ParametricInitialCondition():
         # second derivatives d^2 x0 / dp_j dp_k, built on first use by second_tangents()
         self._second_tangent_exprs = None
         self._second_tangent_var = None
+        # point cache: _point is the tuple of parameter values the parameter Functions currently
+        # hold (None before the first assignment), and _cache maps 'x0', 'tangents' and
+        # 'second_tangents' to the values computed at _point
+        self.cache = cache
+        self._point = None
+        self._cache = {}
+
+    def clear_cache(self):
+        """Drop the cached initial state, tangents and second tangents (they are recomputed on use)."""
+        self._cache = {}
+
+    def _cached(self, key, compute):
+        """Return the cached value for key at the current point, computing and storing it on a miss.
+
+        Nothing is cached before the parameters have been assigned (the Functions then hold
+        their construction values), or with cache=False.
+        """
+        if not self.cache or self._point is None:
+            return compute()
+        if key not in self._cache:
+            self._cache[key] = compute()
+        return self._cache[key]
 
     def get_initial_values(self, parameters):
         """Return the parameter values in parameters['initial-conditions'] as an array."""
         return np.array([float(parameters['initial-conditions'][name]) for name in self.param_names])
 
     def set_param_values(self, params):
-        """Assign parameter values to the R-space Functions."""
-        for func, value in zip(self.param_funcs, params):
-            func.assign(float(value))
+        """Assign parameter values to the R-space Functions; a new point clears the point cache.
+
+        The values are compared exactly, so the cache is only reused at bitwise-equal points.
+        """
+        point = tuple(float(value) for value in np.ravel(params))
+        if point != self._point:
+            self.clear_cache()
+            self._point = point
+        for func, value in zip(self.param_funcs, point):
+            func.assign(value)
 
     @timed("ic map forward")
     def forward(self, params):
-        """Return the rank-local flattened discrete initial state for parameter values params."""
+        """Return the rank-local flattened discrete initial state for parameter values params.
+
+        The returned array is a fresh copy, also on a cache hit, so callers may modify it.
+        """
         self.set_param_values(params)
+        return self._cached('x0', self._project_x0).copy()
+
+    def _project_x0(self):
+        """Project the initial-condition expressions at the current parameter values; return a flat copy."""
         self.x0.assign(0)
         for var, expr in self.exprs.items():
             self.x0_sub[var].project(expr, solver_parameters=self.projection_parameters)
@@ -410,7 +463,14 @@ class ParametricInitialCondition():
 
     @timed("ic map tangents")
     def tangents(self):
-        """Return rank-local flattened tangents dx0/dp_j at the current parameter values."""
+        """Return rank-local flattened tangents dx0/dp_j at the current parameter values.
+
+        Cached per point; the returned list and arrays are copies, so callers may modify them.
+        """
+        return [tangent.copy() for tangent in self._cached('tangents', self._project_tangents)]
+
+    def _project_tangents(self):
+        """Project the tangent expressions d(expr)/dp_j at the current parameter values."""
         tangent_arrs = []
         for (tangent, tangent_sub, _), dexprs in zip(self.tangent_vars, self.tangent_exprs):
             tangent.assign(0)
@@ -469,8 +529,21 @@ class ParametricInitialCondition():
         The result is a symmetric nparams x nparams nested list of arrays, with None for entries
         that are identically zero. As for tangents(), projection is linear, so each entry is the
         projection of the second Gateaux derivative of the initial-condition expressions. Only
-        the upper triangle is projected; the lower triangle refers to the same arrays.
+        the upper triangle is projected; the lower triangle refers to the same arrays. Cached per
+        point like tangents(); the returned arrays are copies (still shared between [j][k] and [k][j]).
         """
+        cached = self._cached('second_tangents', self._project_second_tangents)
+        nparams = len(cached)
+        result = [[None] * nparams for _ in range(nparams)]
+        for j in range(nparams):
+            for k in range(j, nparams):
+                if cached[j][k] is not None:
+                    # one copy per upper-triangle entry, shared with its mirror as before
+                    result[j][k] = result[k][j] = cached[j][k].copy()
+        return result
+
+    def _project_second_tangents(self):
+        """Project the second-derivative expressions d^2(expr)/dp_j dp_k at the current parameter values."""
         if self._second_tangent_exprs is None:
             self._build_second_tangent_exprs()
         nparams = len(self.param_names)
@@ -620,8 +693,46 @@ def taylor_test(problem, direction, eps_list=None):
     return np.array(eps_list), np.array(remainders), np.array(rates)
 
 
+# storage choices of the gradient and HVP sweeps (docs/hvp_performance_plan.md, items A1/A2):
+# 'states' stores the trajectory x_n and recomputes stage values within each step; 'stages' also
+# stores every step's stage values and stage adjoints during jac, so jac skips the recompute and
+# HVPs at the point of the last jac only solve the tangent and second-order adjoint stages.
+# The default (checkpoint=None) is 'stages' whenever the timestepper supports it.
+CHECKPOINT_MODES = ('states', 'stages')
+
+
+def resolve_checkpoint(checkpoint, timestepper):
+    """Return the checkpoint mode to use for timestepper: checkpoint itself, or the default for None.
+
+    None selects 'stages' when the timestepper supports the stage checkpoint (explicit GeneralRK
+    timesteppers, and LieSplit of those; profiled in docs/hvp_performance_plan.md, section 2.3)
+    and 'states' otherwise. An explicit 'stages' for a timestepper without that support, or an
+    unknown mode, raises ValueError.
+    """
+    supported = bool(getattr(timestepper, 'supports_stage_checkpoint', False))
+    if checkpoint is None:
+        return 'stages' if supported else 'states'
+    if checkpoint not in CHECKPOINT_MODES:
+        raise ValueError('checkpoint must be one of ' + ', '.join(CHECKPOINT_MODES) + ', not ' + repr(checkpoint))
+    if checkpoint == 'stages' and not supported:
+        raise ValueError("checkpoint 'stages' needs an explicit RK or LieSplit timestepper")
+    return checkpoint
+
+
 class _ODEConstrainedOptimization():
-    def __init__(self, model, timestepper, objective, dt):
+    def __init__(self, model, timestepper, objective, dt, checkpoint=None):
+        """Set up the reduced objective of an ODE-constrained problem.
+
+        checkpoint is one of CHECKPOINT_MODES, or None for the default (see resolve_checkpoint:
+        'stages' when the timestepper supports it, else 'states'). 'stages' needs a timestepper
+        with supports_stage_checkpoint (explicit GeneralRK, or LieSplit of those) and costs memory
+        for nsteps x substeps x stages copies of the forward stages, stage adjoints and tangent
+        stages (see Lagrangian_ODEConstrainedOptimization.jac and _hvp_sweep).
+        """
+        self.checkpoint = resolve_checkpoint(checkpoint, timestepper)
+        # point (see _point_key) whose stage values and gradient are stored, or None
+        self._checkpoint_key = None
+        self._checkpoint_gradient = None
         self.model = model
         self.timestepper = timestepper
         self.objective = objective
@@ -794,13 +905,59 @@ class _ODEConstrainedOptimization():
             self.timestepper.set_numpy_coeff(coeffs_arr)
 
     @timed("forward pass")
-    def _compute_block_states(self, block_id, ics_arr):
-        """Integrate one block from its data start state, or from ics_arr if given."""
+    def _compute_block_states(self, block_id, ics_arr, store_prefix=None):
+        """Integrate one block from its data start state, or from ics_arr if given.
+
+        store_prefix is passed to compute_states (trajectory stage checkpoint).
+        """
         if ics_arr is None:
-            compute_states(self.states, self.states_sub, self.tns, self.model, self.timestepper, self.objective.nsteps, self.dt, self.objective.data_blocks[block_id][0], self.objective.t_blocks[block_id][0])
+            compute_states(self.states, self.states_sub, self.tns, self.model, self.timestepper, self.objective.nsteps, self.dt, self.objective.data_blocks[block_id][0], self.objective.t_blocks[block_id][0],
+                           store_prefix=store_prefix)
         else:
             set_mixed_function_from_flattened_array(self.ic, ics_arr[block_id,:])
-            compute_states(self.states, self.states_sub, self.tns, self.model, self.timestepper, self.objective.nsteps, self.dt, [self.ic,], self.objective.t_blocks[block_id][0])
+            compute_states(self.states, self.states_sub, self.tns, self.model, self.timestepper, self.objective.nsteps, self.dt, [self.ic,], self.objective.t_blocks[block_id][0],
+                           store_prefix=store_prefix)
+
+    def _point_key(self, coeffs_arr, ics_arr, coeffs0):
+        """Return the evaluation point as (coefficients, initial states) array copies, or None.
+
+        The coefficients are coeffs_arr, or the values of coeffs0 when coeffs_arr is None (None
+        for a model without coefficients); the initial states are ics_arr (None means the data
+        start states). None is returned if coeffs0 cannot be flattened, so nothing is cached.
+        """
+        coeffs = None
+        if self.model.has_coeff():
+            if coeffs_arr is not None:
+                coeffs = np.array(coeffs_arr, dtype=float, copy=True)
+            else:
+                try:
+                    coeffs = np.array(create_flattened_numpy_arr_from_mixed_function(coeffs0), dtype=float, copy=True)
+                except (AttributeError, TypeError):
+                    return None
+        ics = None if ics_arr is None else np.array(ics_arr, dtype=float, copy=True)
+        return (coeffs, ics)
+
+    def _checkpoint_matches(self, key):
+        """Return True on every rank if the stored stage checkpoint is for exactly the point key.
+
+        The initial states are rank-local, so the comparison is reduced over the mesh
+        communicator; all ranks then take the same (collective) path.
+        """
+        from mpi4py import MPI
+
+        def same(a, b):
+            if a is None or b is None:
+                return a is None and b is None
+            return a.shape == b.shape and np.array_equal(a, b)
+
+        stored = self._checkpoint_key
+        local = stored is not None and key is not None and all(same(a, b) for a, b in zip(stored, key))
+        return bool(self.model.mesh.comm.allreduce(local, op=MPI.LAND))
+
+    def clear_checkpoint(self):
+        """Forget the stored stage checkpoint; the next HVP recomputes from the states."""
+        self._checkpoint_key = None
+        self._checkpoint_gradient = None
 
     def _assign_mismatch(self, block_id, step):
         """Set the mismatch Function to the model state minus data at an observation step."""
@@ -827,6 +984,19 @@ class _ODEConstrainedOptimization():
 class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
     @timed("jac")
     def jac(self, coeffs_arr, ics_arr, coeffs0=None):
+        """Gradient of the objective by the discrete adjoint, in the layout of the optimization type.
+
+        With checkpoint 'stages' (plan items A1/A2), the forward pass stores every step's stage
+        values, the adjoint sweep restores them instead of recomputing the step and stores the
+        stage adjoints and lambdas, and the point and gradient are remembered: an HVP at the
+        same point (_hvp_sweep) then reuses all first-order work.
+        """
+        store = self.checkpoint == 'stages'
+        key = None
+        if store:
+            # a failed or partial sweep must not leave a valid-looking checkpoint behind
+            self.clear_checkpoint()
+            key = self._point_key(coeffs_arr, ics_arr, coeffs0)
         if self.model.has_coeff():
             self.grad_coeffs[:] = 0.0
             self.delta_grad_coeff.assign(0)
@@ -845,7 +1015,7 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
             self.timestepper.reset_internal_vars()
 
             #THIS IS A CHOICE/TYPE OF CHECKPOINT + RECOMPUTE
-            self._compute_block_states(i, ics_arr)
+            self._compute_block_states(i, ics_arr, store_prefix=i if store else None)
 
             # each observation contributes a dual source r_n (the loss derivative with respect to x_n)
             # to the gradient, and M^{-1} r_n to the adjoint at step n. These are all computed before
@@ -873,7 +1043,9 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
                     #THIS IS A CHOICE/TYPE OF CHECKPOINT + RECOMPUTE\
                     #self.timestepper.take_forward_step(self.states[n], self.states_sub[n], self.states[n-1], self.tns[n-1], self.dt)
 
-                    delta_lambda_rhs, delta_grad_rhs = self.timestepper.take_adjoint_step(self.delta_grad_coeff, self.delta_lambda, self.lambda_np1, self.states[n-1], self.tns[n], self.dt)
+                    # with the stage checkpoint, step n-1 -> n restores what the forward pass stored
+                    slots = {'checkpoint_slot': (i, n-1)} if store else {}
+                    delta_lambda_rhs, delta_grad_rhs = self.timestepper.take_adjoint_step(self.delta_grad_coeff, self.delta_lambda, self.lambda_np1, self.states[n-1], self.tns[n], self.dt, **slots)
                     self.lambda_np1.assign(self.lambda_np1 + self.delta_lambda)
 
                     if self.model.has_coeff():
@@ -884,6 +1056,9 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
         #print(self.grad_coeffs)
         #print(delta_grad_rhs.dat.data)
         #print(delta_grad_rhs.dat.data)
+        if store and key is not None:
+            self._checkpoint_key = key
+            self._checkpoint_gradient = (self.grad_coeffs.copy(), self.grad_ics.copy())
 
         if ics_arr is None:
             if self.verbose:
@@ -947,12 +1122,13 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
             self.timestepper.set_numpy_coeff_direction(coeffs_dir_arr)
 
     @timed("forward+tangent pass")
-    def _compute_block_states_and_tangents(self, block_id, ics_arr, ics_dir_arr):
+    def _compute_block_states_and_tangents(self, block_id, ics_arr, ics_dir_arr, checkpoint_prefix=None):
         """Integrate one block's states and tangents, storing both trajectories.
 
         The start state is chosen as in _compute_block_states. The start tangent is
         ics_dir_arr[block_id] (rank-local flattened), or zero if ics_dir_arr is None, which is the
         case for coefficient-only directions. The coefficient direction must already be set.
+        checkpoint_prefix is passed to compute_states_and_tangents (stage checkpoint).
         """
         if ics_arr is None:
             x0 = self.objective.data_blocks[block_id][0]
@@ -964,7 +1140,8 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
             set_mixed_function_from_flattened_array(self.tangent_ic, ics_dir_arr[block_id,:])
             w0 = self.tangent_ic
         compute_states_and_tangents(self.states, self.tns, self.tangent_states, self.timestepper,
-            self.objective.nsteps, self.dt, x0, w0, self.objective.t_blocks[block_id][0])
+            self.objective.nsteps, self.dt, x0, w0, self.objective.t_blocks[block_id][0],
+            checkpoint_prefix=checkpoint_prefix)
 
     @timed("observation sources")
     def _compute_observation_sources(self, block_id):
@@ -1002,8 +1179,17 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
         (nblocks, local_x_size) dual arrays, grad_ics = M lambda_0 and hess_ics = M lambda_dot_0
         per block; the coefficient blocks are summed over blocks. The gradient is a free
         by-product of the combined sweep and matches jac.
+
+        Stage checkpoint (checkpoint 'stages', plan items A1/A2): if the last jac ran at exactly
+        this point, its stored stage values, stage adjoints and lambdas are restored instead of
+        recomputed. Only the tangent and second-order adjoint stages are solved (2 passes per
+        substep instead of 6), and the gradient is jac's stored one. At any other point the
+        sweep recomputes everything as with 'states'.
         """
         self._setup_hvp()
+        key = self._point_key(coeffs_arr, ics_arr, coeffs0) if self.checkpoint == 'stages' else None
+        # collective: every rank must call _checkpoint_matches
+        reuse = self.checkpoint == 'stages' and self._checkpoint_matches(key)
         nblocks = self.objective.num_data_blocks
         has_coeff = self.model.has_coeff()
         grad_coeffs = np.zeros(self.model.get_coeff_size())
@@ -1023,12 +1209,14 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
                 self.tangent_ic.assign(0)
                 self.timestepper.reset_internal_vars()
 
-                # forward pass: x_n and w_n for every step (full storage, see _setup_hvp)
-                self._compute_block_states_and_tangents(i, ics_arr, ics_dir_arr)
+                # forward pass: x_n and w_n for every step (full storage, see _setup_hvp); with
+                # reuse, the forward stages are restored and only the tangent stages are solved
+                self._compute_block_states_and_tangents(i, ics_arr, ics_dir_arr, checkpoint_prefix=i if reuse else None)
 
                 # observation sources s_n, sdot_n, before the sweep can overwrite self.states
                 grad_sum, hess_sum = self._compute_observation_sources(i)
-                grad_ics[i, :] += grad_sum
+                if not reuse:
+                    grad_ics[i, :] += grad_sum
                 hess_ics[i, :] += hess_sum
 
                 with region("second-order adjoint sweep"):
@@ -1041,20 +1229,30 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
 
                         # same per-step reset as jac, for repeatability
                         self.timestepper.reset_internal_vars()
+                        # with reuse, lambda_{n+1} and the first-order stage work come from jac's
+                        # checkpoint, and the first-order increments are None
+                        slots = {'checkpoint_slot': (i, n-1)} if reuse else {}
                         delta_lambda_rhs, delta_grad_rhs, delta_lambda_dot_rhs, delta_hess_coeff_rhs = self.timestepper.take_second_order_adjoint_step(
                             self.delta_lambda, self.delta_lambda_dot, self.lambda_np1, self.lambda_dot_np1,
-                            self.states[n-1], self.tangent_states[n-1], self.tns[n], self.dt)
-                        self.lambda_np1.assign(self.lambda_np1 + self.delta_lambda)
+                            self.states[n-1], self.tangent_states[n-1], self.tns[n], self.dt, **slots)
+                        if not reuse:
+                            self.lambda_np1.assign(self.lambda_np1 + self.delta_lambda)
                         self.lambda_dot_np1.assign(self.lambda_dot_np1 + self.delta_lambda_dot)
 
                         if has_coeff:
-                            grad_coeffs += delta_grad_rhs
+                            if not reuse:
+                                grad_coeffs += delta_grad_rhs
                             hess_coeffs += delta_hess_coeff_rhs
-                        grad_ics[i, :] += delta_lambda_rhs
+                        if not reuse:
+                            grad_ics[i, :] += delta_lambda_rhs
                         hess_ics[i, :] += delta_lambda_dot_rhs
         finally:
             # leave no stale direction behind for later first-order or HVP calls
             self._set_coeff_direction(None)
+        if reuse:
+            # the gradient at this point, as computed by the jac that stored the checkpoint
+            grad_coeffs = self._checkpoint_gradient[0].copy()
+            grad_ics = self._checkpoint_gradient[1].copy()
         return grad_coeffs, grad_ics, hess_coeffs, hess_ics
 
     @timed("hessp")

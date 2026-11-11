@@ -6,7 +6,8 @@ tangent stages, are stored per substep and restored in the substep adjoint steps
 solved a second time. The stored values are exactly what the re-solve would produce, so gradients
 and Hessian-vector products must agree with the recompute path (reuse_stages false) to
 round-off, for coefficient and initial-state directions together. The instrumented stage passes
-must drop from 3 to 2 per substep.
+must drop from 3 to 2 per substep. All of this is on the optimizer checkpoint 'states', since
+the default 'stages' does not recompute steps at all.
 """
 
 import numpy as np
@@ -30,7 +31,15 @@ RTOL = 1e-10
 
 @pytest.fixture(scope="module")
 def setup():
-    return setup_problem(NSTEPS, obs_steps=OBS_STEPS)
+    """The tswe_small problem on the 'states' checkpoint, the path whose steps are recomputed.
+
+    The default checkpoint 'stages' never recomputes a step, so stage reuse within a step only
+    applies to 'states' (tests/unit/test_stage_checkpoint.py covers 'stages').
+    """
+    setup = setup_problem(NSTEPS, obs_steps=OBS_STEPS)
+    setup.optimizer.checkpoint = "states"
+    setup.optimizer.clear_checkpoint()
+    return setup
 
 
 def point_and_direction(setup):
