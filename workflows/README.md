@@ -285,6 +285,7 @@ optimizer:
   use_bounds: true                      # false: optimize coeffs without bounds (allows Newton-CG etc.)
   xtol: null                            # step/trust-radius tolerance for Newton-CG and trust-constr
   checkpoint: null                      # null = stages when the timestepper allows it; states: less memory, slower
+  mass_inverse: auto                    # mass-matrix inverse of the RK stage solves: auto, diagonal, cellwise or factor
 output_root: runs/optimizations
 ```
 
@@ -326,6 +327,10 @@ Restrictions, all checked when the spec is loaded (also with `--dry-run`):
   - `stages` also stores every step's stage values, stage adjoints and adjoints during each gradient. The gradient then skips the recompute: 2 stage passes per substep instead of 3.
   - An HVP at the point of the last gradient, as in Newton-CG's inner iterations, only solves the tangent and second-order adjoint stages: 2 passes instead of 6. It reuses the stored gradient.
   - The cost is memory: about three copies of the stage values per step and substep over the window.
+- **`mass_inverse`.** This sets how the mass matrices shared by the explicit RK stage solves are inverted. All choices are exact direct solves; only their cost differs.
+  - `auto` (default), per field of the x (or aux) space: pointwise division where the mass matrix is diagonal (continuous spectral elements with `lump_mass: true`), the cellwise inverse for DG fields, and an LU factorization for the rest.
+  - `diagonal` only uses the division, `cellwise` prefers the cellwise inverse for DG fields, and `factor` always LU-factors the whole matrix (the previous behaviour).
+  - Every cheap inverse is checked once against the assembled matrix and replaced by LU if the check fails. `profile_hvp.py` reports the choice as `mass solver`.
   - Measured on the Newton-CG example: an HVP went from 16.8 s to 7.5 s and a gradient from 9.8 s to 7.3-7.9 s, with unchanged evaluation counts and losses.
   - It helps first-order methods too. The results agree with `states` to round-off. See plan items A1/A2 in [docs/hvp_performance_plan.md](../docs/hvp_performance_plan.md).
 - **Time stepping.** HVPs are implemented for explicit RK (`GeneralRK`) and for `LieSplit` composed of explicit RK sub-integrators, as in the template `mtswe.cfg`. These are the only time steppers DIMSWE implements; the DIRK and implicit RK placeholders raise `NotImplementedError` already when they are constructed. A `LieSplit` keeps the stage values it computes while recomputing each step's substeps, and its adjoint and second-order adjoint substeps reuse them instead of solving them again. Set `timestepping.reuse_stages: false` to switch this off; the results agree to round-off.

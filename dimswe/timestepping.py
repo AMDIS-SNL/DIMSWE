@@ -5,7 +5,7 @@ from firedrake import Constant, inner, grad, TestFunction, derivative, norm, ass
 from .numpy_helpers import set_mixed_function_from_flattened_array, create_flattened_numpy_arr_from_mixed_function, copy_function_values
 from ufl.algorithms import extract_coefficients, expand_derivatives
 from .profiling import region
-from .assembly import AffineSolver, PersistentAssembler, is_direct_solver, shared_mass_solver
+from .assembly import AffineSolver, PersistentAssembler, is_direct_solver, petsc_solver_parameters, shared_mass_solver
 
 class DummySolver():
     def solve(self):
@@ -614,7 +614,8 @@ class GeneralRK(TimeStepper):
         def make_reference():
             """The previous solver of this equation (the fallback)."""
             return create_linear_solver_from_residual(residual, var, trial, constant_jacobian=True,
-                                                      solver_parameters=solver_parameters, options_prefix=options_prefix)[0]
+                                                      solver_parameters=petsc_solver_parameters(solver_parameters),
+                                                      options_prefix=options_prefix)[0]
 
         mass_solver = None
         if is_direct_solver(solver_parameters):

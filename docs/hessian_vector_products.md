@@ -683,6 +683,41 @@ Every explicit RK equation solved per substep is affine in its unknown, with the
 - **One solver type.** Each of them is a `dimswe.assembly.AffineSolver` (`GeneralRK._affine_solver`). It zeroes the unknown, assembles the residual once (giving r0, the residual at zero) and solves M var = -r0. For the increments, -r0 is the returned dual increment (the old L).
 - **Shared factorizations.** The operator comes from a `MassSolver`, assembled and LU-factored on its first solve. `shared_mass_solver` keeps one per operator in a cache on the model (key: form signature, coefficients, argument spaces, solver parameters). All sub-integrators of a LieSplit therefore share one x-space factorization, instead of every stage, adjoint, tangent, SOA and increment solver factoring its own copy.
 - **No action() expansions.** The residuals are used as they are. The old `create_linear_solver_from_residual` built `L = action(a, var) - residual`, and the `LinearVariationalProblem` built `action(a, var) - L` again. Each `action` expanded the whole form in UFL, which for the second-order forms is very large. The coefficient increments `L_delta_grad` and `L_delta_grad_dot` are now `-residual` too, assembled with their (never-solved) unknowns zeroed.
-- **Check and fallback.** The first two solves with a nonzero r0 assemble the residual again at the solution. It must vanish on every rank to `VALIDATION_RTOL` relative to r0. A wrong operator, or an assembler that misses updates or accumulates, fails this check. On a failure or error, the solver switches for good to the old `LinearVariationalSolver`, built only then. Iterative solver parameters (anything but `preonly` with LU or Cholesky) use the old solver from the start, so forward simulations with the default CG parameters are unchanged.
-- **Steady state.** Each stage solve is one assembly and one triangular solve, without the SNES residual evaluation and update of a `LinearVariationalSolver`.
+- **Check and fallback.** The first two solves with a nonzero r0 assemble the residual once more, at the probe c·x (x the solution, c = 2¹³, so scaling x by c and back is exact). It must equal (c − 1)(−r0) on every rank, to `VALIDATION_RTOL` relative to c·max|r0|.
+  - This tests that the residual is affine in var with operator M and that the solve is right. A wrong operator, or an assembler that misses updates or accumulates, fails it.
+  - A first version checked that the residual at x vanishes relative to |r0|. That failed on `tswe_small`, probably because assembly round-off of a strongly cancelling r0 is large against |r0|; the probe makes the check relative to c·|r0|.
+  - On a failure or error, the solver switches for good to the old `LinearVariationalSolver`, built only then. `fallback_reason` records why, and the profiler prints it (`why <solve>`).
+  - `MassSolver` uses a bare PETSc KSP. If that fails on its setup or first solve, it uses Firedrake's `LinearSolver` instead (`method`, `ksp_error`; the profiler prints `mass solver`). Iterative solver parameters (anything but `preonly` with LU or Cholesky) use the old solver from the start, so forward simulations with the default CG parameters are unchanged.
+- **Steady state.** Each stage solve is one assembly into the persistent tensor and one triangular solve with a bare PETSc KSP (`MassSolver`; Firedrake's `LinearSolver` is avoided because it wraps a `LinearVariationalSolver`), with the sign applied to the solution. There are no numpy copies; only the increments flatten their right-hand side.
 - Tests: `tests/unit/test_affine_solver.py` (strategy logic with fakes; on `tswe_small`, the shared x-space factorization and equality with the old solvers to 1e-10).
+
+## 27. Persistent projections in the initial-condition map
+
+`ParametricInitialCondition` projects the initial-condition expressions, their tangents and their second tangents onto the components of x at every new parameter point. With `Function.project`, each projection built a new `LinearSolver` and LU-factored the mass matrix of the target space again: 0.4-0.6 s per objective, 0.8-1.0 s per gradient and about 2 s per HVP at a new point, almost all of it the factorization.
+
+- **Projector.** `dimswe.assembly.PersistentProjector` solves the same system as Firedrake's projection, M target = b with M = `inner(u, v)*dx` and b = `inner(expr, v)*dx`. M comes from `shared_mass_solver` (the model's cache, as for the RK stage solves), so it is assembled and factored once per space. b comes from a `PersistentAssembler`, which reads the current values of the R-space parameter Functions on every call and validates itself against a plain `assemble` on its first two calls.
+- **One projector per projection.** `ParametricInitialCondition._project` builds them on first use, keyed by `('x0', var)`, `('tangent', j, var)` and `('second', j, k, var)`. The point cache is unchanged; the projectors make its misses cheap.
+- **Fallback.** Iterative projection parameters, or an error in the mass solve, use `Function.project` (`strategy` is then `'project'`, and `fallback_reason` says why). The decision is collective (an error on any rank sends every rank to the fallback, so no rank is left waiting in a collective call of the others), a warning names the reason on rank 0, and if `Function.project` fails too, the raised error includes the reason of the first failure. `MassSolver` makes its choices (cheap inverse, check, KSP or `LinearSolver`) collectively in the same way.
+- Tests: `tests/unit/test_persistent_projection.py` (equality with `Function.project` at four points, projectors built once, shared mass matrices, the iterative fallback).
+
+## 28. Cheap mass-matrix inverses
+
+The shared `MassSolver` of section 26 LU-factored its matrix with MUMPS. With `lump_mass: true` (continuous spectral elements with GLL quadrature) the mass matrix of a continuous field is diagonal, and that of a DG field is block diagonal with one block per cell, yet each MUMPS triangular solve cost about 4.5 ms on 4 ranks, about half of every steady evaluation.
+
+- **Choice of inverse.** On its first solve, `MassSolver` picks the cheapest exact inverse that the solver parameter `mass_inverse` allows (`optimizer.mass_inverse` in the workflows):
+
+  | mode | diagonal field | DG field | other field |
+  |---|---|---|---|
+  | `auto` (default) | pointwise division | cellwise inverse | LU |
+  | `diagonal` | pointwise division | LU | LU |
+  | `cellwise` | pointwise division | cellwise inverse | LU |
+  | `factor` | LU | LU | LU |
+
+- **Diagonal test.** The matrix is diagonal if A v equals diag(A) v for a random v, to 1e-12 relative to max|diag(A)| max|v| (a lumped mass has off-diagonal round-off at most), and no diagonal entry is zero.
+- **Cellwise inverse.** For a discontinuous (L2) space, Slate's `assemble(Tensor(a).inv)` is the exact inverse; applying it is one local sparse product.
+- **Mixed spaces.** If the whole matrix is not diagonal, its off-diagonal field blocks (PETSc sub-matrices on the field index sets) are checked numerically. If they all vanish, each field gets its own `MassSolver` of its diagonal sub-matrix, and the solve works on the field's part of the vectors (PETSc sub-vectors). The per-field forms needed for a cellwise inverse come from `firedrake.formmanipulation.split_form`. (A symbolic coupling test with `split_form` reported coupling for uncoupled forms in the installed Firedrake.)
+- **Note.** Firedrake's default DG variant on quadrilaterals has Gauss–Legendre nodes, so with exact quadrature its mass matrix is already diagonal, and the division is used. This is only used if at least one field has a cheap inverse; otherwise the whole matrix is factored at once. `method` then reads, for example, `fieldsplit(diagonal, diagonal, cellwise)`.
+- **Check.** Any cheap inverse must give back a random v from A v to 1e-10 on its setup; otherwise, or on any error, the whole matrix is LU-factored, and `inverse_notes` records why. `AffineSolver`'s probe check (section 26) still checks the first solves of every stage equation on top.
+- `mass_inverse` is not a PETSc option: `petsc_solver_parameters` removes it before parameters reach a PETSc solver (the fallback `LinearVariationalSolver`s and projections).
+- Tests: `tests/unit/test_mass_inverse.py` (choice per space and mode, mixed and coupled spaces, agreement with LU to 1e-11).
+

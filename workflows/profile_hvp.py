@@ -584,13 +584,23 @@ def solver_strategies(timestepper: Any) -> dict[str, dict[str, str]]:
         stages = stage_solver_summary(getattr(integrator, "_stage_solvers", {}))
         if stages is not None:
             entry["stage solves"] = stages
+        # why solves left the mass path, and how the shared mass matrices are solved
+        solvers = {**getattr(integrator, "_stage_solvers", {}), **getattr(integrator, "_increment_solvers", {})}
+        for name, solver in sorted(solvers.items()):
+            reason = getattr(solver, "fallback_reason", None)
+            if solver.strategy != "mass" and reason:
+                entry[f"why {name}"] = reason
+        methods = sorted({getattr(solver.mass_solver, "method", None) or "unused"
+                          for solver in solvers.values() if getattr(solver, "mass_solver", None) is not None})
+        if methods:
+            entry["mass solver"] = "/".join(methods)
         strategies[label] = entry
     return strategies
 
 
 def is_fallback(strategy: str) -> bool:
     """Return True for a strategy string that names a slow fallback path ("assemble" or "reference")."""
-    return strategy == "assemble" or "reference" in strategy
+    return strategy == "assemble" or strategy.startswith("reference") or ", " in strategy and "reference" in strategy
 
 
 def format_strategies(strategies: dict[str, dict[str, str]]) -> str:

@@ -260,7 +260,45 @@ Conclusions so far:
   - Iterative solver parameters keep the old solvers.
   - Expected: most of the ~16 s of factorizations, the ~8 s of UFL construction, and the old λ/λ̇ validation solvers, so roughly 25-30 s of the 60 s. A small steady-state gain is also expected from dropping the SNES residual evaluation per stage solve.
   - The new residual forms are new kernels. **Profile twice:** the first run after the change compiles them, and the second shows the steady setup and answers the disk-cache question.
-- **Left:** compilation (one kernel per residual form), and C2 for jobs after the first in one process.
+- **Measured** (second run after the change, so the new kernels were in the disk cache; `--repeats 3`):
+
+  | first call minus steady | before | after C1 |
+  |---|---|---|
+  | obj | 6.2 s | 3.8 s |
+  | jac | 15.7 s | 6.5 s |
+  | hessp | 36.7 s | 17.4 s (`setup second order` 10.9 → 3.4 s) |
+  | total per process | 58.6 s | 27.7 s |
+
+  - Every solve reported `mass` (16 + 8 + 16 + 4 stage solves, both increments in each sub-integrator).
+  - **But the steady stage solves got about 25% slower** (obj 2.75 → 3.29 s, jac 6.86 → 7.92 s, hessp 6.40 → 7.20 s). Every stage kind slowed, while `update`, `ic map forward` and the λ/λ̇ increments (which were already on the mass path) did not. So it is the new solve path, about 2 ms per stage solve. The steady path made three numpy copies of the residual and called Firedrake's `LinearSolver`, which in recent Firedrake is a `LinearVariationalSolver` underneath: it copies b and x and assembles another residual A x - b per solve.
+  - **Fixed:** `MassSolver` now solves with a bare PETSc KSP on the assembled matrix (its solver parameters are placed in the PETSc options database under a unique prefix only while it is set up and factored, with no OptionsManager, which is no longer in `firedrake.petsc` in recent Firedrake). After validation, `AffineSolver` solves straight from the assembler's output tensor (`PersistentAssembler.assemble_tensor`) and flips the sign of the solution, with no numpy copies; only the increments flatten their result. Re-profiled (all solves `mass`, `mass solver ksp` everywhere): steady obj 3.29 → 2.47 s, jac 7.92 → 6.24 s, hessp 7.20 → 5.65 s, i.e. below the pre-C1 times (2.75 / 6.86 / 6.40 s) by 10%, 9% and 12%. The setup is unchanged at 28.0 s per process (obj 3.8, jac 6.9, hessp 17.3 s, of which 3.8 s form and solver construction). The estimated Newton-CG job is 91.7 s (was 112.6 s before C1), 62% of it in HVPs; hessp/jac is 0.91.
+- **Flamegraph of the first calls (after C1).** hessp-1 against hessp-3 (the steady call with a new direction), under PETSc logging (27.0 s against 6.4 s):
+
+  | cost | seconds | recurs? |
+  |---|---|---|
+  | TSFC `compile_form` (cache lookups and compilation) | 5.4 | once per process |
+  | `pyop2.compilation.load` (loading compiled kernels) | 2.5 | once per process |
+  | `setup second order`, Python self time (UFL derivative / replace / expand) | 3.0 | once per process |
+  | first `assemble` of each form, Python self time | 2.4 | once per process |
+  | `ic map second tangents`: `Function.project`, 1.05 s of it LU | 2.0 | **at every new point** |
+  | observation-source solvers (LU, first residual) | 1.0 | once per process |
+  | first stage store (`Function.copy` allocations) | 1.0 | once per process |
+
+  The initial-condition map also projects with `Function.project` in every objective (`ic map forward`, 0.4-0.6 s) and gradient (`ic map tangents`, 0.8-1.0 s), at every new point. Each `project` builds a new `LinearSolver` and LU-factors the mass matrix again, which is almost all of that time. Over a Newton-CG run (about 5 points) this is about 15 s of the 92 s.
+- **Persistent initial-condition projections. Implemented:** `PersistentProjector` in `dimswe/assembly.py`, used by `ParametricInitialCondition._project`. Each projection keeps its mass matrix (factored once per space, from the model's shared mass-solver cache) and a persistent right-hand-side assembler, so a projection at a new point is one assembly and one triangular solve. Iterative projection parameters keep `Function.project`. Re-profiled: `ic map forward` 0.47 → 0.03 s and `ic map tangents` 0.83 → 0.07 s per steady call (see the table below).
+- **Steady state: the mass-matrix solves.** In the same flamegraph, `MatSolve` (the MUMPS triangular solves of the shared mass matrices) is about half of every steady evaluation: 1.33 of 2.7 s in obj, 3.0 of 6.6 s in jac, 3.1 of 6.4 s in hessp, about 4.5 ms per solve on 4 ranks, against 0.2-0.55 s for all assembly kernels. The job uses `lump_mass: true` (spectral Q3 with GLL quadrature), so the continuous fields have diagonal mass matrices, and the DG tracers block-diagonal (cellwise) ones; MUMPS is paying communication latency for a trivial solve.
+- **Cheap mass inverses. Implemented:** `MassSolver` (`dimswe/assembly.py`) now chooses its inverse on its first solve, by the solver parameter `mass_inverse` (`optimizer.mass_inverse`, default `auto`): pointwise division if the matrix is diagonal (tested with A v against diag(A) v for a random v), the cellwise inverse (`assemble(Tensor(a).inv)`) for DG (L2) fields, and field by field for a mixed space whose off-diagonal field blocks vanish (checked on the assembled sub-matrices; each field takes the cheapest inverse that applies, the others LU). Each cheap inverse is checked once (A⁻¹ A v = v to 1e-10 for a random v) and replaced by LU if the check fails; `inverse_notes` says why a cheaper inverse was not used. `factor` keeps the LU path. Tests: `tests/unit/test_mass_inverse.py`. Re-profiled together with the persistent initial-condition projections (every sub-integrator reports `mass solver diagonal`):
+
+  | steady | before | after | |
+  |---|---|---|---|
+  | obj | 2.47 s | 0.85 s | 2.9× |
+  | jac | 6.24 s | 2.12 s | 2.9× |
+  | hessp | 5.65 s | 2.81 s | 2.0× |
+  | `ic map forward` | 0.47 s | 0.03 s | |
+  | `ic map tangents` | 0.83 s | 0.07 s | |
+
+  Setup is unchanged (obj 3.8, jac 7.6, hessp 17.6 s, 29 s in all), and is now about 60% of the estimated Newton-CG job (49.2 s, was 91.7 s). hessp/jac rose to 1.32: the λ̇ increment (0.50 s, RK4 0.29 s against 0.09 s for λ) and the SOA stages of RK4 and SSPRK43 (1.5-1.6 forward passes) are now a larger share.
+- **Left:** the one-off compilation and kernel loading (about 8 s), the Python setup (about 5.4 s; C2 for later jobs of one process), the observation-source solvers (about 1 s, could share the x-space mass matrix), and the first stage-store allocation (1 s).
 
 **Next items, by size (after B0, kept for reference):**
 1. **A3** (keep the stage values within a step): removes one of the three forward and one of the three tangent passes, about 3.8 s (17%) of an HVP and 1.8 s (18%) of a gradient.

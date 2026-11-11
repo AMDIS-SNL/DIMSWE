@@ -450,7 +450,7 @@ def test_real_gradient_and_hvp_match_the_stage_pass_cost_model():
     strategies = solver_strategies(setup.timestepper)
     print(profile_hvp.format_strategies(strategies))
     for label, entry in strategies.items():
-        assert entry["solve L_delta_lambda"] == "mass" and entry["solve L_delta_lambda_dot"] == "mass", label
+        assert entry["solve L_delta_lambda"] == "mass" and entry["solve L_delta_lambda_dot"] == "mass", (label, entry)
         # every stage solve uses the shared factorization (plan item C1)
-        assert "reference" not in entry["stage solves"], label
+        assert "reference" not in entry["stage solves"], (label, entry)
         assert "assemble" not in entry.values() and "reference" not in entry.values(), label

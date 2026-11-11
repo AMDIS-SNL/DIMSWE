@@ -111,6 +111,9 @@ class FakeBackend:
     def global_max(self, tensor, value):
         return float(value)
 
+    def scale(self, func, factor):
+        func.dat.values *= factor
+
 
 class FakeProblem:
     """An affine residual on SIZE dofs, with the solver under test and its fakes (seeded)."""
@@ -169,6 +172,7 @@ def test_a_failed_residual_check_falls_back_to_the_old_solver(case):
     problem = FakeProblem(seed=3, mass_kwargs=kwargs, stale=(case == "stale assembler"))
     problem.run(4)
     assert problem.solver.strategy == 'reference'
+    assert problem.solver.fallback_reason.startswith('mass solve raised' if case == "solver error" else 'residual check')
     assert len(problem.references) == 1
     # the returned increments come from a new, validated assembler
     assert len(problem.assemblers) == 2
@@ -178,8 +182,9 @@ def test_a_zero_right_hand_side_does_not_count_as_validation():
     problem = FakeProblem(seed=5)
     problem.run(3, zero_first=True)
     assert problem.solver.strategy == 'mass'
-    # the zero call and two informative calls were all checked
-    assert problem.assemblers[0].calls == 3 + 3
+    # the zero call needs no check; the two informative calls were checked
+    assert problem.assemblers[0].calls == 3 + 2
+    assert problem.solver._validated == 2
 
 
 def test_iterative_solver_parameters_keep_the_old_solver_without_zeroing():
@@ -228,12 +233,16 @@ def test_rk_solves_share_one_x_space_factorization_and_match_the_old_solvers():
         # forward, adjoint, tangent and second-order adjoint solves of every stage (x part)
         for kind in ('F', 'mu', 'tlm_F', 'soa_mu'):
             assert all(kind + str(i) in integrator._stage_solvers for i in range(nstages)), (integrator, kind)
-        assert all(solver.strategy == 'mass' for solver in all_solvers(integrator)), integrator
+        fallbacks = {name: solver.fallback_reason for name, solver in
+                     list(integrator._stage_solvers.items()) + list(integrator._increment_solvers.items())
+                     if solver.strategy != 'mass'}
+        assert not fallbacks, (integrator, fallbacks)
         # one cache for the whole model, and one x-space factorization in it
         assert integrator._mass_solvers is integrators[0]._mass_solvers
         assert integrator._stage_solvers['F0'].mass_solver is x_mass
         assert integrator._increment_solvers['L_delta_lambda_dot'].mass_solver is x_mass
-    assert x_mass.solver is not None and x_mass.solves > 0
+    print("x-space mass solver:", x_mass.method, x_mass.ksp_error, x_mass.inverse_notes)
+    assert x_mass.method is not None and x_mass.solves > 0
     for integrator in integrators:
         for solver in all_solvers(integrator):
             solver.strategy = 'reference'

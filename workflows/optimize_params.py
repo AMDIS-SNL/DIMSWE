@@ -73,11 +73,19 @@ DEFAULT_OPTIMIZER = {
     # null (the default) selects stages whenever the timestepper supports it (explicit RK and
     # LieSplit of those), else states (dimswe.optimize.resolve_checkpoint)
     "checkpoint": None,
+    # inversion of the mass matrices of the explicit RK stage solves (dimswe.assembly.MassSolver):
+    # auto divides by a diagonal (lumped) mass and uses the cellwise inverse for DG fields where
+    # they apply, and LU-factors the rest; diagonal and cellwise restrict that choice; factor
+    # always LU-factors (the previous behaviour). All are exact; each cheap inverse is checked once.
+    "mass_inverse": "auto",
 }
 
 # allowed optimizer.checkpoint values (dimswe.optimize.CHECKPOINT_MODES, kept in sync by
 # tests/unit/test_workflow_optimizer_tables.py)
 CHECKPOINT_MODES = ("states", "stages")
+# allowed optimizer.mass_inverse values (dimswe.assembly.MASS_INVERSE_MODES, kept in sync by
+# tests/unit/test_workflow_optimizer_tables.py)
+MASS_INVERSE_MODES = ("auto", "diagonal", "cellwise", "factor")
 
 # scipy.optimize.minimize methods, upper case. These tables mirror dimswe.optimize (which cannot
 # be imported here without Firedrake); tests/unit/test_workflow_optimizer_tables.py keeps them in sync.
@@ -205,6 +213,10 @@ def validate_optimizer_spec(optimizer_spec: dict[str, Any], target: str, paramet
     if optimizer_spec["checkpoint"] is not None and optimizer_spec["checkpoint"] not in CHECKPOINT_MODES:
         raise ValueError(f"optimizer.checkpoint must be null or one of {', '.join(CHECKPOINT_MODES)}, "
                          f"not {optimizer_spec['checkpoint']!r}")
+
+    if optimizer_spec["mass_inverse"] not in MASS_INVERSE_MODES:
+        raise ValueError(f"optimizer.mass_inverse must be one of {', '.join(MASS_INVERSE_MODES)}, "
+                         f"not {optimizer_spec['mass_inverse']!r}")
 
     xtol = optimizer_spec["xtol"]
     if xtol is not None:
@@ -432,7 +444,7 @@ class Job:
         data_blocks, t_blocks = build_data_blocks(self.schedule, self.truth_states, start_times)
         self.objective = build_objective(self.model, self.schedule, data_blocks, t_blocks, spec["normalize"])
 
-        self.timestepper = get_timestepper(parameters, self.model, EmptyLogger(), optimization_solver_parameters())
+        self.timestepper = get_timestepper(parameters, self.model, EmptyLogger(), optimization_solver_parameters(spec["optimizer"]["mass_inverse"]))
         self.dt = parameters["timestepping"]["dt"]
         self.coeff, self.coeff_sub, _ = self.model.get_coeff_var("coeff")
         self.model.set_coeffs(parameters, self.coeff_sub)

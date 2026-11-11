@@ -348,6 +348,13 @@ class ParametricInitialCondition():
     then many hessp at one point, so all of them after the first projection are free. The
     parameters are replicated, so every rank hits or misses the cache together. clear_cache()
     drops the cached values, for example to time a cold evaluation.
+
+    Persistent projections (docs/hvp_performance_plan.md, section 2.3, first-call setup): every
+    projection of an expression onto a component of x0, a tangent or a second tangent is a
+    PersistentProjector, built on first use and kept. Its mass matrix is factored once per space
+    (shared with all other projectors through the model's mass-solver cache) and its right-hand
+    side assembled persistently, so a projection at a new point costs one assembly and one
+    triangular solve instead of a new solver with its own LU factorization.
     """
 
     def __init__(self, model, parameters, param_names, cache=True):
@@ -412,6 +419,11 @@ class ParametricInitialCondition():
         self.cache = cache
         self._point = None
         self._cache = {}
+        # PersistentProjectors by key ('x0', var), ('tangent', j, var) or ('second', j, k, var),
+        # and the dict of shared MassSolvers they draw their factored mass matrices from (the
+        # same dict as the RK stage solves use; a different space gives a different entry)
+        self._projectors = {}
+        self._mass_solvers = model.__dict__.setdefault('_shared_mass_solvers', {})
 
     def clear_cache(self):
         """Drop the cached initial state, tangents and second tangents (they are recomputed on use)."""
@@ -454,11 +466,26 @@ class ParametricInitialCondition():
         self.set_param_values(params)
         return self._cached('x0', self._project_x0).copy()
 
+    def _project(self, key, target, expr):
+        """Project expr onto target with the PersistentProjector stored under key (built on first use).
+
+        target and expr must be the same objects on every call with that key, as they are for the
+        fixed symbolic expressions of this map; only their coefficient values change.
+        """
+        from .assembly import PersistentProjector
+
+        projector = self._projectors.get(key)
+        if projector is None:
+            projector = PersistentProjector(target, expr, self._mass_solvers, self.projection_parameters,
+                                            options_prefix='icmap-mass')
+            self._projectors[key] = projector
+        return projector.project()
+
     def _project_x0(self):
         """Project the initial-condition expressions at the current parameter values; return a flat copy."""
         self.x0.assign(0)
         for var, expr in self.exprs.items():
-            self.x0_sub[var].project(expr, solver_parameters=self.projection_parameters)
+            self._project(('x0', var), self.x0_sub[var], expr)
         return create_flattened_numpy_arr_from_mixed_function(self.x0).copy()
 
     @timed("ic map tangents")
@@ -472,11 +499,11 @@ class ParametricInitialCondition():
     def _project_tangents(self):
         """Project the tangent expressions d(expr)/dp_j at the current parameter values."""
         tangent_arrs = []
-        for (tangent, tangent_sub, _), dexprs in zip(self.tangent_vars, self.tangent_exprs):
+        for j, ((tangent, tangent_sub, _), dexprs) in enumerate(zip(self.tangent_vars, self.tangent_exprs)):
             tangent.assign(0)
             for var, dexpr in dexprs.items():
                 if dexpr is not None:
-                    tangent_sub[var].project(dexpr, solver_parameters=self.projection_parameters)
+                    self._project(('tangent', j, var), tangent_sub[var], dexpr)
             tangent_arrs.append(create_flattened_numpy_arr_from_mixed_function(tangent).copy())
         return tangent_arrs
 
@@ -557,7 +584,7 @@ class ParametricInitialCondition():
                 second.assign(0)
                 for var, d2expr in exprs.items():
                     if d2expr is not None:
-                        second_sub[var].project(d2expr, solver_parameters=self.projection_parameters)
+                        self._project(('second', j, k, var), second_sub[var], d2expr)
                 arr = create_flattened_numpy_arr_from_mixed_function(second).copy()
                 result[j][k] = arr
                 result[k][j] = arr

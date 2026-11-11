@@ -14,6 +14,9 @@ def test_hessp_method_tables_match():
     assert set(optimize_params.HESSP_REQUIRED_METHODS) == set(dimswe_optimize.HESSP_REQUIRED_METHODS)
     assert set(optimize_params.BOUNDED_METHODS) == set(dimswe_optimize.BOUNDED_METHODS)
     assert tuple(optimize_params.CHECKPOINT_MODES) == tuple(dimswe_optimize.CHECKPOINT_MODES)
+    from dimswe import assembly as dimswe_assembly
+    assert tuple(optimize_params.MASS_INVERSE_MODES) == tuple(dimswe_assembly.MASS_INVERSE_MODES)
+    assert optimize_params.DEFAULT_OPTIMIZER["mass_inverse"] == "auto"
     # the workflow default null is passed through and resolved by dimswe (stages when supported)
     assert optimize_params.DEFAULT_OPTIMIZER["checkpoint"] is None
 

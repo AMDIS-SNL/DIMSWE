@@ -17,16 +17,20 @@ TRUTH_STATE_NAME = "xn0"
 OPTIMAL_IC_NAME = "x0_opt"
 
 
-def optimization_solver_parameters() -> dict[str, Any]:
+def optimization_solver_parameters(mass_inverse: str = "auto") -> dict[str, Any]:
     """Return solver parameters with direct solves for the explicit RK and adjoint systems.
 
     This mirrors ic_optimize.py/coeff_optimize.py: LU solves make the forward and adjoint steps
-    consistent to round-off, which keeps the adjoint gradients accurate.
+    consistent to round-off, which keeps the adjoint gradients accurate. mass_inverse
+    (optimizer.mass_inverse) selects how the shared mass matrices are inverted
+    (dimswe.assembly.MassSolver): 'auto' uses pointwise division for diagonal (lumped) masses and
+    the cellwise inverse for DG fields where they apply, 'diagonal' and 'cellwise' restrict that
+    choice, and 'factor' always LU-factors. All of them are exact direct solves.
     """
     from dimswe.parameters import overall_solver_parameters
 
     solver_parameters = overall_solver_parameters.copy()
-    direct = {"ksp_type": "preonly", "pc_type": "lu"}
+    direct = {"ksp_type": "preonly", "pc_type": "lu", "mass_inverse": mass_inverse}
     for key in ["erkstage-f", "erkstage-aux", "erkstage-mu", "erkstage-muaux", "erk-dlambda", "erk-grad"]:
         solver_parameters[key] = direct
     return solver_parameters

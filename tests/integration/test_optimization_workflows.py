@@ -348,6 +348,8 @@ def test_default_optimizer_spec_is_unchanged_first_order():
         ({"method": "Newton-CG", "checkpoint": "stages"}, "ic-params"),  # stage checkpoint (A1/A2)
         ({"checkpoint": "stages"}, "coeffs"),  # also speeds up first-order gradients
         ({"checkpoint": "states"}, "ic-params"),  # the recompute path, for memory-bound windows
+        ({"mass_inverse": "factor"}, "ic-params"),  # LU-factored mass matrices, as before
+        ({"mass_inverse": "cellwise"}, "coeffs"),
     ],
 )
 def test_second_order_optimizer_specs_are_accepted(changes, target):
@@ -361,6 +363,7 @@ def test_second_order_optimizer_specs_are_accepted(changes, target):
     [
         ({"method": "not-a-method"}, "coeffs", {}, "Unknown optimizer.method"),
         ({"checkpoint": "everything"}, "coeffs", {}, "optimizer.checkpoint"),
+        ({"mass_inverse": "lumped"}, "coeffs", {}, "optimizer.mass_inverse"),
         ({"method": "dogleg"}, "ic-params", {}, "full Hessian"),
         ({"method": "trust-exact"}, "ic-field", {}, "full Hessian"),
         ({"method": "Newton-CG"}, "coeffs", {}, "cannot handle bounds"),
