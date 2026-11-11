@@ -1,11 +1,25 @@
 from firedrake import NonlinearVariationalProblem, NonlinearVariationalSolver, LinearVariationalProblem, LinearVariationalSolver
 from .parameters import overall_solver_parameters
+import itertools
 import numpy as np
 from firedrake import Constant, inner, grad, TestFunction, derivative, norm, assemble, Function, TestFunctions, split, TrialFunction, adjoint, action, replace
 from .numpy_helpers import set_mixed_function_from_flattened_array, create_flattened_numpy_arr_from_mixed_function, copy_function_values
 from ufl.algorithms import extract_coefficients, expand_derivatives
 from .profiling import region
 from .assembly import AffineSolver, PersistentAssembler, is_direct_solver, petsc_solver_parameters, shared_mass_solver
+
+def add_stage_substitution(mapping, key, value):
+    """Add key -> value to a UFL replace() mapping, together with every fixed component of key.
+
+    For a tensor-valued key (for example the ListTensor that split() returns for a vector
+    subspace), key[idx] -> value[idx] is also added for every component index idx, so that
+    expressions which index the key with fixed integers are replaced as well.
+    """
+    mapping[key] = value
+    for idx in itertools.product(*(range(n) for n in key.ufl_shape)):
+        if idx:
+            mapping[key[idx]] = value[idx]
+
 
 class DummySolver():
     def solve(self):
@@ -199,21 +213,7 @@ class GeneralRK(TimeStepper):
 
 
         #construct xi variables
-        xi_splits = []
-        for i in range(nstages):
-            xi_split = {}
-            for var in self.model.get_x_var_list():
-                xi_split[self.xk_split[var]] = self.xk_split[var]
-                for j in range(nstages):
-                    if not (self.A[i,j] == 0): xi_split[self.xk_split[var]] = xi_split[self.xk_split[var]] + self.dt*float(self.A[i,j]) * self.Fi[j][2][var]
-            for var in self.model.get_aux_var_list():
-                xi_split[self.xk_split[var]] = self.Fi[i][2][var]
-            xi_split[self.t] = self.t + float(self.c[i])*self.dt
-#THIS IS A HACKY THING TO MAKE CF WORK DUE TO FPERP...
-            if 'F' in self.model.get_aux_var_list():
-                xi_split[self.xk_split['F'][0]] = self.Fi[i][2]['F'][0]
-                xi_split[self.xk_split['F'][1]] = self.Fi[i][2]['F'][1]
-            xi_splits.append(xi_split)
+        xi_splits = self.build_stage_substitutions()
 
         #construct residuals for F and aux
         residuals_F = []
@@ -239,6 +239,7 @@ class GeneralRK(TimeStepper):
                     rhs_W = rhs_W + aux_expressions[var][1]
                     lhs_W = lhs_W + aux_expressions[var][0]
                 if not (lhs_W == 0):
+                    lhs_W = lhs_W + self.unowned_aux_identity(terms, xhat_subs)
                     residual_aux = replace(lhs_W - rhs_W, xi_splits[i])
                     aux_lhs = replace(lhs_W, xi_splits[i])
 
@@ -405,21 +406,54 @@ class GeneralRK(TimeStepper):
             #self.mufullsolver = create_linear_solver_from_residual(total_mu_residual, self.mui[0], xtrial[0], solver_parameters=overall_solver_parameters['irk-mu'], options_prefix = 'irk-mu')
 
 
-    def get_rhs_expr(self):
+    def unowned_aux_identity(self, terms, xhat_subs):
+        """Return mass terms setting the aux variables of other terms to zero in this integrator's solve.
 
-        xhat, xhat_subs = self.model.get_full_test_vars(split_x_and_aux=self.is_explicit)
+        Each integrator solves for the whole aux space, but only the aux variables of its own terms
+        have equations. When several split integrators own aux variables (for example two forcing
+        terms with aux variables in different LieSplit stages), the other blocks would be empty,
+        which makes direct (LU) aux solves singular. Those variables are not used by this
+        integrator's terms, so they are set to zero. This matches the adjoint aux residual, which
+        uses the full aux mass matrix.
+        """
+        own = set(self.model.get_aux_var_list(terms=terms))
+        identity = 0
+        for var in self.model.get_aux_var_list():
+            if var not in own:
+                identity = identity + inner(xhat_subs[var], self.xk_split[var])*self.dx
+        return identity
 
+    def build_stage_substitutions(self):
+        """Return, for every RK stage i, the UFL replace() mapping from xk to the stage values.
+
+        The residuals are written in terms of xk_split and then replaced by the stage values:
+        x variables by xk + dt * sum_j A[i,j] F_j, aux variables by their stage-i values F_i, and
+        t by t + c_i dt. The keys for vector-valued variables are the ListTensors returned by split(),
+        but UFL simplifies a fixed-index component such as u[1] (used by rot2D, curl2D, ...) directly
+        to the underlying mixed-function component, so the ListTensor key does not catch it. Each
+        component is therefore mapped as well; otherwise those components silently keep the values
+        stored in xk (for aux variables, zeros, since xk's aux part is never assigned).
+        """
         xi_splits = []
         for i in range(self.nstages):
             xi_split = {}
             for var in self.model.get_x_var_list():
-                xi_split[self.xk_split[var]] = self.xk_split[var]
+                stage_value = self.xk_split[var]
                 for j in range(self.nstages):
-                    if not (self.A[i,j] == 0): xi_split[self.xk_split[var]] = xi_split[self.xk_split[var]] + self.dt*float(self.A[i,j]) * self.Fi[j][2][var]
+                    if not (self.A[i,j] == 0):
+                        stage_value = stage_value + self.dt*float(self.A[i,j]) * self.Fi[j][2][var]
+                add_stage_substitution(xi_split, self.xk_split[var], stage_value)
             for var in self.model.get_aux_var_list():
-                xi_split[self.xk_split[var]] = self.Fi[i][2][var]
+                add_stage_substitution(xi_split, self.xk_split[var], self.Fi[i][2][var])
             xi_split[self.t] = self.t + float(self.c[i])*self.dt
             xi_splits.append(xi_split)
+        return xi_splits
+
+    def get_rhs_expr(self):
+
+        xhat, xhat_subs = self.model.get_full_test_vars(split_x_and_aux=self.is_explicit)
+
+        xi_splits = self.build_stage_substitutions()
 
         rhs_F = -self.model.rhs(self.xk_split, self.t, self.coeff_split, xhat_subs)
         rhs_W = 0
@@ -1517,7 +1551,6 @@ class LieSplittingIntegrator():
 #         pass
 #         #with self.xk.dat.vec_wo as xk:
 #         #    state.copy(xk)
-#         #self.model.post_step(self.xk_sub)
 #
 #     def take_step(self, dt):
 #         self.dt.assign(dt)
@@ -1579,13 +1612,11 @@ class LieSplittingIntegrator():
 #         self.pre_stepA_solvers()
 #         self.stepA_solver.solve()
 #         self.xn.assign(self.xn + self.dt * self.F)
-#         self.model.post_step(self.xn_sub, terms=self.terms)
 #
 #         self.xk.assign(self.xn)
 #         self.t.assign(self.tn + dt/2.0)
 #         self.pre_stepB_solvers()
 #         self.stepB_solver.solve()
 #         self.xn.assign(self.xn + self.dt * self.F)
-#         self.model.post_step(self.xn_sub, terms=self.terms)
 #
 #         self.tn = self.tn + dt

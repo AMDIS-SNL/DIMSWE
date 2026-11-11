@@ -1,4 +1,3 @@
-import pyvista as pv
 from ..models import get_model
 from ..logger import Logger
 from ..parameters import get_parameters
@@ -10,6 +9,8 @@ import numpy as np
 
 
 def plot_maxwell(parameters):
+    # imported here so that importing dimswe.plotting does not require pyvista
+    import pyvista as pv
 
     logger = Logger(parameters)
     set_dimension(parameters)
