@@ -76,6 +76,16 @@ def dual_bernstein_polynomial(p, i, t, dual=None):
     return sum(dual[i][m] * bernstein_polynomial(p, m, t) for m in range(p + 1))
 
 
+def ufl_attribute(obj, name):
+    """Return obj.name, calling it if it is a method.
+
+    UFL and Firedrake have turned several of these methods into properties (for example
+    Cell.cellname), so this supports both the older and the newer versions.
+    """
+    value = getattr(obj, name)
+    return value() if callable(value) else value
+
+
 class CellBoxGeometry():
     """Local box coordinates of axis-aligned cells, xi_d = (x_d - x0_d) / w_d in [0, 1].
 
@@ -85,11 +95,11 @@ class CellBoxGeometry():
     cell sees its own unwrapped coordinates.
     """
     def __init__(self, mesh):
-        cellname = mesh.ufl_cell().cellname()
+        cellname = ufl_attribute(mesh.ufl_cell(), 'cellname')
         if cellname not in ('interval', 'quadrilateral'):
             raise NotImplementedError(f'Bernstein coefficients need interval or quadrilateral cells, not {cellname}')
         self.mesh = mesh
-        self.dim = mesh.geometric_dimension()
+        self.dim = ufl_attribute(mesh, 'geometric_dimension')
         X = SpatialCoordinate(mesh)
         V0 = FunctionSpace(mesh, 'DG', 0)
         self.V0 = V0
@@ -148,7 +158,7 @@ def has_cell_box_geometry(spaces):
 
 def field_degree(space):
     """Return the polynomial degree per direction of a scalar function space (max over directions)."""
-    degree = space.ufl_element().degree()
+    degree = ufl_attribute(space.ufl_element(), 'degree')
     return max(degree) if isinstance(degree, tuple) else degree
 
 

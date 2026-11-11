@@ -229,7 +229,9 @@ def sampling_grid(reference_field: Any, mesh_parameters: dict[str, Any], samples
     import numpy as np
 
     mesh = reference_field.function_space().mesh()
-    if mesh.geometric_dimension() != 2:
+    from dimswe.bernstein import ufl_attribute
+
+    if ufl_attribute(mesh, 'geometric_dimension') != 2:
         raise ValueError("sampled differences are only implemented for 2D meshes")
     coordinates = mesh.coordinates.dat.data_ro
     (xlow, ylow), (xhigh, yhigh) = coordinates.min(axis=0), coordinates.max(axis=0)
