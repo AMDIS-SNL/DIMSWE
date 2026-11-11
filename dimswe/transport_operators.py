@@ -1,5 +1,4 @@
 from firedrake import inner, sign, dot, grad, div, outer
-from firedrake import VertexBasedLimiter, FunctionSpace
 from .operators import ForcingBase
 
 
@@ -166,6 +165,7 @@ def CVLieDerivative(degree, dim, u, a, ahat, afac_edge, afac, v, alpha_s, n, ord
 
 
 class DG1LimiterTransport(ForcingBase):
+    """Upwind DG transport of the DG tracer densities of the H1 model (no limiter is applied)."""
     def __init__(self, parameters, vars, spaces):
         self.vars = vars
         self.spaces = spaces
@@ -175,16 +175,9 @@ class DG1LimiterTransport(ForcingBase):
         self.name = 'dg1limiter'
 
         if not spaces is None:
-            self.limiter = VertexBasedLimiter(FunctionSpace(self.spaces.mesh, 'DG', 1, variant="spectral"))
             self.dx = spaces.dx
             self.dS = spaces.dS
             self.ds = spaces.ds
-
-    def post_step(self, statevars):
-        for varname in self.dg_density_names:
-            field = statevars[varname]
-            self.limiter.apply(field)
-
 
     def rhs(self, xvars, t, coeff, xhats):
         if 'v' in xvars.keys():

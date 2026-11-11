@@ -773,7 +773,6 @@ class LieSplittingIntegrator():
 #         pass
 #         #with self.xk.dat.vec_wo as xk:
 #         #    state.copy(xk)
-#         #self.model.post_step(self.xk_sub)
 #
 #     def take_step(self, dt):
 #         self.dt.assign(dt)
@@ -835,13 +834,11 @@ class LieSplittingIntegrator():
 #         self.pre_stepA_solvers()
 #         self.stepA_solver.solve()
 #         self.xn.assign(self.xn + self.dt * self.F)
-#         self.model.post_step(self.xn_sub, terms=self.terms)
 #
 #         self.xk.assign(self.xn)
 #         self.t.assign(self.tn + dt/2.0)
 #         self.pre_stepB_solvers()
 #         self.stepB_solver.solve()
 #         self.xn.assign(self.xn + self.dt * self.F)
-#         self.model.post_step(self.xn_sub, terms=self.terms)
 #
 #         self.tn = self.tn + dt
