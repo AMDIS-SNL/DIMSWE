@@ -9,9 +9,6 @@ class OperatorBase():
     def compute_aux_expressions(self, x, t, coeff, xhats, expressions):
         pass
 
-    def post_step(self, statevars):
-        pass
-
     def has_coeff(self):
         return False
 

@@ -37,19 +37,19 @@ Each executed run also stores provenance files in its run directory:
 Run a set of concrete cfg files directly with an explicit MPI rank count:
 
 ```bash
-bash workflows/run_batch.sh 4 mtswe.cfg mtswe-cf.cfg mtswe-lp.cfg
+bash workflows/run_batch.sh 4 mtswe-h1-physics.cfg mtswe-cf.cfg mtswe-lp.cfg
 ```
 
 Preview planned runs without executing:
 
 ```bash
-bash workflows/run_batch.sh 4 --dry-run mtswe.cfg mtswe-cf.cfg
+bash workflows/run_batch.sh 4 --dry-run mtswe-h1-physics.cfg mtswe-cf.cfg
 ```
 
 Skip runs whose `sim.h5` already exists:
 
 ```bash
-bash workflows/run_batch.sh 4 --skip-existing mtswe.cfg mtswe-cf.cfg
+bash workflows/run_batch.sh 4 --skip-existing mtswe-h1-physics.cfg mtswe-cf.cfg
 ```
 
 `run_batch.py` is MPI-aware: rank 0 performs workflow-level directory creation, provenance-file writes, and skip checks, then all ranks synchronize before entering `run_model(parameters)` together for the actual Firedrake simulation.
@@ -128,6 +128,12 @@ Create comparison plots and movies from existing runs:
 bash workflows/compare_runs.sh workflows/examples/compare.cfg
 ```
 
+Skip the movies (the slowest part, especially when differences are sampled) and render only PNG frames and statistic plots:
+
+```bash
+bash workflows/compare_runs.sh --no-movies workflows/examples/compare.cfg
+```
+
 Validate the comparison config without rendering outputs:
 
 ```bash
@@ -141,6 +147,12 @@ The comparison config currently supports:
 - `quantities.statistics`: scalar statistics stored in the checkpoint HDF5 file
 - `time_selection.frames`: output indices to render as PNG frames
 - `output.outdir`: destination directory for comparison artifacts
+- `output.movies` (optional, default `true`): render the WEBP movies; set `false` (or pass `--no-movies`) to render only the PNG frames and statistic plots
+- `reference` (optional): label of the run that differences are taken against (default: the first run)
+- `differences` (optional, default `true`): draw `<run> − <reference>` panels for every other run
+- `samples_per_cell` (optional, default `4`): sampling density for differences between differently numbered meshes
+
+All value panels of a field share one colour scale and colorbar; the difference panels share a symmetric diverging scale (vector fields show `|run − reference|`). Movies use scales fixed over all outputs. When two runs' meshes are numbered identically, the difference is computed exactly on the reference run's function space (a field on a different element, for example H1 vs CF, is interpolated onto it). Identical mesh cfgs do not guarantee this: a mesh reloaded from a checkpoint is numbered according to how it was partitioned when written. Otherwise both fields are point-evaluated on a regular grid with `samples_per_cell` (optional, default 4) points per mesh cell and direction, placed so they never lie on a cell edge, and a note is printed. Sampled differences are only implemented for 2D meshes and make movies slower.
 
 ## Available quantities
 
@@ -403,4 +415,4 @@ Run `plot_validation.sh` on one process; it reads whole checkpoints.
 
 - These scripts assume the Firedrake environment is activated through the provided shell wrappers.
 - The repository guidance says `runs/` holds generated data and should not be committed.
-- The comparison workflow (`compare_runs.py`) is designed around comparing one quantity across multiple runs side-by-side; for truth-vs-optimized comparisons use `plot_validation.py`, which shares colour scales across panels.
+- The comparison workflow (`compare_runs.py`) is designed around comparing one quantity across multiple runs side-by-side; for truth-vs-optimized comparisons use `plot_validation.py`.

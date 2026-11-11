@@ -2,6 +2,7 @@ import numpy as np
 from firedrake import assemble, Function, TrialFunction, TestFunction, grad, inner
 from firedrake import LinearVariationalProblem, LinearVariationalSolver
 from .parameters import overall_solver_parameters
+from .positivity import CellPositivity
 #Advected density statistics
 
 #nD: total densities, total energy, total momenta (per component)
@@ -33,6 +34,13 @@ class AdvDensStatistics():
             self.statistic_names.append('total_water')
             self.statistics['total_water'] = np.zeros(nstat)
 
+        # positivity statistics: domain min and max of the cell means and whole-cell lower bounds
+        # of every density (an own CellPositivity, since statistics are computed every stat step)
+        self.positivity = CellPositivity(spaces, vars, self.density_names, spaces.dx if spaces is not None else None)
+        for name in self.positivity.statistic_names():
+            self.statistic_names.append(name)
+            self.statistics[name] = np.zeros(nstat)
+
         if not self.spaces is None:
             self.dx = spaces.dx
             self.ds = spaces.ds
@@ -54,6 +62,7 @@ class AdvDensStatistics():
             self.total_density_expressions[dens] = xn[dens]*self.dx
         if 'Qv' in self.vars.varlist:
             self.water_expression = (xn['Qv'] + xn['Qr'] + xn['Qc'])*self.dx
+        self.positivity.create(xn)
 
     def compute_statistics(self, step, stat_step):
         self.statistics['total_energy'][stat_step] = assemble(self.total_energy_expression)
@@ -62,6 +71,9 @@ class AdvDensStatistics():
             self.statistics['total_' + dens][stat_step] = assemble(self.total_density_expressions[dens])
         if 'Qv' in self.vars.varlist:
             self.statistics['total_water'][stat_step] = assemble(self.water_expression)
+        self.positivity.compute()
+        for name, value in self.positivity.domain_extrema().items():
+            self.statistics[name][stat_step] = value
 #Unclear if there is anything that differs here
 #probably for computing PV, etc. there will be
 class AdvDensStatistics_LP(AdvDensStatistics):

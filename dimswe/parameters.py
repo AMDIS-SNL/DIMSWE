@@ -33,4 +33,6 @@ overall_solver_parameters['erk-dlambda'] = basic_linear_system
 overall_solver_parameters['erk-grad'] = basic_linear_system
 overall_solver_parameters['rhdiag'] = basic_linear_system
 overall_solver_parameters['qsatdiag'] = basic_linear_system
+# DG0 (vector) mass matrices are diagonal, so Jacobi-preconditioned CG converges in one iteration
+overall_solver_parameters['positivitydiag'] = basic_linear_system
 #
