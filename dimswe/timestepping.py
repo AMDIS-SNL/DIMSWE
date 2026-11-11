@@ -171,6 +171,7 @@ class GeneralRK(TimeStepper):
                     rhs_W = rhs_W + aux_expressions[var][1]
                     lhs_W = lhs_W + aux_expressions[var][0]
                 if not (lhs_W == 0):
+                    lhs_W = lhs_W + self.unowned_aux_identity(terms, xhat_subs)
                     residual_aux = replace(lhs_W - rhs_W, xi_splits[i])
 
 
@@ -289,6 +290,23 @@ class GeneralRK(TimeStepper):
             #self.Fauxsolver = NonlinearVariationalSolver(totalproblem, solver_parameters=overall_solver_parameters['irk'], options_prefix = 'irk')
             #self.mufullsolver = create_linear_solver_from_residual(total_mu_residual, self.mui[0], xtrial[0], solver_parameters=overall_solver_parameters['irk-mu'], options_prefix = 'irk-mu')
 
+
+    def unowned_aux_identity(self, terms, xhat_subs):
+        """Return mass terms setting the aux variables of other terms to zero in this integrator's solve.
+
+        Each integrator solves for the whole aux space, but only the aux variables of its own terms
+        have equations. When several split integrators own aux variables (for example two forcing
+        terms with aux variables in different LieSplit stages), the other blocks would be empty,
+        which makes direct (LU) aux solves singular. Those variables are not used by this
+        integrator's terms, so they are set to zero. This matches the adjoint aux residual, which
+        uses the full aux mass matrix.
+        """
+        own = set(self.model.get_aux_var_list(terms=terms))
+        identity = 0
+        for var in self.model.get_aux_var_list():
+            if var not in own:
+                identity = identity + inner(xhat_subs[var], self.xk_split[var])*self.dx
+        return identity
 
     def build_stage_substitutions(self):
         """Return, for every RK stage i, the UFL replace() mapping from xk to the stage values.
