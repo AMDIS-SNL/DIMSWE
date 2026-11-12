@@ -12,7 +12,7 @@ from tests.gradient_helpers import (
     setup_problem,
 )
 
-# hyperviscosity coefficients away from the truth (c0=0.07, s=3.2 in tests/tswe.cfg)
+# hyperviscosity coefficients away from the truth (c0=0.07, s=3.2 in tests/tswe_small.cfg)
 PERTURBED_COEFFS = {'hyperviscosity': {'c0': 0.05, 's': 2.8}}
 EPS_LIST = list(1e-1 * 0.5 ** np.arange(0, 8))
 

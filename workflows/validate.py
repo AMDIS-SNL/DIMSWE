@@ -337,7 +337,15 @@ def run_case(job_dir: Path, result: dict[str, Any], plan: dict[str, Any], args: 
 
 
 def summary_row(result: dict[str, Any], plan: dict[str, Any], summary: dict[str, Any], fields: list[str]) -> dict[str, Any]:
-    """Build one row of the sweep-level summary table."""
+    """Build one row of the sweep-level summary table.
+
+    Besides the job identification, losses and errors, the row records the optimizer method and its
+    evaluation counts (nit, nfev, njev, nhvp, hessp_used), so first- and second-order runs can be
+    compared from summary.csv alone. The previously existing columns keep their names and order;
+    the method and HVP columns are appended after nfev. Results written before HVP support have no
+    method, njev, nhvp or hessp_used entries; they default to empty, 0, 0 and False.
+    """
+    optimizer = result["optimizer"]
     row: dict[str, Any] = {
         "job": result["job_name"],
         "case": plan["case"],
@@ -346,9 +354,13 @@ def summary_row(result: dict[str, Any], plan: dict[str, Any], summary: dict[str,
         "loss": result["loss_label"],
         "initial_loss": result.get("initial_loss"),
         "final_loss": result.get("final_loss"),
-        "optimizer_success": result["optimizer"]["success"],
-        "nit": result["optimizer"]["nit"],
-        "nfev": result["optimizer"]["nfev"],
+        "optimizer_success": optimizer["success"],
+        "nit": optimizer["nit"],
+        "nfev": optimizer["nfev"],
+        "method": optimizer.get("method", ""),
+        "njev": optimizer.get("njev", 0),
+        "nhvp": optimizer.get("nhvp", 0),
+        "hessp_used": optimizer.get("hessp_used", False),
     }
     for name, entry in (result.get("parameters") or {}).items():
         row[f"{name}__true"] = entry.get("true", float("nan"))
