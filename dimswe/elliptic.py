@@ -72,7 +72,8 @@ class EllipticConfig:
         solver_options: extra PETSc options merged on top of the selected solver.
         quadrature_degree: optional quadrature degree for the forms (None: UFL estimate).
         error_quadrature_degree: quadrature degree for error norms (default 2 * order + 4).
-        lagrange_regularization: epsilon of the lagrange preconditioner (see
+        lagrange_regularization: epsilon of the regularized preconditioners a + eps (u, v) used
+            by 'lagrange' and by 'nullspace' with a direct solver (see
             harmonic_forms.lagrange_preconditioner_form).
         registry, face_bcs: face registry and parsed per-face BC types (set when a mesh is given).
     """
@@ -168,7 +169,8 @@ def elliptic_solver_parameters(config, num_harmonic, num_blocks, multiplier_indi
     - lagrange with harmonic forms: matrix-free GMRES (harmonic_forms.lagrange_solver_parameters);
       only solver 'elliptic-direct' is meaningful there (its LU is used as preconditioner).
     - nullspace with harmonic forms: 'elliptic-direct' is upgraded to 'elliptic-direct-singular'
-      (a plain LU of a singular matrix fails).
+      (a plain LU of a singular matrix fails): right-preconditioned GMRES with the nullspace
+      attached, preconditioned by the LU of the regularized a + eps (u, v) (see _build_forms).
     - 'elliptic-minres': MINRES; with several blocks, an additive fieldsplit with LU per block of
       the Riesz-map preconditioner (EllipticProblem._riesz_form).
     """
@@ -389,6 +391,11 @@ class EllipticProblem():
                                                              self.dx)
         elif self.config.solver == 'elliptic-minres':
             self.aP = self._riesz_form()
+        elif self.num_harmonic > 0:
+            # nullspace approach with a direct solver: precondition with the LU of the regularized,
+            # non-singular a + eps (u, v) instead of relying on MUMPS null-pivot detection (which
+            # can miss the null pivot and then amplify the nullspace direction enormously).
+            self.aP = self.a0 + self.config.lagrange_regularization * inner(self.trial['u'], self.test['u']) * self.dx
         self.solver_parameters = elliptic_solver_parameters(self.config, self.num_harmonic, self.num_blocks,
                                                             self.p_indices)
 

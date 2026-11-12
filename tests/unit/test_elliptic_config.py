@@ -129,7 +129,7 @@ def test_solver_nullspace_and_plain(elliptic_parameters):
     """nullspace upgrades direct to the singular variant; without harmonic forms plain LU."""
     nullspace = config_with(elliptic_parameters, harmonic_constraint='nullspace')
     params = elliptic_solver_parameters(nullspace, 1, 2)
-    assert params['mat_mumps_icntl_24'] == 1 and params['ksp_type'] == 'gmres'
+    assert params['ksp_type'] == 'gmres' and params['ksp_pc_side'] == 'right' and params['pc_type'] == 'lu'
     plain = elliptic_solver_parameters(config_with(elliptic_parameters), 0, 2)
     assert plain['ksp_type'] == 'preonly' and plain['pc_type'] == 'lu'
 
