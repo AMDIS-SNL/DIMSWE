@@ -1,0 +1,495 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{hyperref}
+
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\cod}{\delta}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\hodge}{\star}
+\newcommand{\Hspace}{\mathfrak{h}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\curltwo}{\operatorname{curl_{2D}}}
+\newcommand{\skewgrad}{\operatorname{skewgrad}}
+\newcommand{\grad}{\operatorname{grad}}
+\newcommand{\curl}{\operatorname{curl}}
+\renewcommand{\div}{\operatorname{div}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\ip}[2]{\left(#1,\,#2\right)}
+
+\newtheorem{proposition}{Proposition}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\title{The Hodge Laplacian in DIMSWE:\\ differential forms, vector proxies and sign conventions}
+\author{DIMSWE developers}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note documents the elliptic Hodge Laplacian problems solved by \code{dimswe.elliptic}.
+It states the continuous problem in the language of differential forms, the mixed weak
+formulation of Arnold, Falk and Winther, and the vector-calculus proxies used for every
+(dimension, complex, form degree) combination. It fixes every sign convention used in the code:
+the exterior derivative and codifferential of each proxy, the boundary pairings, the proxies of
+constant forms, the sign of the mixed system, and the treatment of boundary conditions, harmonic
+forms and their two constraint mechanisms. Section~\ref{sec:code} maps each formula to the
+function that implements it.
+\end{abstract}
+
+\tableofcontents
+
+%=================================================================================================
+\section{Differential forms on box-shaped domains}
+%=================================================================================================
+
+Let $\Omega\subset\R^n$, $n\in\{1,2,3\}$, be a box $\prod_{i=1}^n [a_i,b_i]$ in which each
+coordinate direction is either \emph{bounded} or \emph{periodic} (identified ends). We write
+$\Lambda^k(\Omega)$ for the smooth differential $k$-forms, $0\le k\le n$. With Cartesian
+coordinates $x_1,\dots,x_n$ (in the code: \code{x}, \code{y}, \code{z}) every $k$-form is
+\[
+  \omega = \sum_{|I|=k} \omega_I \, \dd x^I, \qquad
+  \dd x^I = \dd x_{i_1}\wedge\cdots\wedge\dd x_{i_k}, \quad I=\{i_1<\dots<i_k\}.
+\]
+\emph{Index sets are always taken in increasing order} $x<y<z$; this matters for the signs of
+the constant-form proxies in Section~\ref{sec:constant}.
+
+\paragraph{Exterior derivative.} $\dd:\Lambda^k\to\Lambda^{k+1}$, $\dd\circ\dd=0$, with
+$\dd\Lambda^n=0$. The sequence
+\[
+  0 \to \Lambda^0 \xrightarrow{\dd} \Lambda^1 \xrightarrow{\dd} \cdots \xrightarrow{\dd} \Lambda^n \to 0
+\]
+is the de Rham complex.
+
+\paragraph{Inner product and Hodge star.} The Euclidean metric gives the pointwise inner product
+in which the $\dd x^I$ are orthonormal, the $L^2$ inner product $\ip{\omega}{\eta} =
+\int_\Omega \langle\omega,\eta\rangle\,\dd x$, and the Hodge star $\hodge:\Lambda^k\to\Lambda^{n-k}$
+with $\omega\wedge\hodge\eta = \langle\omega,\eta\rangle\,\dd x_1\wedge\cdots\wedge\dd x_n$.
+
+\paragraph{Codifferential.} $\cod:\Lambda^{k}\to\Lambda^{k-1}$ is the formal $L^2$ adjoint of
+$\dd$: for $w\in\Lambda^{k}$ and $z\in\Lambda^{k+1}$,
+\begin{equation}\label{eq:ibp-forms}
+  \ip{\dd w}{z} = \ip{w}{\cod z} + \int_{\partial\Omega} \tr w \wedge \tr \hodge z ,
+\end{equation}
+where $\tr$ is the pullback to the boundary. We never need an explicit formula for $\cod$ in
+terms of $\hodge$; in the code $\cod$ is \emph{defined} through its proxy formulas
+(Table~\ref{tab:operators}), which are verified to satisfy \eqref{eq:ibp-forms}.
+
+\paragraph{Hodge Laplacian.} $\Delta_H = \dd\cod + \cod\dd : \Lambda^k\to\Lambda^k$
+(non-negative; for $k=0$ it is $-\Delta$). The problem is: given $f\in\Lambda^k$, find
+$u\in\Lambda^k$ with
+\begin{equation}\label{eq:strong}
+  (\dd\cod + \cod\dd)\,u = f - p \quad\text{in }\Omega, \qquad u\perp\Hspace^k, \qquad p\in\Hspace^k,
+\end{equation}
+plus boundary conditions (Section~\ref{sec:bc}). Here $\Hspace^k$ is the space of harmonic
+$k$-forms (Section~\ref{sec:harmonic}); $p=P_{\Hspace}f$ is the harmonic part of the data that
+the operator cannot reach. When $\Hspace^k=\{0\}$, $p$ is absent and \eqref{eq:strong} is the
+usual Hodge Laplace equation.
+
+%=================================================================================================
+\section{Mixed weak formulation and the sign convention of the code}\label{sec:weak}
+%=================================================================================================
+
+Introduce $\sigma=\cod u\in\Lambda^{k-1}$ (absent for $k=0$). Testing $\sigma=\cod u$ with
+$\tau\in\Lambda^{k-1}$ and using \eqref{eq:ibp-forms} with $(w,z)=(\tau,u)$ gives
+$\ip{\sigma}{\tau} = \ip{u}{\dd\tau} - \int_{\partial\Omega}\tr\tau\wedge\tr\hodge u$. Testing
+\eqref{eq:strong} with $v\in\Lambda^k$ and using \eqref{eq:ibp-forms} with $(w,z)=(v,\dd u)$
+gives $\ip{\cod\dd u}{v} = \ip{\dd u}{\dd v} - \int_{\partial\Omega}\tr v\wedge\tr\hodge\dd u$.
+
+\paragraph{The code's form.} The $\sigma$ equation is \emph{multiplied by $-1$}, so that the
+system operator is symmetric (this is what makes the PETSc nullspace equal to the transpose
+nullspace and allows MINRES):
+\begin{equation}\label{eq:mixed}
+\boxed{
+\begin{aligned}
+  -\ip{\sigma}{\tau} + \ip{u}{\dd\tau} &= \textstyle\int_{\Gamma_n} B_{k-1}(\tau, g_u)
+     && \forall\tau\in V^{k-1},\\
+  \ip{\dd\sigma}{v} + \ip{\dd u}{\dd v} + \ip{p}{v} &= \ip{f}{v} + \textstyle\int_{\Gamma_n} B_k(v, g_{\dd u})
+     && \forall v\in V^{k},\\
+  \ip{u}{q} &= 0 && \forall q\in\Hspace^k,
+\end{aligned}}
+\end{equation}
+with $B_j(w,z)\,\dd s = \tr w\wedge\tr\hodge z$ the boundary pairing of \eqref{eq:ibp-forms} for
+$\dd$ acting on $j$-forms (Table~\ref{tab:operators}). The terms on essential faces $\Gamma_e$
+drop out because the test functions have vanishing trace there. Absent pieces:
+$\sigma,\tau$ and the first row for $k=0$ (primal problem); $\ip{\dd u}{\dd v}$ and the
+$B_k$ term for $k=n$; $p,q$ and the last row when $\Hspace^k=\{0\}$.
+
+\begin{remark}[Relation to AFW]
+Arnold--Falk--Winther write the first row as $\ip{\sigma}{\tau}-\ip{u}{\dd\tau}=-\int_{\Gamma_n}
+B_{k-1}(\tau,g_u)$. \code{boundary\_conditions.build\_natural\_terms} returns the boundary
+functionals in that (unscaled) convention, i.e.\ $\sigma$-term $=-\sum_{\text{faces}}\int
+B_{k-1}(\tau,g_u)$, and \code{EllipticProblem.\_natural\_terms} negates it.
+\end{remark}
+
+In block form, with $M_\sigma$ the $V^{k-1}$ mass matrix, $D$ the matrix of
+$\ip{\dd\sigma}{v}$, $K$ that of $\ip{\dd u}{\dd v}$ and $C$ that of $\ip{p}{v}$,
+\[
+  \begin{pmatrix} -M_\sigma & D^T & 0\\ D & K & C\\ 0 & C^T & 0 \end{pmatrix}
+  \begin{pmatrix}\sigma\\ u\\ p\end{pmatrix} =
+  \begin{pmatrix} b_\sigma\\ b_u\\ 0\end{pmatrix},
+\]
+which is symmetric and indefinite.
+
+%=================================================================================================
+\section{Vector proxies}\label{sec:proxies}
+%=================================================================================================
+
+The code represents forms by scalar or vector \emph{proxies}: $0$- and $n$-forms by scalars,
+intermediate degrees by vectors in $\R^n$. All proxy maps below are pointwise isometries
+(rotations and sign changes), so the $L^2$ inner product of forms is the ordinary
+$\int u\cdot v$ (or $\int uv$) of proxies, and the mass matrices are the usual ones.
+
+\subsection{The proxy maps}
+
+\begin{description}
+\item[1D] ($\Lambda^0\to\Lambda^1$): $w\mapsto w$, $\ a\,\dd x\mapsto a$.
+\item[2D grad-curl] ($\Lambda^1$ proxy in $H(\mathrm{curl})$):
+  $a\,\dd x+b\,\dd y\mapsto (a,b)$, $\ c\,\dd x\wedge\dd y\mapsto c$.
+\item[2D curl-div] ($\Lambda^1$ proxy in $H(\mathrm{div})$, rotated):
+  $a\,\dd x+b\,\dd y\mapsto (-b,\,a)$, $\ c\,\dd x\wedge\dd y\mapsto -c$.
+\item[3D] $a_1\dd x+a_2\dd y+a_3\dd z\mapsto(a_1,a_2,a_3)$;
+  $\ b_1\,\dd y\wedge\dd z+b_2\,\dd z\wedge\dd x+b_3\,\dd x\wedge\dd y\mapsto(b_1,b_2,b_3)$;
+  $\ c\,\dd x\wedge\dd y\wedge\dd z\mapsto c$.
+\end{description}
+
+\paragraph{Why the curl-div 2-form proxy carries a minus sign.} In the curl-div complex the
+1-form proxy is the rotation $R(a,b)=(-b,a)$ of the Cartesian components. It is forced by
+requiring that $\dd$ on 0-forms be $\skewgrad w = (-\partial_y w,\partial_x w)$:
+$\dd w = w_x\dd x+w_y\dd y\mapsto(-w_y,w_x)$. With $\dd$ on 1-forms equal to $\div$,
+\[
+  \dd(a\,\dd x+b\,\dd y) = (\partial_x b-\partial_y a)\,\dd x\wedge\dd y,
+  \qquad \div(-b,a) = -(\partial_x b - \partial_y a),
+\]
+so the scalar proxy of $c\,\dd x\wedge\dd y$ must be $-c$. Flipping the 1-form map instead
+would break $\dd w=\skewgrad w$. This sign is invisible in the operators (which are written
+directly in proxies) and in the harmonic \emph{spans}; it only fixes the sign of the constant
+2-form proxy (Section~\ref{sec:constant}).
+
+\subsection{Operators, adjoints and boundary pairings}
+
+Table~\ref{tab:operators} is implemented by \code{differential\_forms.exterior\_derivative},
+\code{codifferential} and \code{boundary\_pairing}. Here $n$ is the outward unit normal,
+\[
+  \skewgrad w = (-\partial_y w,\ \partial_x w),\qquad
+  \curltwo w = \partial_x w_1 - \partial_y w_0,\qquad
+  a\times b = a_0 b_1 - a_1 b_0\ \ \text{(2D, scalar)},
+\]
+matching \code{ufl\_helpers.skewgrad} and \code{ufl\_helpers.curl2D}.
+
+\begin{table}[h]
+\centering
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}llll@{}}
+\toprule
+case ($w\in\Lambda^k$, $z\in\Lambda^{k+1}$) & $\dd w$ & $\cod z$ & $B_k(w,z)$\\
+\midrule
+1D, $k=0$                         & $\partial_x w$   & $-\partial_x z$                       & $w\,z\,n$\\
+2D grad-curl and 3D, $k=0$        & $\grad w$        & $-\div z$                             & $w\,(z\cdot n)$\\
+2D curl-div, $k=0$                & $\skewgrad w$    & $-\curltwo z$                         & $w\,(n\times z)$\\
+2D grad-curl, $k=1$               & $\curltwo w$     & $-\skewgrad z=(\partial_y z,-\partial_x z)$ & $(n\times w)\,z$\\
+3D, $k=1$                         & $\curl w$        & $\curl z$                             & $(n\times w)\cdot z$\\
+2D curl-div $k=1$, 3D $k=2$       & $\div w$         & $-\grad z$                            & $(w\cdot n)\,z$\\
+any, $k=n$                        & $0$ (\code{None}) & ---                                  & $0$\\
+\bottomrule
+\end{tabular}
+\caption{Proxy operators. $\cod$ in row $k$ is $\cod_{k+1}$, the adjoint of $\dd_k$; it maps
+$(k+1)$-form proxies to $k$-form proxies. \code{codifferential(z, j, \dots)} takes the degree
+$j$ of its argument $z$ and returns \code{None} for $j=0$.}
+\label{tab:operators}
+\end{table}
+
+Each row satisfies the proxy version of \eqref{eq:ibp-forms},
+\begin{equation}\label{eq:ibp}
+  \int_\Omega \dd w\cdot z\,\dd x = \int_\Omega w\cdot \cod z\,\dd x + \int_{\partial\Omega} B_k(w,z)\,\dd s .
+\end{equation}
+For example, for 2D curl-div $k=0$:
+$\int(-w_y z_0 + w_x z_1) = \int w\,(\partial_y z_0-\partial_x z_1) + \int_{\partial\Omega} w\,(n_x z_1-n_y z_0)$,
+i.e.\ $\cod z=-\curltwo z$ and $B=w\,(n\times z)$; for 2D grad-curl $k=1$:
+$\int(\partial_x w_1-\partial_y w_0)z = \int w\cdot(\partial_y z,-\partial_x z) + \int_{\partial\Omega}(n_x w_1-n_y w_0)z$.
+The remaining rows are the classical Green formulas. All signs are checked by
+\code{tests/unit/test\_differential\_forms.py::test\_integration\_by\_parts\_identity} (random
+smooth fields, all 8 cases with $k<n$), together with $\dd^2=0$ (symbolic and on discrete
+functions) and $\cod^2=0$.
+
+\subsection{The Hodge Laplacian of the proxies}
+
+Because the proxy maps are constant isometries on a flat domain, $\Delta_H$ acts on every proxy
+as minus the componentwise Laplacian:
+\[
+\begin{array}{lll}
+k=0: & \cod\dd u = -\div\grad u = -\Delta u & (\text{curl-div: } -\curltwo\skewgrad u = -\Delta u),\\[2pt]
+\text{2D grad-curl } k=1: & \dd\cod u+\cod\dd u = -\grad\div u + \operatorname{rot}\curltwo u = -\Delta u,\\[2pt]
+\text{3D } k=1: & -\grad\div u + \curl\curl u = -\Delta u,\\[2pt]
+\text{3D } k=2: & \curl\curl u - \grad\div u = -\Delta u,\\[2pt]
+k=n: & \dd\cod u = -\div\grad u \ \ (\text{2D grad-curl: } -\curltwo\skewgrad u) = -\Delta u,
+\end{array}
+\]
+with $\operatorname{rot}c = (\partial_y c,-\partial_x c)$. This is verified for all 12 cases by
+\code{test\_hodge\_laplacian\_is\_minus\_vector\_laplacian} and is how
+\code{hodge\_laplacian\_expr} turns an exact solution into a source.
+
+\subsection{Discrete spaces}
+
+For the \code{Q} family (tensor-product $Q_r^-$ spaces on quadrilaterals and extruded hexahedra,
+order $r$) the discrete complex used by \code{differential\_forms.form\_space} is
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}lllll@{}}
+\toprule
+& $V^0$ & $V^1$ & $V^2$ & $V^3$\\
+\midrule
+1D & CG$_r$ & DG$_{r-1}$ & & \\
+2D grad-curl & CG$_r$ & RTCE$_r$ & DG$_{r-1}$ & \\
+2D curl-div & CG$_r$ & RTCF$_r$ & DG$_{r-1}$ & \\
+3D & CG$_r$ & NCE$_r$ & NCF$_r$ & DG$_{r-1}$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Each is a subcomplex ($\dd V^k\subset V^{k+1}$). 3D Q-family meshes are extruded, because NCE/NCF
+are only available on extruded hexahedra. RTCE/RTCF/NCE/NCF have no dual basis, so data are put
+into them by $L^2$ projection (\code{harmonic\_forms.interpolate\_or\_project}), and inhomogeneous
+essential data go through Firedrake's projection fallback in \code{DirichletBC}.
+
+%=================================================================================================
+\section{Boundary conditions}\label{sec:bc}
+%=================================================================================================
+
+\subsection{Faces}
+
+Every bounded direction contributes two logical faces; periodic directions contribute none:
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+direction & low side & high side\\
+\midrule
+$x$ & \code{left} & \code{right}\\
+$y$ & \code{bottom} & \code{top}\\
+$z$ & \code{back} & \code{front}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+In 3D the logical \code{bottom}/\code{top} are the $y$ faces; the $z$ faces are \code{back}/\code{front}
+even though on extruded meshes Firedrake calls them \code{"bottom"}/\code{"top"} (measures
+\code{ds\_b}/\code{ds\_t}). Firedrake subdomain ids are numbered consecutively $1,2,\dots$ over the
+bounded directions (low side first) for intervals, rectangles, \code{PeriodicRectangleMesh} and the
+base of extruded meshes; non-extruded 3D meshes (\code{BoxMesh}, \code{PeriodicBoxMesh}) keep the
+fixed ids 1--6. \code{boundary\_conditions.verify\_boundary\_registry} checks this geometrically.
+
+\subsection{Essential and natural conditions}
+
+Each face carries one type. With $\tr$ the tangential trace and $\tr\hodge$ the trace of the Hodge
+dual (``normal'' trace),
+\begin{itemize}
+\item \textbf{essential} ($\Gamma_e$): $\tr u = \tr g_u$ and $\tr\sigma=\tr g_\sigma$, imposed strongly by
+  \code{DirichletBC} on the natural trace of each space (value for CG, tangential trace for
+  $H(\mathrm{curl})$, normal trace for $H(\mathrm{div})$, nothing for DG);
+\item \textbf{natural} ($\Gamma_n$): $\tr\hodge u=\tr\hodge g_u$ and $\tr\hodge\dd u = \tr\hodge g_{\dd u}$,
+  imposed weakly by the boundary functionals of \eqref{eq:mixed}.
+\end{itemize}
+The data are passed as \emph{full fields} ($g_u$, $g_\sigma=\cod g_u$, $g_{\dd u}=\dd g_u$, by default
+from the exact solution); the traces and pairings are applied by the code. Their meaning per case:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}lll@{}}
+\toprule
+case & essential & natural\\
+\midrule
+$k=0$ & $u=g$ (Dirichlet) & $\nabla u\cdot n = g$ (Neumann)\\
+$k=n$, $\sigma\in H(\mathrm{div})$ or CG (1D) & $\sigma\cdot n=g$ (flux) & $u=g$ (weak Dirichlet)\\
+$k=n=2$, grad-curl ($\sigma\in H(\mathrm{curl})$) & $n\times\sigma=g$ & $u=g$ (weak)\\
+2D grad-curl $k=1$ ($u\in H(\mathrm{curl})$) & $n\times u$, $\sigma=-\div u$ & $u\cdot n$, $\curltwo u$\\
+2D curl-div $k=1$ ($u\in H(\mathrm{div})$) & $u\cdot n$, $\sigma=-\curltwo u$ & $n\times u$, $\div u$\\
+3D $k=1$ ($u\in H(\mathrm{curl})$) & $n\times u$, $\sigma=-\div u$ & $u\cdot n$, $n\times\curl u$\\
+3D $k=2$ ($u\in H(\mathrm{div})$) & $u\cdot n$, $n\times\sigma$ ($\sigma=\curl u$) & $n\times u$, $\div u$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%=================================================================================================
+\section{Harmonic forms}\label{sec:harmonic}
+%=================================================================================================
+
+\subsection{Definition and the K\"unneth rule}
+
+$\Hspace^k = \{h\in\Lambda^k: \dd h=0,\ \cod h=0,\ \tr h=0 \text{ on }\Gamma_e,\ \tr\hodge h=0\text{ on }\Gamma_n\}$.
+For a constant form $\dd x^I$ on a face normal to $x_i$,
+\[
+  \tr\,\dd x^I = 0 \iff i\in I, \qquad \tr\hodge\dd x^I = 0 \iff i\notin I .
+\]
+Let $P$ be the periodic directions, $E$ the bounded directions with both faces essential and $N$
+those with both faces natural. Then (K\"unneth):
+\begin{itemize}
+\item if some bounded direction has different types on its two faces, $\Hspace^k=\{0\}$;
+\item otherwise $\Hspace^k=\operatorname{span}\{\dd x^I: E\subseteq I\subseteq E\cup P,\ |I|=k\}$,
+  of dimension $\binom{|P|}{k-|E|}$.
+\end{itemize}
+Examples: $k=0$ all-natural gives the constants; $k=n$ all-essential gives the volume form; fully
+periodic gives all $\binom{n}{k}$ constant forms; a periodic-$x$ cylinder with natural $y$ faces has
+$\Hspace^1=\operatorname{span}\{\dd x\}$, with essential $y$ faces $\Hspace^1=\operatorname{span}\{\dd y\}$.
+This is \code{harmonic\_forms.harmonic\_index\_sets}. Constant forms lie in every discrete space
+and are discretely harmonic: $\dd h=0$ and $\ip{h}{\dd\tau}=0$ for all $\tau\in V^{k-1}$ with the
+essential conditions (checked by \code{test\_harmonic\_basis\_is\_discretely\_harmonic}).
+
+\subsection{Proxies of constant forms}\label{sec:constant}
+
+\code{constant\_form\_values(I, k, n, complex)}, with $I$ in increasing order:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}ll@{}}
+\toprule
+case & proxy of $\dd x^I$\\
+\midrule
+$k=0$ & $1$\\
+$k=n$ & $1$, except 2D curl-div: $\dd x\wedge\dd y\mapsto -1$\\
+$H(\mathrm{curl})$ 1-forms (2D grad-curl, 3D) & $\dd x_i\mapsto e_i$\\
+2D curl-div 1-forms & $\dd x\mapsto(0,1)$, $\dd y\mapsto(-1,0)$\\
+3D 2-forms & $\dd y\wedge\dd z\mapsto e_x$, $\dd x\wedge\dd z\mapsto -e_y$, $\dd x\wedge\dd y\mapsto e_z$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The 3D entry $\dd x\wedge\dd z\mapsto -e_y$ is the increasing-order statement of
+$\dd z\wedge\dd x\mapsto e_y$. All values are pinned by
+$\dd(x_{i_1}\,\dd x^{I\setminus\{i_1\}}) = \dd x^I$ evaluated with the operators of
+Table~\ref{tab:operators} (\code{test\_constant\_form\_proxy\_matches\_d\_of\_coordinates}); e.g.\
+$\curl(0,0,x)=(0,-1,0)$ and, in curl-div, $\div(x\,(-1,0))=-1$.
+
+\subsection{Orthonormal basis}
+
+\code{orthonormalize\_harmonic\_basis} puts each constant proxy into $V^k$ (interpolation, or $L^2$
+projection with LU, which is exact since $V^k$ contains constants) and applies modified
+Gram--Schmidt twice in the $L^2$ inner product. All later formulas use this $L^2$-orthonormal basis
+$\{h_i\}_{i=1}^m$.
+
+\subsection{Compatibility of exact data}
+
+\begin{proposition}
+Let $u$ be smooth, $\sigma=\cod u$, $f=\Delta_H u$, and take exact boundary data. Then the solution
+of \eqref{eq:mixed} has $p=0$ (up to discretization of the data).
+\end{proposition}
+\begin{proof}[Sketch]
+Let $h\in\Hspace^k$, so $\dd h=0$ and $\cod h=0$. For the exact fields, \eqref{eq:ibp} applied to
+$\ip{\dd\sigma}{h}$ and to $\ip{\dd u}{\dd h}=0$ gives
+$\ip{f}{h}=\ip{\dd\sigma+\cod\dd u}{h}=\int_{\partial\Omega}B_{k-1}(\sigma,h)-\int_{\partial\Omega}B_k(h,\dd u)$.
+Testing the second row of \eqref{eq:mixed} with $v=h$ and using
+$\ip{\dd\sigma_h}{h}=\int_{\partial\Omega}B_{k-1}(\sigma_h,h)$ gives
+\[
+  \ip{p}{h} = \int_{\partial\Omega} B_{k-1}(\sigma-\sigma_h,h) - \int_{\Gamma_e}B_k(h,\dd u)
+            + \int_{\Gamma_n}B_k(h,g_{\dd u}-\dd u) .
+\]
+On $\Gamma_e$, $\tr\sigma_h=\tr g_\sigma=\tr\sigma$ and $\tr h=0$, so both $\Gamma_e$ terms vanish; on
+$\Gamma_n$, $\tr\hodge h=0$ kills $B_{k-1}(\sigma-\sigma_h,h)$ and $g_{\dd u}=\dd u$ kills the last term.
+\end{proof}
+Hence manufactured problems only need $u\perp\Hspace^k$ (zero mean of every proxy component) for
+$u_h$ to approximate $u$ directly; \code{SineProblem} uses full-period factors
+$\sin(2\pi m_i s_i+\phi)$ in normalized coordinates $s_i\in[0,1]$, which are periodic and
+zero-mean in every direction. Errors are always measured against $u-P_{\Hspace}u$.
+\code{IncompatibleSourceProblem} adds $\sum_I a_I\,\dd x^I$ (harmonic $I$ only) to $f$, so that
+$p=\sum_I a_I\,\dd x^I$.
+
+%=================================================================================================
+\section{Enforcing the harmonic constraint}\label{sec:constraint}
+%=================================================================================================
+
+\subsection{\code{lagrange}}
+
+$p=\sum_i p_i h_i$ with one \emph{scalar} $\R$-space block per $h_i$ (Firedrake supports neither
+arguments on vector-valued $\R$ spaces nor monolithic matrices with $\R$ blocks). The coupling is
+\[
+  \sum_i \bigl[p_i\,\ip{h_i}{v} + q_i\,\ip{u}{h_i}\bigr]
+\]
+(\code{harmonic\_constraint\_form}). The bordered system is solved matrix-free with
+right-preconditioned GMRES, preconditioned by the assembled
+\[
+  a_P = a_0 + \varepsilon\ip{u}{v} + \sum_i p_i q_i ,
+\]
+where $a_0$ is \eqref{eq:mixed} without the coupling and $\varepsilon=$
+\code{lagrange\_regularization} (default 1): an additive fieldsplit with \code{AssembledPC} + LU
+on the non-$\R$ blocks and the identity on the $\R$ blocks. On non-harmonic modes the preconditioned
+operator has eigenvalues $\lambda/(\lambda+\varepsilon)$ ($\lambda$ the Hodge Laplacian
+eigenvalues), and the $m$ harmonic directions coupled to $p$ add $2m$ eigenvalues
+$\pm(\varepsilon|\Omega|)^{-1/2}$, so few iterations are needed; $\varepsilon$ should be small
+compared to $\pi^2/L^2$.
+
+\subsection{\code{nullspace}}
+
+Drop $p$ and the last row. The operator is singular with kernel
+$\{(\sigma,u)=(0,h):h\in\Hspace^k\}$: indeed $\ip{h}{\dd\tau}=0$ and $\dd h=0$. Since the operator is
+symmetric (Section~\ref{sec:weak}), the kernel is also the cokernel. The solve proceeds as follows
+(\code{EllipticProblem.\_solve\_nullspace}):
+\begin{enumerate}
+\item \textbf{Lift} the essential data explicitly: $w=w_g+w_0$, where $w_g$ carries the
+  \code{DirichletBC} values, and assemble $b=L-a(w_g,\cdot)$, zeroed on the constrained dofs.
+\item \textbf{Project} $b$ orthogonal to the harmonic forms: $b\leftarrow b-\sum_i b(h_i)\,Mh_i$ on
+  the $u$ block, with $M$ the $V^k$ mass matrix and $Mh_i$ zeroed on the constrained rows. Since
+  $\ip{h_i}{h_j}=\delta_{ij}$ this gives $b(h_i)=0$, and $p_i=b(h_i)$ are the reported coefficients
+  (\code{project\_rhs\_orthogonal\_to\_harmonic}).
+\item \textbf{Solve} for $w_0$ with homogeneous BCs and the nullspace attached
+  (\code{VectorSpaceBasis}, $\ell^2$-orthonormalized as PETSc requires), with right-preconditioned
+  GMRES preconditioned by the LU of the regularized, non-singular $a+\varepsilon\ip{u}{v}$, or with
+  MINRES and the Riesz-map preconditioner $\ip{\sigma}{\tau}+\ip{\dd\sigma}{\dd\tau}+\ip{u}{v}+\ip{\dd u}{\dd v}$.
+\item \textbf{Remove} the harmonic part: $u\leftarrow u-\sum_i\ip{u}{h_i}h_i$.
+\end{enumerate}
+The lifting must come \emph{before} the projection. Firedrake's own lifting would run after it and,
+with nonzero $g_\sigma$, reintroduce a harmonic component, since $\ip{h}{\dd\tau_j}\neq0$ for basis
+functions $\tau_j$ with nonzero trace on $\Gamma_e$.
+
+\subsection{Consistency of the two approaches}
+
+Both give the same $(\sigma_h,u_h,p_h)$. Testing the \code{lagrange} system with $(0,h_j,0)$ gives
+$p_j = b_u(h_j)-\ip{\dd\sigma_h}{h_j}$, and $\ip{\dd(\sigma_h-\sigma_g)}{h_j}=0$ because
+$\sigma_h-\sigma_g$ satisfies the homogeneous essential conditions, so $p_j$ equals the coefficient of
+the lifted rhs. In practice this requires \emph{the same quadrature in both paths}: the code always uses
+an explicit degree (\code{elliptic.quadrature\_degree}, default $2r+2$). With UFL's per-form estimate,
+the combined mixed residual of \code{lagrange} and the separately assembled rhs of \code{nullspace}
+integrate the source with different rules, and the solutions differ at the quadrature-error level
+(observed in 1D, $\sim10^{-5}$). In both approaches $p$ is reported as a Function in $V^k$.
+
+%=================================================================================================
+\section{Map from formulas to code}\label{sec:code}
+%=================================================================================================
+
+\begin{center}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}>{\raggedright}p{0.42\textwidth}>{\raggedright\arraybackslash}p{0.52\textwidth}@{}}
+\toprule
+item & implementation\\
+\midrule
+spaces $V^k$ & \code{differential\_forms.form\_space} (wraps \code{variables.get\_diff\_form\_space})\\
+$\dd$, $\cod$, $B_k$ (Table~\ref{tab:operators}) & \code{exterior\_derivative}, \code{codifferential}, \code{boundary\_pairing}\\
+$\Delta_H$ & \code{hodge\_laplacian\_expr}\\
+constant-form proxies & \code{constant\_form\_values}, \code{constant\_form\_proxy}, \code{normalize\_index\_set}\\
+faces, ids, measures & \code{boundary\_conditions.build\_face\_registry}, \code{measure\_for}\\
+essential / natural BCs & \code{build\_essential\_bcs}, \code{build\_natural\_terms}\\
+harmonic rule and basis & \code{harmonic\_forms.harmonic\_index\_sets}, \code{harmonic\_basis}, \code{orthonormalize\_harmonic\_basis}\\
+\code{lagrange} pieces & \code{harmonic\_multiplier\_space}, \code{harmonic\_constraint\_form}, \code{lagrange\_preconditioner\_form}, \code{lagrange\_solver\_parameters}\\
+\code{nullspace} pieces & \code{project\_rhs\_orthogonal\_to\_harmonic}, \code{build\_harmonic\_nullspace}, \code{remove\_harmonic\_component}\\
+problem data, MMS & \code{elliptic\_problems} (\code{SineProblem}, \code{PolynomialProblem}, \dots, \code{collect\_boundary\_data})\\
+mixed system \eqref{eq:mixed}, solve, errors & \code{elliptic.EllipticProblem}, \code{EllipticConfig}, \code{elliptic\_solver\_parameters}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section*{References}
+\begin{itemize}
+\item D.~N.~Arnold, R.~S.~Falk, R.~Winther, \emph{Finite element exterior calculus, homological
+  techniques, and applications}, Acta Numerica 15 (2006) 1--155.
+\item D.~N.~Arnold, R.~S.~Falk, R.~Winther, \emph{Finite element exterior calculus: from Hodge theory
+  to numerical stability}, Bull.\ AMS 47 (2010) 281--354.
+\item D.~N.~Arnold, \emph{Finite Element Exterior Calculus}, CBMS-NSF Regional Conference Series in
+  Applied Mathematics 93, SIAM (2018).
+\end{itemize}
+
+\end{document}

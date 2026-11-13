@@ -21,6 +21,7 @@ def test_valid_config(elliptic_parameters):
     assert (config.dim, config.k, config.complex) == (2, 1, 'curl-div')
     assert config.harmonic_constraint == 'lagrange' and config.solver == 'elliptic-direct'
     assert config.error_quadrature_degree == 2 * 1 + 4
+    assert config.quadrature_degree == 2 * 1 + 2  # always explicit (lagrange/nullspace consistency)
     assert config.registry is None and config.face_bcs is None
     # 1D/3D ignore the complex.
     config3 = EllipticConfig.from_parameters(elliptic_parameters(3, 'whatever', 2, 'natural', n=2, order=1))

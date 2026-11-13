@@ -56,6 +56,11 @@ SUPPORTED_FAMILIES = ('Q',)
 # Configuration
 # ---------------------------------------------------------------------------------------------
 
+def _default_if_none(value, default):
+    """value, or default when value is None (unlike `value or default`, keeps 0 for validation)."""
+    return default if value is None else value
+
+
 @dataclass
 class EllipticConfig:
     """Validated 'elliptic' cfg section (TODO-elliptic §3).
@@ -70,7 +75,10 @@ class EllipticConfig:
         harmonic_constraint: 'lagrange' | 'nullspace'.
         solver: 'elliptic-direct' | 'elliptic-direct-singular' | 'elliptic-minres'.
         solver_options: extra PETSc options merged on top of the selected solver.
-        quadrature_degree: optional quadrature degree for the forms (None: UFL estimate).
+        quadrature_degree: quadrature degree for all forms (default 2 * order + 2). Always explicit:
+            with UFL's per-form estimate, the lagrange and nullspace paths (which split and assemble
+            the forms differently) integrate the source with different rules and disagree at the
+            quadrature-error level (seen in 1D, ~1e-5).
         error_quadrature_degree: quadrature degree for error norms (default 2 * order + 4).
         lagrange_regularization: epsilon of the regularized preconditioners a + eps (u, v) used
             by 'lagrange' and by 'nullspace' with a direct solver (see
@@ -133,7 +141,7 @@ class EllipticConfig:
                      harmonic_constraint=cfg.get('harmonic_constraint', 'lagrange'),
                      solver=cfg.get('solver', 'elliptic-direct'),
                      solver_options=dict(cfg.get('solver_options', None) or {}),
-                     quadrature_degree=cfg.get('quadrature_degree', None),
+                     quadrature_degree=_default_if_none(cfg.get('quadrature_degree', None), 2 * order + 2),
                      error_quadrature_degree=cfg.get('error_quadrature_degree', 2 * order + 4),
                      lagrange_regularization=float(cfg.get('lagrange_regularization', 1.0)))
         config.validate_options()
@@ -235,7 +243,7 @@ class EllipticProblem():
         self.mesh, self.spaces = get_mesh_and_spaces(parameters, self.problem, mesh=mesh)
         self.config = EllipticConfig.from_parameters(parameters, self.spaces)
         self.dim, self.k, self.complex = self.config.dim, self.config.k, self.config.complex
-        self.dx = dx if self.config.quadrature_degree is None else dx(degree=self.config.quadrature_degree)
+        self.dx = dx(degree=self.config.quadrature_degree)
         self.error_dx = dx(degree=self.config.error_quadrature_degree)
 
         self._build_harmonic_forms()
@@ -266,7 +274,7 @@ class EllipticProblem():
                                                            self.mesh.periodic_directions, by_direction,
                                                            self.parameters['mesh']['type'])
         self.harmonic = orthonormalize_harmonic_basis(
-            harmonic_basis(self.k, self.dim, self.complex, self.harmonic_index_sets), self.Vk)
+            harmonic_basis(self.k, self.dim, self.complex, self.harmonic_index_sets), self.Vk, measure=self.dx)
         self.num_harmonic = len(self.harmonic)
         self.logger.output('elliptic: ' + str(self.num_harmonic) + ' harmonic ' + str(self.k) + '-forms '
                            + str(self.harmonic_index_sets), 0)
@@ -454,6 +462,7 @@ class EllipticProblem():
                 self._block(rhs, index).dat.data[bc.nodes] = 0.0
         u_rhs_index = None if self.num_blocks == 1 else self.u_index
         _, self.p_coefficients = project_rhs_orthogonal_to_harmonic(rhs, self.harmonic, u_index=u_rhs_index,
+                                                                     measure=self.dx,
                                                                      bcs=hom_u, logger=self.logger)
         bcs0 = hom_sigma + hom_u
         A = assemble(self.a, bcs=bcs0)
@@ -465,7 +474,8 @@ class EllipticProblem():
         solver.solve(correction, rhs)
         self.ksp_iterations = solver.ksp.getIterationNumber()
         self.solution.assign(lift + correction)
-        removed = remove_harmonic_component(self._block(self.solution, self.u_index), self.harmonic)
+        removed = remove_harmonic_component(self._block(self.solution, self.u_index), self.harmonic,
+                                            measure=self.dx)
         self.logger.output('elliptic: removed harmonic part of u with coefficients ' + str(removed), 1)
 
     # --- Model interface ----------------------------------------------------------------------
