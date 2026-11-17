@@ -1,0 +1,13 @@
+# Python bytecode caches
+__pycache__/
+*.py[cod]
+
+# Simulation output (not part of the repository, see AGENTS.md)
+runs/
+
+# LaTeX build artifacts (sources in docs/*.tex)
+*.aux
+*.log
+*.out
+*.toc
+docs/*.pdf

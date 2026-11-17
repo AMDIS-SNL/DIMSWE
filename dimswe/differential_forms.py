@@ -26,7 +26,7 @@ The functions here work on any UFL expressions of the right shape: discrete Func
 trial functions, and closed-form expressions of SpatialCoordinate (used to build manufactured
 solutions).
 """
-from firedrake import as_vector, cross, curl, div, dot, grad
+from firedrake import as_vector, cross, curl, div, dot, grad, inv
 from ufl import as_ufl
 
 from .meshes import DIRECTIONS
@@ -228,3 +228,58 @@ def constant_form_proxy(I, k, dim, complex):
     if isinstance(values, tuple):
         return as_vector(values)
     return as_ufl(values)
+
+
+# ---------------------------------------------------------------------------------------------
+# Weighted operators (TODO-elliptic §4.10)
+# ---------------------------------------------------------------------------------------------
+
+def apply_weight(weight, z):
+    """weight * z for a scalar weight, weight . z for a tensor weight; z itself for None."""
+    if weight is None:
+        return z
+    if len(weight.ufl_shape) == 0:
+        return weight * z
+    return dot(weight, z)
+
+
+def apply_inverse_weight(weight, z):
+    """weight^{-1} z (scalar division or tensor inverse); z itself for None."""
+    if weight is None:
+        return z
+    if len(weight.ufl_shape) == 0:
+        return z / weight
+    return dot(inv(weight), z)
+
+
+def weighted_hodge_fields(u, k, dim, complex, mu=None, kappa=None, c=None):
+    """Exact fields of the weighted Hodge Laplacian L u = d(mu^{-1} delta u) + delta(kappa d u) + c u.
+
+    Returns {'sigma': mu^{-1} delta u, 'dsigma': d sigma, 'du': d u, 'flux': kappa d u, 'f': L u},
+    with None for absent fields (sigma, dsigma for k = 0; du, flux for k = dim). The flux is the
+    natural boundary datum of the weighted problem: (delta(kappa du), v) = (kappa du, dv) -
+    int B_k(v, kappa du). With mu = kappa = None and c = None this is the unweighted problem
+    (f = hodge_laplacian_expr(u)).
+    """
+    sigma = codifferential(u, k, dim, complex)
+    if sigma is not None:
+        sigma = apply_inverse_weight(mu, sigma)
+    dsigma = None if sigma is None else exterior_derivative(sigma, k - 1, dim, complex)
+    du = exterior_derivative(u, k, dim, complex)
+    flux = None if du is None else apply_weight(kappa, du)
+    terms = []
+    if dsigma is not None:
+        terms.append(dsigma)
+    if flux is not None:
+        terms.append(codifferential(flux, k + 1, dim, complex))
+    if c is not None:
+        terms.append(apply_weight(c, u))
+    f = terms[0]
+    for term in terms[1:]:
+        f = f + term
+    return {'sigma': sigma, 'dsigma': dsigma, 'du': du, 'flux': flux, 'f': f}
+
+
+def weighted_hodge_laplacian_expr(u, k, dim, complex, mu=None, kappa=None, c=None):
+    """Source f = d(mu^{-1} delta u) + delta(kappa d u) + c u of the weighted problem (for MMS)."""
+    return weighted_hodge_fields(u, k, dim, complex, mu, kappa, c)['f']

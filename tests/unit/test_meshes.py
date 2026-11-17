@@ -6,6 +6,7 @@ from firedrake import Constant, assemble, ds, ds_v, ds_t, ds_b, dx
 
 from dimswe.meshes import (annotate_mesh, build_mesh, get_mesh_and_spaces, get_periodic_directions,
                            get_domain_bounds, mesh_size, set_dimension)
+from dimswe.ufl_helpers import ufl_attribute
 from dimswe.variables import get_diff_form_space
 
 
@@ -111,7 +112,7 @@ def test_hex_box_is_extruded_for_all_periodicities(periodic):
     parameters = make_parameters('box', periodic)
     mesh, spaces = get_mesh_and_spaces(parameters, domain)
     assert parameters['mesh']['dim'] == 3
-    assert mesh.cell_dimension() == (2, 1)
+    assert ufl_attribute(mesh, 'cell_dimension') == (2, 1)
     assert spaces.Hcurl is not None and spaces.Hdiv is not None
     assert spaces.periodic_directions == tuple(periodic)
     assert spaces.domain_bounds == ((0.0, domain.Lx), (0.0, domain.Ly), (0.0, domain.Lz))
@@ -165,7 +166,7 @@ def test_nonextruded_box_partial_periodicity(periodic, simplicial, family):
     parameters['spatial-discretization']['family'] = family
     mesh = build_mesh(parameters, domain)
     annotate_mesh(mesh, parameters, domain)
-    assert not isinstance(mesh.cell_dimension(), tuple)  # not extruded
+    assert not isinstance(ufl_attribute(mesh, 'cell_dimension'), tuple)  # not extruded
     assert mesh.periodic_directions == tuple(periodic)
     assert mesh.domain_bounds == ((0.0, domain.Lx), (0.0, domain.Ly), (0.0, domain.Lz))
     assert abs(assemble(Constant(1.0) * dx(domain=mesh)) - domain.Lx * domain.Ly * domain.Lz) < 1e-12

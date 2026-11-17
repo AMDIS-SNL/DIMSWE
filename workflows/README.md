@@ -11,8 +11,9 @@ This directory contains helper scripts for generating simulation cfg files, runn
 - `validate.py`: rerun the model with optimized parameters and compute L2/Linf errors against the truth.
 - `plot_validation.py`: plot truth vs optimized runs, error histories, optimizer histories and parameter recovery.
 - `run_pipeline.sh`: chain truth generation, optimization, validation and plotting.
+- `elliptic_convergence.py`: run an `nx` refinement sweep of an elliptic cfg (`model.type: elliptic`) and summarize the observed convergence rates (see [Elliptic convergence sweeps](#elliptic-convergence-sweeps)).
 - `common.py`, `opt_helpers.py`, `losses.py`: shared helpers (pure-Python, Firedrake-side, and loss construction).
-- `generate_cfgs.sh`, `run_batch.sh`, `compare_runs.sh`, `optimize_params.sh`, `validate.sh`, `plot_validation.sh`: thin Firedrake-environment wrappers for the Python scripts.
+- `generate_cfgs.sh`, `run_batch.sh`, `compare_runs.sh`, `optimize_params.sh`, `validate.sh`, `plot_validation.sh`, `elliptic_convergence.sh`: thin Firedrake-environment wrappers for the Python scripts.
 
 The Python entrypoints can also be called directly as scripts from the repository root, for example `python -I workflows/generate_cfgs.py ...`, which keeps imports isolated while still allowing the scripts to add the project root to `sys.path` explicitly.
 
@@ -404,3 +405,35 @@ Run `plot_validation.sh` on one process; it reads whole checkpoints.
 - These scripts assume the Firedrake environment is activated through the provided shell wrappers.
 - The repository guidance says `runs/` holds generated data and should not be committed.
 - The comparison workflow (`compare_runs.py`) is designed around comparing one quantity across multiple runs side-by-side; for truth-vs-optimized comparisons use `plot_validation.py`, which shares colour scales across panels.
+
+## Elliptic convergence sweeps
+
+Elliptic Hodge Laplacian problems (`model.type: elliptic`, see `elliptic.cfg` and
+`docs/hodge_laplacian.tex`) are solved once by `run_model.py` and written as a single output step
+(`t = 0`) with the usual layout (`sim.h5`, `sim.pvd`), so `run_batch.py` and `generate_cfgs.py`
+sweeps work unchanged. The statistics datasets in `sim.h5` include `u_error`, `sigma_error`,
+`du_error`, `dsigma_error` and `p_error` when the problem has an exact solution.
+
+`elliptic_convergence.py` runs a refinement sweep of one case and computes observed rates
+`log(e_coarse / e_fine) / log(nx_fine / nx_coarse)` between consecutive resolutions:
+
+```bash
+bash workflows/elliptic_convergence.sh 1 elliptic.cfg --nx 8 16 32 \
+    --set elliptic.form_degree=2 --set elliptic.complex=grad-curl
+```
+
+- `--nx` sets `mesh.nx`, `mesh.ny` and `mesh.nz` for each run.
+- `--set PATH=VALUE` applies a dotted-path override to every run (the value is parsed as YAML,
+  e.g. `--set "elliptic.boundary_conditions={left: essential, right: natural}"`).
+- `--name` (default: cfg stem), `--runs-root` (default: `runs/`) and `--skip-existing` (reuse runs
+  whose `sim.h5` exists) control where runs go.
+
+Outputs: `runs/<name>/nx<nx>/sim.h5` and `run.cfg` per resolution, plus `runs/<name>/summary.yaml`
+(effective `elliptic` / `spatial-discretization` sections, overrides, and one row per resolution
+with every `*_error` and its `rate_*`), `runs/<name>/summary.csv` with the same rows, and
+`runs/<name>/convergence.png` (log-log error vs `h = 1/nx` with dashed `O(h^p)` reference slopes for
+the expected rates; skip with `--no-plot`, or redraw later with `python plot_model.py runs/<name>/summary.yaml`).
+
+Static field plots of one elliptic run (`python plot_model.py <run cfg>`): 1D line plots (`u_h` over
+`u_exact`), 2D scalar plots for scalar proxies and quiver + magnitude plots for 1-forms; 3D runs are
+VTK-only.

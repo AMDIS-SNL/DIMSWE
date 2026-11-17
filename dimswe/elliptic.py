@@ -27,13 +27,15 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import numpy
+from firedrake import derivative as fd_derivative, replace as fd_replace
 from firedrake import (DirichletBC, Function, LinearSolver, LinearVariationalProblem,
                        LinearVariationalSolver, MixedFunctionSpace, TestFunction, TestFunctions,
                        TrialFunction, TrialFunctions, action, assemble, dx, inner)
 
 from .boundary_conditions import (build_essential_bcs, build_natural_terms, face_bcs_by_direction,
                                   faces_of_type, get_boundary_registry, parse_boundary_conditions)
-from .differential_forms import exterior_derivative, form_space, normalize_complex
+from .differential_forms import apply_weight, exterior_derivative, form_space, normalize_complex
+from .elliptic_coefficients import EllipticCoefficients, parse_coefficients
 from .elliptic_problems import BOUNDARY_DATA_MODES, collect_boundary_data, get_elliptic_problem
 from .harmonic_forms import (HARMONIC_FORM_MODES, build_harmonic_nullspace, combine_harmonic_forms,
                              get_harmonic_index_sets, harmonic_basis, harmonic_constraint_form,
@@ -42,14 +44,15 @@ from .harmonic_forms import (HARMONIC_FORM_MODES, build_harmonic_nullspace, comb
                              multiplier_coefficients, orthonormalize_harmonic_basis,
                              project_rhs_orthogonal_to_harmonic, remove_harmonic_component)
 from .logger import EmptyLogger
-from .meshes import get_mesh_and_spaces, get_mesh_type_dimension
+from .meshes import FEEC_FAMILIES, family_elements, get_mesh_and_spaces, get_mesh_type_dimension
 from .parameters import elliptic_solver_parameters as ELLIPTIC_SOLVERS
 
 # Allowed values of elliptic.harmonic_constraint and elliptic.solver.
 HARMONIC_CONSTRAINTS = ('lagrange', 'nullspace')
 SOLVERS = tuple(ELLIPTIC_SOLVERS)
-# FEEC families currently available in DeRhamComplex (others: TODO-elliptic §4.9).
-SUPPORTED_FAMILIES = ('Q',)
+# FEEC families available in DeRhamComplex (TODO-elliptic §4.9); P-/P+ need simplicial cells.
+SUPPORTED_FAMILIES = FEEC_FAMILIES
+SIMPLICIAL_FAMILIES = ('P-', 'P+')
 
 
 # ---------------------------------------------------------------------------------------------
@@ -83,6 +86,8 @@ class EllipticConfig:
         lagrange_regularization: epsilon of the regularized preconditioners a + eps (u, v) used
             by 'lagrange' and by 'nullspace' with a direct solver (see
             harmonic_forms.lagrange_preconditioner_form).
+        coefficients: parsed elliptic.coefficients ({name: EllipticCoefficient}, see
+            dimswe.elliptic_coefficients); defaults mu = kappa = 1, c = 0.
         registry, face_bcs: face registry and parsed per-face BC types (set when a mesh is given).
     """
     dim: int
@@ -97,6 +102,7 @@ class EllipticConfig:
     quadrature_degree: Optional[int] = None
     error_quadrature_degree: Optional[int] = None
     lagrange_regularization: float = 1.0
+    coefficients: dict = field(default_factory=dict)
     registry: Optional[dict] = None
     face_bcs: Optional[dict] = None
 
@@ -104,9 +110,10 @@ class EllipticConfig:
     def from_parameters(cls, parameters, spaces=None):
         """Build and validate the config; with spaces (a DeRhamComplex) the BCs are parsed too.
 
-        Raises ValueError for: k out of range, invalid 2D complex, lump_mass: true, unsupported
-        family or cell type, invalid option values, and (with spaces) BCs on periodic faces or
-        missing BCs on bounded faces.
+        Raises ValueError for: k out of range, invalid 2D complex, lump_mass: true, unknown family,
+        family/cell mismatch (P-/P+ need simplicial_cells: true, Q/S-/S false), order below the
+        family minimum, invalid option values, and (with spaces) BCs on periodic faces or missing
+        BCs on bounded faces; NotImplementedError for 3D full serendipity (family S).
         """
         if 'elliptic' not in parameters:
             raise ValueError("elliptic problems need an 'elliptic' cfg section")
@@ -119,13 +126,18 @@ class EllipticConfig:
         disc = parameters['spatial-discretization']
         if disc.get('lump_mass', False):
             raise ValueError("lump_mass: true is not supported for elliptic problems")
-        if disc['family'] not in SUPPORTED_FAMILIES:
-            raise ValueError("FEEC family " + str(disc['family']) + " is not available for elliptic problems yet (TODO-elliptic §4.9)")
-        if disc['family'] == 'Q' and mesh_cfg.get('simplicial_cells', False):
-            raise ValueError("family Q needs quadrilateral/hexahedral cells (simplicial_cells: false)")
+        family = disc['family']
+        if family not in SUPPORTED_FAMILIES:
+            raise ValueError("FEEC family " + str(family) + " is unknown (known: " + str(list(SUPPORTED_FAMILIES)) + ")")
+        simplicial = bool(mesh_cfg.get('simplicial_cells', False))
+        if dim > 1 and simplicial != (family in SIMPLICIAL_FAMILIES):
+            raise ValueError("family " + family + " needs simplicial_cells: " + str(family in SIMPLICIAL_FAMILIES).lower()
+                             + " (P-/P+ are simplicial, Q/S-/S use quadrilaterals/hexahedra)")
         order = int(disc['order'])
         if order < 1:
             raise ValueError("spatial-discretization.order must be >= 1")
+        # Minimum orders (P+: r >= n, S: r >= 2) and 3D full serendipity (NotImplementedError).
+        family_elements(family, dim, order)
 
         if 'form_degree' not in cfg:
             raise ValueError("elliptic.form_degree (k) is required")
@@ -143,7 +155,8 @@ class EllipticConfig:
                      solver_options=dict(cfg.get('solver_options', None) or {}),
                      quadrature_degree=_default_if_none(cfg.get('quadrature_degree', None), 2 * order + 2),
                      error_quadrature_degree=cfg.get('error_quadrature_degree', 2 * order + 4),
-                     lagrange_regularization=float(cfg.get('lagrange_regularization', 1.0)))
+                     lagrange_regularization=float(cfg.get('lagrange_regularization', 1.0)),
+                     coefficients=parse_coefficients(cfg.get('coefficients', None), k, dim))
         config.validate_options()
         if spaces is not None:
             config.parse_boundary_conditions(spaces.mesh, mesh_cfg['type'])
@@ -217,6 +230,156 @@ def _add(form, term):
     return form + term
 
 
+# ---------------------------------------------------------------------------------------------
+# Shared builders (used by EllipticProblem and elliptic_eigen.HodgeLaplacianEigenproblem)
+# ---------------------------------------------------------------------------------------------
+
+@dataclass
+class BlockLayout:
+    """Blocks of the mixed space [sigma (k > 0), u, extra blocks (e.g. R multipliers)].
+
+    Attributes:
+        W: the (mixed) function space (the single space itself when there is one block).
+        block_spaces: list of the block spaces.
+        sigma_index, u_index: block indices (sigma_index is None for k = 0).
+        extra_indices: block indices of the extra spaces (the scalar R multipliers).
+        Vsigma, Vk: spaces of sigma ((k-1)-forms, None for k = 0) and u (k-forms).
+    """
+    W: object
+    block_spaces: list
+    sigma_index: Optional[int]
+    u_index: int
+    extra_indices: list
+    Vsigma: object
+    Vk: object
+
+    @property
+    def num_blocks(self):
+        """Number of blocks."""
+        return len(self.block_spaces)
+
+
+def build_block_layout(spaces, k, dim, complex, extra_spaces=()):
+    """Mixed space for the Hodge Laplacian of k-forms: [V^{k-1} (k > 0), V^k, *extra_spaces]."""
+    blocks = []
+    Vsigma, sigma_index = None, None
+    if k > 0:
+        Vsigma = form_space(spaces, k - 1, dim, complex)
+        sigma_index = len(blocks)
+        blocks.append(Vsigma)
+    Vk = form_space(spaces, k, dim, complex)
+    u_index = len(blocks)
+    blocks.append(Vk)
+    extra_indices = list(range(len(blocks), len(blocks) + len(extra_spaces)))
+    blocks.extend(extra_spaces)
+    W = blocks[0] if len(blocks) == 1 else MixedFunctionSpace(blocks)
+    return BlockLayout(W, blocks, sigma_index, u_index, extra_indices, Vsigma, Vk)
+
+
+def split_arguments(layout):
+    """Trial and test functions per block: dicts with keys 'sigma', 'u' and (lists) 'extra'."""
+    if layout.num_blocks == 1:
+        trials, tests = (TrialFunction(layout.W),), (TestFunction(layout.W),)
+    else:
+        trials, tests = TrialFunctions(layout.W), TestFunctions(layout.W)
+    trial, test = {}, {}
+    for name, index in (('sigma', layout.sigma_index), ('u', layout.u_index)):
+        if index is not None:
+            trial[name], test[name] = trials[index], tests[index]
+    if layout.extra_indices:
+        trial['extra'] = [trials[i] for i in layout.extra_indices]
+        test['extra'] = [tests[i] for i in layout.extra_indices]
+    return trial, test
+
+
+def build_harmonic_basis(config, mesh, mesh_type, Vk, measure, reaction_positive=False):
+    """Harmonic index sets (TODO-elliptic §1.4) and their L2-orthonormal basis in V^k.
+
+    With a reaction term c > 0 everywhere (reaction_positive) the operator is non-singular and
+    there are no harmonic forms to constrain: ([], []) is returned.
+    """
+    if reaction_positive:
+        return [], []
+    by_direction = face_bcs_by_direction(config.registry, config.face_bcs)
+    index_sets = get_harmonic_index_sets(config.harmonic_forms, config.k, config.dim, mesh.periodic_directions,
+                                         by_direction, mesh_type)
+    basis = orthonormalize_harmonic_basis(harmonic_basis(config.k, config.dim, config.complex, index_sets), Vk,
+                                          measure=measure)
+    return index_sets, basis
+
+
+def build_essential_bc_lists(layout, config, g_sigma=None, g_u=None):
+    """DirichletBCs on the essential faces, split as (sigma BCs, u BCs).
+
+    g_sigma, g_u: per-face data dicts (or None for homogeneous BCs). The DG u of k = n has no
+    trace, so it gets no BC.
+    """
+    faces = faces_of_type(config.registry, config.face_bcs, 'essential')
+    u_index = layout.u_index if config.k < config.dim else None
+    bcs_sigma = build_essential_bcs(layout.W, layout.sigma_index, None, faces, g_sigma=g_sigma)
+    bcs_u = build_essential_bcs(layout.W, None, u_index, faces, g_u=g_u)
+    return bcs_sigma, bcs_u
+
+
+def mass_sigma_form(sigma, tau, measure, mu=None):
+    """-(mu sigma, tau) (sign chosen for a symmetric operator)."""
+    return -inner(apply_weight(mu, sigma), tau) * measure
+
+
+def coupling_form(sigma, tau, u, v, k, dim, complex, measure):
+    """(u, d tau) + (d sigma, v) for sigma, tau in V^{k-1}."""
+    d = lambda w: exterior_derivative(w, k - 1, dim, complex)
+    return (inner(u, d(tau)) + inner(d(sigma), v)) * measure
+
+
+def stiffness_form(u, v, k, dim, complex, measure, kappa=None):
+    """(kappa d u, d v), or 0 for k = dim."""
+    if k == dim:
+        return 0
+    d = lambda w: exterior_derivative(w, k, dim, complex)
+    return inner(apply_weight(kappa, d(u)), d(v)) * measure
+
+
+def reaction_form(u, v, measure, c=None):
+    """(c u, v), or 0 when there is no reaction term."""
+    if c is None:
+        return 0
+    return inner(apply_weight(c, u), v) * measure
+
+
+def hodge_bilinear_form(trial, test, k, dim, complex, measure, weights=None):
+    """The symmetric (weighted) Hodge Laplacian form a_0:
+
+    -(mu sigma, tau) + (u, d tau) + (d sigma, v) + (kappa d u, d v) + (c u, v).
+    weights: {'mu', 'kappa', 'c'} UFL weights (missing or None: 1, 1 and no reaction term).
+    """
+    weights = weights or {}
+    u, v = trial['u'], test['u']
+    a = stiffness_form(u, v, k, dim, complex, measure, weights.get('kappa'))
+    a = _add(a, reaction_form(u, v, measure, weights.get('c')))
+    if k > 0:
+        sigma, tau = trial['sigma'], test['sigma']
+        a = _add(a, mass_sigma_form(sigma, tau, measure, weights.get('mu')))
+        a = _add(a, coupling_form(sigma, tau, u, v, k, dim, complex, measure))
+    return a
+
+
+def riesz_form(trial, test, k, dim, complex, measure, weights=None):
+    """SPD Riesz-map form (mu sigma, tau) + (d sigma, d tau) + ((1 + c) u, v) + (kappa d u, d v).
+
+    The weights follow the problem's so the preconditioner stays robust for variable coefficients.
+    """
+    weights = weights or {}
+    u, v = trial['u'], test['u']
+    aP = _add(inner(u, v) * measure, stiffness_form(u, v, k, dim, complex, measure, weights.get('kappa')))
+    aP = _add(aP, reaction_form(u, v, measure, weights.get('c')))
+    if k > 0:
+        sigma, tau = trial['sigma'], test['sigma']
+        d = lambda w: exterior_derivative(w, k - 1, dim, complex)
+        aP = aP + (inner(apply_weight(weights.get('mu'), sigma), tau) + inner(d(sigma), d(tau))) * measure
+    return aP
+
+
 class EllipticProblem():
     """Time-invariant model solving the Hodge Laplacian for k-forms (see the module docstring).
 
@@ -245,6 +408,12 @@ class EllipticProblem():
         self.dim, self.k, self.complex = self.config.dim, self.config.k, self.config.complex
         self.dx = dx(degree=self.config.quadrature_degree)
         self.error_dx = dx(degree=self.config.error_quadrature_degree)
+        # Coefficients: the forms use the model weights (parameters enter through the coefficient
+        # Function), the problem data use the fixed reference weights (TODO-elliptic §4.10).
+        self.coefficients = EllipticCoefficients(self.config.coefficients, self.mesh, self.problem,
+                                                 self.k, self.dim, self.complex)
+        self.weights = self.coefficients.model_weights()
+        self.problem.weights = self.coefficients.reference_weights()
 
         self._build_harmonic_forms()
         self._build_spaces()
@@ -269,78 +438,44 @@ class EllipticProblem():
     def _build_harmonic_forms(self):
         """Index sets and L2-orthonormal basis of the harmonic k-forms (TODO-elliptic §1.4)."""
         self.Vk = form_space(self.spaces, self.k, self.dim, self.complex)
-        by_direction = face_bcs_by_direction(self.config.registry, self.config.face_bcs)
-        self.harmonic_index_sets = get_harmonic_index_sets(self.config.harmonic_forms, self.k, self.dim,
-                                                           self.mesh.periodic_directions, by_direction,
-                                                           self.parameters['mesh']['type'])
-        self.harmonic = orthonormalize_harmonic_basis(
-            harmonic_basis(self.k, self.dim, self.complex, self.harmonic_index_sets), self.Vk, measure=self.dx)
+        # c > 0 everywhere makes the problem non-singular: no harmonic constraint.
+        self.reaction_positive = self.coefficients.reaction_is_positive()
+        self.harmonic_index_sets, self.harmonic = build_harmonic_basis(self.config, self.mesh,
+                                                                       self.parameters['mesh']['type'], self.Vk, self.dx,
+                                                                       reaction_positive=self.reaction_positive)
         self.num_harmonic = len(self.harmonic)
         self.logger.output('elliptic: ' + str(self.num_harmonic) + ' harmonic ' + str(self.k) + '-forms '
                            + str(self.harmonic_index_sets), 0)
 
     def _build_spaces(self):
         """Blocks [sigma (k > 0), u, p_1..p_m (lagrange with harmonic forms)] and the space W."""
-        spaces = []
-        self.sigma_index = self.u_index = None
-        self.p_indices = []
-        if self.k > 0:
-            self.Vsigma = form_space(self.spaces, self.k - 1, self.dim, self.complex)
-            self.sigma_index = len(spaces)
-            spaces.append(self.Vsigma)
-        self.u_index = len(spaces)
-        spaces.append(self.Vk)
         self.use_multiplier = self.config.harmonic_constraint == 'lagrange' and self.num_harmonic > 0
-        if self.use_multiplier:
-            # One scalar R block per harmonic form (Firedrake has no vector-valued R arguments).
-            self.R = harmonic_multiplier_space(self.mesh, self.num_harmonic)
-            self.p_indices = list(range(len(spaces), len(spaces) + len(self.R)))
-            spaces.extend(self.R)
-        self.block_spaces = spaces
-        self.W = spaces[0] if len(spaces) == 1 else MixedFunctionSpace(spaces)
-        self.num_blocks = len(spaces)
+        # One scalar R block per harmonic form (Firedrake has no vector-valued R arguments).
+        self.R = harmonic_multiplier_space(self.mesh, self.num_harmonic) if self.use_multiplier else []
+        self.layout = build_block_layout(self.spaces, self.k, self.dim, self.complex, extra_spaces=self.R)
+        self.W, self.block_spaces = self.layout.W, self.layout.block_spaces
+        self.sigma_index, self.u_index = self.layout.sigma_index, self.layout.u_index
+        self.p_indices = self.layout.extra_indices
+        self.Vsigma, self.Vk = self.layout.Vsigma, self.layout.Vk
+        self.num_blocks = self.layout.num_blocks
 
     def _build_arguments(self):
         """Trial/test functions per block: self.trial / self.test dicts with keys sigma, u, p."""
-        if self.num_blocks == 1:
-            trials, tests = (TrialFunction(self.W),), (TestFunction(self.W),)
-        else:
-            trials, tests = TrialFunctions(self.W), TestFunctions(self.W)
-        self.trial, self.test = {}, {}
-        for name, index in (('sigma', self.sigma_index), ('u', self.u_index)):
-            if index is not None:
-                self.trial[name], self.test[name] = trials[index], tests[index]
-        if self.p_indices:
+        self.trial, self.test = split_arguments(self.layout)
+        if 'extra' in self.trial:
             # Lists over the scalar R blocks.
-            self.trial['p'] = [trials[i] for i in self.p_indices]
-            self.test['p'] = [tests[i] for i in self.p_indices]
+            self.trial['p'], self.test['p'] = self.trial.pop('extra'), self.test.pop('extra')
 
     def _build_bcs(self):
         """DirichletBCs on the essential faces: tr sigma = g_sigma and tr u = g_u (§1.6)."""
-        faces = faces_of_type(self.config.registry, self.config.face_bcs, 'essential')
-        u_index = self.u_index if self.k < self.dim else None  # DG u has no trace
-        self.bcs_sigma = build_essential_bcs(self.W, self.sigma_index, None, faces,
-                                             g_sigma=self.boundary_data.essential_sigma)
-        self.bcs_u = build_essential_bcs(self.W, None, u_index, faces, g_u=self.boundary_data.essential_u)
+        self.bcs_sigma, self.bcs_u = build_essential_bc_lists(self.layout, self.config,
+                                                              g_sigma=self.boundary_data.essential_sigma,
+                                                              g_u=self.boundary_data.essential_u)
         self.bcs = self.bcs_sigma + self.bcs_u
 
     def _d(self, w, j):
         """Exterior derivative of a j-form (None for j = dim)."""
         return exterior_derivative(w, j, self.dim, self.complex)
-
-    def _mass_sigma(self, sigma, tau):
-        """-(sigma, tau) (sign chosen for a symmetric operator)."""
-        return -inner(sigma, tau) * self.dx
-
-    def _coupling(self, sigma, tau, u, v):
-        """(u, d tau) + (d sigma, v)."""
-        return (inner(u, self._d(tau, self.k - 1)) + inner(self._d(sigma, self.k - 1), v)) * self.dx
-
-    def _stiffness(self, u, v):
-        """(d u, d v), or 0 for k = dim."""
-        if self.k == self.dim:
-            return 0
-        return inner(self._d(u, self.k), self._d(v, self.k)) * self.dx
 
     def _harmonic(self):
         """Lagrange-multiplier terms sum_i p_i (h_i, v) + q_i (u, h_i), or 0."""
@@ -369,23 +504,11 @@ class EllipticProblem():
 
     def _bilinear_form_without_harmonic(self):
         """The bilinear form a_0 (everything except the Lagrange-multiplier terms)."""
-        u, v = self.trial['u'], self.test['u']
-        a = self._stiffness(u, v)
-        if self.k > 0:
-            sigma, tau = self.trial['sigma'], self.test['sigma']
-            a = _add(a, self._mass_sigma(sigma, tau))
-            a = _add(a, self._coupling(sigma, tau, u, v))
-        return a
+        return hodge_bilinear_form(self.trial, self.test, self.k, self.dim, self.complex, self.dx, self.weights)
 
     def _riesz_form(self):
-        """SPD Riesz-map preconditioner (sigma, tau) + (d sigma, d tau) + (u, v) + (d u, d v)."""
-        u, v = self.trial['u'], self.test['u']
-        aP = inner(u, v) * self.dx
-        aP = _add(aP, self._stiffness(u, v))
-        if self.k > 0:
-            sigma, tau = self.trial['sigma'], self.test['sigma']
-            aP = aP + (inner(sigma, tau) + inner(self._d(sigma, self.k - 1), self._d(tau, self.k - 1))) * self.dx
-        return aP
+        """SPD Riesz-map preconditioner with the problem's weights (see riesz_form)."""
+        return riesz_form(self.trial, self.test, self.k, self.dim, self.complex, self.dx, self.weights)
 
     def _build_forms(self):
         """Assemble the UFL forms a, L (and the preconditioner form aP when one is needed)."""
@@ -478,6 +601,66 @@ class EllipticProblem():
                                             measure=self.dx)
         self.logger.output('elliptic: removed harmonic part of u with coefficients ' + str(removed), 1)
 
+    # --- sensitivities (TODO-elliptic §4.10) --------------------------------------------------
+
+    def solve_adjoint(self, dJdx):
+        """Solve the adjoint system A^T lambda = dJ/dx for the current solution; returns lambda.
+
+        dJdx: Cofunction on W (the derivative of the objective with respect to the solution).
+        The operator is symmetric, so the forward operator is reused, with homogeneous essential
+        BCs (the BC values do not depend on the coefficients) and the same harmonic treatment:
+        - lagrange: the bordered system (the multiplier rows of dJdx are zero);
+        - nullspace: the forward map ends with u <- u - P_h u, whose adjoint is the same
+          projection of the adjoint source, so dJdx is projected orthogonal to the harmonic forms
+          and the nullspace is attached; lambda is normalized with (lambda_u, h_i) = 0.
+        """
+        rhs = dJdx.copy(deepcopy=True)
+        bcs0 = self._homogeneous(self.bcs)
+        for index, bcs in ((self.sigma_index, self._homogeneous(self.bcs_sigma)),
+                           (self.u_index, self._homogeneous(self.bcs_u))):
+            for bc in bcs:
+                self._block(rhs, index).dat.data[bc.nodes] = 0.0
+        adjoint = Function(self.W, name='adjoint')
+        if self.num_harmonic > 0 and self.config.harmonic_constraint == 'nullspace':
+            u_rhs_index = None if self.num_blocks == 1 else self.u_index
+            project_rhs_orthogonal_to_harmonic(rhs, self.harmonic, u_index=u_rhs_index, measure=self.dx)
+            A = assemble(self.a, bcs=bcs0)
+            P = assemble(self.aP, bcs=bcs0) if self.aP is not None else None
+            nullspace = build_harmonic_nullspace(self.W, self.u_index, self.harmonic)
+            solver = LinearSolver(A, P=P, solver_parameters=self.solver_parameters, nullspace=nullspace,
+                                  transpose_nullspace=nullspace, options_prefix='elliptic_adjoint_')
+            solver.solve(adjoint, rhs)
+            remove_harmonic_component(self._block(adjoint, self.u_index), self.harmonic, measure=self.dx)
+        else:
+            problem = LinearVariationalProblem(self.a, rhs, adjoint, bcs=bcs0, aP=self.aP)
+            LinearVariationalSolver(problem, solver_parameters=self.solver_parameters,
+                                    options_prefix='elliptic_adjoint_').solve()
+        return adjoint
+
+    def residual_form(self):
+        """R(w; m) = a(w, .) - L as a UFL form in the current solution (depends on m via a only)."""
+        return action(self.a, self.solution) - self.L
+
+    def coefficient_gradient(self, adjoint, dJdm=None):
+        """dJ/dm = dJ/dm|_explicit - lambda^T dR/dm, as a Cofunction on the coefficient space.
+
+        The derivative of the residual with respect to the coefficient Function is taken with
+        ufl.derivative and contracted with the adjoint (replace the test functions by lambda).
+        dJdm: optional explicit derivative of the objective (Cofunction), added.
+        """
+        if not self.has_coeff():
+            raise ValueError("the model has no coefficients (set treat_as_coeff in elliptic.coefficients)")
+        residual = self.residual_form()
+        # lambda^T R: replace the test function of the residual by the adjoint. Firedrake's
+        # derivative/replace are used (not raw UFL): ufl.derivative without a direction creates a
+        # plain UFL Argument, which the Firedrake assembler cannot allocate a result for.
+        test = residual.arguments()[0]
+        lagrangian = fd_replace(residual, {test: adjoint})
+        gradient = assemble(-fd_derivative(lagrangian, self.coefficients.coeff))
+        if dJdm is not None:
+            gradient += dJdm
+        return gradient
+
     # --- Model interface ----------------------------------------------------------------------
 
     def get_x_var_list(self):
@@ -488,25 +671,75 @@ class EllipticProblem():
             names.append('p')
         return names
 
+    def get_output_state(self):
+        """(xn, xn_sub) for dimswe.output.Output after solve().
+
+        xn is empty: the mixed solution (which may contain R blocks) is not checkpointed. xn_sub
+        maps each name of get_x_var_list() to a plain, named Function in its own space (V^{k-1}
+        for sigma, V^k for u and p) that shares its data with the solution, so it can be written
+        to the checkpoint and to VTK. p is always a V^k Function, never an R-space function.
+        """
+        spaces = {'u': self.Vk, 'p': self.Vk}
+        if self.sigma_index is not None:
+            spaces['sigma'] = self.Vsigma
+        xn_sub = {name: Function(spaces[name], val=self.sub[name].dat, name=name) for name in self.get_x_var_list()}
+        return [], xn_sub
+
     def get_aux_var_list(self, terms='all'):
         """No auxiliary variables."""
         return []
 
     def get_coeff_list(self):
-        """No model coefficients yet (TODO-elliptic §4.10)."""
-        return []
+        """Names of the model coefficients (elliptic.coefficients with treat_as_coeff: true)."""
+        return self.coefficients.get_coeff_list()
+
+    def get_coeff_spaces(self):
+        """Spaces of the model coefficients."""
+        return self.coefficients.get_coeff_spaces()
+
+    def get_coeff_var(self, name):
+        """(coeff, coeff_sub, coeff_split) of a new coefficient Function, like Dynamics."""
+        return self.coefficients.get_coeff_var(name)
+
+    def get_coeff_sub(self):
+        """The coefficient Functions used by the forms, by name (for output)."""
+        return self.coefficients.coeff_sub
+
+    def get_coeff_test_trial_vars(self):
+        """(test, test_subs, trial, trial_subs) on the coefficient space."""
+        return self.coefficients.get_coeff_test_trial_vars()
+
+    def get_coeff_size(self):
+        """Global number of coefficient dofs."""
+        return self.coefficients.get_coeff_size()
+
+    def get_coeff_bounds(self):
+        """(lb, ub) over the flattened coefficient dofs (theta bounds for log parametrization)."""
+        return self.coefficients.get_coeff_bounds()
+
+    def get_coeff_scaling_factors(self):
+        """Scaling factors over the flattened coefficient dofs."""
+        return self.coefficients.get_coeff_scaling_factors()
+
+    def get_numpy_coeff(self):
+        """Flattened values of the coefficient Function used by the forms."""
+        return self.coefficients.flatten(self.coefficients.coeff)
+
+    def set_numpy_coeff(self, array):
+        """Set the coefficient Function used by the forms (call solve() afterwards)."""
+        self.coefficients.set_from_array(numpy.asarray(array, dtype=float))
 
     def has_aux(self):
         """No auxiliary variables."""
         return False
 
     def has_coeff(self):
-        """No model coefficients yet."""
-        return False
+        """True if any coefficient is a model coefficient."""
+        return self.coefficients.has_coeff()
 
     def set_coeffs(self, parameters, coeff_sub):
-        """Nothing to set until §4.10."""
-        pass
+        """Assign the cfg initial values of the coefficients to coeff_sub (Model interface)."""
+        self.coefficients.set_coeffs(coeff_sub)
 
     # --- statistics ---------------------------------------------------------------------------
 

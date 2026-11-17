@@ -62,7 +62,9 @@ def test_missing_sections_and_degree(elliptic_parameters):
 
 @pytest.mark.parametrize("change", [
     {'lump_mass': True},       # always rejected for elliptic problems
-    {'family': 'P-'},          # not available yet (§4.9)
+    {'family': 'X'},           # unknown family
+    {'family': 'P-'},          # simplicial family on quadrilaterals (simplicial_cells: false)
+    {'family': 'S', 'order': 1},  # full serendipity needs order >= 2
     {'order': 0},
 ])
 def test_invalid_discretization(elliptic_parameters, change):
@@ -148,3 +150,19 @@ def test_solver_minres_and_overrides(elliptic_parameters):
     # The shared defaults are not modified by the overrides.
     from dimswe.parameters import elliptic_minres
     assert elliptic_minres['ksp_rtol'] == 1e-12 and 'pc_type' not in copy.deepcopy(elliptic_minres)
+
+
+def test_family_cell_and_order_rules(elliptic_parameters):
+    """P-/P+ need simplices (P+: order >= n); S-/S use quads; 3D full serendipity is unavailable."""
+    for family, order in (('P-', 1), ('P+', 2), ('S', 2)):
+        EllipticConfig.from_parameters(elliptic_parameters(2, 'curl-div', 1, 'essential', n=2, order=order,
+                                                           family=family))
+    with pytest.raises(ValueError):
+        EllipticConfig.from_parameters(elliptic_parameters(2, 'curl-div', 1, 'essential', n=2, order=1, family='P+'))
+    with pytest.raises(ValueError):
+        EllipticConfig.from_parameters(elliptic_parameters(2, 'curl-div', 1, 'essential', n=2, order=2,
+                                                           family='S', simplicial=True))
+    with pytest.raises(NotImplementedError):
+        EllipticConfig.from_parameters(elliptic_parameters(2, 'curl-div', 1, 'essential', n=2, order=2, family='S-'))
+    with pytest.raises(NotImplementedError):
+        EllipticConfig.from_parameters(elliptic_parameters(3, None, 1, 'essential', n=2, order=2, family='S'))

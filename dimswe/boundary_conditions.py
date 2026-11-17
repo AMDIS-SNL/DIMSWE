@@ -21,7 +21,10 @@ Firedrake subdomain ids, for the meshes built by dimswe.meshes.build_mesh:
   are interior and simply absent.
 - 3D extruded (Q-family hexahedra): the base mesh ids (consecutive rule over x, y) are used with
   ds_v, and the z faces are ds_b/ds_t ("bottom"/"top" for DirichletBC).
-- fully periodic meshes: no boundary. verify_boundary_registry checks the numbering
+- fully periodic meshes: no boundary.
+These rules (build_face_registry) are only the expected layout: Firedrake has changed the
+numbering of partially periodic meshes between versions, so get_boundary_registry detects the
+actual marker of every face geometrically (detect_face_ids). verify_boundary_registry checks the numbering
 geometrically against the installed Firedrake.
 
 Each face carries exactly one BC type, 'essential' or 'natural' (TODO-elliptic §1.1, §1.3).
@@ -29,12 +32,13 @@ Each face carries exactly one BC type, 'essential' or 'natural' (TODO-elliptic �
 from dataclasses import dataclass
 from typing import Tuple, Union
 
-from firedrake import Constant, DirichletBC, SpatialCoordinate, assemble, ds, ds_b, ds_t, ds_v
+from firedrake import Constant, DirichletBC, Function, SpatialCoordinate, assemble, ds, ds_b, ds_t, ds_v
 
 from ufl import zero
 
 from .differential_forms import boundary_pairing
 from .meshes import DIRECTIONS, get_mesh_type_dimension
+from .ufl_helpers import ufl_attribute
 
 # Logical face name -> (direction, side). Ordered by direction, low side first.
 FACE_LOCATIONS = {
@@ -60,15 +64,15 @@ class BoundaryFace:
         side: 0 for the low-coordinate face, 1 for the high-coordinate face.
         subdomain_ids: Firedrake boundary ids for the facet measure (empty for ds_t/ds_b).
         measure: name of the facet measure, one of 'ds', 'ds_v', 'ds_t', 'ds_b'.
-        dirichlet_subdomain: the sub_domain argument for DirichletBC (an int id, or "top"/"bottom"
-            on extruded meshes).
+        dirichlet_subdomain: the sub_domain argument for DirichletBC (an int id, a tuple of ids
+            when a face carries several markers, or "top"/"bottom" on extruded meshes).
     """
     name: str
     direction: str
     side: int
     subdomain_ids: Tuple[int, ...]
     measure: str
-    dirichlet_subdomain: Union[int, str]
+    dirichlet_subdomain: Union[int, str, Tuple[int, ...]]
 
 
 def build_face_registry(dim, periodic_directions, extruded=False):
@@ -116,7 +120,7 @@ def build_face_registry(dim, periodic_directions, extruded=False):
 
 def is_extruded(mesh):
     """True if mesh is an extruded mesh (cell dimension is a tuple such as (2, 1))."""
-    return isinstance(mesh.cell_dimension(), tuple)
+    return isinstance(ufl_attribute(mesh, 'cell_dimension'), tuple)
 
 
 def get_boundary_registry(mesh, mesh_type, periodic_directions=None):
@@ -135,7 +139,90 @@ def get_boundary_registry(mesh, mesh_type, periodic_directions=None):
         raise NotImplementedError("boundary registry for 'file' meshes is not implemented")
     if periodic_directions is None:
         periodic_directions = getattr(mesh, 'periodic_directions', ())
-    return build_face_registry(dim, periodic_directions, extruded=is_extruded(mesh))
+    registry = build_face_registry(dim, periodic_directions, extruded=is_extruded(mesh))
+    bounds = getattr(mesh, 'domain_bounds', None) or _coordinate_bounds(mesh, dim)
+    return detect_face_ids(mesh, registry, bounds)
+
+
+def _coordinate_bounds(mesh, dim):
+    """((x0, x1), ...) from the mesh coordinates (used when mesh.domain_bounds is not recorded)."""
+    from mpi4py import MPI
+    coords = mesh.coordinates.dat.data_ro.reshape(-1, dim)
+    # Reduce each axis as a scalar (lowercase allreduce of lists would compare them lexicographically).
+    return tuple((mesh.comm.allreduce(float(coords[:, i].min()), op=MPI.MIN),
+                  mesh.comm.allreduce(float(coords[:, i].max()), op=MPI.MAX)) for i in range(dim))
+
+
+def _boundary_markers(mesh):
+    """All exterior facet markers of the mesh (side facets on extruded meshes), or None."""
+    try:
+        markers = mesh.exterior_facets.unique_markers
+    except AttributeError:
+        return None
+    return sorted(int(m) for m in markers)
+
+
+def _marker_facet_count(mesh, marker):
+    """Global number of exterior facets carrying marker, or None if it cannot be determined.
+
+    Used to skip empty labels (the faces of periodic directions in newer Firedrake) before any
+    kernel is compiled for them: assembling over an empty facet set makes loopy emit an
+    'overflow encountered in scalar negative' RuntimeWarning.
+    """
+    import logging
+    logger = logging.getLogger('firedrake')
+    level = logger.level
+    # subset() itself warns "Subdomain ... is empty" for the labels we are trying to skip.
+    logger.setLevel(logging.ERROR)
+    try:
+        subset = mesh.exterior_facets.subset(marker)
+    except Exception:  # API differs between Firedrake versions: fall back to the area check
+        return None
+    finally:
+        logger.setLevel(level)
+    return mesh.comm.allreduce(int(subset.size))
+
+
+def detect_face_ids(mesh, registry, bounds, rel_tol=1e-8):
+    """Assign the mesh's boundary markers to the logical faces by geometry.
+
+    Firedrake's numbering of the remaining faces of partially periodic meshes changed between
+    versions (renumbered 1, 2, ... in some, RectangleMesh/BoxMesh ids kept in others), so the ids
+    of build_face_registry are only the expected layout. Here every marker with non-zero area is
+    assigned to the face whose normal coordinate is constant (equal to its bound) on it; extruded
+    z faces (ds_b/ds_t) need no ids. Raises ValueError if a bounded face gets no marker.
+    """
+    markers = _boundary_markers(mesh)
+    if markers is None or not any(face.measure in ('ds', 'ds_v') for face in registry.values()):
+        return registry  # nothing to detect (e.g. fully periodic, or only extruded z faces)
+    extruded = is_extruded(mesh)
+    measure = MEASURES['ds_v' if extruded else 'ds']
+    X = SpatialCoordinate(mesh)
+    scale = max([1.0] + [hi - lo for lo, hi in bounds])
+    found = {name: [] for name, face in registry.items() if face.measure in ('ds', 'ds_v')}
+    for marker in markers:
+        if _marker_facet_count(mesh, marker) == 0:
+            continue  # empty label: no kernel needed
+        dm = measure(marker, domain=mesh)
+        area = assemble(Constant(1.0) * dm)
+        if area <= 1e-14 * scale ** 2:
+            continue  # empty label (e.g. the faces of a periodic direction)
+        for name in found:
+            face = registry[name]
+            axis = DIRECTIONS.index(face.direction)
+            spread = assemble((X[axis] - bounds[axis][face.side]) ** 2 * dm) / area
+            if spread ** 0.5 <= rel_tol * scale:
+                found[name].append(marker)
+                break
+    detected = dict(registry)
+    for name, ids in found.items():
+        if not ids:
+            raise ValueError("no boundary marker of the mesh lies on face '" + name + "' (markers: " + str(markers) + ")")
+        face = registry[name]
+        ids = tuple(sorted(ids))
+        detected[name] = BoundaryFace(face.name, face.direction, face.side, ids, face.measure,
+                                      ids[0] if len(ids) == 1 else ids)
+    return detected
 
 
 def parse_boundary_conditions(cfg, registry):
@@ -240,13 +327,11 @@ def build_essential_bcs(W, sub_index_sigma, sub_index_u, faces, g_sigma=None, g_
     """Build the DirichletBCs enforcing tr sigma = g_sigma and tr u = g_u on the essential faces.
 
     The trace that is constrained is the one natural to each space (value for CG, tangential
-    trace for Hcurl, normal trace for Hdiv); full fields may be given as data. DirichletBC
-    interpolates the data into the space when the element supports it (CG, and the simplicial
-    families); for the Q-family Hcurl/Hdiv elements (RTCE/RTCF/NCE/NCF) interpolation is not
-    implemented and Firedrake falls back to a global L2 projection of the data onto the space,
-    whose boundary dofs are then used. That is exact for data in the discrete space but in
-    general not a face-wise trace projection (possible loss of boundary accuracy; to be checked
-    by the convergence tests of TODO-elliptic §6).
+    trace for Hcurl, normal trace for Hdiv); full fields may be given as data. The data are first
+    put into the space (_data_in_space): interpolated when the element supports it (CG, and the
+    simplicial families), otherwise (RTCE/RTCF/NCE/NCF, trimmed serendipity, BDMCE/BDMCF) by a
+    global L2 projection whose boundary dofs are then used. That is exact for data in the
+    discrete space but in general not a face-wise trace projection.
 
     Args:
         W: the (mixed) function space of the problem.
@@ -268,8 +353,24 @@ def build_essential_bcs(W, sub_index_sigma, sub_index_u, faces, g_sigma=None, g_
             value = _face_data(data, face)
             if value is None:
                 value = _zero_value()
+            else:
+                value = _data_in_space(value, V)
             bcs.append(DirichletBC(V, value, face.dirichlet_subdomain))
     return bcs
+
+
+def _data_in_space(value, V):
+    """Boundary data as a Function in V (interpolated, or L2-projected where V cannot interpolate).
+
+    Giving DirichletBC a Function in V means Firedrake never needs its own interpolation or
+    projection fallback, which fails for elements without a usable dual basis (trimmed
+    serendipity, BDMCE/BDMCF). For interpolable elements (CG, N1curl, RT, ...) this is the same
+    interpolation DirichletBC would do itself.
+    """
+    from .harmonic_forms import interpolate_or_project  # local import: harmonic_forms imports this module
+    if isinstance(value, Function) and value.function_space() == V:
+        return value
+    return interpolate_or_project(value, V)
 
 
 def build_natural_terms(tau, v, faces, g_u, g_du, k, dim, complex, n, degree=None):

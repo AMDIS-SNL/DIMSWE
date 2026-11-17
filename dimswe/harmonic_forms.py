@@ -24,7 +24,7 @@ orthonormalize_harmonic_basis), so it also works unchanged for numerical bases (
 from itertools import combinations
 
 from firedrake import (Cofunction, Function, FunctionSpace, MixedVectorSpaceBasis, TestFunction,
-                       VectorSpaceBasis, assemble, dx, inner)
+                       TrialFunction, VectorSpaceBasis, assemble, dx, inner, solve)
 
 from .boundary_conditions import BC_TYPES, FACE_LOCATIONS
 from .differential_forms import constant_form_proxy, normalize_complex
@@ -145,18 +145,34 @@ def harmonic_basis(k, dim, complex, index_sets):
 
 
 def interpolate_or_project(expr, V, target=None):
-    """Interpolate expr into V, or L2-project with a direct solver if V cannot interpolate.
+    """Interpolate expr into V, or L2-project it if the element of V cannot be interpolated into.
 
-    The Q-family Hcurl/Hdiv elements (RTCE/RTCF/NCE/NCF) have no dual basis; for the constant
-    proxies used here the projection is exact up to round-off, since V contains constants.
-    target: optional Function in V to fill (a new one is created otherwise); it is returned.
+    Several H(curl)/H(div) elements have no (usable) dual basis: RTCE/RTCF/NCE/NCF and the
+    trimmed serendipity elements raise NotImplementedError, BDMCE/BDMCF raise AttributeError.
+    The fallback is an explicit L2 projection (mass solve with LU), deliberately not
+    Function.project, so no interpolation into V is attempted on any path. For data that lie in
+    V (e.g. the constant harmonic proxies) the projection is exact up to round-off.
+    V may be an indexed sub-space of a mixed space; target: optional Function in V to fill (a new
+    one is created otherwise); it is returned.
     """
     f = Function(V) if target is None else target
     try:
         f.interpolate(expr)
-    except NotImplementedError:
-        f.project(expr, solver_parameters=_PROJECTION_SOLVER)
+    except (NotImplementedError, AttributeError):
+        l2_project(expr, f)
     return f
+
+
+def l2_project(expr, target):
+    """Explicit L2 projection of expr into the space of target (in place, LU solve)."""
+    V = target.function_space()
+    # Indexed sub-spaces of mixed spaces are collapsed to their own space for the solve.
+    Vc = V.collapse() if getattr(V, 'index', None) is not None else V
+    u, v = TrialFunction(Vc), TestFunction(Vc)
+    result = Function(Vc)
+    solve(inner(u, v) * dx == inner(expr, v) * dx, result, solver_parameters=_PROJECTION_SOLVER)
+    target.dat.data[:] = result.dat.data_ro
+    return target
 
 
 def _to_space(expr, V):

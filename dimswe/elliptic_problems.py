@@ -27,9 +27,12 @@ from dataclasses import dataclass, field
 from math import pi
 from typing import Dict
 
-from firedrake import Constant, SpatialCoordinate, as_vector, exp, sin
+from firedrake import Constant, SpatialCoordinate, as_matrix, as_vector, exp, sin
+
+from .ufl_helpers import ufl_attribute
 
 from .differential_forms import (codifferential, constant_form_proxy, exterior_derivative,
+                                 weighted_hodge_fields,
                                  hodge_laplacian_expr, is_scalar_form, normalize_complex)
 
 # Allowed values of the elliptic 'boundary_data' option.
@@ -46,6 +49,7 @@ def get_elliptic_problem(parameters):
         'gaussian-source': GaussianSourceProblem,
         'boundary-driven': BoundaryDrivenProblem,
         'incompatible-source': IncompatibleSourceProblem,
+        'variable-coefficient-sine': VariableCoefficientSineProblem,
     }
     if name not in problems:
         raise ValueError("unknown elliptic problem " + str(name) + " (known: " + str(sorted(problems)) + ")")
@@ -101,6 +105,8 @@ class EllipticProblemData():
 
     #: True if get_exact returns an exact solution.
     has_exact = True
+    #: Coefficient weights {'mu', 'kappa', 'c'} (UFL or None) used by get_exact; set by the model.
+    weights = None
 
     def __init__(self, parameters):
         """Read the domain from parameters['elliptic-problem'] (all entries optional).
@@ -124,7 +130,7 @@ class EllipticProblemData():
         bounds = getattr(mesh, 'domain_bounds', None)
         if bounds is not None:
             return bounds
-        dim = mesh.geometric_dimension()
+        dim = ufl_attribute(mesh, 'geometric_dimension')
         centers = (self.xc, self.yc, self.zc)[:dim]
         lengths = (self.Lx, self.Ly, self.Lz)[:dim]
         return tuple((c - L / 2., c + L / 2.) for c, L in zip(centers, lengths))
@@ -133,6 +139,16 @@ class EllipticProblemData():
         """UFL coordinates s_i in [0, 1] along each direction of the mesh."""
         X = SpatialCoordinate(mesh)
         return [(X[i] - lo) / (hi - lo) for i, (lo, hi) in enumerate(self.domain_bounds(mesh))]
+
+    # --- coefficients -------------------------------------------------------------------------
+
+    def coefficient(self, name, mesh, k, dim, complex, rank):
+        """UFL expression of coefficient name for kind: problem (and init: problem fields).
+
+        The base class has none; subclasses with spatially varying or tensor coefficients override
+        this. rank is 'scalar' or 'tensor' (shape (dim, dim)).
+        """
+        raise NotImplementedError(type(self).__name__ + " provides no '" + name + "' coefficient")
 
     # --- solution and source ------------------------------------------------------------------
 
@@ -147,22 +163,24 @@ class EllipticProblemData():
     def get_exact(self, mesh, k, dim, complex, harmonic_index_sets=()):
         """Exact fields as a dict, or None if unknown.
 
-        Keys: 'u'; 'sigma' = delta u and 'dsigma' = d sigma (None for k = 0); 'du' = d u (None
-        for k = dim); 'f' = (d delta + delta d) u plus any harmonic part; 'p' = the harmonic part
-        of f (None for zero).
+        Keys: 'u'; 'sigma' = mu^{-1} delta u and 'dsigma' = d sigma (None for k = 0); 'du' = d u
+        and 'flux' = kappa d u (None for k = dim); 'f' = d sigma + delta(kappa d u) + c u plus any
+        harmonic part; 'p' = the harmonic part of f (None for zero). The weights mu, kappa, c are
+        self.weights (set by the model from the reference coefficients; unweighted if unset).
         """
         if not self.has_exact:
             return None
         complex = normalize_complex(dim, complex)
         u = self.exact_u(mesh, k, dim, complex)
-        sigma = codifferential(u, k, dim, complex)
-        dsigma = None if sigma is None else exterior_derivative(sigma, k - 1, dim, complex)
+        weights = self.weights or {}
+        fields = weighted_hodge_fields(u, k, dim, complex, mu=weights.get('mu'), kappa=weights.get('kappa'),
+                                       c=weights.get('c'))
         p = self.harmonic_part(mesh, k, dim, complex, harmonic_index_sets)
-        f = hodge_laplacian_expr(u, k, dim, complex)
+        f = fields['f']
         if p is not None:
             f = f + p
-        return {'u': u, 'sigma': sigma, 'dsigma': dsigma,
-                'du': exterior_derivative(u, k, dim, complex), 'f': f, 'p': p}
+        return {'u': u, 'sigma': fields['sigma'], 'dsigma': fields['dsigma'], 'du': fields['du'],
+                'flux': fields['flux'], 'f': f, 'p': p}
 
     def get_source(self, mesh, k, dim, complex, harmonic_index_sets=()):
         """Source f (UFL proxy of a k-form)."""
@@ -181,11 +199,12 @@ class EllipticProblemData():
         return exact['u'], exact['sigma']
 
     def get_natural_data(self, mesh, face, k, dim, complex):
-        """(g_u, g_du) on a natural face; default: (u, d u) from the exact solution."""
+        """(g_u, g_du) on a natural face; default: (u, kappa d u) from the exact solution."""
         exact = self.get_exact(mesh, k, dim, complex) if self.has_exact else None
         if exact is None:
             return None, None
-        return exact['u'], exact['du']
+        # The natural datum of the weighted problem is the flux kappa d u.
+        return exact['u'], exact['flux']
 
 
 # ---------------------------------------------------------------------------------------------
@@ -270,6 +289,39 @@ class IncompatibleSourceProblem(SineProblem):
         terms = [(self.amplitude / (n + 1)) * constant_form_proxy(I, k, dim, complex)
                  for n, I in enumerate(harmonic_index_sets)]
         return _sum(terms)
+
+
+class VariableCoefficientSineProblem(SineProblem):
+    """SineProblem with smooth, non-constant (and, for tensors, anisotropic) coefficients.
+
+    coefficient(name, ..., rank) gives, in normalized coordinates s:
+    - scalar: a_name (1 + 0.5 sin(2 pi s_x) cos(2 pi s_y) ...) > 0 (c: 0.5 times that, so > 0);
+    - tensor: R diag(1 + 0.4 sin(2 pi s_x), 2 + 0.6 cos(2 pi s_y), ...) R^T with a fixed rotation
+      in the x-y plane, so it is SPD and not diagonal.
+    Use with elliptic.coefficients entries of kind: problem (or kind: field, init: problem).
+    """
+
+    SCALE = {'mu': 1.0, 'kappa': 1.5, 'c': 0.5}
+
+    def coefficient(self, name, mesh, k, dim, complex, rank):
+        """See the class docstring."""
+        if name not in self.SCALE:
+            raise ValueError("unknown coefficient " + str(name))
+        s = self.normalized_coordinates(mesh)
+        if rank == 'scalar':
+            bump = 1.0 + 0.5 * _product([sin(2 * pi * s[0])] + [sin(2 * pi * s[i] + 0.4) for i in range(1, dim)])
+            return self.SCALE[name] * bump
+        diag = [1.0 + 0.4 * sin(2 * pi * s[0]), 2.0 + 0.6 * sin(2 * pi * s[min(1, dim - 1)] + 1.0),
+                1.5 + 0.3 * sin(2 * pi * s[dim - 1] + 2.0)][:dim]
+        angle = 0.3
+        rotation = [[1.0 if i == j else 0.0 for j in range(dim)] for i in range(dim)]
+        if dim >= 2:
+            from math import cos as mcos, sin as msin
+            rotation[0][0], rotation[0][1] = mcos(angle), -msin(angle)
+            rotation[1][0], rotation[1][1] = msin(angle), mcos(angle)
+        entries = [[_sum([rotation[i][m] * diag[m] * rotation[j][m] for m in range(dim)]) for j in range(dim)]
+                   for i in range(dim)]
+        return self.SCALE[name] * as_matrix(entries)
 
 
 # ---------------------------------------------------------------------------------------------

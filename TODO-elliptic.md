@@ -248,6 +248,7 @@ data come from problem classes.
   using `B_{k-1}` and `B_k` from `differential_forms`; returns 0 for homogeneous data.
 - [x] Helper `measure_for(face)` so the forms work on both extruded and non-extruded meshes.
 - Notes (done): ids are numbered consecutively over the bounded directions (x, y, z order, low side first); extruded z faces are `back`=`ds_b`/"bottom", `front`=`ds_t`/"top". `verify_boundary_registry` checks the numbering geometrically (run by the unit tests for every mesh type). Data (`g_u`, `g_sigma`, `g_du`) may be `None`, one expression, or a per-face dict. Extra helpers: `build_face_registry` (pure Python), `faces_of_type`, `face_bcs_by_direction` (input for §1.4). `boundary_pairing` and `normalize_complex` were added to `dimswe/differential_forms.py` ahead of §4.3. Unit tests: `tests/unit/test_boundary_conditions.py`.
+- Update (Firedrake upgrade): the numbering of partially periodic meshes changed (newer Firedrake keeps the `RectangleMesh` ids and leaves the periodic faces' labels empty), so `get_boundary_registry` now detects every face's marker geometrically (`detect_face_ids`: each non-empty exterior marker is assigned to the face whose normal coordinate is constant on it); `build_face_registry` is only the expected layout. UFL accessors that became properties (`cellname`, ...) go through `ufl_helpers.ufl_attribute`.
 - Caveats found while testing: (a) Q-family Hcurl/Hdiv elements (RTCE/RTCF/NCE/NCF) cannot be interpolated into, so inhomogeneous essential data on them go through Firedrake's DirichletBC fallback (global L2 projection, exact only for data in the discrete space); homogeneous data use UFL `zero()` (assigned directly). If the §6 convergence tests show reduced σ/u rates from this, replace it by a face-wise trace projection (e.g. `EquationBC`). (b) Firedrake's `PeriodicBoxMesh` needs >= 3 cells per direction and keeps the fixed ids 1-6 even for periodic directions (`directions=` argument, unlike `PeriodicRectangleMesh`, which renumbers); partial periodicity is built this way for serendipity hexes (tets: Firedrake supports `directions` only with `hexahedral=True`), and `build_face_registry` uses the fixed ids 1-6 for all non-extruded 3D meshes.
 
 ### 4.3 Differential-form utilities (`dimswe/differential_forms.py`)
@@ -346,27 +347,29 @@ with `Lx, Ly, Lz, xc, yc, zc`).
 - Notes (done): the σ equation is multiplied by −1 (`−(σ,τ) + (u,dτ) + (dσ,v) + (du,dv)`), so the operator is symmetric (nullspace = transpose nullspace; MINRES applicable); natural σ-terms change sign accordingly. `nullspace` path: explicit lifting `w = w_g + w_0` (Firedrake's internal lifting would run after the projection and, with nonzero `g_σ`, reintroduce a harmonic component since `(h, dτ_j) ≠ 0` for boundary basis functions), rhs zeroed on constrained dofs, projected with the u-block BCs, solved with homogeneous BCs and the nullspace. `lagrange` with harmonic forms: matrix-free GMRES (§1.5); `nullspace` + `elliptic-direct` is upgraded to `elliptic-direct-singular` (right-preconditioned GMRES with the nullspace, preconditioned by the LU of the regularized `a + ε(u, v)`; MUMPS null-pivot detection was not robust in 1D, giving ~1e-5 errors); `elliptic-minres` = MINRES with the SPD Riesz preconditioner `(σ,τ)+(dσ,dτ)+(u,v)+(du,dv)` (LU per block). `quadrature_degree` is always explicit (default `2·order+2`): with UFL's per-form estimates the lagrange (one combined mixed residual) and nullspace (separate rhs) paths integrated the source with different rules and differed by ~1e-5 in 1D. Extra cfg entries: `solver_options` (merged PETSc options), `error_quadrature_degree` (default `2·order+4`), `lagrange_regularization`. Only family `Q` on quads/hexes is accepted until §4.9. `p` is always reported as a Function in `V^k` (`sub['p']`; R functions cannot go to VTK). Statistics: `u_norm, p_norm, harmonic_orthogonality, num_harmonic_forms, ksp_iterations` (+ `u_error, sigma_error, dsigma_error, du_error, p_error` with an exact solution; `u_error` is against `u_exact − P_𝔥 u_exact`). Diagnostics: `u_exact, u_error, sigma_error, du`. Not yet hooked into `models.get_model`/`run_model` (§4.7). Tests: `tests/unit/test_elliptic_config.py`, `tests/integration/test_elliptic.py` (MMS matrix over 12 cases × 6 BC sets, lagrange vs nullspace with incompatible sources, MINRES, boundary-driven/Gaussian problems; 3D marked `slow`); shared builder `make_elliptic_parameters` / fixture `elliptic_parameters` in `tests/conftest.py`.
 
 ### 4.7 Integration with the existing driver and workflows
-- [ ] `models.get_model`: add `elif parameters['model']['type'] == 'elliptic': return EllipticProblem(...)`
+- [x] `models.get_model`: add `elif parameters['model']['type'] == 'elliptic': return EllipticProblem(...)`
   (while there: `AdvectionModel` and `CGTransport` are referenced but undefined — leave or flag,
   do not silently fix unrelated code).
-- [ ] `run_model.py`: if `getattr(model, 'is_time_invariant', False)`, branch to a new
+- [x] `run_model.py`: if `getattr(model, 'is_time_invariant', False)`, branch to a new
   `run_elliptic(model, parameters, logger)` that calls `solve()`, computes statistics/diagnostics,
   and writes one output step (`t = 0`, step 0) via the existing `Output` — so `run_batch.py`,
   `generate_cfgs.py` sweeps and checkpoint layout (`runs/<name>/sim.h5`) work unchanged.
   Skip timestep/CFL logic entirely in that branch.
-- [ ] Ensure `Output` works with `coeff_sub = {}` and with the `R`-space `p` (VTK cannot write
+- [x] Ensure `Output` works with `coeff_sub = {}` and with the `R`-space `p` (VTK cannot write
   `R` functions — exclude `p` from `vtk_vars`, still checkpoint it / store as statistic).
-- [ ] Example configs: `elliptic.cfg` (repo root) and `tests/elliptic.cfg`.
-- [ ] `workflows/elliptic_convergence.py` (+ `.sh` wrapper): run an `nx` sweep for a given
+- [x] Example configs: `elliptic.cfg` (repo root) and `tests/elliptic.cfg`.
+- [x] `workflows/elliptic_convergence.py` (+ `.sh` wrapper): run an `nx` sweep for a given
   (dim, complex, k, BC) case, compute observed rates from the statistics in each `sim.h5`, write a
   YAML/CSV summary; reuse `workflows/common.py` helpers.
+- Notes (done): `get_model` imports `EllipticProblem` lazily (`model.type: elliptic`); the undefined `AdvectionModel` and `CGTransport` references are flagged with comments, not changed. `run_model` branches to `run_elliptic` before any CFL/timestepper setup and rejects `initial_state`. Output: `EllipticProblem.get_output_state()` returns `xn = []` (the mixed solution with `R` blocks is not checkpointed) and plain named Functions sharing the solution data for `sigma`, `u`, `p`; `p` is always a `V^k` Function (never `R`), so it is written to both the checkpoint and VTK and no special-casing in `Output` was needed; `coeff_sub = {}` works as is. Configs: `elliptic.cfg` (annotated), `tests/elliptic.cfg` (small cylinder case). `workflows/elliptic_convergence.py` (+ `.sh`): `--nx`, repeatable `--set PATH=VALUE` (YAML values), `--name`, `--runs-root`, `--skip-existing`; writes `runs/<name>/nx<nx>/{sim.h5,run.cfg}`, `summary.yaml`, `summary.csv`. Tests: `tests/unit/test_elliptic_convergence.py`, `tests/integration/test_elliptic_driver.py` (dispatch, `run_model` checkpoint/statistics/VTK, CLI sweep with `--skip-existing`). Docs: `workflows/README.md`, `README.md`.
 
 ### 4.8 Plotting (`dimswe/plotting/plot_elliptic.py`)
-- [ ] 1D: line plots of `u`, `u_exact`, `σ`.
-- [ ] 2D: scalar plots (k=0,2), quiver/magnitude (k=1) via existing `plotting.py` helpers.
-- [ ] 3D: no static plots (VTK only).
-- [ ] Convergence plot (log-log error vs h with reference slopes) for the workflow output.
-- [ ] Hook into `plot_model.py` dispatch on `model.type == 'elliptic'`.
+- [x] 1D: line plots of `u`, `u_exact`, `σ`.
+- [x] 2D: scalar plots (k=0,2), quiver/magnitude (k=1) via existing `plotting.py` helpers.
+- [x] 3D: no static plots (VTK only).
+- [x] Convergence plot (log-log error vs h with reference slopes) for the workflow output.
+- [x] Hook into `plot_model.py` dispatch on `model.type == 'elliptic'`.
+- Notes (done): `plot_elliptic(parameters, outdir)` reads the run's `sim.h5` without rebuilding the model; field list and scalar/vector shape follow from the form degrees (`elliptic_field_degrees`, `elliptic_fields`), `p`/errors only when present (`num_harmonic_forms`, `u_error` statistics). Vector magnitudes are interpolated into scalar DG first (Firedrake's vector `tripcolor` needs sub-elements, which RTCE/RTCF lack). `plot_convergence(summary, path)`: one series per `*_error` with a fixed color+marker per quantity (reference palette slots 1-5, validated: CVD/normal-vision pass; contrast WARN relieved by marker shapes, legend and `summary.csv` as table view), dashed muted `O(h^p)` reference slopes for the expected rates. `elliptic_convergence.py` writes `convergence.png` (`--no-plot` to skip); `plot_model.py` dispatches `model.type: elliptic` and accepts a `summary.yaml`. Tests: `tests/unit/test_plot_elliptic.py`, plot tests in `tests/integration/test_elliptic_driver.py`.
 
 ### 4.9 New FEEC families in `DeRhamComplex` (separate task, `dimswe/meshes.py`)
 Restructure `DeRhamComplex.__init__` into one small builder per family (`_build_Q`, `_build_Pminus`,
@@ -382,25 +385,26 @@ working. Each family must form a subcomplex (`d V^k ⊂ V^{k+1}`) for a given `o
 | `S-` (trimmed serendipity) | quad/hex | `S r` | `SminusCurl r` (2D) / `SminusE r` (3D) | `SminusDiv r` (2D) / `SminusF r` (3D) | `DPC r−1` | |
 | `S` (full serendipity `S_r`) | quad/hex | `S r` | `BDMCE r−1` (2D) / 3D element: check availability | `BDMCF r−(n−1)` (2D) / 3D: check | `DPC r−n` | 3D full serendipity H(curl)/H(div) may not exist in Firedrake/FIAT |
 
-- [ ] **Verify every element name, degree convention, and supported cell against the installed
+- [x] **Verify every element name, degree convention, and supported cell against the installed
   Firedrake/FIAT** before coding the table (`r` conventions differ between elements); record the
   verified table in the docstring.
-- [ ] 1D: `P-` and `P+` both reduce to `CG r → DG r−1` (`P+` in 1D: `DG r−1` too, since
+- [x] 1D: `P-` and `P+` both reduce to `CG r → DG r−1` (`P+` in 1D: `DG r−1` too, since
   `n = 1`); serendipity families on intervals are the same as `Q`, so map to the `Q` builder.
-- [ ] 2D: both complexes (grad-curl uses the Hcurl element, curl-div the Hdiv element) for every
+- [x] 2D: both complexes (grad-curl uses the Hcurl element, curl-div the Hdiv element) for every
   family.
-- [ ] Mesh constraints enforced in validation: `P±` need `simplicial_cells: true`; `S±` need
+- [x] Mesh constraints enforced in validation: `P±` need `simplicial_cells: true`; `S±` need
   non-extruded quad/hex meshes (so `box`/`box-periodic` with `S±` uses
   `BoxMesh/PeriodicBoxMesh(hexahedral=True)`, and needs a check that the installed Firedrake
   supports this); `Q` keeps extruded meshes in 3D.
-- [ ] Vector spaces `CGV`/`DGV` (used by existing models) defined for every family with the
+- [x] Vector spaces `CGV`/`DGV` (used by existing models) defined for every family with the
   matching scalar element; `HdivV`/`HcurlV` left unset as today.
-- [ ] `lump_mass` GLL rules exist only for `Q`; raise for other families if `lump_mass: true`
+- [x] `lump_mass` GLL rules exist only for `Q`; raise for other families if `lump_mass: true`
   (independent of the elliptic rejection).
-- [ ] Expected convergence rates per family/k go in a table in the tests (§6), since `P+`/`S`
+- [x] Expected convergence rates per family/k go in a table in the tests (§6), since `P+`/`S`
   give different rates for `u` vs `σ` than `P-`/`Q`.
-- [ ] The existing time-dependent models are not required to support the new families, but the
+- [x] The existing time-dependent models are not required to support the new families, but the
   space construction must not break them (`Q` path identical to current behaviour).
+- Notes (done): `meshes.family_elements(family, dim, r)` is the single, pure-Python element table (name, degree, variant per space; minimum orders P+: r ≥ n, S: r ≥ 2 in 2D); `DeRhamComplex` has one builder per family (`_build_Q`, `_build_Pminus`, `_build_P`, `_build_Sminus`, `_build_S`) sharing `_build_from_table`, checks the cell type (`FAMILY_CELLS`: P± simplices, S± non-extruded quads/hexes, Q quads/extruded hexes; genuine-hex Q is now rejected instead of silently missing Hdiv/Hcurl) and rejects `lump_mass` outside Q. 1D maps every family to the Q builder. **Not verified here against Firedrake** (no Firedrake in the authoring environment): the element names `S`, `DPC`, `SminusCurl/Div`, `SminusE/F`, `BDMCE/BDMCF` and the N2curl/BDM degree convention; `tests/unit/test_derham_families.py` builds every family and checks `d V^k ⊂ V^{k+1}` numerically, which verifies them on the installed version. Both serendipity families raise `NotImplementedError` in 3D: Firedrake only supports `Q`/`DQ`/`Real` elements on hexahedral meshes (`S` is rejected there). `S-` also raises in 2D: FIAT's `TrimmedSerendipityCurl/Div` do not implement `dual_basis()`, which FIAT uses even for `space_dimension()`, so no form on them can be assembled (revisit if FIAT gains it; the intended table is S r → SminusCurl/Div r → DPC r−1). Usable families are therefore Q, P-, P+ (1D–3D) and S (2D). Several elements (RTCE/RTCF/NCE/NCF, `SminusCurl/Div` — no dual basis — and `BDMCE/BDMCF` — `AttributeError` on interpolation) cannot be interpolated into: `harmonic_forms.interpolate_or_project` falls back to an explicit LU L2 projection (not `Function.project`), and `build_essential_bcs` puts BC data into the space that way before creating the `DirichletBC`. 3D tetrahedral convergence needs finer pairs ((8, 16) for P1, (4, 8) for P3; at (3, 6) and (6, 12) P1 was still pre-asymptotic). `EllipticConfig` accepts all families with the cell rule (P± ⇔ `simplicial_cells: true`). Expected rates in `tests/integration/test_elliptic_families.py` come from the approximation orders of the spaces (u: a(V^k); σ: min(a(V^{k−1}), a(V^k)); du: a(V^{k+1}); dσ: a(V^k); full-degree spaces of degree s: s+1, trimmed of degree r: r) and reproduce the Q rates; confirm empirically and refine if a family converges faster.
 
 ### 4.10 Variable coefficients, optionally exposed as model coefficients (separate task)
 **Weighted problem.** Coefficients go only on the `σ` mass, the `du` stiffness and an optional
@@ -418,11 +422,11 @@ everywhere, the problem is non-singular and the harmonic constraint is switched 
 automatically. (A weighted `u` inner product changes the harmonic space and needs the numerical
 path, so it is in §8.)
 
-- [ ] `EllipticCoefficient` dataclass: `name ∈ {mu, kappa, c}`, `kind ∈ {constant, problem,
+- [x] `EllipticCoefficient` dataclass: `name ∈ {mu, kappa, c}`, `kind ∈ {constant, problem,
   field}`, `rank ∈ {scalar, tensor}`, `treat_as_coeff`, `space` (for `field`: e.g. `DG0`, `CG1`,
   `R`), `bounds`, `scaling_factor`, `log_parametrization` (store `θ` with `coef = exp(θ)` so the
   coefficient stays positive during optimization).
-- [ ] Config:
+- [x] Config:
   ```yaml
   elliptic:
     coefficients:
@@ -432,30 +436,31 @@ path, so it is in §8.)
   ```
   `kind: problem` means the problem-data class supplies a UFL expression (spatial variation,
   anisotropic tensors); it is never `eval`'d from the cfg. Missing coefficients default to `1`, `1`, `0`.
-- [ ] Model-coefficient interface on `EllipticProblem`, matching `Dynamics`/`Hyperviscosity`
+- [x] Model-coefficient interface on `EllipticProblem`, matching `Dynamics`/`Hyperviscosity`
   (`treat_as_coeffs` pattern): `has_coeff`, `get_coeff_var`, `get_coeff_list`,
   `get_coeff_spaces`, `get_coeff_test_trial_vars`, `set_coeffs(parameters, coeff_sub)`,
   `get_coeff_size`, `get_coeff_bounds`, `get_coeff_scaling_factors`. Coefficients with
   `treat_as_coeff: false` are baked into the forms as `Constant`/expressions. Coefficients with
   `treat_as_coeff: true` enter the forms through `coeff_split`, so `ufl.derivative` with respect to
   them works.
-- [ ] `differential_forms.weighted_hodge_laplacian_expr(u, μ, κ, c, ...)` for MMS:
+- [x] `differential_forms.weighted_hodge_laplacian_expr(u, μ, κ, c, ...)` for MMS:
   `σ = μ⁻¹ δu`, `f = d σ + δ(κ du) + c u`; natural data become weighted fluxes
   (`g_du = κ du`). Add a `VariableCoefficientSineProblem` with smooth, non-constant, anisotropic
   coefficients.
-- [ ] Riesz-map preconditioners (§4.12) and eigenproblems (§4.11) take the same weights.
-- [ ] **Sensitivities / steady-state optimization:**
+- [x] Riesz-map preconditioners (§4.12) and eigenproblems (§4.11) take the same weights.
+- [x] **Sensitivities / steady-state optimization:**
   - `EllipticProblem.solve_adjoint(dJdx)` — the system is symmetric, so this reuses the forward
     operator: solve `Aᵀ λ = dJ/dx` with the homogenized BCs, and the same harmonic treatment.
   - `EllipticProblem.coefficient_gradient(λ)` = `−λᵀ ∂R/∂m` assembled with `ufl.derivative`.
   - A `SteadyStateConstrainedOptimization` in `optimize.py` that reuses `ReducedProblem`,
     `scipy_options`, `taylor_test`, the L2/observation objectives and bounds/scaling handling,
     with no time stepping (one "block", one observation step).
-  - Optional: route `workflows/optimize_params.py` to it when the model is time-invariant (one
+  - [ ] Optional (not done): route `workflows/optimize_params.py` to it when the model is time-invariant (one
     truth run, recover `κ`/`μ`).
-- [ ] Validation: tensor coefficients need the matching shape (`dim×dim` on vector-proxy spaces,
+- [x] Validation: tensor coefficients need the matching shape (`dim×dim` on vector-proxy spaces,
   scalar on 0-/n-form spaces); a coefficient on an absent block (`μ` at k=0, `κ` at k=n)
   → error.
+- Notes (done): `dimswe/elliptic_coefficients.py` (`EllipticCoefficient`, `parse_coefficients`, `EllipticCoefficients`). Two weight sets: **model weights** in the forms (parameters through the coefficient Function, `exp(θ)` for log), **reference weights** at the initial values for the problem data (so MMS sources and boundary data do not move with the optimizer). Weighted forms in the shared `hodge_bilinear_form` / `riesz_form` (`(1 + c) u` mass in the Riesz map); `differential_forms.weighted_hodge_fields` gives σ = μ⁻¹δu, flux = κ du, f = dσ + δ(flux) + c u; natural data use the flux. `VariableCoefficientSineProblem` (`variable-coefficient-sine`) supplies smooth scalar and rotated-diagonal SPD tensor coefficients. c > 0 everywhere (constant > 0, log-parametrized, or sampled problem/field min > 0) ⇒ no harmonic forms. Interface on `EllipticProblem`: `has_coeff`, `get_coeff_list/spaces/var/test_trial_vars/size/bounds/scaling_factors`, `set_coeffs`, plus `get_numpy_coeff`/`set_numpy_coeff`/`get_coeff_sub` (coefficients are checkpointed by `run_elliptic`). Treat-as-coeff: scalars only (R for constants, DG0 default for fields). `solve_adjoint` (homogeneous BCs; nullspace: the adjoint source is projected like the forward rhs, since the adjoint of u ← u − P_𝔥u is that projection) and `coefficient_gradient` (−λᵀ ∂R/∂m via `ufl.replace` + `ufl.derivative`). `optimize.py`: the scipy loop is now `run_scipy_minimize`, shared by `_ODEConstrainedOptimization.optimize` (unchanged behaviour) and the new `SteadyStateConstrainedOptimization` (L2 loss on sigma/u, optional Tikhonov term, model bounds/scaling). **Eigen extension:** `HodgeLaplacianEigenproblem` takes the same weights (M stays unweighted); closed-form spectra for constant scalars (`constant_coefficient_spectrum`: k=0 κλ₀+c, k=n λ₀/μ+c, middle k only κ=1/μ; otherwise no `exact_eigenvalues` statistic); c > 0 removes the zero modes. Tests: `tests/unit/test_elliptic_coefficients.py` (parsing/validation, weighted weak form for all 12 cases with tensor weights, interface), `tests/integration/test_elliptic_coefficients_solve.py` (variable/tensor MMS rates, c > 0, Taylor tests for R and DG0 parameters at k=0, k=n, middle k with both harmonic treatments, recovering κ and a DG0 μ field, constant-coefficient eigen spectra and min-max eigenvalue bounds for variable coefficients).
 
 ### 4.11 Hodge Laplacian eigenproblems (separate task, `dimswe/elliptic_eigen.py`)
 Find `λ`, `(σ, u) ≠ 0`:
@@ -466,21 +471,21 @@ Find `λ`, `(σ, u) ≠ 0`:
 This is a generalized problem `A x = λ M x` where `M` (the `u`-block mass) is singular on the `σ`
 block. For k=0 it is the primal `(κ du, dv) = λ (u, v)`.
 
-- [ ] Refactor `elliptic.py` so that space construction, BC construction and bilinear-form
+- [x] Refactor `elliptic.py` so that space construction, BC construction and bilinear-form
   builders are free functions shared by `EllipticProblem` and the eigenproblem class
   (no duplication).
-- [ ] `HodgeLaplacianEigenproblem` class (`model.type: elliptic-eigen`, dispatched from
+- [x] `HodgeLaplacianEigenproblem` class (`model.type: elliptic-eigen`, dispatched from
   `get_model`) built on Firedrake `LinearEigenproblem`/`LinearEigensolver` (SLEPc):
   shift-and-invert with a configurable target, MUMPS for the inner solve, `nev`/`ncv`/tolerance
   from the cfg. Shift-and-invert sends the infinite eigenvalues (from the singular `M`) to 0.
-- [ ] Homogeneous BCs only (essential via `DirichletBC` with `bc_shift` set so that BC rows
+- [x] Homogeneous BCs only (essential via `DirichletBC` with `bc_shift` set so that BC rows
   don't produce spurious eigenvalues in the target window; natural need no terms); periodic as usual.
-- [ ] Optional deflation of the known harmonic forms (§4.4), or keep them and report their count.
+- [x] Optional deflation of the known harmonic forms (§4.4), or keep them and report their count.
   Zero-eigenvalue multiplicity is reported as a statistic and compared to the §1.4 rule.
-- [ ] Output: eigenvalues (and residual norms) as statistics; eigenpairs `(σ_i, u_i)` saved as
+- [x] Output: eigenvalues (and residual norms) as statistics; eigenpairs `(σ_i, u_i)` saved as
   checkpoint indices `idx = i` (one output "step" per mode), so the existing loaders and plotting
   can loop over modes. VTK writes one `.pvd` entry per mode.
-- [ ] `exact_box_eigenvalues(k, dim, lengths, periodic_dirs, face_bcs, n)` (pure Python) for
+- [x] `exact_box_eigenvalues(k, dim, lengths, periodic_dirs, face_bcs, n)` (pure Python) for
   tests. On a box with one BC type per face, eigenforms separate per `dx^I` component. Per
   direction, the 1D factor is:
   - in `I`: essential → `cos`, `m ≥ 0`; natural → `sin`, `m ≥ 1`;
@@ -490,9 +495,10 @@ block. For k=0 it is the primal `(κ du, dv) = λ (u, v)`.
   `λ = Σ (m_i π / L_i)²`; the spectrum is the multiset union over `|I| = k`. Multiplicities matter.
   Mixed per-direction BCs (essential on one face, natural on the other) give quarter-wave modes
   `((m + ½) π / L)²`.
-- [ ] Plotting: eigenvalue-index plot (computed vs exact) and mode plots in 1D/2D.
+- [x] Plotting: eigenvalue-index plot (computed vs exact) and mode plots in 1D/2D.
 - [ ] Later reuse: the numerical harmonic forms in §8 are the zero-eigenvalue eigenvectors from
   this solver.
+- Notes (done): shared free builders in `elliptic.py` (`BlockLayout`/`build_block_layout`, `split_arguments`, `build_harmonic_basis`, `build_essential_bc_lists`, `hodge_bilinear_form`, `riesz_form`, ...) are used by both `EllipticProblem` and `HodgeLaplacianEigenproblem` (`dimswe/elliptic_eigen.py`). With the symmetric sign of `hodge_bilinear_form`, `A x = λ M x` (M = u-block mass) has λ ≥ 0; SLEPc Krylov–Schur, generalized non-Hermitian, shift-and-invert with MUMPS. **Default target −1** (cfg `elliptic.eigen.target`), not 0: with harmonic forms `A` is singular, so a shift of exactly 0 cannot be factored; −1 still finds the zero eigenvalues first. Essential BCs: `LinearEigenproblem(restrict=True)` when available, otherwise `bc_shift` (default 1e8). Deflation (`deflate_harmonic: true`) passes the exact eigenvectors (0, h_i) to `EPS.setDeflationSpace` (the problem is then not restricted). Statistics: `eigenvalues`, `eigenvalue_imag`, `eigen_residuals` (SLEPc relative errors), `num_converged`, `num_zero_eigenvalues`, `num_harmonic_forms`, `deflated`, and on boxes `exact_eigenvalues` and `eigenvalue_errors` (|λ_h − λ| / max(1, λ)). `run_elliptic` writes one output step per mode (`num_output_steps`/`select_output_step`; checkpoint `idx = i`, VTK time i). `exact_box_eigenvalues` / `direction_modes` implement the separation rule (independent of the 2D complex). Configs: `elliptic-eigen.cfg`, `tests/elliptic-eigen.cfg`. Plots: `plot_elliptic_eigen` (eigenvalue-index plot + mode plots), dispatched by `plot_model.py`. Tests: SLEPc is asked for `nev + max(4, nev // 2)` pairs with subspace `max(2m, m + 16)` and the smallest `nev` are kept (asking for exactly `nev` missed copies of double eigenvalues). `tests/unit/test_elliptic_eigen.py` (spectra, zero multiplicity = §1.4 rule for every periodic/essential/natural/mixed combination in 1D–3D), `tests/integration/test_elliptic_eigensolver.py` (all 12 cases × BC sets against exact spectra, ~2·order convergence, deflation, driver + plots). μ = κ = 1 until §4.10.
 
 ### 4.12 Scalable iterative solvers (separate task)
 Goal: iteration counts that stay bounded under mesh refinement (and, where possible, under order

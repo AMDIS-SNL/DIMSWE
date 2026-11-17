@@ -4,6 +4,8 @@ from firedrake import Function, CellDiameter
 import finat
 import FIAT
 
+from .ufl_helpers import ufl_attribute
+
 # Coordinate directions, in order, for 1D/2D/3D meshes.
 DIRECTIONS = ('x', 'y', 'z')
 
@@ -55,7 +57,7 @@ def set_dimension(parameters, mesh=None):
     if dim is None:
         if mesh is None:
             raise ValueError("the dimension of a 'file' mesh can only be set once the mesh is loaded")
-        dim = mesh.geometric_dimension()
+        dim = ufl_attribute(mesh, 'geometric_dimension')
     parameters['mesh']['dim'] = dim
 
 def get_periodic_directions(mesh_parameters):
@@ -281,7 +283,108 @@ def get_mesh_and_spaces(parameters, domain, mesh=None):
 
 #LOTS OF CHOICES HERE- QUADS VS TRIANGLES, DIFFERENT FAMILIES, ETC.
 
+# FEEC families supported by DeRhamComplex (TODO-elliptic §4.9).
+FEEC_FAMILIES = ('Q', 'P-', 'P+', 'S-', 'S')
+
+# Cells each family can be built on (cellname of the mesh; 'extruded' = quad x interval).
+FAMILY_CELLS = {
+    'Q': ('interval', 'quadrilateral', 'extruded'),
+    'P-': ('interval', 'triangle', 'tetrahedron'),
+    'P+': ('interval', 'triangle', 'tetrahedron'),
+    'S-': ('interval',),
+    'S': ('interval', 'quadrilateral'),
+}
+
+
+def family_elements(family, dim, r):
+    """Element table of the discrete de Rham complexes: {space: (element, degree, variant)}.
+
+    Keys are 'CG' (0-forms), 'Hcurl' (1-forms), 'Hdiv' ((n-1)-forms) and 'DG' (n-forms); a value
+    of None means the space does not exist. Degrees follow the UFL/FIAT convention in which
+    N1curl/RT/RTCE/RTCF/NCE/NCF/Sminus* of degree r are the trimmed spaces containing all
+    polynomials of degree r - 1, and N2curl/BDM/BDMCE/BDMCF of degree s contain all of degree s.
+
+    | family | 0-forms | 1-forms (Hcurl)            | (n-1)-forms (Hdiv)           | n-forms   |
+    |--------|---------|----------------------------|------------------------------|-----------|
+    | Q      | CG r    | RTCE r / NCE r (extruded)  | RTCF r / NCF r (extruded)    | DG r-1    |
+    | P-     | CG r    | N1curl r                   | RT r                         | DG r-1    |
+    | P+     | CG r    | N2curl r-1                 | BDM r-(n-1)                  | DG r-n    |
+    | S-     | S r     | SminusCurl r (unusable)    | SminusDiv r (unusable)       | DPC r-1   |
+    | S      | S r     | BDMCE r-1 (2D only)        | BDMCF r-1 (2D only)          | DPC r-2   |
+
+    (2D / 3D where they differ.) In 1D every family reduces to CG r -> DG r-1 and, as for the
+    existing models, Hdiv is the CG space and Hcurl does not exist. Q keeps variant 'spectral'
+    for CG/DG (unchanged from the original implementation); the other families use the default
+    variants. The serendipity families raise NotImplementedError in 3D (Firedrake supports only
+    Q/DQ elements on hexahedra), and S- also in 2D (FIAT's trimmed serendipity elements lack
+    dual_basis(), which even assembly needs); S- is only the CG/DG complex in 1D. Several of these elements (RTCE/RTCF/NCE/NCF, Sminus*, BDMCE/F)
+    cannot be interpolated into; use harmonic_forms.interpolate_or_project to put data in them.
+
+    Raises ValueError for unknown families, out-of-range dimensions, and orders below the
+    family's minimum (P+: r >= n; S: r >= 2 in 2D; all: r >= 1).
+    """
+    if family not in FEEC_FAMILIES:
+        raise ValueError("FEEC family " + str(family) + " is unknown (known: " + str(list(FEEC_FAMILIES)) + ")")
+    if dim not in (1, 2, 3):
+        raise ValueError("dimension " + str(dim) + " is not supported")
+    r = int(r)
+    minimum = {'P+': dim, 'S': 2 if dim > 1 else 1}.get(family, 1)
+    if r < minimum:
+        raise ValueError("family " + family + " in " + str(dim) + "D needs order >= " + str(minimum) + ", got " + str(r))
+    spectral = 'spectral' if family == 'Q' or dim == 1 else None
+    if dim == 1:
+        # Same complex for every family (Q builder); Hdiv = CG as in the existing models.
+        return {'CG': ('CG', r, 'spectral'), 'Hcurl': None, 'Hdiv': ('CG', r, 'spectral'), 'DG': ('DG', r - 1, 'spectral')}
+    if family == 'Q':
+        curl, div = ('RTCE', 'RTCF') if dim == 2 else ('NCE', 'NCF')
+        return {'CG': ('CG', r, spectral), 'Hcurl': (curl, r, None), 'Hdiv': (div, r, None), 'DG': ('DG', r - 1, spectral)}
+    if family == 'P-':
+        return {'CG': ('CG', r, None), 'Hcurl': ('N1curl', r, None), 'Hdiv': ('RT', r, None), 'DG': ('DG', r - 1, None)}
+    if family == 'P+':
+        return {'CG': ('CG', r, None), 'Hcurl': ('N2curl', r - 1, None), 'Hdiv': ('BDM', r - (dim - 1), None),
+                'DG': ('DG', r - dim, None)}
+    if dim == 3 and family in ('S-', 'S'):
+        # Firedrake only supports Q, DQ and Real elements on (non-extruded) hexahedral meshes, so
+        # neither serendipity family exists in 3D (the trimmed SminusE/SminusF would be the 3D
+        # S- spaces if that changes).
+        raise NotImplementedError("serendipity families (S-, S) are not available in 3D: Firedrake only supports "
+                                  "Q/DQ elements on hexahedral meshes; use Q (extruded) or P-/P+ (tetrahedra)")
+    if family == 'S-':
+        # The trimmed serendipity spaces would be S r -> SminusCurl r / SminusDiv r -> DPC r-1, but
+        # FIAT's TrimmedSerendipityCurl/Div do not implement dual_basis(), which FIAT also uses for
+        # space_dimension(), so no form on them can even be assembled.
+        raise NotImplementedError("family S- (trimmed serendipity) is not usable with the installed FIAT: "
+                                  "TrimmedSerendipityCurl/Div lack dual_basis() (needed even for assembly); "
+                                  "use S, Q or P-/P+")
+    # Full serendipity S_r (2D).
+    return {'CG': ('S', r, None), 'Hcurl': ('BDMCE', r - 1, None), 'Hdiv': ('BDMCF', r - 1, None), 'DG': ('DPC', r - 2, None)}
+
+
+def mesh_cell_name(mesh):
+    """'interval' | 'triangle' | 'quadrilateral' | 'tetrahedron' | 'hexahedron' | 'extruded'."""
+    if isinstance(ufl_attribute(mesh, 'cell_dimension'), tuple):
+        return 'extruded'
+    return ufl_attribute(mesh.ufl_cell(), 'cellname')
+
+
+def _space(mesh, element, vector=False):
+    """FunctionSpace (or VectorFunctionSpace) for an (element, degree, variant) table entry."""
+    name, degree, variant = element
+    kwargs = {} if variant is None else {'variant': variant}
+    if vector:
+        return VectorFunctionSpace(mesh, name, degree, **kwargs)
+    return FunctionSpace(mesh, name, degree, **kwargs)
+
+
 class DeRhamComplex():
+    """Discrete de Rham complex CG -> Hcurl -> Hdiv -> DG (plus CGV, DGV) of a FEEC family.
+
+    Families (spatial-discretization.family): Q (tensor-product, quads/extruded hexes), P-
+    and P+ (simplices), S- and S (serendipity, non-extruded quads/hexes); see family_elements
+    for the element table. Every family sets the same attributes (CG, Hcurl, Hdiv, DG, CGV, DGV,
+    dx, dS, ds, n), so get_diff_form_space and the existing models work unchanged; HdivV/HcurlV
+    stay unset as before. Only Q supports lump_mass (GLL quadrature).
+    """
 
     def __init__(self, mesh, parameters):
         """Build the discrete de Rham complex (CG, Hcurl, Hdiv, DG and vector spaces) on mesh.
@@ -290,48 +393,79 @@ class DeRhamComplex():
         'x'/'y'/'z', empty if unknown) and domain_bounds (None if unknown), which the boundary
         registry and the harmonic-form rule of the elliptic problems need.
         """
-
+        disc = parameters['spatial-discretization']
         self.n = FacetNormal(mesh)
-        self.order = parameters['spatial-discretization']['order']
-        self.family = parameters['spatial-discretization']['family']
+        self.order = disc['order']
+        self.family = disc['family']
         self.mesh = mesh
         self.periodic_directions = getattr(mesh, 'periodic_directions', ())
         self.domain_bounds = getattr(mesh, 'domain_bounds', None)
-        if parameters['spatial-discretization']['family'] == 'Q':
-            self.CG = FunctionSpace(mesh, 'CG', parameters['spatial-discretization']['order'], variant="spectral") #TRY Q??
-            self.DG = FunctionSpace(mesh, 'DG', parameters['spatial-discretization']['order']-1, variant="spectral") #TRY DQ?
-#PLOTTING FOR DG L2 IS BROKEN
-#UNCLEAR IF WE REALLY NEED DG L2?
-            if mesh.cell_dimension() == 1:
-                self.DGV = self.DG
-                self.Hdiv = self.CG
-                self.Hcurl = None
-                self.CGV = self.CG
-            if mesh.cell_dimension() == 2:
-                self.DGV = VectorFunctionSpace(mesh, 'DG', parameters['spatial-discretization']['order']-1, variant="spectral") #TRY DQ?
-                self.CGV = VectorFunctionSpace(mesh, 'CG', parameters['spatial-discretization']['order'], variant="spectral") #TRY Q?
-                self.Hdiv = FunctionSpace(mesh, 'RTCF', parameters['spatial-discretization']['order'])
-                self.Hcurl = FunctionSpace(mesh, 'RTCE', parameters['spatial-discretization']['order'])
-#THIS IS NEEDED SINCE 3D HEXAHEDRA ARE NOT SUPPORTED YET
-            if mesh.cell_dimension() == (2,1):
-                self.DGV = VectorFunctionSpace(mesh, 'DG', parameters['spatial-discretization']['order']-1, variant="spectral") #TRY DQ?
-                self.CGV = VectorFunctionSpace(mesh, 'CG', parameters['spatial-discretization']['order'], variant="spectral") #TRY DQ?
-                self.Hdiv = FunctionSpace(mesh, 'NCF', parameters['spatial-discretization']['order'])
-                self.Hcurl = FunctionSpace(mesh, 'NCE', parameters['spatial-discretization']['order'])
-            if parameters['spatial-discretization']['lump_mass']:
-                gll_rule = gauss_lobatto_legendre_cube_rule(dimension=parameters['mesh']['dim'], degree=self.CG.ufl_element().degree())
-                gll_surf_rule = gauss_lobatto_legendre_cube_rule(dimension=parameters['mesh']['dim']-1, degree=self.CG.ufl_element().degree())
-                self.dx = dx(scheme=gll_rule)
-                self.dS = dS(scheme=gll_surf_rule)
-                self.ds = ds(scheme=gll_surf_rule)
-            else:
-                self.dx = dx
-                self.dS = dS
-                self.ds = ds
+        if self.family not in FEEC_FAMILIES:
+            raise ValueError("FEEC family " + str(self.family) + " is unknown")
+        self.cell = mesh_cell_name(mesh)
+        self.dim = 3 if self.cell == 'extruded' else ufl_attribute(mesh, 'topological_dimension')
+        if self.cell not in FAMILY_CELLS[self.family]:
+            raise ValueError("FEEC family " + self.family + " is not available on " + self.cell + " cells "
+                             "(supported: " + str(list(FAMILY_CELLS[self.family])) + "; P-/P+ need "
+                             "simplicial_cells: true, Q/S-/S need simplicial_cells: false, 3D Q needs the extruded box)")
+        if disc.get('lump_mass', False) and self.family != 'Q':
+            raise ValueError("lump_mass (GLL quadrature) is only available for family Q")
+        builders = {'Q': self._build_Q, 'P-': self._build_Pminus, 'P+': self._build_P,
+                    'S-': self._build_Sminus, 'S': self._build_S}
+        # Serendipity and simplicial families reduce to the Q complex on intervals.
+        builder = self._build_Q if self.dim == 1 else builders[self.family]
+        builder()
+        self._build_measures(parameters)
 
-        #elif parameters['family'] == 'P-':
-        #    pass
-        #elif parameters['family'] == 'P+':
-        #    pass
+    # --- one builder per family (they share _build_from_table) --------------------------------
+
+    def _build_from_table(self, family):
+        """Create CG, Hcurl, Hdiv, DG, CGV, DGV from family_elements(family, dim, order)."""
+        table = family_elements(family, self.dim, self.order)
+        self.elements = table
+        self.CG = _space(self.mesh, table['CG'])
+        self.DG = _space(self.mesh, table['DG'])
+        if self.dim == 1:
+            # As in the original implementation: 1-form "Hdiv" is CG, vectors are scalars.
+            self.DGV = self.DG
+            self.Hdiv = self.CG
+            self.Hcurl = None
+            self.CGV = self.CG
+            return
+        self.DGV = _space(self.mesh, table['DG'], vector=True)
+        self.CGV = _space(self.mesh, table['CG'], vector=True)
+        self.Hdiv = _space(self.mesh, table['Hdiv'])
+        self.Hcurl = _space(self.mesh, table['Hcurl'])
+
+    def _build_Q(self):
+        """Tensor-product Q_r^- family (CG/RTCE/RTCF/DG, NCE/NCF on extruded hexes); unchanged."""
+        self._build_from_table('Q')
+
+    def _build_Pminus(self):
+        """Simplicial P_r^- family (CG, N1curl, RT, DG of the same degree r)."""
+        self._build_from_table('P-')
+
+    def _build_P(self):
+        """Simplicial full P_r family (CG r, N2curl r-1, BDM r-(n-1), DG r-n)."""
+        self._build_from_table('P+')
+
+    def _build_Sminus(self):
+        """Trimmed serendipity S_r^- family (S, SminusCurl/E, SminusDiv/F, DPC r-1)."""
+        self._build_from_table('S-')
+
+    def _build_S(self):
+        """Full serendipity S_r family in 2D (S r, BDMCE r-1, BDMCF r-1, DPC r-2)."""
+        self._build_from_table('S')
+
+    def _build_measures(self, parameters):
+        """dx, dS, ds: GLL rules for Q with lump_mass, the default rules otherwise."""
+        if parameters['spatial-discretization'].get('lump_mass', False):
+            gll_rule = gauss_lobatto_legendre_cube_rule(dimension=parameters['mesh']['dim'], degree=ufl_attribute(self.CG.ufl_element(), 'degree'))
+            gll_surf_rule = gauss_lobatto_legendre_cube_rule(dimension=parameters['mesh']['dim']-1, degree=ufl_attribute(self.CG.ufl_element(), 'degree'))
+            self.dx = dx(scheme=gll_rule)
+            self.dS = dS(scheme=gll_surf_rule)
+            self.ds = ds(scheme=gll_surf_rule)
         else:
-            raise ValueError("FEEC family " + parameters['spatial-discretization']['family'] + " is unknown")
+            self.dx = dx
+            self.dS = dS
+            self.ds = ds

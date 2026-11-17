@@ -12,6 +12,7 @@ from dimswe.differential_forms import (boundary_pairing, constant_form_proxy, ex
                                        is_scalar_form)
 from dimswe.elliptic_problems import (BoundaryDrivenProblem, GaussianSourceProblem,
                                       IncompatibleSourceProblem, PolynomialProblem, SineProblem,
+                                      VariableCoefficientSineProblem,
                                       collect_boundary_data, get_elliptic_problem)
 from dimswe.meshes import get_mesh_and_spaces
 
@@ -72,7 +73,8 @@ def test_get_elliptic_problem():
     """Names map to classes; unknown names are rejected."""
     expected = {'sine': SineProblem, 'polynomial': PolynomialProblem,
                 'gaussian-source': GaussianSourceProblem, 'boundary-driven': BoundaryDrivenProblem,
-                'incompatible-source': IncompatibleSourceProblem}
+                'incompatible-source': IncompatibleSourceProblem,
+                'variable-coefficient-sine': VariableCoefficientSineProblem}
     for name, cls in expected.items():
         assert type(get_elliptic_problem({'elliptic-problem': {'name': name}})) is cls
     with pytest.raises(ValueError):
@@ -111,7 +113,8 @@ def test_exact_fields(case):
     dim, cx, k = case
     problem, mesh, _ = make_problem_and_mesh('sine', dim, n=2, order=1)
     exact = problem.get_exact(mesh, k, dim, cx)
-    assert set(exact) == {'u', 'sigma', 'dsigma', 'du', 'f', 'p'}
+    assert set(exact) == {'u', 'sigma', 'dsigma', 'du', 'flux', 'f', 'p'}
+    assert (exact['flux'] is None) == (k == dim)  # unweighted: flux = d u
     assert (exact['sigma'] is None) == (k == 0)
     assert (exact['dsigma'] is None) == (k == 0)
     assert (exact['du'] is None) == (k == dim)

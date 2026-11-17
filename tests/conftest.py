@@ -19,7 +19,8 @@ ELLIPTIC_BC_SETS = {
 
 
 def make_elliptic_parameters(dim, complex, k, bcs, n=8, order=2, problem='sine',
-                             harmonic_constraint='lagrange', solver='elliptic-direct', **problem_cfg):
+                             harmonic_constraint='lagrange', solver='elliptic-direct', family='Q',
+                             simplicial=None, **problem_cfg):
     """Parameter dictionary for an EllipticProblem (no Firedrake objects are created).
 
     Args:
@@ -29,8 +30,11 @@ def make_elliptic_parameters(dim, complex, k, bcs, n=8, order=2, problem='sine',
             high faces; 'partial-*' = periodic in x, the given type elsewhere), or a tuple
             (periodic directions, {face: type}).
         n, order: cells per direction and polynomial order.
+        family: FEEC family (Q, P-, P+, S-, S); simplicial defaults to True for P-/P+.
         problem: elliptic-problem name; extra keyword arguments go into that section.
     """
+    if simplicial is None:
+        simplicial = family in ('P-', 'P+')
     if isinstance(bcs, tuple):
         periodic, face_cfg = bcs
     else:
@@ -46,9 +50,9 @@ def make_elliptic_parameters(dim, complex, k, bcs, n=8, order=2, problem='sine',
     problem_section = {'name': problem, 'Lx': 1.0, 'Ly': 1.25, 'Lz': 0.75}
     problem_section.update(problem_cfg)
     return {
-        'mesh': {'type': _ELLIPTIC_MESH_TYPES[dim], 'nx': n, 'ny': n, 'nz': n, 'simplicial_cells': False,
+        'mesh': {'type': _ELLIPTIC_MESH_TYPES[dim], 'nx': n, 'ny': n, 'nz': n, 'simplicial_cells': simplicial,
                  'periodic_directions': list(periodic)},
-        'spatial-discretization': {'family': 'Q', 'order': order, 'lump_mass': False},
+        'spatial-discretization': {'family': family, 'order': order, 'lump_mass': False},
         'model': {'type': 'elliptic'},
         'elliptic': {'form_degree': k, 'complex': complex, 'boundary_conditions': face_cfg,
                      'boundary_data': 'exact', 'harmonic_forms': 'auto',

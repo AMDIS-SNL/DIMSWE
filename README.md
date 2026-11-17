@@ -28,3 +28,10 @@
 
 - PDE-constrained optimization is done using scipy.optimize routines combined with the adjoint time stepping capabilities.
   - Currently only a Jacobian can be calculated, limiting the model to 1st order optimization algorithms
+
+- Elliptic Hodge Laplacian problems `(d delta + delta d) u = f` for k-forms in 1D/2D/3D can be solved with `model.type: elliptic` (see `elliptic.cfg`, `TODO-elliptic.md` and `docs/hodge_laplacian.tex`)
+  - Mixed FEEC formulation with essential, natural, periodic or mixed per-face boundary conditions and harmonic forms (Lagrange multipliers or a PETSc nullspace)
+  - FEEC families `Q` (tensor product), `P-`/`P+` (simplicial) and `S` (serendipity, 2D) via `spatial-discretization.family` (`S-` is defined but rejected: the installed FIAT cannot assemble trimmed serendipity elements)
+  - Run with `python run_model.py elliptic.cfg`; convergence sweeps with `workflows/elliptic_convergence.py`
+  - Variable (scalar or SPD tensor) coefficients `mu`, `kappa`, `c` via `elliptic.coefficients`, optionally as model coefficients with adjoint gradients and steady-state optimization (`optimize.SteadyStateConstrainedOptimization`)
+  - Hodge Laplacian eigenproblems with `model.type: elliptic-eigen` (SLEPc shift-and-invert; see `elliptic-eigen.cfg`), compared against exact box spectra

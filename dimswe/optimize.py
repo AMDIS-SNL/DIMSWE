@@ -1,4 +1,4 @@
-from firedrake import assemble, inner, norm, LinearVariationalProblem, LinearVariationalSolver, Constant
+from firedrake import assemble, inner, norm, LinearVariationalProblem, LinearVariationalSolver, Constant, derivative, split
 import numpy as np
 from .numpy_helpers import set_mixed_function_from_flattened_array, create_flattened_numpy_arr_from_mixed_function
 import scipy as sp
@@ -401,6 +401,58 @@ def taylor_test(problem, direction, eps_list=None):
     return np.array(eps_list), np.array(remainders), np.array(rates)
 
 
+def run_scipy_minimize(problem, method='L-BFGS-B', use_jacobian=True, gtol=1e-5, ftol=1e-5, maxiter=200000,
+                       callback=None, return_result=False, verbose=True):
+    """Minimize a ReducedProblem with scipy.optimize.minimize; return the optimal full parameter vector.
+
+    Shared by the time-dependent (_ODEConstrainedOptimization) and steady-state
+    (SteadyStateConstrainedOptimization) drivers. callback, if given, is called as
+    callback(iteration, x_full, fun_value, grad_norm) for the initial point (iteration 0) and
+    after every optimizer iteration; fun_value/grad_norm are None when not available without
+    extra model evaluations, and grad_norm is the 2-norm of the gradient in the reduced, scaled
+    optimizer variables. If return_result is True, returns (x_full, scipy OptimizeResult).
+    """
+    iteration = [0]
+    def report(zk):
+        if callback is None:
+            return
+        f = problem.cached_fun(zk)
+        g = problem.cached_jac(zk)
+        gnorm = None if g is None else float(np.linalg.norm(g))
+        callback(iteration[0], problem.to_full(zk), f, gnorm)
+
+    def scipy_callback(zk):
+        iteration[0] += 1
+        report(zk)
+
+    # evaluate the starting point up front (memoized, so this costs nothing extra)
+    if callback is not None:
+        problem.fun(problem.z0)
+        if use_jacobian:
+            problem.jac(problem.z0)
+        report(problem.z0)
+
+    options = scipy_options(method, maxiter, gtol, ftol, verbose)
+    if use_jacobian:
+        res = sp.optimize.minimize(problem.fun, problem.z0,
+            method=method, bounds=problem.scipy_bounds(),
+            options=options, jac=problem.jac, callback=scipy_callback)
+    else:
+        res = sp.optimize.minimize(problem.fun, problem.z0,
+            method=method, bounds=problem.scipy_bounds(),
+            options=options, callback=scipy_callback)
+    if verbose:
+        print('optimizer success', res.success, res.status, res.message)
+        print('optimizer nits', res.nit)
+        print('optimizer num func evals', res.nfev)
+        if use_jacobian and method == 'L-BFGS-B':
+            print('optimizer num jac evals', res.njev)
+    x_opt = problem.to_full(res.x)
+    if return_result:
+        return x_opt, res
+    return x_opt
+
+
 class _ODEConstrainedOptimization():
     def __init__(self, model, timestepper, objective, dt):
         self.model = model
@@ -496,45 +548,9 @@ class _ODEConstrainedOptimization():
             problem = self.reduced_problem(initial_guess, opt_type=opt_type, coeffs0=coeffs0, bounds=bounds,
                 scaling_factors=scaling_factors, free_mask=free_mask, ic_map=ic_map)
 
-        iteration = [0]
-        def report(zk):
-            if callback is None:
-                return
-            f = problem.cached_fun(zk)
-            g = problem.cached_jac(zk)
-            gnorm = None if g is None else float(np.linalg.norm(g))
-            callback(iteration[0], problem.to_full(zk), f, gnorm)
-
-        def scipy_callback(zk):
-            iteration[0] += 1
-            report(zk)
-
-        # evaluate the starting point up front (memoized, so this costs nothing extra)
-        if callback is not None:
-            problem.fun(problem.z0)
-            if use_jacobian:
-                problem.jac(problem.z0)
-            report(problem.z0)
-
-        options = scipy_options(method, maxiter, gtol, ftol, self.verbose)
-        if use_jacobian:
-            res = sp.optimize.minimize(problem.fun, problem.z0,
-                method=method, bounds=problem.scipy_bounds(),
-                options=options, jac=problem.jac, callback=scipy_callback)
-        else:
-            res = sp.optimize.minimize(problem.fun, problem.z0,
-                method=method, bounds=problem.scipy_bounds(),
-                options=options, callback=scipy_callback)
-        if self.verbose:
-            print('optimizer success', res.success, res.status, res.message)
-            print('optimizer nits', res.nit)
-            print('optimizer num func evals', res.nfev)
-            if use_jacobian and method == 'L-BFGS-B':
-                print('optimizer num jac evals', res.njev)
-        x_opt = problem.to_full(res.x)
-        if return_result:
-            return x_opt, res
-        return x_opt
+        return run_scipy_minimize(problem, method=method, use_jacobian=use_jacobian, gtol=gtol, ftol=ftol,
+                                  maxiter=maxiter, callback=callback, return_result=return_result,
+                                  verbose=self.verbose)
 
     def _set_coeffs(self, coeffs_arr, coeffs0):
         """Set the timestepper coefficients from a numpy array, or from coeffs0 if it is None."""
@@ -646,3 +662,110 @@ class Lagrangian_ODEConstrainedOptimization(_ODEConstrainedOptimization):
 
     def hessp(self, x, params):
         pass
+
+
+class SteadyStateConstrainedOptimization():
+    """Coefficient optimization constrained by a time-invariant (elliptic) model.
+
+    The steady-state counterpart of Lagrangian_ODEConstrainedOptimization: one forward solve per
+    objective evaluation, and one adjoint solve per gradient (model.solve_adjoint +
+    model.coefficient_gradient), with no time stepping. It reuses ReducedProblem (free mask,
+    scaling, bounds), scipy_options/run_scipy_minimize and taylor_test.
+
+    Objective: J = sum_{v in fields} w_v * loss_scale * 0.5 * ||x_v - data_v||^2_{L2}, with x_v
+    the solution fields ('sigma', 'u'; p is a derived quantity and not supported here) and data a
+    dict of Functions in the matching spaces, plus an optional Tikhonov term
+    0.5 * regularization * ||m - m_ref||^2 in the flattened (theta) parameters.
+    """
+
+    def __init__(self, model, data, fields=('u',), var_weights=None, loss_scale=1.0, regularization=0.0,
+                 reference=None):
+        """Set up the objective forms.
+
+        Args:
+            model: an EllipticProblem with model coefficients (treat_as_coeff).
+            data: {field: Function} target fields (e.g. loaded from a truth run).
+            fields: solution fields entering the loss.
+            var_weights: optional {field: weight} (default 1).
+            loss_scale: global factor of the loss.
+            regularization: weight of the Tikhonov term on the parameters.
+            reference: reference parameter vector of the Tikhonov term (default: initial values).
+        """
+        if not model.has_coeff():
+            raise ValueError("the model has no coefficients to optimize (set treat_as_coeff)")
+        for name in fields:
+            if name not in ('sigma', 'u'):
+                raise ValueError("loss field " + repr(name) + " must be 'sigma' or 'u'")
+            if name not in data:
+                raise ValueError("no data for loss field " + repr(name))
+        self.model = model
+        self.fields = list(fields)
+        self.weights = {name: 1.0 for name in self.fields}
+        self.weights.update(var_weights or {})
+        self.loss_scale = float(loss_scale)
+        self.regularization = float(regularization)
+        self.verbose = True
+        self.data = data
+        self.index = {'sigma': model.sigma_index, 'u': model.u_index}
+        self.x0 = model.get_numpy_coeff().copy()
+        self.reference = self.x0.copy() if reference is None else np.asarray(reference, dtype=float)
+
+        # J(w) as a UFL form in the model solution, and its derivative with respect to w.
+        pieces = split(model.solution) if model.num_blocks > 1 else (model.solution,)
+        form = 0
+        for name in self.fields:
+            mismatch = pieces[self.index[name]] - data[name]
+            form = form + self.weights[name] * self.loss_scale * 0.5 * inner(mismatch, mismatch) * model.dx
+        self.loss_form = form
+        self.dloss_form = derivative(form, model.solution)
+        self.nsolves = 0
+
+    def _solve(self, coeffs_arr):
+        """Forward solve at the given flattened parameters."""
+        self.model.set_numpy_coeff(coeffs_arr)
+        self.model.solve()
+        self.nsolves += 1
+
+    def _regularization_value(self, coeffs_arr):
+        """0.5 * regularization * ||m - m_ref||^2 (parallel-safe sum over rank-local dofs)."""
+        if self.regularization == 0.0:
+            return 0.0
+        local = float(np.sum((np.asarray(coeffs_arr) - self.reference) ** 2))
+        return 0.5 * self.regularization * self.model.mesh.comm.allreduce(local)
+
+    def obj(self, coeffs_arr):
+        """J(m): solve the forward problem and evaluate the loss."""
+        self._solve(coeffs_arr)
+        return float(assemble(self.loss_form)) + self._regularization_value(coeffs_arr)
+
+    def jac(self, coeffs_arr):
+        """dJ/dm by the adjoint method (forward solve, adjoint solve, coefficient gradient)."""
+        self._solve(coeffs_arr)
+        adjoint = self.model.solve_adjoint(assemble(self.dloss_form))
+        gradient = self.model.coefficients.flatten(self.model.coefficient_gradient(adjoint))
+        if self.regularization != 0.0:
+            gradient = gradient + self.regularization * (np.asarray(coeffs_arr) - self.reference)
+        return gradient
+
+    def reduced_problem(self, initial_guess=None, bounds=None, scaling_factors=None, free_mask=None,
+                        use_model_bounds=True):
+        """ReducedProblem over the flattened parameters (model bounds/scaling by default)."""
+        x0 = self.x0 if initial_guess is None else np.asarray(initial_guess, dtype=float)
+        if bounds is None and use_model_bounds:
+            lb, ub = self.model.get_coeff_bounds()
+            bounds = None if (np.all(np.isinf(lb)) and np.all(np.isinf(ub))) else (lb, ub)
+        if scaling_factors is None:
+            scaling_factors = self.model.get_coeff_scaling_factors()
+        return ReducedProblem(self.obj, self.jac, x0, free_mask=free_mask, scaling_factors=scaling_factors,
+                              bounds=bounds)
+
+    def optimize(self, initial_guess=None, method='L-BFGS-B', use_jacobian=True, gtol=1e-5, ftol=1e-5,
+                 maxiter=200, bounds=None, scaling_factors=None, free_mask=None, callback=None,
+                 return_result=False, problem=None):
+        """Run scipy.optimize.minimize (see run_scipy_minimize); returns the optimal parameters."""
+        if problem is None:
+            problem = self.reduced_problem(initial_guess, bounds=bounds, scaling_factors=scaling_factors,
+                                           free_mask=free_mask)
+        return run_scipy_minimize(problem, method=method, use_jacobian=use_jacobian, gtol=gtol, ftol=ftol,
+                                  maxiter=maxiter, callback=callback, return_result=return_result,
+                                  verbose=self.verbose)
