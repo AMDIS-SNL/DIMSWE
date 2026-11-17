@@ -11,6 +11,7 @@ This directory contains helper scripts for generating simulation cfg files, runn
 - `validate.py`: rerun the model with optimized parameters and compute L2/Linf errors against the truth.
 - `plot_validation.py`: plot truth vs optimized runs, error histories, optimizer histories and parameter recovery.
 - `run_pipeline.sh`: chain truth generation, optimization, validation and plotting.
+- `steady_state.py`: steady-state coefficient optimization of elliptic (time-invariant) truth runs, used automatically by `optimize_params.py` (see [Steady-state optimization](#steady-state-optimization)).
 - `elliptic_convergence.py`: run an `nx` refinement sweep of an elliptic cfg (`model.type: elliptic`) and summarize the observed convergence rates (see [Elliptic convergence sweeps](#elliptic-convergence-sweeps)).
 - `common.py`, `opt_helpers.py`, `losses.py`: shared helpers (pure-Python, Firedrake-side, and loss construction).
 - `generate_cfgs.sh`, `run_batch.sh`, `compare_runs.sh`, `optimize_params.sh`, `validate.sh`, `plot_validation.sh`, `elliptic_convergence.sh`: thin Firedrake-environment wrappers for the Python scripts.
@@ -437,3 +438,30 @@ the expected rates; skip with `--no-plot`, or redraw later with `python plot_mod
 Static field plots of one elliptic run (`python plot_model.py <run cfg>`): 1D line plots (`u_h` over
 `u_exact`), 2D scalar plots for scalar proxies and quiver + magnitude plots for 1-forms; 3D runs are
 VTK-only.
+
+## Steady-state optimization
+
+When the truth runs are elliptic models (`model.type: elliptic`), `optimize_params.py` optimizes
+their coefficients as a steady-state inverse problem: one forward and one adjoint solve per
+evaluation, no time window. Example spec: `workflows/examples/optimize_elliptic.cfg`.
+
+```yaml
+target: coeffs
+truth: {runs: [runs/elliptic-kappa-truth], mode: per-run}
+parameters:
+  elliptic.coefficients.kappa: {initial: 1.0, bounds: [0.1, 10.0], log: true}
+  elliptic.coefficients.mu:    {initial: 1.0, field: DG0, log: true}   # a DG0 field (serial only)
+losses:
+  - {type: steady, fields: [u]}
+  - {type: steady, fields: [sigma, u], label: sigma-and-u, regularization: 1.0e-8}
+```
+
+- Parameters are the elliptic coefficients `mu`, `kappa`, `c` (scalars in `R`, or `field: <space>`).
+  `log: true` optimizes `log(coefficient)`; initial values and bounds are always in coefficient units.
+- The model is built from the truth cfg with the listed coefficients marked as parameters, so the
+  source and boundary data are exactly those of the truth.
+- Only `truth.mode: per-run`; each truth run is its own inverse problem. Mixing elliptic and
+  time-dependent truth runs in one spec is an error.
+- Outputs per job are those of the time-dependent jobs (`optimize.cfg`, `history.csv`,
+  `result.yaml`, `optimal.cfg`, `taylor-test.yaml` with `--check-gradient`), plus
+  `optimal_coefficients.h5` when a field is optimized.

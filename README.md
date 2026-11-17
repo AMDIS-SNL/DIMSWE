@@ -35,3 +35,11 @@
   - Run with `python run_model.py elliptic.cfg`; convergence sweeps with `workflows/elliptic_convergence.py`
   - Variable (scalar or SPD tensor) coefficients `mu`, `kappa`, `c` via `elliptic.coefficients`, optionally as model coefficients with adjoint gradients and steady-state optimization (`optimize.SteadyStateConstrainedOptimization`)
   - Hodge Laplacian eigenproblems with `model.type: elliptic-eigen` (SLEPc shift-and-invert; see `elliptic-eigen.cfg`), compared against exact box spectra
+
+# Running the tests
+- `pytest` runs everything; `pytest -m "not slow"` skips the 3D convergence/eigen cases.
+- The suite is large (parametrized convergence, eigenvalue and FEEC-family matrices) and parallelizes well with
+  [pytest-xdist](https://pypi.org/project/pytest-xdist/): `pip install pytest-xdist`, then `pytest -n auto`
+  (one serial Firedrake process per worker; every test writes only to its own temporary directory).
+- The first run after a Firedrake update or cache clear is much slower: Firedrake compiles and caches a kernel for
+  every distinct form. Later runs reuse the cache.

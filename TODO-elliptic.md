@@ -455,12 +455,13 @@ path, so it is in §8.)
   - A `SteadyStateConstrainedOptimization` in `optimize.py` that reuses `ReducedProblem`,
     `scipy_options`, `taylor_test`, the L2/observation objectives and bounds/scaling handling,
     with no time stepping (one "block", one observation step).
-  - [ ] Optional (not done): route `workflows/optimize_params.py` to it when the model is time-invariant (one
+  - [x] Optional: route `workflows/optimize_params.py` to it when the model is time-invariant (one
     truth run, recover `κ`/`μ`).
 - [x] Validation: tensor coefficients need the matching shape (`dim×dim` on vector-proxy spaces,
   scalar on 0-/n-form spaces); a coefficient on an absent block (`μ` at k=0, `κ` at k=n)
   → error.
 - Notes (done): `dimswe/elliptic_coefficients.py` (`EllipticCoefficient`, `parse_coefficients`, `EllipticCoefficients`). Two weight sets: **model weights** in the forms (parameters through the coefficient Function, `exp(θ)` for log), **reference weights** at the initial values for the problem data (so MMS sources and boundary data do not move with the optimizer). Weighted forms in the shared `hodge_bilinear_form` / `riesz_form` (`(1 + c) u` mass in the Riesz map); `differential_forms.weighted_hodge_fields` gives σ = μ⁻¹δu, flux = κ du, f = dσ + δ(flux) + c u; natural data use the flux. `VariableCoefficientSineProblem` (`variable-coefficient-sine`) supplies smooth scalar and rotated-diagonal SPD tensor coefficients. c > 0 everywhere (constant > 0, log-parametrized, or sampled problem/field min > 0) ⇒ no harmonic forms. Interface on `EllipticProblem`: `has_coeff`, `get_coeff_list/spaces/var/test_trial_vars/size/bounds/scaling_factors`, `set_coeffs`, plus `get_numpy_coeff`/`set_numpy_coeff`/`get_coeff_sub` (coefficients are checkpointed by `run_elliptic`). Treat-as-coeff: scalars only (R for constants, DG0 default for fields). `solve_adjoint` (homogeneous BCs; nullspace: the adjoint source is projected like the forward rhs, since the adjoint of u ← u − P_𝔥u is that projection) and `coefficient_gradient` (−λᵀ ∂R/∂m via `ufl.replace` + `ufl.derivative`). `optimize.py`: the scipy loop is now `run_scipy_minimize`, shared by `_ODEConstrainedOptimization.optimize` (unchanged behaviour) and the new `SteadyStateConstrainedOptimization` (L2 loss on sigma/u, optional Tikhonov term, model bounds/scaling). **Eigen extension:** `HodgeLaplacianEigenproblem` takes the same weights (M stays unweighted); closed-form spectra for constant scalars (`constant_coefficient_spectrum`: k=0 κλ₀+c, k=n λ₀/μ+c, middle k only κ=1/μ; otherwise no `exact_eigenvalues` statistic); c > 0 removes the zero modes. Tests: `tests/unit/test_elliptic_coefficients.py` (parsing/validation, weighted weak form for all 12 cases with tensor weights, interface), `tests/integration/test_elliptic_coefficients_solve.py` (variable/tensor MMS rates, c > 0, Taylor tests for R and DG0 parameters at k=0, k=n, middle k with both harmonic treatments, recovering κ and a DG0 μ field, constant-coefficient eigen spectra and min-max eigenvalue bounds for variable coefficients).
+- Notes (routing): `optimize_params.py` resolves the truth runs first; elliptic truth runs (`model.type: elliptic`) go to `workflows/steady_state.py` (`load_steady_spec`, `plan_steady_jobs`, `run_steady_job`), everything else to the unchanged time-dependent path; mixing both is an error. Steady specs: `target: coeffs`, `truth.mode: per-run`, no `window`, parameters `elliptic.coefficients.<mu|kappa|c>` with `initial`, `bounds`, `scale`, `log`, `fixed` and `field: DG0` (fields are serial only), losses `{type: steady, fields: [sigma, u], weights, regularization, label}`. The model is the truth cfg with the listed coefficients marked as parameters (so the problem data are the truth's); outputs match the time-dependent jobs (`optimize.cfg`, `history.csv`, `result.yaml` with true values/errors for constants, `optimal.cfg`, `taylor-test.yaml`, plus `optimal_coefficients.h5` for fields). Example: `workflows/examples/optimize_elliptic.cfg`. Tests: `tests/unit/test_steady_state_workflow.py`, `tests/integration/test_steady_state_optimization_workflow.py`.
 
 ### 4.11 Hodge Laplacian eigenproblems (separate task, `dimswe/elliptic_eigen.py`)
 Find `λ`, `(σ, u) ≠ 0`:
@@ -569,60 +570,60 @@ coefficient robustness tests need §4.10.
 user to run in a Firedrake environment.)
 
 Unit tests (`tests/unit/`):
-- [ ] `test_harmonic_forms.py::test_harmonic_index_sets_*` — table-driven: fully periodic gives
+- [x] `test_harmonic_forms.py::test_harmonic_index_sets_*` — table-driven: fully periodic gives
   `C(n,k)`; all-natural k=0 gives `{∅}`; all-essential k=n gives `{all}`; mismatched faces give
   none; partial periodic examples (cylinder: k=1 natural ⇒ `{x}`, essential ⇒ `{y}`).
-- [ ] `test_differential_forms.py::test_d_squared_is_zero` — `d(d w)` assembles to ~0 for smooth
+- [x] `test_differential_forms.py::test_d_squared_is_zero` — `d(d w)` assembles to ~0 for smooth
   `w` for all (dim, complex, k).
-- [ ] `test_differential_forms.py::test_integration_by_parts_identity` — for random smooth
+- [x] `test_differential_forms.py::test_integration_by_parts_identity` — for random smooth
   `w, z`, `∫ d w·z − ∫ w·δz − ∫_∂ B(w,z)` ≈ 0 (verifies every sign in §1.2).
-- [ ] `test_harmonic_forms.py::test_harmonic_basis_is_discretely_harmonic` — for each basis form
+- [x] `test_harmonic_forms.py::test_harmonic_basis_is_discretely_harmonic` — for each basis form
   `h`: `d h = 0` and `(h, dτ) = 0` for all `τ` in `V^{k-1}` with the essential BCs applied.
-- [ ] `test_boundary_conditions.py` — config parsing/validation errors; registry ids for each
+- [x] `test_boundary_conditions.py` — config parsing/validation errors; registry ids for each
   mesh type (including partial periodic and extruded).
-- [ ] `test_elliptic_config.py` — `EllipticConfig` validation (bad k, bad complex, BC on periodic
+- [x] `test_elliptic_config.py` — `EllipticConfig` validation (bad k, bad complex, BC on periodic
   face, `lump_mass: true` rejected, bad `harmonic_constraint`, family/cell mismatch).
-- [ ] `test_harmonic_forms.py::test_project_rhs_orthogonal_to_harmonic` — after projecting a UFL
+- [x] `test_harmonic_forms.py::test_project_rhs_orthogonal_to_harmonic` — after projecting a UFL
   source and an assembled rhs `Cofunction`, `(f, h_i)` / `b(h_i)` ≈ 0; projecting twice changes
   nothing; data that are already orthogonal stay the same.
-- [ ] `test_harmonic_forms.py::test_remove_harmonic_component` — result orthogonal to basis.
-- [ ] `test_derham_families.py` — for each family × cell × dim: spaces build, `d V^k ⊂ V^{k+1}`
+- [x] `test_harmonic_forms.py::test_remove_harmonic_component` — result orthogonal to basis.
+- [x] `test_derham_families.py` — for each family × cell × dim: spaces build, `d V^k ⊂ V^{k+1}`
   (interpolate `d` of a random discrete function into `V^{k+1}` exactly), and the `Q` family
   produces identical spaces to the current implementation.
-- [ ] `test_elliptic_coefficients.py` — coefficient config parsing/validation (shapes, absent
+- [x] `test_elliptic_coefficients.py` — coefficient config parsing/validation (shapes, absent
   blocks, bounds, log-parametrization round-trip); `get_coeff_*` sizes/bounds/scaling match the
   config; `treat_as_coeff: false` gives an empty coefficient space.
-- [ ] `test_elliptic_coefficients.py::test_coefficient_gradient_taylor` — Taylor test
+- [x] `test_elliptic_coefficients.py::test_coefficient_gradient_taylor` — Taylor test
   (2nd-order remainder) for `dJ/dm` for scalar `R` coefficients and DG0 field coefficients, at
   k=0, k=n and one middle k, using `optimize.taylor_test`.
-- [ ] `test_elliptic_eigen.py::test_exact_box_eigenvalues` — pure Python: known 1D/2D spectra
+- [x] `test_elliptic_eigen.py::test_exact_box_eigenvalues` — pure Python: known 1D/2D spectra
   and multiplicities (e.g. unit-square k=0 Neumann: 0, π², π², 2π², …; k=1 multiplicities on
   the torus), and the zero-eigenvalue count equals the §1.4 harmonic dimension.
 - [ ] `test_elliptic_solvers.py` — solver-parameter builder produces the right fieldsplit
   indices for every block layout (with/without `σ`, with/without `R`) — pure Python.
 
 Integration tests (`tests/integration/test_elliptic.py`):
-- [ ] Parametrized MMS convergence over the full matrix (12 (dim, complex, k) combos ×
+- [x] Parametrized MMS convergence over the full matrix (12 (dim, complex, k) combos ×
   {periodic, essential, natural, mixed}) at two resolutions; assert observed L2 rate for `u`,
   `σ`, `du` ≥ expected − 0.3 (expected: `order + 1` for k=0 `u`, `order` otherwise — confirm
   empirically and record). Keep 3D cases at `order: 1`, small `nx` and mark `@pytest.mark.slow`.
-- [ ] Harmonic constraint: fully periodic case with `f` having a constant-form component ⇒
+- [x] Harmonic constraint: fully periodic case with `f` having a constant-form component ⇒
   `p_h` matches the projection of `f`, and `(u_h, h_i) ≈ 0` — for **both** `lagrange` and
   `nullspace`.
-- [ ] `lagrange` vs `nullspace` agreement: same `(σ_h, u_h, p_h)` to solver tolerance on every
+- [x] `lagrange` vs `nullspace` agreement: same `(σ_h, u_h, p_h)` to solver tolerance on every
   case with `𝔥^k ≠ {0}` (and `nullspace` with `𝔥 = 0` gives the same result as no constraint).
-- [ ] Inhomogeneous essential, natural and mixed data (`boundary_data: exact`) reproduce MMS
+- [x] Inhomogeneous essential, natural and mixed data (`boundary_data: exact`) reproduce MMS
   rates in every (dim, complex, k); `BoundaryDrivenProblem` runs and gives a nonzero solution.
-- [ ] Inhomogeneous data combined with harmonic forms (e.g. cylinder k=1) for both constraint
+- [x] Inhomogeneous data combined with harmonic forms (e.g. cylinder k=1) for both constraint
   approaches.
-- [ ] Family matrix: repeat the MMS convergence tests for `P-`, `P+`, `S-`, `S` on their supported
+- [x] Family matrix: repeat the MMS convergence tests for `P-`, `P+`, `S-`, `S` on their supported
   cells (subset of BCs, small meshes, `slow` marker), against a per-family expected-rate table.
-- [ ] Variable coefficients: `VariableCoefficientSineProblem` reproduces MMS rates for scalar
+- [x] Variable coefficients: `VariableCoefficientSineProblem` reproduces MMS rates for scalar
   and anisotropic tensor `μ`, `κ`, and `c > 0` (harmonic constraint disabled automatically).
-- [ ] Steady-state optimization: recover a scalar `κ` (and a smooth DG0 `μ` field with a small
+- [x] Steady-state optimization: recover a scalar `κ` (and a smooth DG0 `μ` field with a small
   regularization) from a truth run with explicit seeds; loss decreases and the recovered value is
   within tolerance.
-- [ ] Eigenproblems: first `N` computed eigenvalues match `exact_box_eigenvalues` with
+- [x] Eigenproblems: first `N` computed eigenvalues match `exact_box_eigenvalues` with
   multiplicities, with no spurious modes in the window, and the eigenvalue error converges at
   `≈ 2·order`. Cover all 12 (dim, complex, k) combos (3D small/`slow`) and at least one case per
   BC type, including mixed and partially periodic.
@@ -630,14 +631,15 @@ Integration tests (`tests/integration/test_elliptic.py`):
   `elliptic-direct` to tolerance; iteration counts over 3 refinements stay below a bound and grow
   by at most a small factor; coefficient-contrast sweep (`κ` jump 1→10³) for robustness; nullspace
   case converges. Parallel smoke test under `mpiexec -n 2` (`slow`/`mpi` marker).
-- [ ] Driver test: `run_model(parameters)` with `tests/elliptic.cfg` writes `sim.h5` containing
+- [x] Driver test: `run_model(parameters)` with `tests/elliptic.cfg` writes `sim.h5` containing
   `u`, `sigma` and the error statistics (CLI/pipeline path requirement); same for
   `tests/elliptic-eigen.cfg` (eigenvalues + modes).
-- [ ] Shared fixtures (`elliptic_parameters(dim, complex, k, bcs)` builder) in `tests/conftest.py`.
+- [x] Shared fixtures (`elliptic_parameters(dim, complex, k, bcs)` builder) in `tests/conftest.py`.
 - Deterministic: problems are analytic; no randomness except seeded test vectors in the
   integration-by-parts test.
 
 ---
+- Status: every item except the two §4.12 solver items is implemented. Test locations differ in places from the names above: the coefficient Taylor tests and optimization tests are in `tests/integration/test_elliptic_coefficients_solve.py`, the eigenproblem integration tests in `tests/integration/test_elliptic_eigensolver.py` (unique basename), the family matrix in `tests/integration/test_elliptic_families.py` (S- excluded: unusable with the installed FIAT), and the steady-state workflow tests in `tests/integration/test_steady_state_optimization_workflow.py`.
 
 ## 7. Decisions (resolved)
 1. Inhomogeneous BC data: **supported** for essential and natural BCs (§1.6, §4.5), from the

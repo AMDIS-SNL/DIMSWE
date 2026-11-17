@@ -139,9 +139,18 @@ def get_boundary_registry(mesh, mesh_type, periodic_directions=None):
         raise NotImplementedError("boundary registry for 'file' meshes is not implemented")
     if periodic_directions is None:
         periodic_directions = getattr(mesh, 'periodic_directions', ())
-    registry = build_face_registry(dim, periodic_directions, extruded=is_extruded(mesh))
-    bounds = getattr(mesh, 'domain_bounds', None) or _coordinate_bounds(mesh, dim)
-    return detect_face_ids(mesh, registry, bounds)
+    # The detection assembles a few small forms per marker; cache the result on the mesh, since
+    # many models (and tests) are built on the same mesh.
+    key = (mesh_type, tuple(periodic_directions))
+    cache = getattr(mesh, '_dimswe_face_registries', None)
+    if cache is None:
+        cache = {}
+        mesh._dimswe_face_registries = cache
+    if key not in cache:
+        registry = build_face_registry(dim, periodic_directions, extruded=is_extruded(mesh))
+        bounds = getattr(mesh, 'domain_bounds', None) or _coordinate_bounds(mesh, dim)
+        cache[key] = detect_face_ids(mesh, registry, bounds)
+    return dict(cache[key])  # BoundaryFace entries are immutable; the dict is a fresh copy
 
 
 def _coordinate_bounds(mesh, dim):

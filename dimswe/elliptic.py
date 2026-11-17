@@ -113,7 +113,7 @@ class EllipticConfig:
         Raises ValueError for: k out of range, invalid 2D complex, lump_mass: true, unknown family,
         family/cell mismatch (P-/P+ need simplicial_cells: true, Q/S-/S false), order below the
         family minimum, invalid option values, and (with spaces) BCs on periodic faces or missing
-        BCs on bounded faces; NotImplementedError for 3D full serendipity (family S).
+        BCs on bounded faces; NotImplementedError for serendipity in 3D and for S- (see meshes.family_elements).
         """
         if 'elliptic' not in parameters:
             raise ValueError("elliptic problems need an 'elliptic' cfg section")
@@ -136,7 +136,7 @@ class EllipticConfig:
         order = int(disc['order'])
         if order < 1:
             raise ValueError("spatial-discretization.order must be >= 1")
-        # Minimum orders (P+: r >= n, S: r >= 2) and 3D full serendipity (NotImplementedError).
+        # Minimum orders (P+: r >= n, S: r >= 2); serendipity in 3D and S- raise NotImplementedError.
         family_elements(family, dim, order)
 
         if 'form_degree' not in cfg:

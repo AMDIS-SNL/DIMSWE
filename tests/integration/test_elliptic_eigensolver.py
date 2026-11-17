@@ -24,7 +24,7 @@ COMPLEX_FOR_DIM = {1: [None], 2: ['grad-curl', 'curl-div'], 3: [None]}
 ALL_CASES = [(dim, cx, k) for dim in (1, 2, 3) for cx in COMPLEX_FOR_DIM[dim] for k in range(dim + 1)]
 BC_SETS = {1: ['periodic', 'essential', 'natural', 'mixed'],
            2: ['periodic', 'essential', 'natural', 'mixed', 'partial-essential', 'partial-natural'],
-           3: ['periodic', 'essential', 'mixed']}
+           3: ['periodic', 'essential', 'mixed', 'partial-natural']}  # §6: partial periodicity in 3D too
 # Resolution, order, number of eigenvalues and tolerance on |lambda_h - lambda| / max(1, lambda).
 SETUP = {1: (16, 2, 8, 1e-2), 2: (12, 2, 8, 5e-2), 3: (6, 1, 6, 0.15)}
 TEST_CFG = Path(__file__).resolve().parent.parent / 'elliptic-eigen.cfg'

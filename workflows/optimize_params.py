@@ -11,6 +11,9 @@ needs, and minimizes the loss with dimswe.optimize. Each optimization writes its
         optimal.cfg        truth cfg with the optimal parameters written back
         optimal_ic.h5      optimized initial state (ic-field target only)
         taylor-test.yaml   gradient check results (when optimizer.check_gradient is enabled)
+
+Truth runs of time-invariant (elliptic) models are optimized as steady-state problems instead: one
+forward/adjoint solve per evaluation and no time window (see workflows/steady_state.py for the spec).
 """
 
 from __future__ import annotations
@@ -599,21 +602,66 @@ def run_job(spec: dict[str, Any], job: dict[str, Any], check_gradient: bool) -> 
     MPI.COMM_WORLD.barrier()
 
 
+def load_steady_spec(path: Path) -> dict[str, Any]:
+    """Load and default a steady-state spec (elliptic truth runs; see workflows/steady_state.py)."""
+    from workflows.steady_state import validate_steady_spec
+
+    spec = load_yaml(path)
+    spec["_source_path"] = str(path)
+    spec.setdefault("optimization_name", path.stem)
+    spec.setdefault("overrides", {})
+    spec["optimizer"] = {**DEFAULT_OPTIMIZER, **(spec.get("optimizer") or {})}
+    spec["truth"] = {"mode": "per-run", **(spec.get("truth") or {})}
+    validate_steady_spec(spec)
+    return spec
+
+
+def is_steady_state_spec(spec_path: Path) -> tuple[bool, list[dict[str, Any]]]:
+    """Resolve the truth runs and tell whether they are time-invariant (elliptic) runs.
+
+    Time-invariant truth runs route the optimization to workflows/steady_state.py (one truth
+    solve, no time window). Mixing elliptic and time-dependent truth runs is an error.
+    """
+    from workflows.steady_state import is_time_invariant_cfg
+
+    raw = load_yaml(spec_path)
+    truth_runs = resolve_truth_runs(raw.get("truth") or {}, spec_path.parent)
+    kinds = {is_time_invariant_cfg(run["parameters"]) for run in truth_runs}
+    if len(kinds) > 1:
+        raise ValueError("truth runs mix time-invariant (elliptic) and time-dependent models")
+    return kinds.pop(), truth_runs
+
+
 def main() -> None:
-    """Validate the spec, plan jobs, and run each optimization."""
+    """Validate the spec, plan jobs, and run each optimization.
+
+    Elliptic truth runs are optimized as steady-state problems (workflows/steady_state.py);
+    everything else goes through the time-dependent path below.
+    """
     args = parse_args()
     spec_path = resolve_path(args.optimize_cfg)
-    spec = load_spec(spec_path)
-    truth_runs = resolve_truth_runs(spec["truth"], spec_path.parent)
-    output_root = resolve_runs_root(spec.get("output_root", "runs/optimizations"))
-    output_dir = output_root / spec["optimization_name"]
-    jobs = plan_jobs(spec, truth_runs, output_dir)
+    steady, truth_runs = is_steady_state_spec(spec_path)
+    if steady:
+        from workflows.steady_state import plan_steady_jobs, run_steady_job
+
+        spec = load_steady_spec(spec_path)
+        run_one = run_steady_job
+        output_root = resolve_runs_root(spec.get("output_root", "runs/optimizations"))
+        output_dir = output_root / spec["optimization_name"]
+        jobs = plan_steady_jobs(spec, truth_runs, output_dir)
+    else:
+        spec = load_spec(spec_path)
+        run_one = run_job
+        output_root = resolve_runs_root(spec.get("output_root", "runs/optimizations"))
+        output_dir = output_root / spec["optimization_name"]
+        jobs = plan_jobs(spec, truth_runs, output_dir)
     if args.only:
         jobs = [job for job in jobs if any(token in job["name"] for token in args.only)]
 
-    root_print(f"Optimization '{spec['optimization_name']}' target={spec['target']} -> {output_dir}")
+    root_print(f"Optimization '{spec['optimization_name']}' target={spec['target']}"
+               f"{' (steady state)' if steady else ''} -> {output_dir}")
     for job in jobs:
-        root_print(f"  planned {describe_job(job)}")
+        root_print(f"  planned {describe_job(job) if not steady else job['name']}")
     if args.dry_run:
         return
 
@@ -625,7 +673,7 @@ def main() -> None:
             root_print(f"Skipping existing job {job['name']}")
             continue
         try:
-            run_job(spec, job, args.check_gradient)
+            run_one(spec, job, args.check_gradient)
         except Exception as exc:  # pragma: no cover - defensive error reporting
             error_text = str(exc)
         else:
