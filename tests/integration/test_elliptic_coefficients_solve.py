@@ -266,3 +266,81 @@ def test_variable_coefficient_eigenvalue_bounds(cx, k, bcs):
     tol = 1e-8
     assert numpy.all(computed >= numpy.array(low) - tol * (1 + numpy.abs(low))), (computed, low)
     assert numpy.all(computed <= numpy.array(high) + tol * (1 + numpy.abs(high))), (computed, high)
+
+
+# ---------------------------------------------------------------------------------------------
+# Hessian-vector products (second-order adjoints)
+# ---------------------------------------------------------------------------------------------
+
+def hessian_taylor(optimizer, x, direction, eps_list=None):
+    """Remainders ||g(x + eps d) - g(x) - eps H(x) d|| and their rates (expect 2)."""
+    eps_list = list(1e-2 * 0.5 ** numpy.arange(0, 6)) if eps_list is None else eps_list
+    g0 = optimizer.jac(x.copy())
+    hd = optimizer.hessp(x.copy(), direction.copy())
+    remainders = [float(numpy.linalg.norm(optimizer.jac(x + eps * direction) - g0 - eps * hd)) for eps in eps_list]
+    rates = numpy.array([math.log(remainders[i] / remainders[i + 1]) / math.log(eps_list[i] / eps_list[i + 1])
+                         if remainders[i] > 0 and remainders[i + 1] > 0 else float('nan')
+                         for i in range(len(remainders) - 1)])
+    return numpy.array(remainders), rates
+
+
+HESSIAN_CASES = GRADIENT_CASES + [
+    # tensor-free variable coefficients with a positive reaction parameter (non-singular, no harmonic forms)
+    (2, 'grad-curl', 1, 'natural', 'lagrange',
+     {'c': {'value': 0.7, 'treat_as_coeff': True, 'log_parametrization': True},
+      'kappa': {'kind': 'field', 'space': 'DG0', 'init': 'problem', 'treat_as_coeff': True}}),
+]
+
+
+@pytest.mark.parametrize("dim, cx, k, bcs, constraint, coefficients", HESSIAN_CASES)
+def test_coefficient_hessian_taylor(dim, cx, k, bcs, constraint, coefficients):
+    """Second-order-adjoint HVP: gradient differences converge at second order (R and DG0
+    parameters; k = 0, k = n, middle k; lagrange and nullspace; log parametrizations)."""
+    parameters = coefficient_parameters(dim, cx, k, bcs, coefficients, n=4, harmonic_constraint=constraint)
+    optimizer, model = make_optimizer(parameters)
+    optimizer.regularization = 1e-3  # also checks the Tikhonov term of the HVP
+    x0 = model.get_numpy_coeff().copy()
+    rng = numpy.random.default_rng(11)
+    x = x0 * (1.0 + 0.2 * rng.uniform(0.5, 1.0, size=x0.size)) + 0.05
+    direction = rng.standard_normal(x0.size)
+    remainders, rates = hessian_taylor(optimizer, x, direction)
+    assert numpy.max(remainders) > 0.0
+    assert_second_order(rates)
+
+
+def test_hessian_is_symmetric():
+    """v^T H w = w^T H v for random v, w (the reduced Hessian of a symmetric problem)."""
+    coefficients = {'mu': {'value': 0.8, 'treat_as_coeff': True},
+                    'kappa': {'kind': 'field', 'space': 'DG0', 'init': 'problem', 'treat_as_coeff': True}}
+    parameters = coefficient_parameters(2, 'curl-div', 1, 'mixed', coefficients, n=4)
+    optimizer, model = make_optimizer(parameters)
+    x0 = model.get_numpy_coeff().copy()
+    rng = numpy.random.default_rng(3)
+    x = x0 * 1.1
+    v, w = rng.standard_normal(x0.size), rng.standard_normal(x0.size)
+    hv, hw = optimizer.hessp(x, v), optimizer.hessp(x, w)
+    assert abs(numpy.dot(w, hv) - numpy.dot(v, hw)) < 1e-8 * max(1.0, abs(numpy.dot(w, hv)))
+
+
+def test_hessp_reuses_forward_and_adjoint():
+    """A hessp at the point of the last jac does no extra forward solve."""
+    coefficients = {'kappa': {'value': 1.5, 'treat_as_coeff': True}}
+    parameters = coefficient_parameters(2, 'grad-curl', 0, 'essential', coefficients, n=4, problem='sine')
+    optimizer, model = make_optimizer(parameters)
+    x = model.get_numpy_coeff().copy() * 1.2
+    optimizer.jac(x)
+    solves = optimizer.nsolves
+    optimizer.hessp(x, numpy.ones_like(x))
+    assert optimizer.nsolves == solves and optimizer.nhvp_solves == 2
+
+
+@pytest.mark.parametrize("method", ['Newton-CG', 'trust-ncg', 'trust-constr'])
+def test_recover_kappa_with_second_order_methods(method):
+    """Newton-type methods with the HVP recover kappa = 2 (no bounds for Newton-CG / trust-ncg)."""
+    coefficients = {'kappa': {'value': 1.0, 'treat_as_coeff': True, 'log_parametrization': True}}
+    parameters = coefficient_parameters(2, 'grad-curl', 0, 'essential', coefficients, n=6, problem='sine')
+    optimizer, model = make_optimizer(parameters, truth=lambda m: numpy.array([math.log(2.0)]))
+    x_opt, result = optimizer.optimize(method=method, gtol=1e-12, ftol=1e-15, maxiter=50, use_bounds=False,
+                                       return_result=True, xtol=1e-12)
+    assert result.hessp_used and result.problem_nhvp > 0
+    assert abs(math.exp(x_opt[0]) - 2.0) < 1e-4, (x_opt, result.message)

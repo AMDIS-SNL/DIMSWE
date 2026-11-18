@@ -495,7 +495,11 @@ product is unweighted, so the kernel $\{(0,h)\}$ and the harmonic rule are uncha
 the problem non-singular and removes the harmonic constraint. Coefficients marked \code{treat\_as\_coeff}
 are optimization parameters $m$ (with $\exp\theta$ for a log parametrization); with
 $R(w;m)=a(w,\cdot;m)-L$ and the adjoint $A^T\lambda=\partial J/\partial w$ (the operator is symmetric),
-$\dd J/\dd m=-\lambda^T\partial R/\partial m$. For the eigenproblem the same weights enter $A$ while $M$ stays
+$\dd J/\dd m=-\lambda^T\partial R/\partial m$. Since $R$ is linear in $w$ and only $A$ depends on $m$, a
+Hessian-vector product along $\delta m$ needs a tangent solve $A\,\delta w=-\partial_m R[\delta m]$ and a
+second-order adjoint solve $A\,\delta\lambda=J_{ww}\delta w-(\partial_m A[\delta m])\lambda$, after which
+$\nabla^2 J\,\delta m$ is the directional derivative of $-\partial_m R(w,m)^T\lambda$ along
+$(\delta\lambda,\delta w,\delta m)$. For the eigenproblem the same weights enter $A$ while $M$ stays
 the unweighted $u$ mass; for constant scalars the spectrum is $\kappa\lambda_0+c$ ($k=0$), $\lambda_0/\mu+c$
 ($k=n$), and $\kappa\lambda_0+c$ for $0<k<n$ only when $\kappa\mu=1$.
 

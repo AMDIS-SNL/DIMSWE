@@ -603,6 +603,39 @@ class EllipticProblem():
 
     # --- sensitivities (TODO-elliptic §4.10) --------------------------------------------------
 
+    def solve_homogeneous(self, rhs, name='increment', options_prefix='elliptic_increment_'):
+        """Solve A x = rhs with homogeneous essential BCs and the model's harmonic treatment.
+
+        Shared by the adjoint, tangent and second-order adjoint solves (all use the symmetric
+        forward operator, and their BC values do not depend on the coefficients). rhs is a
+        Cofunction on W; it is copied, zeroed on the constrained rows, and for 'nullspace'
+        projected orthogonal to the harmonic forms, and the harmonic part of the solution's u is
+        removed, which is exactly the linearization (and, by symmetry, the adjoint) of the forward
+        map's u <- u - P_h u. With 'lagrange' the multiplier rows of rhs are solved as given.
+        """
+        rhs = rhs.copy(deepcopy=True)
+        bcs0 = self._homogeneous(self.bcs)
+        for index, bcs in ((self.sigma_index, self._homogeneous(self.bcs_sigma)),
+                           (self.u_index, self._homogeneous(self.bcs_u))):
+            for bc in bcs:
+                self._block(rhs, index).dat.data[bc.nodes] = 0.0
+        result = Function(self.W, name=name)
+        if self.num_harmonic > 0 and self.config.harmonic_constraint == 'nullspace':
+            u_rhs_index = None if self.num_blocks == 1 else self.u_index
+            project_rhs_orthogonal_to_harmonic(rhs, self.harmonic, u_index=u_rhs_index, measure=self.dx)
+            A = assemble(self.a, bcs=bcs0)
+            P = assemble(self.aP, bcs=bcs0) if self.aP is not None else None
+            nullspace = build_harmonic_nullspace(self.W, self.u_index, self.harmonic)
+            solver = LinearSolver(A, P=P, solver_parameters=self.solver_parameters, nullspace=nullspace,
+                                  transpose_nullspace=nullspace, options_prefix=options_prefix)
+            solver.solve(result, rhs)
+            remove_harmonic_component(self._block(result, self.u_index), self.harmonic, measure=self.dx)
+        else:
+            problem = LinearVariationalProblem(self.a, rhs, result, bcs=bcs0, aP=self.aP)
+            LinearVariationalSolver(problem, solver_parameters=self.solver_parameters,
+                                    options_prefix=options_prefix).solve()
+        return result
+
     def solve_adjoint(self, dJdx):
         """Solve the adjoint system A^T lambda = dJ/dx for the current solution; returns lambda.
 
@@ -614,28 +647,64 @@ class EllipticProblem():
           projection of the adjoint source, so dJdx is projected orthogonal to the harmonic forms
           and the nullspace is attached; lambda is normalized with (lambda_u, h_i) = 0.
         """
-        rhs = dJdx.copy(deepcopy=True)
-        bcs0 = self._homogeneous(self.bcs)
-        for index, bcs in ((self.sigma_index, self._homogeneous(self.bcs_sigma)),
-                           (self.u_index, self._homogeneous(self.bcs_u))):
-            for bc in bcs:
-                self._block(rhs, index).dat.data[bc.nodes] = 0.0
-        adjoint = Function(self.W, name='adjoint')
-        if self.num_harmonic > 0 and self.config.harmonic_constraint == 'nullspace':
-            u_rhs_index = None if self.num_blocks == 1 else self.u_index
-            project_rhs_orthogonal_to_harmonic(rhs, self.harmonic, u_index=u_rhs_index, measure=self.dx)
-            A = assemble(self.a, bcs=bcs0)
-            P = assemble(self.aP, bcs=bcs0) if self.aP is not None else None
-            nullspace = build_harmonic_nullspace(self.W, self.u_index, self.harmonic)
-            solver = LinearSolver(A, P=P, solver_parameters=self.solver_parameters, nullspace=nullspace,
-                                  transpose_nullspace=nullspace, options_prefix='elliptic_adjoint_')
-            solver.solve(adjoint, rhs)
-            remove_harmonic_component(self._block(adjoint, self.u_index), self.harmonic, measure=self.dx)
-        else:
-            problem = LinearVariationalProblem(self.a, rhs, adjoint, bcs=bcs0, aP=self.aP)
-            LinearVariationalSolver(problem, solver_parameters=self.solver_parameters,
-                                    options_prefix='elliptic_adjoint_').solve()
-        return adjoint
+        return self.solve_homogeneous(dJdx, name='adjoint', options_prefix='elliptic_adjoint_')
+
+    def _coefficient_direction(self, direction):
+        """A coefficient Function holding a flattened direction (same layout as get_numpy_coeff)."""
+        dm = Function(self.coefficients.coeffspace, name='coefficient_direction')
+        offset = 0
+        for block in self.coefficients._blocks(dm):
+            n = int(numpy.asarray(block.dat.data_ro).size)
+            block.dat.data[:] = numpy.reshape(numpy.asarray(direction)[offset:offset + n], block.dat.data.shape)
+            offset += n
+        return dm
+
+    def solve_tangent(self, dm):
+        """Tangent of the solution, dw = (dw/dm)[dm]: A dw = -(dR/dm)[dm] with homogeneous BCs.
+
+        dm: coefficient Function (direction). The source and boundary data do not depend on the
+        coefficients, so only the operator is differentiated.
+        """
+        rhs = assemble(-fd_derivative(self.residual_form(), self.coefficients.coeff, dm))
+        return self.solve_homogeneous(rhs, name='tangent', options_prefix='elliptic_tangent_')
+
+    def solve_second_order_adjoint(self, adjoint, tangent, dm, d2Jdx2_tangent):
+        """Second-order adjoint dlambda: A dlambda = J_xx dw - (dA/dm)[dm]^T lambda.
+
+        d2Jdx2_tangent: Cofunction J_xx[dw] (the objective's second derivative in the solution
+        applied to the tangent). Since R is linear in the solution, R_xx = 0, and since the
+        operator is symmetric, (dA/dm)[dm]^T lambda is the form a'(lambda, .; m)[dm], assembled
+        here by replacing the solution by lambda in the residual's coefficient derivative.
+        """
+        mixed = fd_derivative(self.residual_form(), self.coefficients.coeff, dm)
+        mixed_on_adjoint = fd_replace(mixed, {self.solution: adjoint})
+        # mixed is linear in the solution plus a solution-independent part (the source and
+        # boundary data do not depend on m, so that part is zero); replacing the solution by the
+        # adjoint therefore gives a'(lambda, .)[dm].
+        rhs = d2Jdx2_tangent - assemble(mixed_on_adjoint)
+        return self.solve_homogeneous(rhs, name='second_order_adjoint',
+                                      options_prefix='elliptic_second_order_adjoint_')
+
+    def coefficient_hessian_action(self, adjoint, tangent, second_order_adjoint, dm, d2Jdm2_dm=None):
+        """Hessian-vector product d^2J/dm^2 [dm] = d/dt G(lambda + t dlambda, w + t dw, m + t dm)|_0.
+
+        G(lambda, w, m) = -dR/dm(w, m)^T lambda is the gradient form of coefficient_gradient; its
+        directional derivative along (dlambda, dw, dm) is assembled in one go:
+        - (dlambda) gives -(dR/dm)^T dlambda, (dw) gives -(d^2R/dm dx)[dw]^T lambda, and (dm)
+          gives -(d^2R/dm^2)[dm]^T lambda (non-zero for log parametrizations and products).
+        d2Jdm2_dm: optional explicit second derivative of the objective in m applied to dm.
+        Returns a Cofunction on the coefficient space.
+        """
+        residual = self.residual_form()
+        test = residual.arguments()[0]
+        lagrangian = fd_replace(residual, {test: adjoint})
+        gradient_form = -fd_derivative(lagrangian, self.coefficients.coeff)
+        result = assemble(fd_derivative(gradient_form, self.coefficients.coeff, dm)
+                          + fd_derivative(gradient_form, self.solution, tangent)
+                          + fd_derivative(gradient_form, adjoint, second_order_adjoint))
+        if d2Jdm2_dm is not None:
+            result += d2Jdm2_dm
+        return result
 
     def residual_form(self):
         """R(w; m) = a(w, .) - L as a UFL form in the current solution (depends on m via a only)."""

@@ -1381,7 +1381,7 @@ class SteadyStateConstrainedOptimization():
     objective evaluation, and one adjoint solve per gradient (model.solve_adjoint +
     model.coefficient_gradient), with no time stepping. It reuses ReducedProblem (free mask,
     scaling, bounds), scipy_options/run_scipy_minimize and taylor_test. Hessian-vector products
-    (second-order adjoints) are not implemented for it yet.
+    use second-order adjoints (hessp: one tangent and one second-order adjoint solve each).
 
     Objective: J = sum_{v in fields} w_v * loss_scale * 0.5 * ||x_v - data_v||^2_{L2}, with x_v
     the solution fields ('sigma', 'u'; p is a derived quantity and not supported here) and data a
@@ -1430,6 +1430,9 @@ class SteadyStateConstrainedOptimization():
         self.loss_form = form
         self.dloss_form = derivative(form, model.solution)
         self.nsolves = 0
+        self.nhvp_solves = 0
+        self._adjoint = None
+        self._adjoint_point = None
 
     def _solve(self, coeffs_arr):
         """Forward solve at the given flattened parameters."""
@@ -1450,13 +1453,51 @@ class SteadyStateConstrainedOptimization():
         return float(assemble(self.loss_form)) + self._regularization_value(coeffs_arr)
 
     def jac(self, coeffs_arr):
-        """dJ/dm by the adjoint method (forward solve, adjoint solve, coefficient gradient)."""
-        self._solve(coeffs_arr)
-        adjoint = self.model.solve_adjoint(assemble(self.dloss_form))
-        gradient = self.model.coefficients.flatten(self.model.coefficient_gradient(adjoint))
+        """dJ/dm by the adjoint method (forward solve, adjoint solve, coefficient gradient).
+
+        The forward solution and adjoint are kept, keyed by the parameters, so a following hessp
+        at the same point (the usual pattern of Newton-type methods) skips both solves.
+        """
+        self._forward_and_adjoint(coeffs_arr)
+        gradient = self.model.coefficients.flatten(self.model.coefficient_gradient(self._adjoint))
         if self.regularization != 0.0:
             gradient = gradient + self.regularization * (np.asarray(coeffs_arr) - self.reference)
         return gradient
+
+    def _forward_and_adjoint(self, coeffs_arr):
+        """Forward and adjoint solves at coeffs_arr, reused if the last call was at the same point."""
+        coeffs_arr = np.asarray(coeffs_arr, dtype=float)
+        if self._adjoint_point is not None and np.array_equal(self._adjoint_point, coeffs_arr) \
+                and np.array_equal(self.model.get_numpy_coeff(), coeffs_arr):
+            return
+        self._solve(coeffs_arr)
+        self._adjoint = self.model.solve_adjoint(assemble(self.dloss_form))
+        self._adjoint_point = coeffs_arr.copy()
+
+    def hessp(self, coeffs_arr, direction):
+        """Full-space Hessian-vector product d^2J/dm^2 [direction] by second-order adjoints.
+
+        With R(w; m) = A(m) w - L linear in w (and L independent of m), each product needs two
+        extra linear solves with the same symmetric operator (homogeneous BCs, same harmonic
+        treatment as the forward solve):
+        1. tangent:               A dw      = -(dR/dm)[dm]
+        2. second-order adjoint:  A dlambda = J_ww dw - (dA/dm)[dm] lambda
+        3. HVP = directional derivative of the gradient form -(dR/dm)^T lambda along
+           (dlambda, dw, dm), plus regularization * dm.
+        The forward solution and the adjoint are reused from jac at the same point.
+        """
+        self._forward_and_adjoint(coeffs_arr)
+        model = self.model
+        dm = model._coefficient_direction(direction)
+        tangent = model.solve_tangent(dm)
+        # J is quadratic in the solution, so J_ww dw is the derivative of dJ/dw along dw.
+        d2J_tangent = assemble(derivative(self.dloss_form, model.solution, tangent))
+        second = model.solve_second_order_adjoint(self._adjoint, tangent, dm, d2J_tangent)
+        result = model.coefficients.flatten(model.coefficient_hessian_action(self._adjoint, tangent, second, dm))
+        self.nhvp_solves += 2
+        if self.regularization != 0.0:
+            result = result + self.regularization * np.asarray(direction, dtype=float)
+        return result
 
     def reduced_problem(self, initial_guess=None, bounds=None, scaling_factors=None, free_mask=None,
                         use_model_bounds=True):
@@ -1468,20 +1509,20 @@ class SteadyStateConstrainedOptimization():
         if scaling_factors is None:
             scaling_factors = self.model.get_coeff_scaling_factors()
         return ReducedProblem(self.obj, self.jac, x0, free_mask=free_mask, scaling_factors=scaling_factors,
-                              bounds=bounds)
+                              bounds=bounds, full_hessp=self.hessp)
 
     def optimize(self, initial_guess=None, method='L-BFGS-B', use_jacobian=True, gtol=1e-5, ftol=1e-5,
                  maxiter=200, bounds=None, scaling_factors=None, free_mask=None, callback=None,
-                 return_result=False, problem=None, use_bounds=True, xtol=None):
+                 return_result=False, problem=None, use_hessp=None, use_bounds=True, xtol=None):
         """Run scipy.optimize.minimize (see run_scipy_minimize); returns the optimal parameters.
 
-        Hessian-vector products are not implemented for steady-state problems, so methods that
-        require them (trust-ncg, trust-krylov) are rejected by resolve_hessp_use, and HVP-capable
-        methods (Newton-CG, trust-constr) run without hessp.
+        Second-order methods (Newton-CG, trust-ncg, trust-krylov, trust-constr) get the
+        second-order-adjoint Hessian-vector products (hessp) by default; use_hessp follows
+        _ODEConstrainedOptimization.optimize (None: whenever the method uses them).
         """
         if problem is None:
             problem = self.reduced_problem(initial_guess, bounds=bounds, scaling_factors=scaling_factors,
                                            free_mask=free_mask)
         return run_scipy_minimize(problem, method=method, use_jacobian=use_jacobian, gtol=gtol, ftol=ftol,
                                   maxiter=maxiter, callback=callback, return_result=return_result,
-                                  verbose=self.verbose, use_hessp=False, use_bounds=use_bounds, xtol=xtol)
+                                  verbose=self.verbose, use_hessp=use_hessp, use_bounds=use_bounds, xtol=xtol)

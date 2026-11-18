@@ -631,6 +631,9 @@ losses:
   source and boundary data are exactly those of the truth.
 - Only `truth.mode: per-run`; each truth run is its own inverse problem. Mixing elliptic and
   time-dependent truth runs in one spec is an error.
+- Second-order methods (`method: Newton-CG`, `trust-ncg`, `trust-krylov`, `trust-constr`) use exact
+  Hessian-vector products from second-order adjoints (two extra linear solves per product);
+  `optimizer.use_hessp`, `use_bounds` and `xtol` behave as for the time-dependent jobs.
 - Outputs per job are those of the time-dependent jobs (`optimize.cfg`, `history.csv`,
   `result.yaml`, `optimal.cfg`, `taylor-test.yaml` with `--check-gradient`), plus
   `optimal_coefficients.h5` when a field is optimized.

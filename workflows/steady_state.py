@@ -296,13 +296,11 @@ def run_steady_job(spec: dict[str, Any], job: dict[str, Any], check_gradient: bo
     history = History(None)
     optimizer_spec = spec["optimizer"]
     gtol = optimizer_gtol(optimizer_spec, report)
-    if optimizer_spec.get("use_hessp"):
-        raise ValueError("optimizer.use_hessp: true is not supported for steady-state problems (Hessian-vector "
-                         "products are not implemented for SteadyStateConstrainedOptimization)")
     xtol = optimizer_spec.get("xtol")
     x_opt, result = state.optimizer.optimize(method=optimizer_spec["method"], gtol=gtol,
                                              ftol=float(optimizer_spec["ftol"]), maxiter=int(optimizer_spec["maxiter"]),
                                              callback=history, return_result=True, problem=problem,
+                                             use_hessp=optimizer_spec.get("use_hessp"),
                                              use_bounds=bool(optimizer_spec.get("use_bounds", True)),
                                              xtol=None if xtol is None else float(xtol))
     initial_loss = history.rows[0]["loss"] if history.rows else float("nan")
@@ -328,7 +326,8 @@ def run_steady_job(spec: dict[str, Any], job: dict[str, Any], check_gradient: bo
         "truth_run_dirs": [str(run["run_dir"]) for run in job["truth_runs"]],
         "optimizer": {**optimizer_spec, "success": bool(result.success), "status": int(result.status),
                       "message": str(result.message), "gtol_used": gtol, "nit": int(getattr(result, "nit", -1)),
-                      "nfev": int(problem.nfev), "njev": int(problem.njev),
+                      "nfev": int(problem.nfev), "njev": int(problem.njev), "nhvp": int(problem.nhvp),
+                      "hessp_used": bool(getattr(result, "hessp_used", False)),
                       "forward_solves": int(state.optimizer.nsolves)},
         "initial_loss": initial_loss, "final_loss": float(result.fun), "initial_gradient": report,
         "parameters": parameters_summary, "mpi_world_size": MPI.COMM_WORLD.Get_size(),
