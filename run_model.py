@@ -5,9 +5,49 @@ from dimswe.parameters import get_parameters, overall_solver_parameters
 from dimswe.logger import Logger
 import sys
 from firedrake.petsc import PETSc
+from firedrake import Constant
 
 def calculate_timestep(cfl_const, mindx, wavespeed):
     return cfl_const * mindx / wavespeed
+
+
+def run_elliptic(model, parameters, logger, output_callback=None):
+    """Solve a time-invariant (elliptic) model once and write a single output step.
+
+    The output uses the same Output object, checkpoint layout (outfile_name + '.h5' / '.pvd') and
+    statistics datasets as the time-dependent runs, at t = 0 and step 0, so batch runs, sweeps
+    and readers work unchanged. No time stepping or CFL logic is involved.
+
+    output_callback: optional callable output_callback(model, xn, xn_sub, t, step, output_step),
+        called after each output step is written (once for a single solve, once per mode for
+        eigenproblems).
+    """
+    logger.output('Solving time-invariant model', 0)
+    model.solve()
+    model.create_statistics()
+    model.compute_statistics(0, 0)
+    model.create_diagnostics()
+    model.compute_diagnostics()
+
+    # Plain named Functions sharing the solution data (the mixed solution, which may contain R
+    # blocks, is not checkpointed itself).
+    xn, xn_sub = model.get_output_state()
+    # Model coefficients (if any) are checkpointed like those of the time-dependent models.
+    coeff_sub = model.get_coeff_sub() if hasattr(model, 'get_coeff_sub') else {}
+    output = Output(xn, xn_sub, coeff_sub, parameters, model, logger)
+    # Models with several results (eigenmodes) write one output step per result: step i is
+    # checkpoint index idx = i and VTK time i. The statistics (one array per name, possibly one
+    # entry per mode) are written in full on every step.
+    num_steps = model.num_output_steps() if hasattr(model, 'num_output_steps') else 1
+    for i in range(num_steps):
+        if hasattr(model, 'select_output_step'):
+            model.select_output_step(i)
+        t = Constant(float(i))
+        output.output(t, i, i, max(num_steps - 1, 0))
+        if output_callback is not None:
+            output_callback(model, xn, xn_sub, t, i, i)
+    logger.output('Ended time-invariant solve', 0)
+    return model
 
 
 def run_model(parameters, mesh=None, initial_state=None, output_callback=None):
@@ -20,12 +60,20 @@ def run_model(parameters, mesh=None, initial_state=None, output_callback=None):
         as topography still comes from the analytic initial condition.
     output_callback: optional callable output_callback(model, xn, xn_sub, t, step, output_step),
         called on every output step after diagnostics are computed (including step 0).
+
+    Time-invariant models (model.type: elliptic) are solved once by run_elliptic; initial_state
+    does not apply to them.
     """
 
     logger = Logger(parameters)
 
     logger.output('Setting up simulation', 0)
     model = get_model(parameters, logger, mesh=mesh)
+
+    if getattr(model, 'is_time_invariant', False):
+        if initial_state is not None:
+            raise ValueError("initial_state does not apply to time-invariant models")
+        return run_elliptic(model, parameters, logger, output_callback=output_callback)
 
 #SUPER HACKY RIGHT NOW
 #THIS IS A HORRIBLE HACK FOR MAXWELL IN A BOX USING LOWEST ORDER SPACES

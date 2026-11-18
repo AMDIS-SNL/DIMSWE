@@ -14,6 +14,7 @@ from dimswe.optimize import (
     HESSP_METHODS,
     ReducedProblem,
     _ODEConstrainedOptimization,
+    _lbfgsb_accepts_disp,
     method_supports_bounds,
     method_uses_hessp,
     resolve_hessp_use,
@@ -102,7 +103,10 @@ def test_scipy_options_for_second_order_methods():
     assert scipy_options('trust-krylov', 10, 1e-6, 1e-7, False)['gtol'] == 1e-6
     assert scipy_options('trust-constr', 10, 1e-6, 1e-7, False, xtol=1e-9) == {'disp': False, 'maxiter': 10, 'gtol': 1e-6, 'xtol': 1e-9}
     # first-order options are unchanged
-    assert scipy_options('L-BFGS-B', 10, 1e-6, 1e-7, False) == {'disp': False, 'maxiter': 10, 'maxfun': 10, 'gtol': 1e-6, 'ftol': 1e-7}
+    expected = {'maxiter': 10, 'maxfun': 10, 'gtol': 1e-6, 'ftol': 1e-7}
+    if _lbfgsb_accepts_disp():  # newer scipy removed L-BFGS-B's disp option
+        expected['disp'] = False
+    assert scipy_options('L-BFGS-B', 10, 1e-6, 1e-7, False) == expected
 
 
 @pytest.mark.parametrize('method', ['Newton-CG', 'trust-ncg', 'trust-krylov', 'trust-constr'])

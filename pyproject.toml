@@ -24,6 +24,11 @@ pythonpath = [
 testpaths = [
     "tests"
 ]
+# Parallel runs: `pip install pytest-xdist`, then `pytest -n auto` (or `-n 8`). Every test writes to
+# its own tmp_path and runs serially (one MPI rank per worker), so tests are independent; the
+# Firedrake kernel cache is shared safely between workers. Use `--dist loadgroup` only if tests are
+# ever grouped with `@pytest.mark.xdist_group`.
 markers = [
     "integration: short integration tests that exercise multiple components",
+    "slow: longer tests (e.g. 3D elliptic convergence); deselect with -m 'not slow'",
 ]

@@ -25,6 +25,8 @@ def get_forcing_terms(parameters, vars, spaces, initcond):
         elif forcing_term == 'dg1limiter':
             forcing_terms.append(DG1LimiterTransport(parameters, vars, spaces))
         elif forcing_term == 'cgtransport':
+            # FLAG: CGTransport is commented out in transport_operators.py and not imported here,
+            # so this branch raises NameError (pre-existing; left unchanged).
             forcing_terms.append(CGTransport(parameters, vars, spaces))
         else:
             raise ValueError("forcing term " + forcing_term + " is unknown")
@@ -286,13 +288,25 @@ def get_model(parameters, logger, has_dynamics_statistics=True, mesh=None):
 
     If mesh is given it is reused instead of building a new mesh (for example the mesh loaded from a
     truth checkpoint), which makes functions loaded from that checkpoint directly usable by the model.
+    model.type 'elliptic' returns a time-invariant dimswe.elliptic.EllipticProblem (see run_model.py).
     """
     if parameters['model']['type'] == 'advdens-cf-h1':
         return AdvDensH1Model(parameters, logger, has_dynamics_statistics=has_dynamics_statistics, mesh=mesh)
     elif parameters['model']['type'] == 'metriplectic':
         return MetriplecticModel(parameters, logger, has_dynamics_statistics=has_dynamics_statistics, mesh=mesh)
     elif parameters['model']['type'] == 'advection':
+        # FLAG: AdvectionModel is not defined anywhere, so this branch raises NameError
+        # (pre-existing; left unchanged).
         return AdvectionModel(parameters, logger, has_dynamics_statistics=has_dynamics_statistics)
+    elif parameters['model']['type'] == 'elliptic':
+        # Time-invariant Hodge Laplacian problem (TODO-elliptic); has_dynamics_statistics does not
+        # apply. Imported here so the time-dependent models do not depend on the elliptic modules.
+        from .elliptic import EllipticProblem
+        return EllipticProblem(parameters, logger, mesh=mesh)
+    elif parameters['model']['type'] == 'elliptic-eigen':
+        # Time-invariant Hodge Laplacian eigenproblem (TODO-elliptic §4.11).
+        from .elliptic_eigen import HodgeLaplacianEigenproblem
+        return HodgeLaplacianEigenproblem(parameters, logger, mesh=mesh)
     else:
         raise ValueError("model type" + parameters['model']['type'] + " is unknown")
 
