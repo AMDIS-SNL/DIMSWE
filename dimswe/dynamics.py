@@ -486,10 +486,6 @@ class AdvDensCF_H1_Dynamics(Dynamics):
     def linear_rhs(self, const_state, xstar, xhats, terms='all'):
         raise NotImplementedError
 
-    # def post_step(self, statevars, terms='all'):
-    #     for term in self.forcing_terms:
-    #         if terms == 'all' or term.name in terms:
-    #             term.post_step(statevars)
 
 
 
@@ -661,12 +657,3 @@ class MetriplecticDynamics(Dynamics):
 #         self.logger.output('computed linear rhs', 1)
 #         return linear_rhs
 
-    # def post_step(self, statevars, terms='all'):
-    #     if terms == 'all' or 'model' in terms:
-    #         for bracket in self.poisson_brackets:
-    #             bracket.post_step(statevars)
-    #         for metric_bracket in self.metric_brackets:
-    #             bracket.post_step(statevars)
-    #     for term in self.forcing_terms:
-    #         if terms == 'all' or term.name in terms:
-    #             term.post_step(statevars)

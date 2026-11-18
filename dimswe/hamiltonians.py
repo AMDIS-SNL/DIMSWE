@@ -56,7 +56,14 @@ class Hamiltonian_Base(FunctionalBase):
     #    return self.vars.dhdx_var_list
 
     def get_spacelist(self):
-        return self.vars.get_spacelist()
+        """Return the spaces of the functional derivatives dH/dx (one per get_aux_vars_list entry).
+
+        dH/dx of each variable lives in that variable's space, and the derivatives are listed for
+        the leading variables (the momentum or velocity, then the active densities), so the spaces
+        are the first len(dhdx_var_list) variable spaces. Returning all variable spaces would add
+        aux blocks without equations (singular aux systems, for example with LU solvers).
+        """
+        return self.vars.get_spacelist()[:len(self.vars.get_dhdx_var_list())]
 
     def get_aux_vars_list(self):
         return self.vars.get_dhdx_var_list()

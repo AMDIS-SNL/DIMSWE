@@ -25,9 +25,14 @@
   - Currently only explicit RK method are implemented
   - In the LieSplit integrator, the dynamics and the forcings can be composed using an arbitrary choice of general RK schemes and substepping
   - The time stepping schemes can take both forward and adjoint steps, where the latter leverages the built-in derivative capabilities of UFL
+  - The explicit RK and LieSplit schemes can also take tangent-linear and second-order adjoint steps, whose forms are UFL directional derivatives of the forward and adjoint step forms
 
 - PDE-constrained optimization is done using scipy.optimize routines combined with the adjoint time stepping capabilities.
-  - Currently only a Jacobian can be calculated, limiting the model to 1st order optimization algorithms
+- Gradients (Jacobians) are computed with the discrete adjoint, so any first-order scipy method (for example L-BFGS-B) can be used
+- Hessian-vector products are computed with a forward-over-adjoint scheme, following equation 2.11 of `petsc-opt.pdf`: a tangent-linear forward sweep, then a combined first- and second-order adjoint backward sweep. This enables the second-order scipy methods Newton-CG, trust-ncg, trust-krylov and trust-constr (only trust-constr also handles bounds)
+- Hessian-vector products are available for coefficients, initial states, both together, and analytic initial-condition parameters, with the explicit RK and LieSplit time steppers. The full Hessian matrix is never formed, so methods that need it (dogleg, trust-exact) are not supported
+- See `docs/hessian_vector_products.md` for the derivation and design, and `workflows/README.md` for how to choose a method in the optimization workflow and compare methods
+
 
 - Elliptic Hodge Laplacian problems `(d delta + delta d) u = f` for k-forms in 1D/2D/3D can be solved with `model.type: elliptic` (see `elliptic.cfg`, `TODO-elliptic.md` and `docs/hodge_laplacian.tex`)
   - Mixed FEEC formulation with essential, natural, periodic or mixed per-face boundary conditions and harmonic forms (Lagrange multipliers or a PETSc nullspace)

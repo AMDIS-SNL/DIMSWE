@@ -3,6 +3,7 @@ from firedrake import FunctionSpace, TestFunction, TrialFunction, inner, curl, g
 from .ufl_helpers import skewgrad, curl2D
 from .parameters import overall_solver_parameters
 from .physics import qsat
+from .positivity import CellPositivity
 
 #Advected density diagnostics
 
@@ -39,6 +40,11 @@ class AdvDensDiagnostics():
             self.var_list.append('zeta')
         for dens in self.density_names:
             self.var_list.append(dens + '_l')
+        # positivity diagnostics: the cell mean of every density and, where the cells are
+        # axis-aligned boxes, a lower bound of the density over the whole cell (its smallest
+        # Bernstein coefficient; exact for degree <= 1), see positivity.py
+        self.positivity = CellPositivity(spaces, variableset, self.density_names, spaces.dx if spaces is not None else None)
+        self.var_list += self.positivity.field_names()
         self.var_list.append('coriolis')
         self.var_list.append('bottom_topography')
 
@@ -67,6 +73,7 @@ class AdvDensDiagnostics():
             for dens in self.density_names:
                 varspace = self.variableset.spacelist[self.variableset.varlist.index(dens)]
                 self.vars[dens + '_l'] = Function(varspace, name=dens + '_l')
+            self.vars.update(self.positivity.fields)
             self.vars['coriolis'] = self.coriolis
             self.vars['bottom_topography'] = self.bottom_topography
             if 'Qv' in variableset.varlist:
@@ -94,10 +101,12 @@ class AdvDensDiagnostics():
         if 'Qv' in self.variableset.varlist:
             self.rh_solver.solve()
             self.qsat_solver.solve()
+        self.positivity.compute()
 
     def create_diagnostics(self, xn, t, coeff):
         self.xn = xn
         self.t = t
+        self.positivity.create(xn)
         if 'Qv' in self.variableset.varlist:
             h = xn['h']
             S = xn['S']

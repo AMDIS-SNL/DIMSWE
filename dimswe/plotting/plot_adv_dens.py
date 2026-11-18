@@ -2,9 +2,14 @@ from ..models import get_model
 from ..logger import Logger
 
 from ..meshes import set_dimension
-from .plotting import plot_mesh, plot_scalar2D, plot_scalar1D, plot_vector2D_mag, plot_vector2D_quiver, plot_variable, plot_statistic, animate_scalar2D
+from .plotting import plot_mesh, plot_scalar2D, plot_scalar1D, plot_vector2D_mag, plot_vector2D_quiver, plot_variable, plot_statistic, plot_positivity_statistics, animate_scalar2D
 from firedrake import CheckpointFile
 import numpy as np
+
+
+def is_positivity_field(name):
+    """Return whether a diagnostic is a positivity field (cell mean or whole-cell minimum)."""
+    return name.endswith('_cellmean') or name.endswith('_cellmin')
 
 
 def plot_adv_dens(parameters):
@@ -25,9 +30,15 @@ def plot_adv_dens(parameters):
         #    plot_mesh(mesh)
 
         h5file = chkpoint_file.h5pyfile
+        stats = {}
         for stat in model.get_statistics_list():
             statdata = np.array(h5file[stat])
+            stats[stat] = statdata
             plot_statistic(statdata, stat)
+        # one figure per density with the domain extrema of its cell means and whole-cell minima
+        for stat in stats:
+            if stat.endswith('_cellmean_min'):
+                plot_positivity_statistics(stats, stat[:-len('_cellmean_min')])
 
         noutput = (parameters['timestepping']['num_steps'] // parameters['output']['output_freq']) + 1
         for var in model.get_x_var_list():
@@ -40,7 +51,7 @@ def plot_adv_dens(parameters):
                 animate_scalar2D(chkpoint_file, mesh, var, noutput, var + '-mov', var in vector_list)
 
         for var in model.get_diagnostics_list():
-            animate_scalar2D(chkpoint_file, mesh, var, noutput, var + '-mov', var in vector_list)
+            animate_scalar2D(chkpoint_file, mesh, var, noutput, var + '-mov', var in vector_list, center_negative=is_positivity_field(var))
 
         if parameters['plot']['static_plots']:
             for n in range(0, parameters['timestepping']['num_steps']+1):
@@ -64,4 +75,4 @@ def plot_adv_dens(parameters):
 
                     for var in model.get_diagnostics_list():
                         vardat = chkpoint_file.load_function(mesh, var, idx=output_step)
-                        plot_variable(vardat, var + '.' + str(n),  parameters['mesh']['dim'], var in vector_list)
+                        plot_variable(vardat, var + '.' + str(n),  parameters['mesh']['dim'], var in vector_list, center_negative=is_positivity_field(var))

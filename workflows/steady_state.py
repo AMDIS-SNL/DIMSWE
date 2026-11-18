@@ -296,9 +296,15 @@ def run_steady_job(spec: dict[str, Any], job: dict[str, Any], check_gradient: bo
     history = History(None)
     optimizer_spec = spec["optimizer"]
     gtol = optimizer_gtol(optimizer_spec, report)
+    if optimizer_spec.get("use_hessp"):
+        raise ValueError("optimizer.use_hessp: true is not supported for steady-state problems (Hessian-vector "
+                         "products are not implemented for SteadyStateConstrainedOptimization)")
+    xtol = optimizer_spec.get("xtol")
     x_opt, result = state.optimizer.optimize(method=optimizer_spec["method"], gtol=gtol,
                                              ftol=float(optimizer_spec["ftol"]), maxiter=int(optimizer_spec["maxiter"]),
-                                             callback=history, return_result=True, problem=problem)
+                                             callback=history, return_result=True, problem=problem,
+                                             use_bounds=bool(optimizer_spec.get("use_bounds", True)),
+                                             xtol=None if xtol is None else float(xtol))
     initial_loss = history.rows[0]["loss"] if history.rows else float("nan")
     root_print(f"  finished: {result.message} loss {initial_loss:.6e} -> {float(result.fun):.6e}")
 
