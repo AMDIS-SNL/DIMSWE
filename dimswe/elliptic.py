@@ -28,7 +28,7 @@ from typing import Optional
 
 import numpy
 from firedrake import derivative as fd_derivative, replace as fd_replace
-from firedrake import (DirichletBC, Function, LinearSolver, LinearVariationalProblem,
+from firedrake import (Cofunction, DirichletBC, Function, LinearSolver, LinearVariationalProblem,
                        LinearVariationalSolver, MixedFunctionSpace, TestFunction, TestFunctions,
                        TrialFunction, TrialFunctions, action, assemble, dx, inner)
 
@@ -613,7 +613,9 @@ class EllipticProblem():
         removed, which is exactly the linearization (and, by symmetry, the adjoint) of the forward
         map's u <- u - P_h u. With 'lagrange' the multiplier rows of rhs are solved as given.
         """
-        rhs = rhs.copy(deepcopy=True)
+        # A difference of Cofunctions is a lazy FormSum in newer Firedrake: assemble it (which also
+        # gives a fresh Cofunction); plain Cofunctions are copied so the caller's rhs is untouched.
+        rhs = rhs.copy(deepcopy=True) if isinstance(rhs, Cofunction) else assemble(rhs)
         bcs0 = self._homogeneous(self.bcs)
         for index, bcs in ((self.sigma_index, self._homogeneous(self.bcs_sigma)),
                            (self.u_index, self._homogeneous(self.bcs_u))):
@@ -681,7 +683,7 @@ class EllipticProblem():
         # mixed is linear in the solution plus a solution-independent part (the source and
         # boundary data do not depend on m, so that part is zero); replacing the solution by the
         # adjoint therefore gives a'(lambda, .)[dm].
-        rhs = d2Jdx2_tangent - assemble(mixed_on_adjoint)
+        rhs = assemble(d2Jdx2_tangent - assemble(mixed_on_adjoint))
         return self.solve_homogeneous(rhs, name='second_order_adjoint',
                                       options_prefix='elliptic_second_order_adjoint_')
 
@@ -703,7 +705,7 @@ class EllipticProblem():
                           + fd_derivative(gradient_form, self.solution, tangent)
                           + fd_derivative(gradient_form, adjoint, second_order_adjoint))
         if d2Jdm2_dm is not None:
-            result += d2Jdm2_dm
+            result = assemble(result + d2Jdm2_dm)
         return result
 
     def residual_form(self):
@@ -727,7 +729,7 @@ class EllipticProblem():
         lagrangian = fd_replace(residual, {test: adjoint})
         gradient = assemble(-fd_derivative(lagrangian, self.coefficients.coeff))
         if dJdm is not None:
-            gradient += dJdm
+            gradient = assemble(gradient + dJdm)
         return gradient
 
     # --- Model interface ----------------------------------------------------------------------

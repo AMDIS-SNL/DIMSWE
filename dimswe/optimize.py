@@ -663,16 +663,36 @@ def resolve_hessp_use(method, use_hessp, use_jacobian, has_hessp, has_bounds):
     return hessp
 
 
+def _lbfgsb_accepts_disp():
+    """True if scipy's L-BFGS-B still has the 'disp' option.
+
+    scipy deprecated L-BFGS-B's disp (and iprint) options and later removed them; passing disp to
+    a version without it makes minimize emit "OptimizeWarning: Unknown solver options: disp". The
+    option list is read from the minimizer's signature, so no version number has to be guessed;
+    if that private function cannot be inspected, disp is assumed to be accepted (old behaviour).
+    """
+    import inspect
+    try:
+        from scipy.optimize._lbfgsb_py import _minimize_lbfgsb
+    except ImportError:
+        return True
+    return 'disp' in inspect.signature(_minimize_lbfgsb).parameters
+
+
 def scipy_options(method, maxiter, gtol, ftol, disp, xtol=None):
     """Return the scipy.optimize.minimize options understood by a method.
 
     Passing options a method does not understand makes scipy warn, so only the relevant tolerances
-    and iteration limits are included. xtol is only used by Newton-CG (its only convergence
+    and iteration limits are included (disp for L-BFGS-B only where scipy still has it, see
+    _lbfgsb_accepts_disp). xtol is only used by Newton-CG (its only convergence
     tolerance; scipy's default applies if None) and trust-constr.
     """
     method = method.upper()
     if method == 'L-BFGS-B':
-        return {'disp': disp, 'maxiter': maxiter, 'maxfun': maxiter, 'gtol': gtol, 'ftol': ftol}
+        options = {'maxiter': maxiter, 'maxfun': maxiter, 'gtol': gtol, 'ftol': ftol}
+        if _lbfgsb_accepts_disp():
+            options['disp'] = disp
+        return options
     if method == 'TNC':
         return {'disp': disp, 'maxfun': maxiter, 'gtol': gtol, 'ftol': ftol}
     if method in ('CG', 'BFGS', 'TRUST-NCG', 'TRUST-KRYLOV'):
