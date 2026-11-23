@@ -591,8 +591,7 @@ def mesh_cell_name(mesh):
     if isinstance(cell_dimension, tuple):
         if sum(cell_dimension) == 2:
             return 'extruded2d'
-        base = ufl_attribute(mesh.ufl_cell().sub_cells[0], 'cellname') if hasattr(mesh.ufl_cell(), 'sub_cells') \
-            else 'quadrilateral'
+        base = ufl_attribute(ufl_attribute(mesh.ufl_cell(), 'sub_cells')[0], 'cellname')
         return 'extruded' if base == 'quadrilateral' else 'extruded-prism'
     return ufl_attribute(mesh.ufl_cell(), 'cellname')
 

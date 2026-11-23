@@ -158,13 +158,33 @@ def get_boundary_registry(mesh, mesh_type, periodic_directions=None):
     return dict(cache[key])  # BoundaryFace entries are immutable; the dict is a fresh copy
 
 
+def _radial_candidates(mesh):
+    """Boundary pieces of a radial mesh as (measure name, marker ids, DirichletBC token).
+
+    Plain meshes: one piece per non-empty exterior marker (ds). Extruded meshes: any non-empty side
+    markers (ds_v), plus the bottom and top layers (ds_b/ds_t, tokens "bottom"/"top") unless the
+    extrusion is periodic. Firedrake's quadrilateral AnnulusMesh is a radial interval extruded
+    periodically around the circle: its side markers are the inner and outer circles, and its
+    bottom/top layers are the periodic seam (interior, spanning every radius), not boundary.
+    """
+    if is_extruded(mesh):
+        periodic = bool(getattr(mesh, 'extruded_periodic', False))
+        pieces = [] if periodic else [('ds_b', (), 'bottom'), ('ds_t', (), 'top')]
+        for marker in _boundary_markers(mesh) or []:
+            if _marker_facet_count(mesh, marker) != 0:
+                pieces.append(('ds_v', (marker,), marker))
+        return pieces
+    return [('ds', (marker,), marker) for marker in (_boundary_markers(mesh) or [])
+            if _marker_facet_count(mesh, marker) != 0]
+
+
 def radial_face_registry(mesh, mesh_type):
     """Faces of a disk/annulus/ball (TODO-elliptic §4.14), detected by radius about the origin.
 
-    Every non-empty boundary marker belongs to 'outer' (disk, ball), or, for the annulus, to
-    'inner' or 'outer' depending on whether its mean radius is below or above the mean of the two
-    radii (robust for polygonal approximations of the circles). Faces carry direction None and are
-    integrated with ds over their markers. Cached on the mesh like the box registry.
+    Every non-empty boundary piece (_radial_candidates) belongs to 'outer' (disk, ball) or, for the
+    annulus, to 'inner' or 'outer' depending on whether its mean radius is below or above the mean
+    of the extreme mean radii (robust for polygonal approximations of the circles). Faces carry
+    direction None. A face made of several pieces must use one measure kind. Cached on the mesh.
     """
     from .meshes import get_mesh_spec
     spec = get_mesh_spec(mesh_type)
@@ -175,32 +195,47 @@ def radial_face_registry(mesh, mesh_type):
     key = (mesh_type, 'radial')
     if key in cache:
         return dict(cache[key])
-    markers = _boundary_markers(mesh) or []
     X = SpatialCoordinate(mesh)
     radius = sqrt(sum(X[i] ** 2 for i in range(spec.dim)))
-    means = {}
-    for marker in markers:
-        if _marker_facet_count(mesh, marker) == 0:
-            continue
-        dm = ds(marker, domain=mesh)
+    means = []
+    for measure_name, ids, token in _radial_candidates(mesh):
+        measure = MEASURES[measure_name]
+        dm = measure(ids, domain=mesh) if ids else measure(domain=mesh)
         area = assemble(Constant(1.0) * dm)
-        if area > 0.0:
-            means[marker] = assemble(radius * dm) / area
+        if area <= 0.0:
+            continue
+        mean = assemble(radius * dm) / area
+        # A boundary circle/sphere has (nearly) constant radius; a piece spanning many radii (e.g. an
+        # interior periodic seam) is not a boundary face.
+        spread = (max(assemble((radius - mean) ** 2 * dm) / area, 0.0)) ** 0.5
+        if spread > 0.1 * max(mean, 1e-12):
+            continue
+        means.append((mean, measure_name, ids, token))
     if not means:
-        raise ValueError("mesh type " + mesh_type + " has no boundary markers")
+        raise ValueError("mesh type " + mesh_type + " has no boundary")
     groups = {name: [] for name in spec.faces}
     if 'inner' in spec.faces:
-        split = 0.5 * (min(means.values()) + max(means.values()))
-        for marker, mean in means.items():
-            groups['inner' if mean < split else 'outer'].append(marker)
+        split = 0.5 * (min(m[0] for m in means) + max(m[0] for m in means))
+        for entry in means:
+            groups['inner' if entry[0] < split else 'outer'].append(entry)
     else:
-        groups['outer'] = list(means)
+        groups['outer'] = means
     registry = {}
     for side, name in enumerate(spec.faces):
-        ids = tuple(sorted(groups[name]))
-        if not ids:
-            raise ValueError("no boundary marker of the " + mesh_type + " lies on face '" + name + "'")
-        registry[name] = BoundaryFace(name, None, side, ids, 'ds', ids[0] if len(ids) == 1 else ids)
+        pieces = groups[name]
+        if not pieces:
+            raise ValueError("no boundary piece of the " + mesh_type + " lies on face '" + name + "'")
+        kinds = {p[1] for p in pieces}
+        if len(kinds) > 1:
+            raise NotImplementedError("face '" + name + "' mixes boundary measures " + str(sorted(kinds)))
+        kind = kinds.pop()
+        if kind in ('ds_b', 'ds_t'):
+            if len(pieces) != 1:
+                raise NotImplementedError("face '" + name + "' would combine the bottom and top layers")
+            registry[name] = BoundaryFace(name, None, side, (), kind, pieces[0][3])
+        else:
+            ids = tuple(sorted(i for p in pieces for i in p[2]))
+            registry[name] = BoundaryFace(name, None, side, ids, kind, ids[0] if len(ids) == 1 else ids)
     cache[key] = registry
     return dict(registry)
 

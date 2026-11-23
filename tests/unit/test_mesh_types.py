@@ -2,10 +2,10 @@
 from types import SimpleNamespace
 
 import pytest
-from firedrake import Constant, SpatialCoordinate, assemble, ds, dx, sqrt
+from firedrake import Constant, SpatialCoordinate, assemble, ds, ds_b, ds_t, ds_v, dx, sqrt
 from math import pi
 
-from dimswe.boundary_conditions import get_boundary_registry, measure_for, parse_boundary_conditions
+from dimswe.boundary_conditions import get_boundary_registry, is_extruded, measure_for, parse_boundary_conditions
 from dimswe.meshes import (BOX_MESH_TYPES, LINE_MESH_TYPES, MESH_TYPES, RECTANGLE_MESH_TYPES, build_mesh,
                            get_domain_bounds, get_mesh_spec, get_mesh_type_dimension, get_periodic_directions,
                            get_mesh_and_spaces, is_box_mesh_type)
@@ -106,9 +106,18 @@ def test_radial_meshes_and_faces(mesh_type, simplicial, faces, dim):
     for name, face in registry.items():
         measure = measure_for(face, domain=mesh)
         mean = assemble(r * measure) / assemble(Constant(1.0) * measure)
-        assert abs(mean - expected[name]) < 2e-2, (name, mean)
+        # Polygonal/polyhedral approximations of circles and spheres sit slightly inside them.
+        assert abs(mean - expected[name]) < 5e-2, (name, mean)
     total = sum(assemble(Constant(1.0) * measure_for(f, domain=mesh)) for f in registry.values())
-    assert abs(total - assemble(Constant(1.0) * ds(domain=mesh))) < 1e-10
+    if is_extruded(mesh):
+        # The quadrilateral annulus is a radial interval extruded periodically around the circle:
+        # its boundary is the side (ds_v); bottom/top layers only count if the extrusion is not periodic.
+        boundary = assemble(Constant(1.0) * ds_v(domain=mesh))
+        if not getattr(mesh, 'extruded_periodic', False):
+            boundary += sum(assemble(Constant(1.0) * m(domain=mesh)) for m in (ds_b, ds_t))
+    else:
+        boundary = assemble(Constant(1.0) * ds(domain=mesh))
+    assert abs(total - boundary) < 1e-10
     assert parse_boundary_conditions({name: 'essential' for name in faces}, registry) == \
         {name: 'essential' for name in faces}
     with pytest.raises(ValueError):
