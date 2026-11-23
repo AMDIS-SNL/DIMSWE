@@ -28,7 +28,29 @@
   - The explicit RK and LieSplit schemes can also take tangent-linear and second-order adjoint steps, whose forms are UFL directional derivatives of the forward and adjoint step forms
 
 - PDE-constrained optimization is done using scipy.optimize routines combined with the adjoint time stepping capabilities.
-  - Gradients (Jacobians) are computed with the discrete adjoint, so any first-order scipy method (for example L-BFGS-B) can be used
-  - Hessian-vector products are computed with a forward-over-adjoint scheme, following equation 2.11 of `petsc-opt.pdf`: a tangent-linear forward sweep, then a combined first- and second-order adjoint backward sweep. This enables the second-order scipy methods Newton-CG, trust-ncg, trust-krylov and trust-constr (only trust-constr also handles bounds)
-  - Hessian-vector products are available for coefficients, initial states, both together, and analytic initial-condition parameters, with the explicit RK and LieSplit time steppers. The full Hessian matrix is never formed, so methods that need it (dogleg, trust-exact) are not supported
-  - See `docs/hessian_vector_products.md` for the derivation and design, and `workflows/README.md` for how to choose a method in the optimization workflow and compare methods
+- Gradients (Jacobians) are computed with the discrete adjoint, so any first-order scipy method (for example L-BFGS-B) can be used
+- Hessian-vector products are computed with a forward-over-adjoint scheme, following equation 2.11 of `petsc-opt.pdf`: a tangent-linear forward sweep, then a combined first- and second-order adjoint backward sweep. This enables the second-order scipy methods Newton-CG, trust-ncg, trust-krylov and trust-constr (only trust-constr also handles bounds)
+- Hessian-vector products are available for coefficients, initial states, both together, and analytic initial-condition parameters, with the explicit RK and LieSplit time steppers. The full Hessian matrix is never formed, so methods that need it (dogleg, trust-exact) are not supported
+- See `docs/hessian_vector_products.md` for the derivation and design, and `workflows/README.md` for how to choose a method in the optimization workflow and compare methods
+
+
+- Elliptic Hodge Laplacian problems `(d delta + delta d) u = f` for k-forms in 1D/2D/3D can be solved with `model.type: elliptic` (see `elliptic.cfg`, `TODO-elliptic.md` and `docs/hodge_laplacian.tex`)
+  - Mixed FEEC formulation with essential, natural, periodic or mixed per-face boundary conditions and harmonic forms (Lagrange multipliers or a PETSc nullspace)
+  - FEEC families `Q` (tensor product), `P-`/`P+` (simplicial) and `S` (serendipity, 2D) via `spatial-discretization.family` (`S-` is defined but rejected: the installed FIAT cannot assemble trimmed serendipity elements)
+  - Run with `python run_model.py elliptic.cfg`; convergence sweeps with `workflows/elliptic_convergence.py`
+  - Variable (scalar or SPD tensor) coefficients `mu`, `kappa`, `c` via `elliptic.coefficients`, optionally as model coefficients with adjoint gradients and steady-state optimization (`optimize.SteadyStateConstrainedOptimization`)
+  - Box meshes (with partial periodicity), Firedrake's unit/graded box meshes, disks, annuli, balls and immersed surfaces (spheres, torus, cylinder surface), with numerical harmonic forms on non-box domains
+  - Direct or scalable iterative solvers (`riesz-amg`, `riesz-gmg` on a mesh hierarchy, `riesz-pmg`, `schur-mass`; MINRES with Arnold–Falk–Winther Riesz-map preconditioners), see `dimswe/elliptic_solvers.py`
+  - Hodge Laplacian eigenproblems with `model.type: elliptic-eigen` (SLEPc shift-and-invert; see `elliptic-eigen.cfg`), compared against exact box spectra
+
+# Running the tests
+- `pytest` runs everything; `pytest -m "not slow"` skips the 3D convergence/eigen cases.
+- The suite is large (parametrized convergence, eigenvalue and FEEC-family matrices) and parallelizes well with
+  [pytest-xdist](https://pypi.org/project/pytest-xdist/): `pip install pytest-xdist`, then `pytest -n auto`
+  (one serial Firedrake process per worker; every test writes only to its own temporary directory).
+- The first run after a Firedrake update or cache clear is much slower: Firedrake compiles and caches a kernel for
+  every distinct form. Later runs reuse the cache.
+- CI (`.github/workflows/auto-test.yml`) runs four jobs at the same time: `unit`, `integration` (both
+  `not slow and not mpi`), `slow` (the 3D and other `slow`-marked tests) and `mpi` (`mpiexec -n 2 pytest -m mpi`).
+  The first three use `pytest -n auto --dist loadfile`, and every job keeps Firedrake's compiled-kernel cache between
+  runs with `actions/cache`.

@@ -36,3 +36,25 @@ overall_solver_parameters['qsatdiag'] = basic_linear_system
 # DG0 (vector) mass matrices are diagonal, so Jacobi-preconditioned CG converges in one iteration
 overall_solver_parameters['positivitydiag'] = basic_linear_system
 #
+
+# Elliptic (Hodge Laplacian) solvers, see dimswe/elliptic.py and TODO-elliptic §4.6.
+# The 'lagrange' solve with harmonic forms is matrix-free (Firedrake cannot assemble monolithic
+# matrices with R blocks) and uses dimswe.harmonic_forms.lagrange_solver_parameters instead.
+elliptic_direct = {'ksp_type': 'preonly', 'pc_type': 'lu', 'pc_factor_mat_solver_type': 'mumps',
+                   'mat_mumps_icntl_14': 200}
+# Singular systems ('nullspace' approach): GMRES with the nullspace attached, preconditioned by the
+# LU of the regularized non-singular matrix a + eps (u, v) that dimswe.elliptic assembles as pmat
+# (not by MUMPS null-pivot detection, which can miss the null pivot in 1D and amplify the nullspace
+# direction). Right preconditioning: the stopping test uses the true residual.
+elliptic_direct_singular = {'ksp_type': 'gmres', 'ksp_pc_side': 'right', 'ksp_rtol': 1e-12, 'ksp_atol': 1e-14,
+                            'pc_type': 'lu', 'pc_factor_mat_solver_type': 'mumps',
+                            'mat_mumps_icntl_14': 200}
+# MINRES with a block-diagonal SPD (Riesz map) preconditioner; the fieldsplit options per block are
+# added by dimswe.elliptic.elliptic_solver_parameters.
+elliptic_minres = {'ksp_type': 'minres', 'ksp_rtol': 1e-12, 'ksp_atol': 1e-14, 'ksp_max_it': 2000}
+
+elliptic_solver_parameters = {
+    'elliptic-direct': elliptic_direct,
+    'elliptic-direct-singular': elliptic_direct_singular,
+    'elliptic-minres': elliptic_minres,
+}

@@ -10,3 +10,13 @@ def curl2D(v):
 
 def rot2D(v):
     return as_vector([-v[1], v[0]])
+
+
+def ufl_attribute(obj, name):
+    """Value of an accessor that is a method in some UFL/Firedrake versions and a property in others.
+
+    For example cell.cellname is a method in older UFL and a property in newer ones; the same
+    pattern applies to topological_dimension, geometric_dimension and cell_dimension.
+    """
+    value = getattr(obj, name)
+    return value() if callable(value) else value

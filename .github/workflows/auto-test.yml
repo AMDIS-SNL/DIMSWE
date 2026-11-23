@@ -13,25 +13,105 @@ on:
       - 'doc/**'
       - 'README.md'
       - 'scripts/**'
-  
+
+# Cancel superseded runs of the same branch/PR.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # One thread per process: pytest-xdist runs several Firedrake processes per runner, and
+  # Firedrake warns (and slows down) when OMP_NUM_THREADS is unset or > 1.
+  OMP_NUM_THREADS: "1"
+  # Firedrake/PyOP2 compiled-kernel caches, kept between runs with actions/cache below.
+  PYOP2_CACHE_DIR: ${{ github.workspace }}/.cache/pyop2
+  FIREDRAKE_TSFC_KERNEL_CACHE_DIR: ${{ github.workspace }}/.cache/tsfc
+
 jobs:
-  unit-tests:
+  tests:
+    # The suite is split into independent groups that run on separate runners at the same time,
+    # and each group runs its tests in parallel with pytest-xdist (-n auto: one worker per core).
+    name: tests (${{ matrix.group }})
     runs-on: ubuntu-latest
-    
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: unit
+            paths: tests/unit
+            markers: "not slow and not mpi"
+          - group: integration
+            paths: tests/integration
+            markers: "not slow and not mpi"
+          - group: slow
+            paths: tests
+            markers: "slow and not mpi"
+
     container:
       image: firedrakeproject/firedrake:latest
       options: --user root
-    
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-    
-    - name: Install pytest
+
+    - name: Restore compiled-kernel cache
+      uses: actions/cache@v4
+      with:
+        path: .cache
+        # A new entry per run (the cache only grows); restore the newest one for this group.
+        key: firedrake-kernels-${{ matrix.group }}-${{ github.run_id }}
+        restore-keys: |
+          firedrake-kernels-${{ matrix.group }}-
+
+    - name: Install test dependencies
+      run: |
+        pip install pytest pytest-xdist pyyaml
+
+    - name: Run pytest (${{ matrix.group }})
+      env:
+        PYTHONPATH: ${{ github.workspace }}
+      run: |
+        mkdir -p "$PYOP2_CACHE_DIR" "$FIREDRAKE_TSFC_KERNEL_CACHE_DIR"
+        # --dist loadfile keeps each file's tests on one worker, so module-level setup and the
+        # per-mesh caches are reused; -rfEs summarizes failures, errors and skips at the end.
+        pytest ${{ matrix.paths }} -m "${{ matrix.markers }}" -n auto --dist loadfile -rfEs
+
+  mpi:
+    # The parallel smoke tests (marked mpi) need several MPI ranks, which pytest-xdist cannot
+    # provide, so they run in their own job under mpiexec.
+    name: tests (mpi)
+    runs-on: ubuntu-latest
+    container:
+      image: firedrakeproject/firedrake:latest
+      options: --user root
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Restore compiled-kernel cache
+      uses: actions/cache@v4
+      with:
+        path: .cache
+        key: firedrake-kernels-mpi-${{ github.run_id }}
+        restore-keys: |
+          firedrake-kernels-mpi-
+
+    - name: Install test dependencies
       run: |
         pip install pytest pyyaml
 
-    - name: Run pytest
+    - name: Run MPI smoke tests
       env:
-          PYTHONPATH: ${{ github.workspace }}
+        PYTHONPATH: ${{ github.workspace }}
       run: |
-        pytest -v -s
+        mkdir -p "$PYOP2_CACHE_DIR" "$FIREDRAKE_TSFC_KERNEL_CACHE_DIR"
+        # OpenMPI refuses to run as root (the container user) without override flags; MPICH, which
+        # the Firedrake images usually ship, neither needs nor accepts them.
+        if mpiexec --version 2>&1 | grep -qi "open mpi"; then
+          MPI_FLAGS="--allow-run-as-root --oversubscribe"
+        else
+          MPI_FLAGS=""
+        fi
+        mpiexec $MPI_FLAGS -n 2 pytest tests -m mpi -rfEs

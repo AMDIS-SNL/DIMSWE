@@ -3,6 +3,12 @@ from firedrake import project, FunctionSpace
 
 
 def get_diff_form_space(spaces, bundle, degree, dim, nm1):
+    """Return the discrete space of degree-forms in dim dimensions from a DeRhamComplex.
+
+    bundle 'S' selects scalar-valued forms, 'VV'/'CV' vector-valued forms. nm1 chooses the 2D
+    1-form space: True gives Hdiv (curl-div complex), False gives Hcurl (grad-curl complex); it is
+    ignored in 1D and 3D. In 1D, 0-forms are CG and 1-forms DG.
+    """
     if bundle == 'S':
         if degree == 0:
             return spaces.CG
