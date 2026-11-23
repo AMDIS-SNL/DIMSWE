@@ -141,4 +141,4 @@ def test_radial_mesh_rules():
         build_mesh(parameters('unit-disk', simplicial=True, refinement_levels=1), DOMAIN)
     with pytest.raises(ValueError):
         build_mesh(parameters('annulus', inner_radius=1.0, outer_radius=0.5), DOMAIN)
-    assert all(spec.topology in ('box', 'radial') for spec in MESH_TYPES.values())
+    assert all(spec.topology in ('box', 'radial', 'manifold') for spec in MESH_TYPES.values())

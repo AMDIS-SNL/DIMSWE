@@ -14,7 +14,8 @@ class MeshSpec:
     """Description of a mesh type (TODO-elliptic §4.14).
 
     Attributes:
-        dim: topological = geometric dimension (immersed manifolds are not supported yet).
+        dim: topological dimension (the form degrees run 0..dim).
+        gdim: geometric dimension (3 for immersed surfaces, otherwise dim).
         topology: 'box' (axis-aligned box, possibly periodic: the face registry, Künneth harmonic
             forms and box problem data apply) or 'radial' (disk, annulus, ball: faces 'outer' and
             'inner' detected by radius, numerical harmonic forms). Firedrake's CylinderMesh and the
@@ -24,12 +25,16 @@ class MeshSpec:
         unit: for box aliases, True if the domain is fixed to the unit box (Lx = Ly = Lz = 1,
             starting at the origin); False if the cfg/domain lengths are used.
         simplicial_only: the mesh only exists with simplicial cells.
+        quadrilateral_only: the mesh only exists with quadrilateral cells.
         faces: for 'radial' meshes, the logical face names.
     """
 
-    def __init__(self, dim, topology='box', base=None, periodic=(), unit=False, simplicial_only=False, faces=()):
+    def __init__(self, dim, topology='box', base=None, periodic=(), unit=False, simplicial_only=False, faces=(),
+                 gdim=None, quadrilateral_only=False):
         self.dim, self.topology, self.base = dim, topology, base
         self.periodic, self.unit, self.simplicial_only, self.faces = periodic, unit, simplicial_only, tuple(faces)
+        self.gdim = dim if gdim is None else gdim
+        self.quadrilateral_only = quadrilateral_only
 
 
 # Every mesh type DIMSWE knows. Box aliases reuse the canonical box builders (and their periodicity,
@@ -58,6 +63,12 @@ MESH_TYPES = {
     'unit-disk': MeshSpec(2, topology='radial', simplicial_only=True, faces=('outer',)),
     'annulus': MeshSpec(2, topology='radial', faces=('inner', 'outer')),
     'unit-ball': MeshSpec(3, topology='radial', simplicial_only=True, faces=('outer',)),
+    # Immersed 2-manifolds in 3D (stage 3): closed surfaces, except the open cylinder surface.
+    'icosahedral-sphere': MeshSpec(2, topology='manifold', gdim=3, simplicial_only=True),
+    'octahedral-sphere': MeshSpec(2, topology='manifold', gdim=3, simplicial_only=True),
+    'cubed-sphere': MeshSpec(2, topology='manifold', gdim=3, quadrilateral_only=True),
+    'torus': MeshSpec(2, topology='manifold', gdim=3),
+    'cylinder-surface': MeshSpec(2, topology='manifold', gdim=3, faces=('bottom', 'top')),
 }
 
 # Kept for backwards compatibility (code outside dimswe may use them).
@@ -110,13 +121,14 @@ def set_dimension(parameters, mesh=None):
     """Store the spatial dimension of the mesh in parameters['mesh']['dim'].
 
     For built-in mesh types it follows from the type name. For 'file' meshes it is read from the
-    mesh (its geometric dimension), so mesh must be given in that case.
+    mesh (its topological dimension, the form-degree range; equal to the geometric one
+    for volume meshes), so mesh must be given in that case.
     """
     dim = get_mesh_type_dimension(parameters['mesh']['type'])
     if dim is None:
         if mesh is None:
             raise ValueError("the dimension of a 'file' mesh can only be set once the mesh is loaded")
-        dim = ufl_attribute(mesh, 'geometric_dimension')
+        dim = ufl_attribute(mesh, 'topological_dimension')
     parameters['mesh']['dim'] = dim
 
 def get_periodic_directions(mesh_parameters):
@@ -391,6 +403,53 @@ def _build_radial_mesh(mp):
     raise ValueError("no builder for radial mesh " + str(mesh_type))
 
 
+def _build_manifold_mesh(mp):
+    """Immersed surface meshes (TODO-elliptic §4.14 stage 3), with outward cell orientations.
+
+    cfg entries (all optional): radius (1; spheres, cylinder), refinement (Firedrake
+    refinement_level, default 3 for spheres), degree (coordinate degree, default 1);
+    torus: R (major radius, 2), r (minor, 0.5), nR (16), nr (8); cylinder-surface: nr (angular, 16),
+    nl (layers, 4), height (1). Quadrilateral cells where Firedrake offers them
+    (cubed-sphere always; torus and cylinder unless simplicial_cells: true).
+    """
+    from firedrake import CylinderMesh, IcosahedralSphereMesh, OctahedralSphereMesh, CubedSphereMesh, TorusMesh
+    mesh_type = mp['type']
+    radius = _radial_value(mp, 'radius', 1.0)
+    degree = int(mp.get('degree', 1))
+    quadrilateral = not mp.get('simplicial_cells', False)
+    if mesh_type == 'icosahedral-sphere':
+        mesh = IcosahedralSphereMesh(radius, refinement_level=int(mp.get('refinement', 3)), degree=degree)
+    elif mesh_type == 'octahedral-sphere':
+        mesh = OctahedralSphereMesh(radius, refinement_level=int(mp.get('refinement', 3)), degree=degree)
+    elif mesh_type == 'cubed-sphere':
+        mesh = CubedSphereMesh(radius, refinement_level=int(mp.get('refinement', 3)), degree=degree)
+    elif mesh_type == 'torus':
+        mesh = TorusMesh(int(mp.get('nR', 16)), int(mp.get('nr', 8)), _radial_value(mp, 'R', 2.0),
+                         _radial_value(mp, 'r', 0.5), quadrilateral=quadrilateral)
+    elif mesh_type == 'cylinder-surface':
+        mesh = CylinderMesh(int(mp.get('nr', 16)), int(mp.get('nl', 4)), radius=radius,
+                            depth=_radial_value(mp, 'height', 1.0), longitudinal_direction='z',
+                            quadrilateral=quadrilateral)
+    else:
+        raise ValueError("no builder for manifold mesh " + str(mesh_type))
+    orient_outward(mesh, mesh_type, mp)
+    return mesh
+
+
+def orient_outward(mesh, mesh_type, mp):
+    """Set outward cell orientations: away from the center (spheres), the torus core, the cylinder axis."""
+    from firedrake import SpatialCoordinate, as_vector, sqrt
+    X = SpatialCoordinate(mesh)
+    if mesh_type == 'torus':
+        R = _radial_value(mp, 'R', 2.0)
+        rho = sqrt(X[0] ** 2 + X[1] ** 2)
+        mesh.init_cell_orientations(as_vector((X[0] - R * X[0] / rho, X[1] - R * X[1] / rho, X[2])))
+    elif mesh_type == 'cylinder-surface':
+        mesh.init_cell_orientations(as_vector((X[0], X[1], 0.0)))
+    else:
+        mesh.init_cell_orientations(X)
+
+
 def get_refinement_levels(mesh_parameters):
     """mesh.refinement_levels (default 0): number of uniform refinements of a multigrid hierarchy."""
     levels = mesh_parameters.get('refinement_levels', 0) or 0
@@ -448,6 +507,15 @@ def build_mesh(parameters, domain):
     spec = get_mesh_spec(mesh_type)
     periodic = get_periodic_directions(mp)
     levels = get_refinement_levels(mp)
+    if spec is not None and spec.quadrilateral_only and mp.get('simplicial_cells', False):
+        raise ValueError("mesh type " + mesh_type + " only exists with quadrilateral cells: set simplicial_cells: false")
+    if spec is not None and spec.topology == 'manifold':
+        if levels > 0:
+            raise NotImplementedError("mesh.refinement_levels on manifold meshes is not supported yet "
+                                      "(TODO-elliptic §4.14, stage 4)")
+        if spec.simplicial_only and not mp.get('simplicial_cells', False):
+            raise ValueError("mesh type " + mesh_type + " only exists with simplicial cells: set simplicial_cells: true")
+        return _build_manifold_mesh(mp)
     if spec is not None and spec.simplicial_only and not mp.get('simplicial_cells', False):
         raise ValueError("mesh type " + mesh_type + " only exists with simplicial cells: set simplicial_cells: true")
     if spec is not None and spec.topology == 'radial':

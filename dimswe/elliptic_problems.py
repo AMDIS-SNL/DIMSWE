@@ -27,7 +27,8 @@ from dataclasses import dataclass, field
 from math import pi
 from typing import Dict
 
-from firedrake import Constant, SpatialCoordinate, as_matrix, as_vector, conditional, cos, exp, lt, sin
+from firedrake import (Constant, SpatialCoordinate, as_matrix, as_vector, conditional, cos, cross, dot, exp, lt,
+                       sin, sqrt)
 
 from .ufl_helpers import ufl_attribute
 
@@ -52,6 +53,7 @@ def get_elliptic_problem(parameters):
         'variable-coefficient-sine': VariableCoefficientSineProblem,
         'two-material-sine': TwoMaterialSineProblem,
         'radial': RadialProblem,
+        'spherical-harmonic': SphericalHarmonicProblem,
     }
     if name not in problems:
         raise ValueError("unknown elliptic problem " + str(name) + " (known: " + str(sorted(problems)) + ")")
@@ -134,9 +136,11 @@ class EllipticProblemData():
         topology 'radial'), which raise here; use RadialProblem. 'file' meshes keep the previous
         behaviour (bounds from the problem's domain).
         """
-        if getattr(mesh, 'mesh_topology', 'box') == 'radial':
-            raise ValueError(type(self).__name__ + " is defined on box domains; use elliptic-problem name: radial "
-                             "on " + str(mesh.mesh_topology) + " meshes")
+        topology = getattr(mesh, 'mesh_topology', 'box')
+        if topology in ('radial', 'manifold'):
+            hint = 'radial' if topology == 'radial' else 'spherical-harmonic'
+            raise ValueError(type(self).__name__ + " is defined on box domains; use elliptic-problem name: " + hint
+                             + " on " + topology + " meshes")
         bounds = getattr(mesh, 'domain_bounds', None)
         if bounds is not None:
             return bounds
@@ -359,6 +363,76 @@ class VariableCoefficientSineProblem(SineProblem):
 # ---------------------------------------------------------------------------------------------
 # Problems without an exact solution
 # ---------------------------------------------------------------------------------------------
+
+class SphericalHarmonicProblem(EllipticProblemData):
+    """Exact solutions on a sphere of radius R centered at the origin (TODO-elliptic §4.14 stage 3).
+
+    UFL's grad of a SpatialCoordinate expression is the ambient gradient, so on a surface the exact
+    fields are given in closed form instead of derived symbolically. With the degree-3 spherical
+    harmonic psi = x y z / R^3 (Delta_S psi = -lam psi, lam = l (l + 1) / R^2 = 12 / R^2), the
+    tangential surface gradient g = grad_S psi = a - (a . n) n (ambient a = (yz, xz, xy) / R^3,
+    outward n = x / |x|) and s = skewgrad psi = n x g, using the operator table of
+    dimswe.differential_forms (curl-div: d_0 = skewgrad, d_1 = div, delta_1 = -curl2D,
+    delta_2 = -grad; grad-curl: d_0 = grad, delta_1 = -div), curl2D(s) = div(g) = Delta_S psi:
+    - k = 0: u = psi, du = g (grad-curl) or s (curl-div), f = lam psi;
+    - k = 1 (curl-div): u = s, sigma = -curl2D(s) = lam psi, d sigma = lam s, du = div(s) = 0,
+      f = lam s;
+    - k = 2 (curl-div): u = psi, sigma = -grad_S psi = -g, d sigma = -div(g) = lam psi, f = lam psi.
+    psi is orthogonal to the constants (the sphere's 0- and 2-form harmonics), and the sphere has
+    no harmonic 1-forms, so errors compare with u directly. k > 0 is only provided for curl-div.
+    Constant scalar coefficients mu, kappa, c are supported (the fields above are rescaled).
+    """
+
+    def __init__(self, parameters):
+        super().__init__(parameters)
+        self.R = float(self.cfg.get('radius', parameters.get('mesh', {}).get('radius', 1.0)))
+
+    def _fields(self, mesh):
+        """psi, grad_S psi, skewgrad psi and lambda."""
+        X = SpatialCoordinate(mesh)
+        R = self.R
+        psi = X[0] * X[1] * X[2] / R ** 3
+        ambient = as_vector((X[1] * X[2], X[0] * X[2], X[0] * X[1])) / R ** 3
+        n = X / sqrt(dot(X, X))
+        g = ambient - dot(ambient, n) * n
+        return psi, g, cross(n, g), 12.0 / R ** 2
+
+    def get_exact(self, mesh, k, dim, complex, harmonic_index_sets=()):
+        """Closed-form fields (see the class docstring)."""
+        if getattr(mesh, 'mesh_topology', None) != 'manifold' or dim != 2:
+            raise ValueError("spherical-harmonic needs a sphere mesh (icosahedral-sphere, octahedral-sphere, cubed-sphere)")
+        weights = self.weights or {}
+        mu = self._constant_weight(weights.get('mu'), 1.0)
+        kappa = self._constant_weight(weights.get('kappa'), 1.0)
+        c = self._constant_weight(weights.get('c'), 0.0)
+        psi, g, s, lam = self._fields(mesh)
+        if k == 0:
+            du = s if complex == 'curl-div' else g
+            return {'u': psi, 'sigma': None, 'dsigma': None, 'du': du, 'flux': kappa * du,
+                    'f': (kappa * lam + c) * psi, 'p': None}
+        if complex != 'curl-div':
+            raise NotImplementedError("spherical-harmonic supports k > 0 only for the curl-div complex")
+        if k == 1:
+            zero = Constant(0.0)
+            return {'u': s, 'sigma': (lam / mu) * psi, 'dsigma': (lam / mu) * s, 'du': zero, 'flux': zero,
+                    'f': (lam / mu + c) * s, 'p': None}
+        return {'u': psi, 'sigma': -(1.0 / mu) * g, 'dsigma': (lam / mu) * psi, 'du': None, 'flux': None,
+                'f': (lam / mu + c) * psi, 'p': None}
+
+    @staticmethod
+    def _constant_weight(weight, default):
+        """The value of a constant scalar coefficient weight (None: the default).
+
+        The closed-form fields scale with constant mu, kappa, c (sigma = mu^{-1} delta u, flux = kappa du,
+        f = d sigma + delta(kappa du) + c u); spatially varying or tensor coefficients have no closed
+        form here and raise NotImplementedError.
+        """
+        if weight is None:
+            return default
+        if isinstance(weight, Constant) and len(weight.ufl_shape) == 0:
+            return float(weight)
+        raise NotImplementedError("spherical-harmonic only supports constant scalar coefficients (mu, kappa, c)")
+
 
 class RadialProblem(EllipticProblemData):
     """Manufactured solution for non-box domains (disk, annulus, ball; TODO-elliptic §4.14).

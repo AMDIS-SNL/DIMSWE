@@ -22,15 +22,23 @@ Operator table (TODO-elliptic §1.2). Each exterior derivative satisfies
 with skewgrad w = (-w_y, w_x) and curl2D w = w1_x - w0_y as in dimswe/ufl_helpers.py (whose API
 is unchanged). Every sign is verified by tests/unit/test_differential_forms.py.
 
+On an immersed 2-manifold in 3D (TODO-elliptic §4.14 stage 3) the proxies are tangential 3-vectors,
+grad/div are the surface operators (Firedrake computes them through the cell Jacobian for
+discrete functions), and with the outward unit cell normal n: skewgrad w = n x grad w,
+curl2D v = div(v x n) and the 2D cross product a x b = n . (a x b). On a flat mesh n = e_z and
+these reduce to the formulas above. UFL's grad of a SpatialCoordinate expression is the *ambient*
+gradient, so on manifolds exact (manufactured) fields must be supplied in closed form by the
+problem data (elliptic_problems.SphericalHarmonicProblem), not derived symbolically.
+
 The functions here work on any UFL expressions of the right shape: discrete Functions, test and
 trial functions, and closed-form expressions of SpatialCoordinate (used to build manufactured
 solutions).
 """
-from firedrake import as_vector, cross, curl, div, dot, grad, inv
+from firedrake import CellNormal, as_vector, cross, curl, div, dot, grad, inv
 from ufl import as_ufl
 
 from .meshes import DIRECTIONS
-from .ufl_helpers import curl2D, skewgrad
+from .ufl_helpers import curl2D, skewgrad, ufl_attribute
 from .variables import get_diff_form_space
 
 # Allowed names for the 2D complexes.
@@ -74,9 +82,47 @@ def form_space(spaces, k, dim, complex):
     return get_diff_form_space(spaces, 'S', k, dim, complex == 'curl-div')
 
 
+def surface_normal(*exprs):
+    """Unit cell normal of the immersed 2-manifold the expressions live on, or None if flat.
+
+    The mesh is taken from the first expression with a domain. On an immersed surface (geometric
+    dimension 3, topological dimension 2) this is firedrake.CellNormal, which needs the mesh's cell
+    orientations (dimswe.meshes sets them, outward, when it builds a manifold mesh).
+    """
+    from ufl.domain import extract_unique_domain
+    for expr in exprs:
+        try:
+            domain = extract_unique_domain(expr)
+        except Exception:
+            domain = None
+        if domain is None:
+            continue
+        gdim = ufl_attribute(domain, 'geometric_dimension')
+        tdim = ufl_attribute(domain, 'topological_dimension')
+        if gdim == 3 and tdim == 2:
+            return CellNormal(domain)
+        return None
+    return None
+
+
+def _skewgrad(w):
+    """Rotated gradient: (-w_y, w_x) in the plane, n x grad w on an immersed surface."""
+    n = surface_normal(w)
+    return skewgrad(w) if n is None else cross(n, grad(w))
+
+
+def _curl2d(v):
+    """Scalar curl: v1_x - v0_y in the plane, div(v x n) on an immersed surface."""
+    n = surface_normal(v)
+    return curl2D(v) if n is None else div(cross(v, n))
+
+
 def _cross_2d(a, b):
-    """Scalar 2D cross product a x b = a0 b1 - a1 b0."""
-    return a[0] * b[1] - a[1] * b[0]
+    """Scalar 2D cross product: a0 b1 - a1 b0 in the plane, n . (a x b) on an immersed surface."""
+    n = surface_normal(a, b)
+    if n is None:
+        return a[0] * b[1] - a[1] * b[0]
+    return dot(n, cross(a, b))
 
 
 def exterior_derivative(w, k, dim, complex):
@@ -91,9 +137,9 @@ def exterior_derivative(w, k, dim, complex):
     if dim == 1:
         return w.dx(0)
     if k == 0:
-        return skewgrad(w) if complex == 'curl-div' else grad(w)
+        return _skewgrad(w) if complex == 'curl-div' else grad(w)
     if dim == 2:
-        return curl2D(w) if complex == 'grad-curl' else div(w)
+        return _curl2d(w) if complex == 'grad-curl' else div(w)
     return curl(w) if k == 1 else div(w)
 
 
@@ -111,10 +157,10 @@ def codifferential(z, k, dim, complex):
     if dim == 1:
         return -z.dx(0)
     if k == 1:
-        return -curl2D(z) if complex == 'curl-div' else -div(z)
+        return -_curl2d(z) if complex == 'curl-div' else -div(z)
     if dim == 2:
         # k = 2: adjoint of curl2D (grad-curl) or of div (curl-div)
-        return -skewgrad(z) if complex == 'grad-curl' else -grad(z)
+        return -_skewgrad(z) if complex == 'grad-curl' else -grad(z)
     return curl(z) if k == 2 else -grad(z)
 
 

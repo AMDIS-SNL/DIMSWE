@@ -141,6 +141,9 @@ def get_boundary_registry(mesh, mesh_type, periodic_directions=None):
     if dim is None:
         raise NotImplementedError("boundary registry for 'file' meshes is not implemented")
     if not is_box_mesh_type(mesh_type):
+        from .meshes import get_mesh_spec
+        if get_mesh_spec(mesh_type).topology == 'manifold':
+            return manifold_face_registry(mesh, mesh_type)
         return radial_face_registry(mesh, mesh_type)
     if periodic_directions is None:
         periodic_directions = getattr(mesh, 'periodic_directions', ())
@@ -236,6 +239,44 @@ def radial_face_registry(mesh, mesh_type):
         else:
             ids = tuple(sorted(i for p in pieces for i in p[2]))
             registry[name] = BoundaryFace(name, None, side, ids, kind, ids[0] if len(ids) == 1 else ids)
+    cache[key] = registry
+    return dict(registry)
+
+
+def manifold_face_registry(mesh, mesh_type):
+    """Faces of immersed surfaces: none for closed surfaces (spheres, torus), and for the open
+    cylinder surface the two end circles 'bottom' (low z) and 'top' (high z), assigned by the mean
+    z coordinate of each non-empty boundary marker (z-axis cylinder)."""
+    from .meshes import get_mesh_spec
+    spec = get_mesh_spec(mesh_type)
+    if not spec.faces:
+        return {}
+    cache = getattr(mesh, '_dimswe_face_registries', None)
+    if cache is None:
+        cache = {}
+        mesh._dimswe_face_registries = cache
+    key = (mesh_type, 'manifold')
+    if key in cache:
+        return dict(cache[key])
+    X = SpatialCoordinate(mesh)
+    means = []
+    for marker in _boundary_markers(mesh) or []:
+        if _marker_facet_count(mesh, marker) == 0:
+            continue
+        dm = ds(marker, domain=mesh)
+        area = assemble(Constant(1.0) * dm)
+        if area > 0.0:
+            means.append((assemble(X[2] * dm) / area, marker))
+    if not means:
+        raise ValueError("mesh type " + mesh_type + " has no boundary markers")
+    split = 0.5 * (min(m[0] for m in means) + max(m[0] for m in means))
+    groups = {'bottom': [m for z, m in means if z < split], 'top': [m for z, m in means if z >= split]}
+    registry = {}
+    for side, name in enumerate(spec.faces):
+        ids = tuple(sorted(groups[name]))
+        if not ids:
+            raise ValueError("no boundary marker of the " + mesh_type + " lies on face '" + name + "'")
+        registry[name] = BoundaryFace(name, None, side, ids, 'ds', ids[0] if len(ids) == 1 else ids)
     cache[key] = registry
     return dict(registry)
 
