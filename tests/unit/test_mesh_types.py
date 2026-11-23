@@ -134,11 +134,11 @@ def test_radial_volume_approximates_disk():
 
 
 def test_radial_mesh_rules():
-    """Simplicial-only meshes reject quads; hierarchies on curved meshes are not supported yet."""
+    """Simplicial-only meshes reject quads; hierarchies need non-extruded coarse meshes."""
     with pytest.raises(ValueError):
         build_mesh(parameters('unit-disk', simplicial=False), DOMAIN)
-    with pytest.raises(NotImplementedError):
-        build_mesh(parameters('unit-disk', simplicial=True, refinement_levels=1), DOMAIN)
+    with pytest.raises(NotImplementedError):   # the quadrilateral annulus is extruded
+        build_mesh(parameters('annulus', simplicial=False, refinement_levels=1, nr=4, nt=16), DOMAIN)
     with pytest.raises(ValueError):
         build_mesh(parameters('annulus', inner_radius=1.0, outer_radius=0.5), DOMAIN)
     assert all(spec.topology in ('box', 'radial', 'manifold') for spec in MESH_TYPES.values())

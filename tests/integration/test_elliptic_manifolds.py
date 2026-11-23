@@ -158,13 +158,11 @@ def test_cylinder_surface_faces():
 
 
 def test_manifold_mesh_rules():
-    """Cell-type restrictions and unsupported hierarchies."""
+    """Cell-type restrictions (hierarchies on surfaces are tested in test_curved_hierarchies.py)."""
     with pytest.raises(ValueError):
         build_mesh(mesh_parameters('icosahedral-sphere', False, 'Q'), None)
     with pytest.raises(ValueError):
         build_mesh(mesh_parameters('cubed-sphere', True, 'P-'), None)
-    with pytest.raises(NotImplementedError):
-        build_mesh(mesh_parameters('icosahedral-sphere', True, 'P-', refinement_levels=1), None)
     with pytest.raises(ValueError, match="spherical-harmonic"):
         EllipticProblem(dict(elliptic_parameters('icosahedral-sphere', 0, 'grad-curl', refinement=1),
                              **{'elliptic-problem': {'name': 'sine'}}))

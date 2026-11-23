@@ -494,6 +494,78 @@ def _build_hierarchy_mesh(parameters, domain, dim, periodic, levels):
     return mesh
 
 
+def snap_to_geometry(mesh, mesh_type, mp):
+    """Move a refined mesh's vertices onto the exact curved geometry (TODO-elliptic §4.14 stage 4).
+
+    Uniform refinement places new vertices on the coarse polygon/polyhedron, so without snapping
+    the fine meshes do not approximate the circle/sphere better. Snapping moves coordinates only
+    (topology and multigrid transfers are unchanged):
+    - spheres: every vertex to radius R;
+    - torus: every vertex to the tube of radius r around the core circle of radius R;
+    - cylinder-surface: every vertex to radius R about the z axis;
+    - unit-disk, unit-ball: boundary vertices to radius 1;
+    - annulus: boundary vertices to the nearer of the inner/outer radii.
+    Works on degree-1 coordinates; higher-degree coordinate fields are snapped at every node.
+    """
+    import numpy
+    coords = mesh.coordinates.dat.data
+    spec = get_mesh_spec(mesh_type)
+    if mesh_type.endswith('sphere'):
+        radius = _radial_value(mp, 'radius', 1.0)
+        coords[:] *= radius / numpy.linalg.norm(coords, axis=1)[:, None]
+    elif mesh_type == 'cylinder-surface':
+        radius = _radial_value(mp, 'radius', 1.0)
+        rho = numpy.linalg.norm(coords[:, :2], axis=1)
+        coords[:, :2] *= (radius / rho)[:, None]
+    elif mesh_type == 'torus':
+        R, r = _radial_value(mp, 'R', 2.0), _radial_value(mp, 'r', 0.5)
+        rho = numpy.linalg.norm(coords[:, :2], axis=1)
+        core = numpy.column_stack([R * coords[:, 0] / rho, R * coords[:, 1] / rho, numpy.zeros(len(rho))])
+        offset = coords - core
+        coords[:] = core + r * offset / numpy.linalg.norm(offset, axis=1)[:, None]
+    elif spec.topology == 'radial':
+        radii = {'unit-disk': (1.0,), 'unit-ball': (1.0,),
+                 'annulus': (_radial_value(mp, 'inner_radius', 0.5), _radial_value(mp, 'outer_radius', 1.0))}[mesh_type]
+        boundary_nodes = _boundary_vertex_nodes(mesh)
+        norm = numpy.linalg.norm(coords[boundary_nodes], axis=1)
+        target = numpy.array([min(radii, key=lambda rad: abs(rad - value)) for value in norm])
+        coords[boundary_nodes] *= (target / norm)[:, None]
+    else:
+        raise ValueError("no exact geometry to snap " + str(mesh_type) + " to")
+
+
+def _boundary_vertex_nodes(mesh):
+    """Indices of the coordinate-field nodes on the exterior boundary."""
+    import numpy
+    from firedrake import DirichletBC
+    nodes = DirichletBC(mesh.coordinates.function_space(), 0, 'on_boundary').nodes
+    return numpy.asarray(nodes, dtype=int)
+
+
+def _build_curved_hierarchy(mp, levels):
+    """MeshHierarchy of a radial or manifold coarse mesh, snapped to the exact geometry per level.
+
+    Extruded coarse meshes (Firedrake's quadrilateral AnnulusMesh, a periodic extrusion, and any
+    extruded torus/cylinder) would need an ExtrudedMeshHierarchy and are not supported.
+    """
+    from firedrake import MeshHierarchy
+    mesh_type = mp['type']
+    spec = get_mesh_spec(mesh_type)
+    coarse = _build_manifold_mesh(mp) if spec.topology == 'manifold' else _build_radial_mesh(mp)
+    if isinstance(ufl_attribute(coarse, 'cell_dimension'), tuple):
+        raise NotImplementedError("mesh.refinement_levels is not supported for extruded " + mesh_type
+                                  + " meshes (use simplicial_cells: true)")
+    hierarchy = MeshHierarchy(coarse, levels)
+    for level in hierarchy[1:]:
+        snap_to_geometry(level, mesh_type, mp)
+        if spec.topology == 'manifold':
+            orient_outward(level, mesh_type, mp)
+    mesh = hierarchy[-1]
+    mesh.mesh_hierarchy = hierarchy
+    mesh.refinement_levels = levels
+    return mesh
+
+
 def build_mesh(parameters, domain):
     """Construct the mesh described by parameters['mesh'] (not yet annotated, see annotate_mesh).
 
@@ -509,20 +581,12 @@ def build_mesh(parameters, domain):
     levels = get_refinement_levels(mp)
     if spec is not None and spec.quadrilateral_only and mp.get('simplicial_cells', False):
         raise ValueError("mesh type " + mesh_type + " only exists with quadrilateral cells: set simplicial_cells: false")
-    if spec is not None and spec.topology == 'manifold':
-        if levels > 0:
-            raise NotImplementedError("mesh.refinement_levels on manifold meshes is not supported yet "
-                                      "(TODO-elliptic §4.14, stage 4)")
-        if spec.simplicial_only and not mp.get('simplicial_cells', False):
-            raise ValueError("mesh type " + mesh_type + " only exists with simplicial cells: set simplicial_cells: true")
-        return _build_manifold_mesh(mp)
     if spec is not None and spec.simplicial_only and not mp.get('simplicial_cells', False):
         raise ValueError("mesh type " + mesh_type + " only exists with simplicial cells: set simplicial_cells: true")
-    if spec is not None and spec.topology == 'radial':
+    if spec is not None and spec.topology in ('manifold', 'radial'):
         if levels > 0:
-            raise NotImplementedError("mesh.refinement_levels on curved meshes is not supported yet "
-                                      "(TODO-elliptic §4.14, stage 4)")
-        return _build_radial_mesh(mp)
+            return _build_curved_hierarchy(mp, levels)
+        return _build_manifold_mesh(mp) if spec.topology == 'manifold' else _build_radial_mesh(mp)
     if mesh_type.startswith('tensor-'):
         if levels > 0:
             raise NotImplementedError("mesh.refinement_levels is not supported for tensor-* meshes")

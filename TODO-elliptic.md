@@ -629,46 +629,47 @@ list below is from `firedrake.utility_meshes`):
 | other | `UnitTetrahedronMesh`, `UnitTriangleMesh`, `CircleManifoldMesh` | single cell / curve | vertex/edge ids | numerical |
 
 **Design.**
-- [ ] A table-driven registry `MESH_TYPES = {name: MeshSpec(builder, dim, gdim, topology, faces,
+- [x] A table-driven registry `MESH_TYPES = {name: MeshSpec(builder, dim, gdim, topology, faces,
   periodic_allowed, simplicial_only, ...)}` replaces the `LINE/RECTANGLE/BOX_MESH_TYPES` tuples and
   the `if` chain in `build_mesh`. Every existing type keeps its name and behaviour; the existing
   `build_mesh` tests must pass unchanged. `get_mesh_type_dimension` reads `MeshSpec.dim`.
-- [ ] cfg: `mesh.type` takes the new names, with the mesh's own parameters under `mesh`
+- [x] cfg: `mesh.type` takes the new names, with the mesh's own parameters under `mesh`
   (`radius`, `inner_radius`, `refinement_level`, `degree` for curved coordinates, `nr`/`nt` for
   annuli, ...). Builders take `(mesh_cfg, domain)` and validate their own keys.
-- [ ] Geometric dimension ≠ topological dimension (manifolds): `DeRhamComplex` and
+- [x] Geometric dimension ≠ topological dimension (manifolds): `DeRhamComplex` and
   `differential_forms` assume `gdim = tdim`. On immersed manifolds the proxies need the cell
   orientation (`mesh.init_cell_orientations(x)`) and the `skewgrad`/`curl2D` operators become
   `k̂ × grad`, `div(k̂ × u)` with the outward normal `k̂`. Add a `ManifoldDeRhamComplex` path and
   manifold variants of `exterior_derivative`/`codifferential` (§1.2 table with `k̂`), and verify
   them with the integration-by-parts and `d² = 0` tests on the sphere.
-- [ ] Boundary registry for non-box domains: `get_boundary_registry` dispatches on
+- [x] Boundary registry for non-box domains: `get_boundary_registry` dispatches on
   `MeshSpec.faces`. Disks/annuli/balls get `outer`/`inner` with the utility mesh's own boundary
   ids (verify numbering with a geometric check, like `verify_boundary_registry`: radius instead
   of coordinate). Closed manifolds have no faces. `domain_bounds` is `None` for non-box meshes,
   and everything that uses it already handles `None` (problem data fall back to the problem's own
   domain; exact box spectra are skipped).
-- [ ] Problem data on non-box domains: `normalized_coordinates` is box-specific. Add
+- [x] Problem data on non-box domains: `normalized_coordinates` is box-specific. Add
   coordinate-free MMS problems, e.g. `RadialProblem` (disk/annulus, polar sine modes) and
   `SphericalHarmonicProblem` (sphere: the Laplace–Beltrami eigenfunctions, exact for k = 0 and
   k = 2, and their `d`/`δ` for k = 1).
-- [ ] Harmonic forms: non-box meshes use `numerical` (§4.13) automatically. The sphere (`b_1 = 0`)
+- [x] Harmonic forms: non-box meshes use `numerical` (§4.13) automatically. The sphere (`b_1 = 0`)
   and torus (`b_1 = 2`) are the reference checks.
-- [ ] Multigrid: `MeshHierarchy` of a curved/immersed mesh needs the coarse mesh and
+- [x] Multigrid: `MeshHierarchy` of a curved/immersed mesh needs the coarse mesh and
   `reorder=False`, plus re-snapping of refined vertices to the curved boundary/surface (a
   `MeshHierarchy` callback). Document which types support `refinement_levels`.
-- [ ] FEEC families per cell type: disks/annuli/balls are simplicial (P±); `CubedSphereMesh` is
+- [x] FEEC families per cell type: disks/annuli/balls are simplicial (P±); `CubedSphereMesh` is
   quadrilateral (Q); extruded variants keep Q. Validation uses `FAMILY_CELLS` as now.
 
 **Tests.**
-- [ ] Every registered type builds (small sizes), reports the right `dim`/`gdim`/cell, and its
+- [x] Every registered type builds (small sizes), reports the right `dim`/`gdim`/cell, and its
   faces pass the geometric registry check. Existing mesh tests unchanged.
-- [ ] Manifold operators: `d² = 0` and integration by parts on the icosahedral and cubed spheres.
-- [ ] MMS convergence for k = 0 on the disk and annulus (Dirichlet/Neumann) and for k = 0, 2 on
+- [x] Manifold operators: `d² = 0` and integration by parts on the icosahedral and cubed spheres.
+- [x] MMS convergence for k = 0 on the disk and annulus (Dirichlet/Neumann) and for k = 0, 2 on
   the sphere. Then k = 1 on the annulus with the numerical harmonic form.
-- [ ] Eigenproblems: the sphere spectrum `l(l+1)/R²` with multiplicity `2l + 1` (k = 0).
-- Status: stages 1–3 done (registry + box-like meshes; disks/annuli/balls; immersed manifolds); stage 4 (hierarchies on curved/manifold meshes) is open.
+- [x] Eigenproblems: the sphere spectrum `l(l+1)/R²` with multiplicity `2l + 1` (k = 0).
+- Status: all four stages done (registry + box-like meshes; disks/annuli/balls; immersed manifolds; curved hierarchies).
 - Notes (stage 3, verify on the installed Firedrake): mesh types `icosahedral-sphere`, `octahedral-sphere` (simplicial), `cubed-sphere` (quads), `torus` (`R`, `r`, `nR`, `nr`), `cylinder-surface` (open, `bottom`/`top` circles found by mean z; `nr`, `nl`, `height`); cfg `radius`, `refinement`, `degree` (coordinate degree). `MeshSpec` gained `gdim` and `quadrilateral_only`; topology 'manifold'. Cell orientations are set outward (`meshes.orient_outward`). No separate ManifoldDeRhamComplex was needed: Firedrake's FunctionSpaces on immersed meshes already map RT/N1curl/RTCE/RTCF with the Piola maps, so `DeRhamComplex` is unchanged (dim = topological dimension, `set_dimension` uses it for `file` meshes too). The operators detect manifolds (`differential_forms.surface_normal`: CellNormal when gdim 3 / tdim 2) and use skewgrad = n × grad, curl2D v = div(v × n), a × b = n·(a × b), which reduce to the planar ones for n = e_z. UFL's grad of a SpatialCoordinate expression is the ambient gradient, so manufactured fields on surfaces are closed-form: `elliptic-problem: spherical-harmonic` (ψ = xyz/R³, λ = 12/R²; k = 0 both complexes, k = 1, 2 curl-div). Closed surfaces have no faces; harmonic forms are numerical (sphere b = (1, 0, 1), torus (1, 2, 1)). Tests: `tests/integration/test_elliptic_manifolds.py` (meshes/area/outward normals, d² = 0, tangential d₀, discrete integration by parts on closed surfaces for both complexes, Betti numbers, torus harmonic 1-forms, sphere MMS for k = 0, 1, 2, the Laplace–Beltrami spectrum 0, 2(×3), 6(×5), cylinder faces, mesh rules).
+- Notes (stage 4, verify on the installed Firedrake): `mesh.refinement_levels` on radial and manifold meshes builds a `MeshHierarchy` of the coarse mesh (`meshes._build_curved_hierarchy`) and snaps every refined level to the exact geometry (`meshes.snap_to_geometry`: spheres to radius R, torus to the tube, cylinder surface to radius R about z, disk/ball boundary vertices to radius 1, annulus boundary vertices to the nearer radius), then re-orients manifold levels outward. Snapping moves coordinates only, so the hierarchy's transfers are unchanged; the coarse level is not snapped (it already lies on the geometry). Extruded coarse meshes (the quadrilateral annulus) raise NotImplementedError (use simplicial cells). `riesz-gmg` needs no changes (it reads `mesh.mesh_hierarchy`). Tests: `tests/integration/test_curved_hierarchies.py` (snapping to round-off on every mesh type, sphere area error decreasing with the level, outward orientation, torus tube, extruded rejection, riesz-gmg = direct on disk and sphere for k = 0, 1, bounded iterations over three depths).
 
 ### 4.15 Weighted `u` inner product (separate task, split from §4.13)
 Generalize the `u` inner product to `(w u, v)`, with `w` a positive scalar or SPD tensor coefficient
