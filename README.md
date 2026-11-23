@@ -50,3 +50,7 @@
   (one serial Firedrake process per worker; every test writes only to its own temporary directory).
 - The first run after a Firedrake update or cache clear is much slower: Firedrake compiles and caches a kernel for
   every distinct form. Later runs reuse the cache.
+- CI (`.github/workflows/auto-test.yml`) runs four jobs at the same time: `unit`, `integration` (both
+  `not slow and not mpi`), `slow` (the 3D and other `slow`-marked tests) and `mpi` (`mpiexec -n 2 pytest -m mpi`).
+  The first three use `pytest -n auto --dist loadfile`, and every job keeps Firedrake's compiled-kernel cache between
+  runs with `actions/cache`.

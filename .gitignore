@@ -14,3 +14,6 @@ runs/
 docs/*.pdf
 =======
 >>>>>>> main
+
+# Local Firedrake/PyOP2 kernel caches (CI keeps them with actions/cache)
+.cache/
