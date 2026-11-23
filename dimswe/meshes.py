@@ -9,10 +9,76 @@ from .ufl_helpers import ufl_attribute
 # Coordinate directions, in order, for 1D/2D/3D meshes.
 DIRECTIONS = ('x', 'y', 'z')
 
-# Mesh types built by DIMSWE, grouped by dimension.
-LINE_MESH_TYPES = ('line', 'line-periodic')
-RECTANGLE_MESH_TYPES = ('rectangle', 'rectangle-periodic')
-BOX_MESH_TYPES = ('box', 'box-periodic')
+
+class MeshSpec:
+    """Description of a mesh type (TODO-elliptic §4.14).
+
+    Attributes:
+        dim: topological = geometric dimension (immersed manifolds are not supported yet).
+        topology: 'box' (axis-aligned box, possibly periodic: the face registry, Künneth harmonic
+            forms and box problem data apply) or 'radial' (disk, annulus, ball: faces 'outer' and
+            'inner' detected by radius, numerical harmonic forms). Firedrake's CylinderMesh and the
+            sphere/torus meshes are immersed surfaces (stage 3 of TODO-elliptic §4.14).
+        base: for box aliases, the canonical box type ('line', 'rectangle', 'box') it maps to.
+        periodic: for box aliases, the default periodic directions ('all' or a tuple).
+        unit: for box aliases, True if the domain is fixed to the unit box (Lx = Ly = Lz = 1,
+            starting at the origin); False if the cfg/domain lengths are used.
+        simplicial_only: the mesh only exists with simplicial cells.
+        faces: for 'radial' meshes, the logical face names.
+    """
+
+    def __init__(self, dim, topology='box', base=None, periodic=(), unit=False, simplicial_only=False, faces=()):
+        self.dim, self.topology, self.base = dim, topology, base
+        self.periodic, self.unit, self.simplicial_only, self.faces = periodic, unit, simplicial_only, tuple(faces)
+
+
+# Every mesh type DIMSWE knows. Box aliases reuse the canonical box builders (and their periodicity,
+# registry and coordinate conventions); 'tensor-*' are graded boxes; 'radial' meshes are new.
+MESH_TYPES = {
+    'line': MeshSpec(1, base='line'),
+    'line-periodic': MeshSpec(1, base='line', periodic='all'),
+    'rectangle': MeshSpec(2, base='rectangle'),
+    'rectangle-periodic': MeshSpec(2, base='rectangle', periodic='all'),
+    'box': MeshSpec(3, base='box'),
+    'box-periodic': MeshSpec(3, base='box', periodic='all'),
+    # Firedrake's unit/square/cube convenience meshes, as box aliases.
+    'unit-interval': MeshSpec(1, base='line', unit=True),
+    'periodic-unit-interval': MeshSpec(1, base='line', periodic='all', unit=True),
+    'unit-square': MeshSpec(2, base='rectangle', unit=True),
+    'periodic-unit-square': MeshSpec(2, base='rectangle', periodic='all', unit=True),
+    'square': MeshSpec(2, base='rectangle'),
+    'periodic-square': MeshSpec(2, base='rectangle', periodic='all'),
+    'unit-cube': MeshSpec(3, base='box', unit=True),
+    'periodic-unit-cube': MeshSpec(3, base='box', periodic='all', unit=True),
+    'cube': MeshSpec(3, base='box'),
+    # Graded boxes from explicit coordinate lists (TensorRectangleMesh / TensorBoxMesh).
+    'tensor-rectangle': MeshSpec(2, base='rectangle'),
+    'tensor-box': MeshSpec(3, base='box'),
+    # Non-box volume meshes (simplicial, curved boundaries approximated by the mesh).
+    'unit-disk': MeshSpec(2, topology='radial', simplicial_only=True, faces=('outer',)),
+    'annulus': MeshSpec(2, topology='radial', faces=('inner', 'outer')),
+    'unit-ball': MeshSpec(3, topology='radial', simplicial_only=True, faces=('outer',)),
+}
+
+# Kept for backwards compatibility (code outside dimswe may use them).
+LINE_MESH_TYPES = tuple(name for name, spec in MESH_TYPES.items() if spec.base == 'line')
+RECTANGLE_MESH_TYPES = tuple(name for name, spec in MESH_TYPES.items() if spec.base == 'rectangle')
+BOX_MESH_TYPES = tuple(name for name, spec in MESH_TYPES.items() if spec.base == 'box')
+
+
+def get_mesh_spec(mesh_type):
+    """The MeshSpec of a mesh type, or None for 'file' (ValueError for unknown types)."""
+    if mesh_type == 'file':
+        return None
+    if mesh_type not in MESH_TYPES:
+        raise ValueError("mesh " + str(mesh_type) + " is unknown (known: " + str(sorted(MESH_TYPES)) + ", file)")
+    return MESH_TYPES[mesh_type]
+
+
+def is_box_mesh_type(mesh_type):
+    """True for axis-aligned box meshes (the face registry, Künneth rule and box problem data apply)."""
+    spec = get_mesh_spec(mesh_type)
+    return spec is not None and spec.topology == 'box'
 
 # FEEC families that need genuine (non-extruded) hexahedral meshes in 3D (see TODO-elliptic §4.9).
 SERENDIPITY_FAMILIES = ('S-', 'S')
@@ -37,15 +103,8 @@ def get_mesh_type_dimension(mesh_type):
 
     Raises ValueError for unknown mesh types.
     """
-    if mesh_type in LINE_MESH_TYPES:
-        return 1
-    if mesh_type in RECTANGLE_MESH_TYPES:
-        return 2
-    if mesh_type in BOX_MESH_TYPES:
-        return 3
-    if mesh_type == 'file':
-        return None
-    raise ValueError("mesh " + str(mesh_type) + " is unknown")
+    spec = get_mesh_spec(mesh_type)
+    return None if spec is None else spec.dim
 
 def set_dimension(parameters, mesh=None):
     """Store the spatial dimension of the mesh in parameters['mesh']['dim'].
@@ -74,15 +133,16 @@ def get_periodic_directions(mesh_parameters):
     Raises ValueError for unknown or out-of-range directions, and for partial periodicity in 1D.
     """
     mesh_type = mesh_parameters['type']
-    dim = get_mesh_type_dimension(mesh_type)
+    spec = get_mesh_spec(mesh_type)
     requested = mesh_parameters.get('periodic_directions', None)
-    if dim is None:
+    if spec is None or spec.topology != 'box':
         if requested:
-            raise ValueError("periodic_directions is not supported for mesh type 'file'")
+            raise ValueError("periodic_directions is only supported for box meshes, not '" + str(mesh_type) + "'")
         return ()
+    dim = spec.dim
     valid = DIRECTIONS[:dim]
     if requested is None:
-        return valid if mesh_type.endswith('-periodic') else ()
+        return valid if spec.periodic == 'all' else tuple(spec.periodic)
 
     # Normalize the different accepted spellings to a list of direction names.
     if isinstance(requested, str):
@@ -111,9 +171,14 @@ def get_domain_bounds(mesh_parameters, domain, periodic_directions):
     - box meshes always occupy [0, Lx] x [0, Ly] x [0, Lz].
     Returns None for 'file' meshes.
     """
-    dim = get_mesh_type_dimension(mesh_parameters['type'])
-    if dim is None:
+    spec = get_mesh_spec(mesh_parameters['type'])
+    if spec is None or spec.topology != 'box':
         return None
+    dim = spec.dim
+    if spec.unit:
+        return tuple((0., 1.) for _ in range(dim))
+    if mesh_parameters['type'].startswith('tensor-'):
+        return tuple((float(min(c)), float(max(c))) for c in _tensor_coordinates(mesh_parameters, dim))
     lengths = [domain.Lx, getattr(domain, 'Ly', None), getattr(domain, 'Lz', None)][:dim]
     if dim < 3 and len(periodic_directions) == 0:
         centers = [domain.xc, getattr(domain, 'yc', None)][:dim]
@@ -137,25 +202,33 @@ def set_mesh_spacing(mesh, parameters, domain):
     get_periodic_directions) get the same attributes.
     """
     mesh_type = parameters['mesh']['type']
+    if not is_box_mesh_type(mesh_type) or mesh_type.startswith('tensor-'):
+        return  # spacings are only defined for uniform box meshes
+    domain = _box_domain(parameters['mesh'], domain)
     periodic = get_periodic_directions(parameters['mesh'])
     simplicial = parameters['mesh'].get('simplicial_cells', False)
+    # nx, ny, nz are the coarsest level of a refinement hierarchy (finest = n * 2**levels).
+    refine = 2 ** get_refinement_levels(parameters['mesh'])
     if mesh_type in RECTANGLE_MESH_TYPES and len(periodic) > 0:
-        mesh.dx = domain.Lx / parameters['mesh']['nx']
-        mesh.dy = domain.Ly / parameters['mesh']['ny']
+        mesh.dx = domain.Lx / (parameters['mesh']['nx'] * refine)
+        mesh.dy = domain.Ly / (parameters['mesh']['ny'] * refine)
     elif mesh_type in BOX_MESH_TYPES and len(periodic) > 0 and not simplicial:
-        mesh.dx = domain.Lx / parameters['mesh']['nx']
-        mesh.dy = domain.Ly / parameters['mesh']['ny']
-        mesh.dz = domain.Lz / parameters['mesh']['nz']
+        mesh.dx = domain.Lx / (parameters['mesh']['nx'] * refine)
+        mesh.dy = domain.Ly / (parameters['mesh']['ny'] * refine)
+        mesh.dz = domain.Lz / (parameters['mesh']['nz'] * refine)
 
 def annotate_mesh(mesh, parameters, domain):
     """Record mesh metadata needed downstream (boundary registry, harmonic forms, problem data).
 
     Sets mesh.periodic_directions (tuple of 'x'/'y'/'z'), mesh.domain_bounds (see
-    get_domain_bounds; None for 'file' meshes) and the cell spacings of set_mesh_spacing.
+    get_domain_bounds; None for non-box meshes), mesh.mesh_topology ('box', 'radial' or 'file')
+    and the cell spacings of set_mesh_spacing.
     """
     periodic = get_periodic_directions(parameters['mesh'])
     mesh.periodic_directions = periodic
     mesh.domain_bounds = get_domain_bounds(parameters['mesh'], domain, periodic)
+    spec = get_mesh_spec(parameters['mesh']['type'])
+    mesh.mesh_topology = 'file' if spec is None else spec.topology
     set_mesh_spacing(mesh, parameters, domain)
 
 def _diagonal_kwargs(mp):
@@ -233,6 +306,135 @@ def _build_box_mesh(mp, domain, periodic, family):
     base = _build_base_rectangle(mp, domain, tuple(d for d in periodic if d != 'z'))
     return ExtrudedMesh(base, mp['nz'], layer_height=domain.Lz / mp['nz'], extrusion_type='uniform', periodic='z' in periodic)
 
+class _UnitDomain:
+    """The unit box as a domain object (Lx = Ly = Lz = 1, centers at 1/2), for unit-* mesh types."""
+    Lx = Ly = Lz = 1.0
+    xc = yc = zc = 0.5
+
+
+def _box_domain(mesh_parameters, domain):
+    """The domain the canonical box builders use: the unit box for unit-* aliases, else domain."""
+    return _UnitDomain() if get_mesh_spec(mesh_parameters['type']).unit else domain
+
+
+def _tensor_coordinates(mesh_parameters, dim):
+    """Coordinate lists of a tensor-rectangle/tensor-box mesh (mesh.x_coords, y_coords, z_coords).
+
+    Each list needs >= 2 strictly increasing values; ValueError otherwise.
+    """
+    lists = []
+    for name in ('x_coords', 'y_coords', 'z_coords')[:dim]:
+        values = mesh_parameters.get(name)
+        if values is None or len(values) < 2:
+            raise ValueError("mesh type " + mesh_parameters['type'] + " needs mesh." + name + " with >= 2 values")
+        values = [float(v) for v in values]
+        if any(b <= a for a, b in zip(values, values[1:])):
+            raise ValueError("mesh." + name + " must be strictly increasing")
+        lists.append(values)
+    return lists
+
+
+def _build_tensor_mesh(mp, dim):
+    """Graded box from explicit coordinates: TensorRectangleMesh (2D) or TensorBoxMesh (3D)."""
+    import numpy
+    from firedrake import TensorBoxMesh, TensorRectangleMesh
+    coordinates = [numpy.array(c) for c in _tensor_coordinates(mp, dim)]
+    if dim == 2:
+        return TensorRectangleMesh(*coordinates, quadrilateral=not mp.get('simplicial_cells', False),
+                                   **_diagonal_kwargs(mp))
+    if not mp.get('simplicial_cells', False):
+        raise NotImplementedError("tensor-box only exists with simplicial_cells: true (hexahedral TensorBoxMesh "
+                                  "has no NCE/NCF spaces); use box with an extruded mesh for family Q")
+    return TensorBoxMesh(*coordinates)
+
+
+def _radial_value(mp, key, default):
+    """A positive float cfg entry of a radial mesh."""
+    value = float(mp.get(key, default))
+    if value <= 0.0:
+        raise ValueError("mesh." + key + " must be positive")
+    return value
+
+
+def _build_radial_mesh(mp):
+    """Disk, annulus or ball (TODO-elliptic §4.14).
+
+    cfg entries (all optional):
+    - unit-disk, unit-ball: refinement (Firedrake refinement_level, default 3 for the disk, 2 for
+      the ball);
+    - annulus: inner_radius (default 0.5), outer_radius (1), nr (radial cells, default nx or 4),
+      nt (angular cells, default 4 * nr); quadrilateral unless simplicial_cells: true.
+    The faces are detected by radius (boundary_conditions.radial_face_registry).
+    """
+    from firedrake import UnitBallMesh, UnitDiskMesh
+    mesh_type = mp['type']
+    if mesh_type == 'unit-disk':
+        return UnitDiskMesh(refinement_level=int(mp.get('refinement', 3)))
+    if mesh_type == 'unit-ball':
+        return UnitBallMesh(refinement_level=int(mp.get('refinement', 2)))
+    if mesh_type == 'annulus':
+        from firedrake import AnnulusMesh
+        inner = _radial_value(mp, 'inner_radius', 0.5)
+        outer = _radial_value(mp, 'outer_radius', 1.0)
+        if not inner < outer:
+            raise ValueError("annulus needs inner_radius < outer_radius")
+        nr = int(mp.get('nr', mp.get('nx', 4)))
+        nt = int(mp.get('nt', 4 * nr))
+        quadrilateral = not mp.get('simplicial_cells', False)
+        try:
+            return AnnulusMesh(outer, inner, nr=nr, nt=nt, quadrilateral=quadrilateral)
+        except TypeError:
+            if not quadrilateral:
+                raise NotImplementedError("this Firedrake's AnnulusMesh has no quadrilateral option; it only "
+                                          "builds its default cells (use simplicial_cells: false)")
+            return AnnulusMesh(outer, inner, nr=nr, nt=nt)
+    raise ValueError("no builder for radial mesh " + str(mesh_type))
+
+
+def get_refinement_levels(mesh_parameters):
+    """mesh.refinement_levels (default 0): number of uniform refinements of a multigrid hierarchy."""
+    levels = mesh_parameters.get('refinement_levels', 0) or 0
+    if not isinstance(levels, int) or levels < 0:
+        raise ValueError("mesh.refinement_levels must be a non-negative integer, got " + repr(levels))
+    if levels > 0 and mesh_parameters['type'] == 'file':
+        raise ValueError("mesh.refinement_levels is not supported for 'file' meshes")
+    return levels
+
+
+def _build_hierarchy_mesh(parameters, domain, dim, periodic, levels):
+    """Finest mesh of a uniform refinement hierarchy for geometric multigrid (TODO-elliptic §4.12).
+
+    nx, ny, nz describe the coarsest mesh; every level halves the cells (so the finest mesh has
+    nx * 2**levels cells per direction). Box meshes of the Q family use an ExtrudedMeshHierarchy
+    of the refined base rectangles with the layers doubled per level (periodic in z if requested);
+    all other meshes a MeshHierarchy of the coarse mesh. The hierarchy is kept alive on the finest
+    mesh (mesh.mesh_hierarchy), which is what Firedrake's PCMG/PMGPC look up.
+    """
+    from firedrake import ExtrudedMeshHierarchy, MeshHierarchy
+    mp = parameters['mesh']
+    family = parameters['spatial-discretization']['family']
+    extruded_box = dim == 3 and not mp.get('simplicial_cells', False) and family not in SERENDIPITY_FAMILIES
+    if extruded_box:
+        from functools import partial
+        base = _build_base_rectangle(mp, domain, tuple(d for d in periodic if d != 'z'))
+        base_hierarchy = MeshHierarchy(base, levels)
+        builder = partial(ExtrudedMesh, periodic='z' in periodic)
+        hierarchy = ExtrudedMeshHierarchy(base_hierarchy, domain.Lz, base_layer=mp['nz'], refinement_ratio=2,
+                                          extrusion_type='uniform', mesh_builder=builder)
+    else:
+        if dim == 1:
+            coarse = _build_line_mesh(mp, domain, periodic)
+        elif dim == 2:
+            coarse = _build_rectangle_mesh(mp, domain, periodic)
+        else:
+            coarse = _build_box_mesh(mp, domain, periodic, family)
+        hierarchy = MeshHierarchy(coarse, levels)
+    mesh = hierarchy[-1]
+    mesh.mesh_hierarchy = hierarchy
+    mesh.refinement_levels = levels
+    return mesh
+
+
 def build_mesh(parameters, domain):
     """Construct the mesh described by parameters['mesh'] (not yet annotated, see annotate_mesh).
 
@@ -243,15 +445,31 @@ def build_mesh(parameters, domain):
     """
     mp = parameters['mesh']
     mesh_type = mp['type']
-    dim = get_mesh_type_dimension(mesh_type)
+    spec = get_mesh_spec(mesh_type)
     periodic = get_periodic_directions(mp)
+    levels = get_refinement_levels(mp)
+    if spec is not None and spec.simplicial_only and not mp.get('simplicial_cells', False):
+        raise ValueError("mesh type " + mesh_type + " only exists with simplicial cells: set simplicial_cells: true")
+    if spec is not None and spec.topology == 'radial':
+        if levels > 0:
+            raise NotImplementedError("mesh.refinement_levels on curved meshes is not supported yet "
+                                      "(TODO-elliptic §4.14, stage 4)")
+        return _build_radial_mesh(mp)
+    if mesh_type.startswith('tensor-'):
+        if levels > 0:
+            raise NotImplementedError("mesh.refinement_levels is not supported for tensor-* meshes")
+        return _build_tensor_mesh(mp, spec.dim)
+    dim = None if spec is None else spec.dim
+    box_domain = None if spec is None else _box_domain(mp, domain)
+    if levels > 0 and dim is not None:
+        return _build_hierarchy_mesh(parameters, box_domain, dim, periodic, levels)
     if dim == 1:
-        return _build_line_mesh(mp, domain, periodic)
+        return _build_line_mesh(mp, box_domain, periodic)
     if dim == 2:
-        return _build_rectangle_mesh(mp, domain, periodic)
+        return _build_rectangle_mesh(mp, box_domain, periodic)
     if dim == 3:
         family = parameters['spatial-discretization']['family']
-        return _build_box_mesh(mp, domain, periodic, family)
+        return _build_box_mesh(mp, box_domain, periodic, family)
     # 'file' mesh
     mesh = Mesh(mp['meshfile'])
     if mp.get('scale_center_meshfile_coords', False):
@@ -286,9 +504,10 @@ def get_mesh_and_spaces(parameters, domain, mesh=None):
 # FEEC families supported by DeRhamComplex (TODO-elliptic §4.9).
 FEEC_FAMILIES = ('Q', 'P-', 'P+', 'S-', 'S')
 
-# Cells each family can be built on (cellname of the mesh; 'extruded' = quad x interval).
+# Cells each family can be built on (cellname of the mesh; 'extruded' = quad x interval,
+# 'extruded2d' = interval x interval).
 FAMILY_CELLS = {
-    'Q': ('interval', 'quadrilateral', 'extruded'),
+    'Q': ('interval', 'quadrilateral', 'extruded', 'extruded2d'),
     'P-': ('interval', 'triangle', 'tetrahedron'),
     'P+': ('interval', 'triangle', 'tetrahedron'),
     'S-': ('interval',),
@@ -337,7 +556,7 @@ def family_elements(family, dim, r):
         return {'CG': ('CG', r, 'spectral'), 'Hcurl': None, 'Hdiv': ('CG', r, 'spectral'), 'DG': ('DG', r - 1, 'spectral')}
     if family == 'Q':
         curl, div = ('RTCE', 'RTCF') if dim == 2 else ('NCE', 'NCF')
-        return {'CG': ('CG', r, spectral), 'Hcurl': (curl, r, None), 'Hdiv': (div, r, None), 'DG': ('DG', r - 1, spectral)}
+        return {'CG': ('CG', r, 'spectral'), 'Hcurl': (curl, r, None), 'Hdiv': (div, r, None), 'DG': ('DG', r - 1, 'spectral')}
     if family == 'P-':
         return {'CG': ('CG', r, None), 'Hcurl': ('N1curl', r, None), 'Hdiv': ('RT', r, None), 'DG': ('DG', r - 1, None)}
     if family == 'P+':
@@ -361,9 +580,20 @@ def family_elements(family, dim, r):
 
 
 def mesh_cell_name(mesh):
-    """'interval' | 'triangle' | 'quadrilateral' | 'tetrahedron' | 'hexahedron' | 'extruded'."""
-    if isinstance(ufl_attribute(mesh, 'cell_dimension'), tuple):
-        return 'extruded'
+    """'interval' | 'triangle' | 'quadrilateral' | 'tetrahedron' | 'hexahedron' | 'extruded' | 'extruded2d'.
+
+    'extruded' is a 3D extruded mesh (quadrilateral x interval: NCE/NCF); 'extruded2d' a 2D one
+    (interval x interval, e.g. Firedrake's quadrilateral AnnulusMesh: RTCE/RTCF, which Firedrake
+    builds on TensorProductCell(interval, interval)). Prism meshes (triangle x interval) are
+    reported as 'extruded-prism' and have no Q complex.
+    """
+    cell_dimension = ufl_attribute(mesh, 'cell_dimension')
+    if isinstance(cell_dimension, tuple):
+        if sum(cell_dimension) == 2:
+            return 'extruded2d'
+        base = ufl_attribute(mesh.ufl_cell().sub_cells[0], 'cellname') if hasattr(mesh.ufl_cell(), 'sub_cells') \
+            else 'quadrilateral'
+        return 'extruded' if base == 'quadrilateral' else 'extruded-prism'
     return ufl_attribute(mesh.ufl_cell(), 'cellname')
 
 
@@ -403,7 +633,8 @@ class DeRhamComplex():
         if self.family not in FEEC_FAMILIES:
             raise ValueError("FEEC family " + str(self.family) + " is unknown")
         self.cell = mesh_cell_name(mesh)
-        self.dim = 3 if self.cell == 'extruded' else ufl_attribute(mesh, 'topological_dimension')
+        self.dim = {'extruded': 3, 'extruded2d': 2, 'extruded-prism': 3}.get(
+            self.cell, None) or ufl_attribute(mesh, 'topological_dimension')
         if self.cell not in FAMILY_CELLS[self.family]:
             raise ValueError("FEEC family " + self.family + " is not available on " + self.cell + " cells "
                              "(supported: " + str(list(FAMILY_CELLS[self.family])) + "; P-/P+ need "

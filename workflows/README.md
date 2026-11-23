@@ -12,6 +12,7 @@ This directory contains helper scripts for generating simulation cfg files, runn
 - `plot_validation.py`: plot truth vs optimized runs, error histories, optimizer histories and parameter recovery.
 - `compare_optimizers.py`: compare optimization jobs across optimizer methods (iterations, function, gradient and Hessian-vector-product evaluations, final loss, status, time) from their `result.yaml` files.
 - `run_pipeline.sh`: chain truth generation, optimization, validation and plotting.
+- `elliptic_solver_scaling.py`: iteration/time scaling study of the elliptic solvers over resolution, order, solver and coefficient contrast (`summary.yaml`/`.csv`, `iterations.png`).
 - `steady_state.py`: steady-state coefficient optimization of elliptic (time-invariant) truth runs, used automatically by `optimize_params.py` (see [Steady-state optimization](#steady-state-optimization)).
 - `elliptic_convergence.py`: run an `nx` refinement sweep of an elliptic cfg (`model.type: elliptic`) and summarize the observed convergence rates (see [Elliptic convergence sweeps](#elliptic-convergence-sweeps)).
 - `optimizer_baseline.sh`: run the representative L-BFGS-B vs Newton-CG problem and save or check the optimizer regression baseline (see [Comparing optimizer methods](#comparing-optimizer-methods)).

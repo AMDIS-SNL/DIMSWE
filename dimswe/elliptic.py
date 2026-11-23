@@ -27,6 +27,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import numpy
+from firedrake.petsc import PETSc
 from firedrake import derivative as fd_derivative, replace as fd_replace
 from firedrake import (Cofunction, DirichletBC, Function, LinearSolver, LinearVariationalProblem,
                        LinearVariationalSolver, MixedFunctionSpace, TestFunction, TestFunctions,
@@ -36,9 +37,11 @@ from .boundary_conditions import (build_essential_bcs, build_natural_terms, face
                                   faces_of_type, get_boundary_registry, parse_boundary_conditions)
 from .differential_forms import apply_weight, exterior_derivative, form_space, normalize_complex
 from .elliptic_coefficients import EllipticCoefficients, parse_coefficients
+from .numerical_harmonic import HARMONIC_METHODS, numerical_harmonic_basis
 from .elliptic_problems import BOUNDARY_DATA_MODES, collect_boundary_data, get_elliptic_problem
 from .harmonic_forms import (HARMONIC_FORM_MODES, build_harmonic_nullspace, combine_harmonic_forms,
                              get_harmonic_index_sets, harmonic_basis, harmonic_constraint_form,
+                             resolve_harmonic_mode,
                              harmonic_multiplier_space, interpolate_or_project, l2_inner,
                              lagrange_preconditioner_form, lagrange_solver_parameters,
                              multiplier_coefficients, orthonormalize_harmonic_basis,
@@ -46,10 +49,12 @@ from .harmonic_forms import (HARMONIC_FORM_MODES, build_harmonic_nullspace, comb
 from .logger import EmptyLogger
 from .meshes import FEEC_FAMILIES, family_elements, get_mesh_and_spaces, get_mesh_type_dimension
 from .parameters import elliptic_solver_parameters as ELLIPTIC_SOLVERS
+from .elliptic_solvers import (ITERATIVE_SOLVERS, SolverContext, get_elliptic_solver_parameters,
+                               validate_block_solvers, validate_solver_choice)
 
 # Allowed values of elliptic.harmonic_constraint and elliptic.solver.
 HARMONIC_CONSTRAINTS = ('lagrange', 'nullspace')
-SOLVERS = tuple(ELLIPTIC_SOLVERS)
+SOLVERS = tuple(ELLIPTIC_SOLVERS) + ITERATIVE_SOLVERS
 # FEEC families available in DeRhamComplex (TODO-elliptic §4.9); P-/P+ need simplicial cells.
 SUPPORTED_FAMILIES = FEEC_FAMILIES
 SIMPLICIAL_FAMILIES = ('P-', 'P+')
@@ -76,7 +81,12 @@ class EllipticConfig:
         boundary_data: 'exact' | 'problem' | 'homogeneous'.
         harmonic_forms: 'auto' | 'none' | 'numerical'.
         harmonic_constraint: 'lagrange' | 'nullspace'.
-        solver: 'elliptic-direct' | 'elliptic-direct-singular' | 'elliptic-minres'.
+        solver: 'elliptic-direct' | 'elliptic-direct-singular' | 'elliptic-minres' (direct, in
+            parameters.py) or one of dimswe.elliptic_solvers.ITERATIVE_SOLVERS ('riesz-amg',
+            'riesz-gmg', 'riesz-pmg', 'schur-mass').
+        block_solvers: per-space block-solver variants for the iterative solvers (see
+            dimswe.elliptic_solvers).
+        ksp_rtol, ksp_max_it: tolerance and iteration limit of the iterative solvers.
         solver_options: extra PETSc options merged on top of the selected solver.
         quadrature_degree: quadrature degree for all forms (default 2 * order + 2). Always explicit:
             with UFL's per-form estimate, the lagrange and nullspace paths (which split and assemble
@@ -88,6 +98,10 @@ class EllipticConfig:
             harmonic_forms.lagrange_preconditioner_form).
         coefficients: parsed elliptic.coefficients ({name: EllipticCoefficient}, see
             dimswe.elliptic_coefficients); defaults mu = kappa = 1, c = 0.
+        harmonic_method: 'eigen' | 'kernel' for numerical harmonic forms (dimswe.numerical_harmonic).
+        harmonic_forms_count: optional known number of harmonic forms (otherwise the Betti number
+            is computed); needed by 'kernel' when the Betti number is unavailable.
+        harmonic_zero_tolerance: relative threshold for zero eigenvalues.
         registry, face_bcs: face registry and parsed per-face BC types (set when a mesh is given).
     """
     dim: int
@@ -99,10 +113,17 @@ class EllipticConfig:
     harmonic_constraint: str = 'lagrange'
     solver: str = 'elliptic-direct'
     solver_options: dict = field(default_factory=dict)
+    block_solvers: dict = field(default_factory=dict)
+    ksp_rtol: float = 1e-10
+    ksp_max_it: int = 2000
     quadrature_degree: Optional[int] = None
     error_quadrature_degree: Optional[int] = None
     lagrange_regularization: float = 1.0
     coefficients: dict = field(default_factory=dict)
+    harmonic_method: str = 'eigen'
+    harmonic_forms_count: Optional[int] = None
+    harmonic_zero_tolerance: float = 1e-8
+    numerical_harmonic_info: Optional[object] = None
     registry: Optional[dict] = None
     face_bcs: Optional[dict] = None
 
@@ -153,11 +174,19 @@ class EllipticConfig:
                      harmonic_constraint=cfg.get('harmonic_constraint', 'lagrange'),
                      solver=cfg.get('solver', 'elliptic-direct'),
                      solver_options=dict(cfg.get('solver_options', None) or {}),
+                     block_solvers=validate_block_solvers(cfg.get('block_solvers', None)),
+                     ksp_rtol=float(cfg.get('ksp_rtol', 1e-10)),
+                     ksp_max_it=int(cfg.get('ksp_max_it', 2000)),
                      quadrature_degree=_default_if_none(cfg.get('quadrature_degree', None), 2 * order + 2),
                      error_quadrature_degree=cfg.get('error_quadrature_degree', 2 * order + 4),
                      lagrange_regularization=float(cfg.get('lagrange_regularization', 1.0)),
-                     coefficients=parse_coefficients(cfg.get('coefficients', None), k, dim))
+                     coefficients=parse_coefficients(cfg.get('coefficients', None), k, dim),
+                     harmonic_method=cfg.get('harmonic_method', 'eigen'),
+                     harmonic_forms_count=cfg.get('harmonic_forms_count', None),
+                     harmonic_zero_tolerance=float(cfg.get('harmonic_zero_tolerance', 1e-8)))
         config.validate_options()
+        validate_solver_choice(config.solver, k, dim, order, mesh_cfg.get('refinement_levels', 0) or 0,
+                               config.block_solvers)
         if spaces is not None:
             config.parse_boundary_conditions(spaces.mesh, mesh_cfg['type'])
         return config
@@ -177,6 +206,14 @@ class EllipticConfig:
                 raise ValueError("elliptic." + name + " must be a positive integer")
         if self.lagrange_regularization <= 0.0:
             raise ValueError("elliptic.lagrange_regularization must be positive")
+        if self.harmonic_method not in HARMONIC_METHODS:
+            raise ValueError("elliptic.harmonic_method must be one of " + str(list(HARMONIC_METHODS))
+                             + ", got " + repr(self.harmonic_method))
+        if self.harmonic_forms_count is not None and (not isinstance(self.harmonic_forms_count, int)
+                                                      or self.harmonic_forms_count < 0):
+            raise ValueError("elliptic.harmonic_forms_count must be a non-negative integer")
+        if not 0.0 < self.harmonic_zero_tolerance < 1.0:
+            raise ValueError("elliptic.harmonic_zero_tolerance must be in (0, 1)")
 
     def parse_boundary_conditions(self, mesh, mesh_type):
         """Build the face registry of mesh and parse the per-face BCs into self.face_bcs."""
@@ -195,6 +232,8 @@ def elliptic_solver_parameters(config, num_harmonic, num_blocks, multiplier_indi
     - 'elliptic-minres': MINRES; with several blocks, an additive fieldsplit with LU per block of
       the Riesz-map preconditioner (EllipticProblem._riesz_form).
     """
+    if config.solver in ITERATIVE_SOLVERS:
+        raise ValueError("iterative solvers are configured by EllipticProblem._iterative_setup")
     if config.harmonic_constraint == 'lagrange' and num_harmonic > 0:
         if config.solver != 'elliptic-direct':
             raise ValueError("harmonic_constraint: lagrange with harmonic forms uses its own matrix-free solver; set solver: elliptic-direct (or use harmonic_constraint: nullspace)")
@@ -292,14 +331,26 @@ def split_arguments(layout):
     return trial, test
 
 
-def build_harmonic_basis(config, mesh, mesh_type, Vk, measure, reaction_positive=False):
+def build_harmonic_basis(config, mesh, mesh_type, Vk, measure, reaction_positive=False, spaces=None,
+                         parameters=None, logger=None):
     """Harmonic index sets (TODO-elliptic §1.4) and their L2-orthonormal basis in V^k.
 
     With a reaction term c > 0 everywhere (reaction_positive) the operator is non-singular and
-    there are no harmonic forms to constrain: ([], []) is returned.
+    there are no harmonic forms to constrain: ([], []) is returned. With harmonic_forms: numerical
+    (or auto on 'file' meshes) the basis comes from dimswe.numerical_harmonic (TODO-elliptic
+    §4.13), which needs spaces and parameters, and no index sets are returned.
     """
     if reaction_positive:
         return [], []
+    if resolve_harmonic_mode(config.harmonic_forms, mesh_type) == 'numerical':
+        if spaces is None or parameters is None:
+            raise ValueError("numerical harmonic forms need the spaces and parameters")
+        basis, info = numerical_harmonic_basis(spaces, config, mesh, parameters, Vk, measure=measure,
+                                               method=config.harmonic_method, expected=config.harmonic_forms_count,
+                                               zero_tolerance=config.harmonic_zero_tolerance, logger=logger)
+        config.numerical_harmonic_info = info
+        # No index sets: problem data that need them (IncompatibleSourceProblem) get an empty list.
+        return [], basis
     by_direction = face_bcs_by_direction(config.registry, config.face_bcs)
     index_sets = get_harmonic_index_sets(config.harmonic_forms, config.k, config.dim, mesh.periodic_directions,
                                          by_direction, mesh_type)
@@ -430,6 +481,8 @@ class EllipticProblem():
         self.sub = {}
         self.p_coefficients = []
         self.ksp_iterations = 0
+        self.ksp_reason = 0
+        self.solve_time = 0.0
         self.statistics = {}
         self.diagnostics = {}
 
@@ -442,7 +495,9 @@ class EllipticProblem():
         self.reaction_positive = self.coefficients.reaction_is_positive()
         self.harmonic_index_sets, self.harmonic = build_harmonic_basis(self.config, self.mesh,
                                                                        self.parameters['mesh']['type'], self.Vk, self.dx,
-                                                                       reaction_positive=self.reaction_positive)
+                                                                       reaction_positive=self.reaction_positive,
+                                                                       spaces=self.spaces, parameters=self.parameters,
+                                                                       logger=self.logger)
         self.num_harmonic = len(self.harmonic)
         self.logger.output('elliptic: ' + str(self.num_harmonic) + ' harmonic ' + str(self.k) + '-forms '
                            + str(self.harmonic_index_sets), 0)
@@ -516,6 +571,9 @@ class EllipticProblem():
         self.a = _add(self.a0, self._harmonic())
         self.L = _add(self._rhs(), self._natural_terms())
         self.aP = None
+        if self.config.solver in ITERATIVE_SOLVERS:
+            self._iterative_setup()
+            return
         if self.use_multiplier:
             self.aP = self.a0 + lagrange_preconditioner_form(self.trial['u'], self.test['u'], self.trial['p'],
                                                              self.test['p'], self.config.lagrange_regularization,
@@ -530,6 +588,27 @@ class EllipticProblem():
         self.solver_parameters = elliptic_solver_parameters(self.config, self.num_harmonic, self.num_blocks,
                                                             self.p_indices)
 
+    def _iterative_setup(self):
+        """Solver parameters and preconditioner form of an iterative solver (TODO-elliptic §4.12)."""
+        ctx = SolverContext(name=self.config.solver, k=self.k, dim=self.dim, complex=self.complex,
+                            family=self.spaces.family, order=self.spaces.order, cell=self.spaces.cell,
+                            harmonic_constraint=self.config.harmonic_constraint, num_harmonic=self.num_harmonic,
+                            refinement_levels=getattr(self.mesh, 'refinement_levels', 0),
+                            block_solvers=self.config.block_solvers, rtol=self.config.ksp_rtol,
+                            max_it=self.config.ksp_max_it)
+        setup = get_elliptic_solver_parameters(ctx)
+        if setup.preconditioner == 'riesz':
+            self.aP = self._riesz_form()
+        elif setup.preconditioner == 'riesz+R':
+            # Riesz blocks plus sum_i p_i q_i on the R blocks (identity-like).
+            self.aP = self._riesz_form()
+            for p_i, q_i in zip(self.trial['p'], self.test['p']):
+                self.aP = self.aP + p_i * q_i * self.dx
+        params = dict(setup.parameters)
+        params.update(self.config.solver_options)
+        self.solver_parameters = params
+        self.solver_setup = setup
+
     # --- solve --------------------------------------------------------------------------------
 
     def _block(self, function, index):
@@ -537,11 +616,22 @@ class EllipticProblem():
         return function if self.num_blocks == 1 else function.subfunctions[index]
 
     def solve(self):
-        """Assemble and solve once; fills self.solution and self.sub ('sigma', 'u', 'p')."""
-        if self.num_harmonic > 0 and self.config.harmonic_constraint == 'nullspace':
-            self._solve_nullspace()
-        else:
-            self._solve_variational()
+        """Assemble and solve once; fills self.solution and self.sub ('sigma', 'u', 'p').
+
+        The solve is wrapped in the PETSc log event "elliptic solve"; its wall time and the KSP
+        iteration count and converged reason are kept for the statistics.
+        """
+        import time
+        start = time.perf_counter()
+        with PETSc.Log.Event("elliptic solve"):
+            if self.num_harmonic > 0 and self.config.harmonic_constraint == 'nullspace':
+                self._solve_nullspace()
+            else:
+                self._solve_variational()
+        self.solve_time = self.mesh.comm.allreduce(time.perf_counter() - start, op=_mpi_max())
+        if self.config.solver in ITERATIVE_SOLVERS and self.ksp_reason <= 0:
+            self.logger.output('elliptic: WARNING the iterative solver did not converge (reason '
+                               + str(self.ksp_reason) + ')', 0)
         self.sub = {}
         if self.sigma_index is not None:
             self.sub['sigma'] = self._block(self.solution, self.sigma_index)
@@ -559,6 +649,7 @@ class EllipticProblem():
                                          options_prefix='elliptic_')
         solver.solve()
         self.ksp_iterations = solver.snes.ksp.getIterationNumber()
+        self.ksp_reason = solver.snes.ksp.getConvergedReason()
         if self.use_multiplier:
             self.p_coefficients = multiplier_coefficients([self.solution.subfunctions[i] for i in self.p_indices])
 
@@ -588,18 +679,37 @@ class EllipticProblem():
                                                                      measure=self.dx,
                                                                      bcs=hom_u, logger=self.logger)
         bcs0 = hom_sigma + hom_u
-        A = assemble(self.a, bcs=bcs0)
-        P = assemble(self.aP, bcs=bcs0) if self.aP is not None else None
-        nullspace = build_harmonic_nullspace(self.W, self.u_index, self.harmonic)
-        solver = LinearSolver(A, P=P, solver_parameters=self.solver_parameters, nullspace=nullspace,
-                              transpose_nullspace=nullspace, options_prefix='elliptic_')
         correction = Function(self.W)
-        solver.solve(correction, rhs)
-        self.ksp_iterations = solver.ksp.getIterationNumber()
+        self.ksp_iterations, self.ksp_reason = self._singular_solve(rhs, correction, bcs0, 'elliptic_')
         self.solution.assign(lift + correction)
         removed = remove_harmonic_component(self._block(self.solution, self.u_index), self.harmonic,
                                             measure=self.dx)
         self.logger.output('elliptic: removed harmonic part of u with coefficients ' + str(removed), 1)
+
+    def _singular_solve(self, rhs, result, bcs0, options_prefix):
+        """Solve the singular (nullspace) system A x = rhs with homogeneous BCs bcs0.
+
+        rhs must already be lifted, zeroed on constrained rows and orthogonal to the harmonic forms.
+        Direct solvers use LinearSolver on the assembled matrices. Iterative solvers need
+        Firedrake's field information (fieldsplit, PMGPC, mesh-hierarchy multigrid), which an
+        assembled matrix does not carry, so they use a LinearVariationalSolver on a(x, v) = rhs(v)
+        with the nullspace attached. Returns (iterations, converged reason).
+        """
+        nullspace = build_harmonic_nullspace(self.W, self.u_index, self.harmonic)
+        if self.config.solver in ITERATIVE_SOLVERS:
+            problem = LinearVariationalProblem(self.a, rhs, result, bcs=bcs0, aP=self.aP)
+            solver = LinearVariationalSolver(problem, solver_parameters=self.solver_parameters, nullspace=nullspace,
+                                             transpose_nullspace=nullspace, options_prefix=options_prefix)
+            solver.solve()
+            ksp = solver.snes.ksp
+        else:
+            A = assemble(self.a, bcs=bcs0)
+            P = assemble(self.aP, bcs=bcs0) if self.aP is not None else None
+            solver = LinearSolver(A, P=P, solver_parameters=self.solver_parameters, nullspace=nullspace,
+                                  transpose_nullspace=nullspace, options_prefix=options_prefix)
+            solver.solve(result, rhs)
+            ksp = solver.ksp
+        return ksp.getIterationNumber(), ksp.getConvergedReason()
 
     # --- sensitivities (TODO-elliptic §4.10) --------------------------------------------------
 
@@ -625,12 +735,7 @@ class EllipticProblem():
         if self.num_harmonic > 0 and self.config.harmonic_constraint == 'nullspace':
             u_rhs_index = None if self.num_blocks == 1 else self.u_index
             project_rhs_orthogonal_to_harmonic(rhs, self.harmonic, u_index=u_rhs_index, measure=self.dx)
-            A = assemble(self.a, bcs=bcs0)
-            P = assemble(self.aP, bcs=bcs0) if self.aP is not None else None
-            nullspace = build_harmonic_nullspace(self.W, self.u_index, self.harmonic)
-            solver = LinearSolver(A, P=P, solver_parameters=self.solver_parameters, nullspace=nullspace,
-                                  transpose_nullspace=nullspace, options_prefix=options_prefix)
-            solver.solve(result, rhs)
+            self._singular_solve(rhs, result, bcs0, options_prefix)
             remove_harmonic_component(self._block(result, self.u_index), self.harmonic, measure=self.dx)
         else:
             problem = LinearVariationalProblem(self.a, rhs, result, bcs=bcs0, aP=self.aP)
@@ -816,7 +921,9 @@ class EllipticProblem():
 
     def get_statistics_list(self):
         """Names of the scalar statistics (arrays of length 1)."""
-        names = ['u_norm', 'p_norm', 'harmonic_orthogonality', 'num_harmonic_forms', 'ksp_iterations']
+        names = ['u_norm', 'p_norm', 'harmonic_orthogonality', 'num_harmonic_forms', 'harmonic_gap_ratio',
+                 'harmonic_max_sigma_ratio', 'ksp_iterations',
+                 'ksp_converged_reason', 'solve_time', 'num_dofs']
         if self.exact is not None:
             names += ['u_error']
             if self.k > 0:
@@ -854,7 +961,14 @@ class EllipticProblem():
         stats['p_norm'][0] = self._l2(p_h) if p_h is not None else 0.0
         stats['harmonic_orthogonality'][0] = max([abs(l2_inner(u_h, h)) for h in self.harmonic], default=0.0)
         stats['num_harmonic_forms'][0] = self.num_harmonic
+        # Numerical harmonic forms (§4.13): spectral gap and sigma check; inf / 0 for the Künneth rule.
+        info = getattr(self.config, 'numerical_harmonic_info', None)
+        stats['harmonic_gap_ratio'][0] = info.gap_ratio if info is not None else float('inf')
+        stats['harmonic_max_sigma_ratio'][0] = info.max_sigma_ratio if info is not None else 0.0
         stats['ksp_iterations'][0] = self.ksp_iterations
+        stats['ksp_converged_reason'][0] = self.ksp_reason
+        stats['solve_time'][0] = self.solve_time
+        stats['num_dofs'][0] = self.W.dim()
         if self.exact is None:
             return
         stats['u_error'][0] = self._l2(u_h - self.reference_u())
@@ -913,3 +1027,9 @@ class EllipticProblem():
     def get_diagnostics(self):
         """Dict diagnostic name -> Function."""
         return self.diagnostics
+
+
+def _mpi_max():
+    """MPI.MAX (lazy import)."""
+    from mpi4py import MPI
+    return MPI.MAX

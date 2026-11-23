@@ -414,6 +414,17 @@ $\ip{\dd\sigma_h}{h}=\int_{\partial\Omega}B_{k-1}(\sigma_h,h)$ gives
 On $\Gamma_e$, $\tr\sigma_h=\tr g_\sigma=\tr\sigma$ and $\tr h=0$, so both $\Gamma_e$ terms vanish; on
 $\Gamma_n$, $\tr\hodge h=0$ kills $B_{k-1}(\sigma-\sigma_h,h)$ and $g_{\dd u}=\dd u$ kills the last term.
 \end{proof}
+\subsection{Numerical harmonic forms}
+
+On meshes without the box structure (or with \code{harmonic\_forms: numerical}) the basis is computed:
+the harmonic forms are the kernel $\{(0,h)\}$ of the mixed operator with homogeneous BCs, i.e.\ the
+eigenvectors with $\lambda=0$ of the eigenproblem of Section~\ref{sec:eigen}. Their number is the Betti
+number $b_k=\dim V^k_0-\operatorname{rank}\dd_k-\operatorname{rank}\dd_{k-1}$ of the discrete complex
+relative to $\Gamma_e$, computed independently from incidence ranks on the lowest-order complex (cohomology
+does not depend on the order) and used as a check, together with $\|\sigma\|\ll\|u\|$ for every accepted
+mode and the spectral gap between the zero and the first non-zero eigenvalue
+(\code{dimswe.topology}, \code{dimswe.numerical\_harmonic}).
+
 Hence manufactured problems only need $u\perp\Hspace^k$ (zero mean of every proxy component) for
 $u_h$ to approximate $u$ directly; \code{SineProblem} uses full-period factors
 $\sin(2\pi m_i s_i+\phi)$ in normalized coordinates $s_i\in[0,1]$, which are periodic and
@@ -530,6 +541,25 @@ Then $\lambda=\sum_i\lambda_i$ and the spectrum is the multiset union over $I$
 Section~\ref{sec:harmonic}.
 
 %=================================================================================================
+\section{Solvers}\label{sec:solvers}
+%=================================================================================================
+
+The system \eqref{eq:mixed} is symmetric indefinite. Besides direct LU, the code offers MINRES with the
+block-diagonal Riesz-map preconditioner of Arnold, Falk and Winther,
+\[
+  P=\begin{pmatrix}R_{k-1}&0\\0&R_k\end{pmatrix},\qquad
+  R_{k-1}:\ \ip{\mu\sigma}{\tau}+\ip{\dd\sigma}{\dd\tau},\qquad
+  R_k:\ \ip{(1+c)\,u}{v}+\ip{\kappa\,\dd u}{\dd v},
+\]
+the weighted $H\Lambda^{k-1}\times H\Lambda^k$ inner product, for which the preconditioned operator has a
+mesh-independent spectrum. The blocks are approximated by algebraic multigrid (BoomerAMG on $H^1$, Hypre
+AMS/ADS on lowest-order simplicial $H(\mathrm{curl})$/$H(\mathrm{div})$), by geometric multigrid on a mesh
+hierarchy with vertex-star patch smoothers (which capture the kernel of $\dd$ in $H(\mathrm{curl})$ and
+$H(\mathrm{div})$), or by $p$-multigrid; the $L^2$ block is a block-diagonal mass matrix. For $k=n$ a
+Schur-complement fieldsplit with a diagonal-mass approximation is available for comparison. With harmonic
+forms the \code{nullspace} treatment is the scalable one; the \code{lagrange} multiplier rows are dense.
+
+%=================================================================================================
 \section{Map from formulas to code}\label{sec:code}
 %=================================================================================================
 
@@ -552,6 +582,7 @@ problem data, MMS & \code{elliptic\_problems} (\code{SineProblem}, \code{Polynom
 mixed system \eqref{eq:mixed}, solve, errors & \code{elliptic.EllipticProblem}, \code{EllipticConfig}, \code{elliptic\_solver\_parameters}\\
 shared builders & \code{elliptic.build\_block\_layout}, \code{split\_arguments}, \code{hodge\_bilinear\_form}, \code{riesz\_form}\\
 eigenproblems, exact spectra & \code{elliptic\_eigen.HodgeLaplacianEigenproblem}, \code{exact\_box\_eigenvalues}\\
+solver parameters, Riesz maps & \code{elliptic\_solvers.get\_elliptic\_solver\_parameters}, \code{elliptic.riesz\_form}\\
 coefficients, sensitivities & \code{elliptic\_coefficients}, \code{weighted\_hodge\_fields}, \code{EllipticProblem.solve\_adjoint}, \code{coefficient\_gradient}, \code{optimize.SteadyStateConstrainedOptimization}\\
 \bottomrule
 \end{tabular}

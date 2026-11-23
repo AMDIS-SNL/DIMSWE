@@ -116,21 +116,30 @@ def harmonic_index_sets(k, dim, periodic_dirs, face_bcs):
     return sorted(sets, key=lambda I: [valid.index(d) for d in I])
 
 
-def get_harmonic_index_sets(mode, k, dim, periodic_dirs, face_bcs, mesh_type):
-    """Apply the elliptic 'harmonic_forms' option.
-
-    - 'auto': the Künneth rule (harmonic_index_sets); not available on 'file' meshes;
-    - 'none': no harmonic forms (for users who know the harmonic space is trivial);
-    - 'numerical': eigen-solver based bases (TODO-elliptic §8), not implemented yet.
-    """
+def resolve_harmonic_mode(mode, mesh_type):
+    """The effective harmonic_forms mode: 'auto' becomes 'numerical' on non-box meshes ('file',
+    disks, annuli, balls), where the Künneth rule does not apply."""
+    from .meshes import is_box_mesh_type
     if mode not in HARMONIC_FORM_MODES:
         raise ValueError("harmonic_forms must be one of " + str(list(HARMONIC_FORM_MODES)) + ", got " + str(mode))
+    if mode == 'auto' and not is_box_mesh_type(mesh_type):
+        return 'numerical'
+    return mode
+
+
+def get_harmonic_index_sets(mode, k, dim, periodic_dirs, face_bcs, mesh_type):
+    """Apply the elliptic 'harmonic_forms' option for the index-set (Künneth) path.
+
+    - 'auto': the Künneth rule (harmonic_index_sets) on DIMSWE box meshes;
+    - 'none': no harmonic forms (for users who know the harmonic space is trivial);
+    - 'numerical' (and 'auto' on 'file' meshes): returns None; the basis is computed numerically
+      by dimswe.numerical_harmonic (TODO-elliptic §4.13), so there are no index sets.
+    """
+    mode = resolve_harmonic_mode(mode, mesh_type)
     if mode == 'none':
         return []
     if mode == 'numerical':
-        raise NotImplementedError("numerical harmonic forms are not implemented yet (TODO-elliptic §8)")
-    if mesh_type == 'file':
-        raise NotImplementedError("harmonic_forms: auto needs a DIMSWE box mesh; use 'none' for 'file' meshes until numerical harmonic forms exist")
+        return None
     return harmonic_index_sets(k, dim, periodic_dirs, face_bcs)
 
 

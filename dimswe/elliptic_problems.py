@@ -27,7 +27,7 @@ from dataclasses import dataclass, field
 from math import pi
 from typing import Dict
 
-from firedrake import Constant, SpatialCoordinate, as_matrix, as_vector, exp, sin
+from firedrake import Constant, SpatialCoordinate, as_matrix, as_vector, conditional, cos, exp, lt, sin
 
 from .ufl_helpers import ufl_attribute
 
@@ -50,6 +50,8 @@ def get_elliptic_problem(parameters):
         'boundary-driven': BoundaryDrivenProblem,
         'incompatible-source': IncompatibleSourceProblem,
         'variable-coefficient-sine': VariableCoefficientSineProblem,
+        'two-material-sine': TwoMaterialSineProblem,
+        'radial': RadialProblem,
     }
     if name not in problems:
         raise ValueError("unknown elliptic problem " + str(name) + " (known: " + str(sorted(problems)) + ")")
@@ -126,7 +128,15 @@ class EllipticProblemData():
     # --- geometry -----------------------------------------------------------------------------
 
     def domain_bounds(self, mesh):
-        """((x0, x1), ...) of the mesh (mesh.domain_bounds), or from the problem's own domain."""
+        """((x0, x1), ...) of the mesh (mesh.domain_bounds), or from the problem's own domain.
+
+        Box problems (normalized coordinates) cannot be used on disks, annuli and balls (mesh
+        topology 'radial'), which raise here; use RadialProblem. 'file' meshes keep the previous
+        behaviour (bounds from the problem's domain).
+        """
+        if getattr(mesh, 'mesh_topology', 'box') == 'radial':
+            raise ValueError(type(self).__name__ + " is defined on box domains; use elliptic-problem name: radial "
+                             "on " + str(mesh.mesh_topology) + " meshes")
         bounds = getattr(mesh, 'domain_bounds', None)
         if bounds is not None:
             return bounds
@@ -291,6 +301,28 @@ class IncompatibleSourceProblem(SineProblem):
         return _sum(terms)
 
 
+class TwoMaterialSineProblem(SineProblem):
+    """SineProblem with a piecewise-constant scalar coefficient: 1 on the left half, cfg 'contrast'
+    (default 1000) on the right half of the domain (in normalized x).
+
+    For solver robustness studies (TODO-elliptic §4.12): the MMS source is the weighted one, so it
+    is discontinuous; meshes with an even number of cells in x align the jump with cell faces.
+    """
+
+    def __init__(self, parameters):
+        super().__init__(parameters)
+        self.contrast = float(self.cfg.get('contrast', 1000.0))
+        if self.contrast <= 0.0:
+            raise ValueError("two-material contrast must be positive")
+
+    def coefficient(self, name, mesh, k, dim, complex, rank):
+        """1 for s_x < 1/2, contrast otherwise (scalar only)."""
+        if rank != 'scalar':
+            raise ValueError("the two-material problem only provides scalar coefficients")
+        s = self.normalized_coordinates(mesh)
+        return conditional(lt(s[0], 0.5), Constant(1.0), Constant(self.contrast))
+
+
 class VariableCoefficientSineProblem(SineProblem):
     """SineProblem with smooth, non-constant (and, for tensors, anisotropic) coefficients.
 
@@ -327,6 +359,33 @@ class VariableCoefficientSineProblem(SineProblem):
 # ---------------------------------------------------------------------------------------------
 # Problems without an exact solution
 # ---------------------------------------------------------------------------------------------
+
+class RadialProblem(EllipticProblemData):
+    """Manufactured solution for non-box domains (disk, annulus, ball; TODO-elliptic §4.14).
+
+    In Cartesian coordinates x about the origin (the center of every radial mesh), component j of
+    the proxy is sin(m (x_0 + 0.3 j) + 0.5) cos(m x_1 + 0.2 j) (and cos(m x_2 + 0.1 j) in 3D) times
+    1 + 0.3 x_0, with m = cfg 'mode' (default 2). It is smooth on any domain, so with exact
+    boundary data (boundary_data: exact) it works for every k, complex and BC set; it is not
+    orthogonal to the harmonic forms, so errors are measured against u - P_h u as always.
+    """
+
+    def __init__(self, parameters):
+        super().__init__(parameters)
+        self.mode = float(self.cfg.get('mode', 2.0))
+
+    def exact_u(self, mesh, k, dim, complex):
+        """See the class docstring."""
+        X = SpatialCoordinate(mesh)
+        m = self.mode
+        components = []
+        for j in range(dim):
+            value = sin(m * (X[0] + 0.3 * j) + 0.5) * cos(m * X[1] + 0.2 * j) if dim >= 2 else sin(m * X[0] + 0.5)
+            if dim == 3:
+                value = value * cos(m * X[2] + 0.1 * j)
+            components.append(value * (1.0 + 0.3 * X[0]))
+        return _form_from_components(components, k, dim)
+
 
 class GaussianSourceProblem(EllipticProblemData):
     """Gaussian bump source with homogeneous BCs and no exact solution (demos and plots).

@@ -39,6 +39,7 @@
   - FEEC families `Q` (tensor product), `P-`/`P+` (simplicial) and `S` (serendipity, 2D) via `spatial-discretization.family` (`S-` is defined but rejected: the installed FIAT cannot assemble trimmed serendipity elements)
   - Run with `python run_model.py elliptic.cfg`; convergence sweeps with `workflows/elliptic_convergence.py`
   - Variable (scalar or SPD tensor) coefficients `mu`, `kappa`, `c` via `elliptic.coefficients`, optionally as model coefficients with adjoint gradients and steady-state optimization (`optimize.SteadyStateConstrainedOptimization`)
+  - Direct or scalable iterative solvers (`riesz-amg`, `riesz-gmg` on a mesh hierarchy, `riesz-pmg`, `schur-mass`; MINRES with Arnold–Falk–Winther Riesz-map preconditioners), see `dimswe/elliptic_solvers.py`
   - Hodge Laplacian eigenproblems with `model.type: elliptic-eigen` (SLEPc shift-and-invert; see `elliptic-eigen.cfg`), compared against exact box spectra
 
 # Running the tests

@@ -506,12 +506,12 @@ block. For k=0 it is the primal `(κ du, dv) = λ (u, v)`.
 Goal: iteration counts that stay bounded under mesh refinement (and, where possible, under order
 and coefficient changes) for every (dim, complex, k, family), in parallel.
 
-- [ ] **Riesz-map block preconditioner** (Arnold–Falk–Winther): MINRES (the system is symmetric
+- [x] **Riesz-map block preconditioner** (Arnold–Falk–Winther): MINRES (the system is symmetric
   indefinite) with block-diagonal `P = diag(R_{k-1}, R_k)`, where `R_j` is the weighted
   `HΛ^j` inner product: `R_{k-1}: (μ σ, τ) + (dσ, dτ)`, `R_k: (u, v) + (κ du, dv) + (c u, v)`.
   Pass it as `aP` to `LinearVariationalProblem` and split the fields with PETSc `fieldsplit`
   (additive).
-- [ ] Block solvers per space type (with selectable variants):
+- [x] Block solvers per space type (with selectable variants):
   - H1 (CG/S): BoomerAMG or GAMG; `P1PC`/`PMGPC` p-multigrid for high order.
   - H(curl): Hypre AMS (`firedrake.HypreAMS`); 2D H(div) = rotated H(curl), also AMS.
   - H(div) in 3D: Hypre ADS (`firedrake.HypreADS`).
@@ -520,27 +520,171 @@ and coefficient changes) for every (dim, complex, k, family), in parallel.
     **verify support in the installed Firedrake**): geometric multigrid on a `MeshHierarchy`
     with vertex-star patch smoothers (`ASMStarPC`/`PCPATCH`, the AFW smoother); for high-order
     `Q`, `FDMPC` + p-multigrid.
-- [ ] Mesh support for multigrid: `mesh.refinement_levels` builds a `MeshHierarchy` (or
+- [x] Mesh support for multigrid: `mesh.refinement_levels` builds a `MeshHierarchy` (or
   `ExtrudedMeshHierarchy`), and the model works on the finest level. Boundary registry and
   periodicity must survive refinement.
-- [ ] Harmonic forms with iterative solvers: the `nullspace` approach is the default (the `R`
+- [x] Harmonic forms with iterative solvers: the `nullspace` approach is the default (the `R`
   space adds a dense row/column that does not scale). For `lagrange`, put a Schur/`R` block in the
   fieldsplit, document it and test it, but recommend against it at scale.
-- [ ] Alternative for k=n (mixed Poisson/Darcy): Schur-complement fieldsplit with a
+- [x] Alternative for k=n (mixed Poisson/Darcy): Schur-complement fieldsplit with a
   diagonal-mass approximation, for comparison.
-- [ ] Solver parameters can't be static dicts (field indices depend on which blocks exist, the
+- [x] Solver parameters can't be static dicts (field indices depend on which blocks exist, the
   space types and the harmonic treatment), so add a builder
   `get_elliptic_solver_parameters(name, k, dim, complex, family, harmonic_constraint)` in
   `parameters.py` (or `dimswe/elliptic_solvers.py`). Names: `elliptic-direct`,
   `elliptic-direct-singular`, `riesz-amg`, `riesz-gmg`, `riesz-pmg`, `schur-mass`.
-- [ ] Reuse in eigenproblems (§4.11): iterative inner solve for shift-and-invert (preconditioned
+- [x] Reuse in eigenproblems (§4.11): iterative inner solve for shift-and-invert (preconditioned
   with the same Riesz maps) as an option.
-- [ ] Logging: KSP iteration counts and timings (PETSc log events, like the existing
+- [x] Logging: KSP iteration counts and timings (PETSc log events, like the existing
   `"time step"` event) stored as statistics.
-- [ ] `workflows/elliptic_solver_scaling.py` (+ `.sh`): sweep `nx` / order / MPI ranks /
+- [x] `workflows/elliptic_solver_scaling.py` (+ `.sh`): sweep `nx` / order / MPI ranks /
   coefficient contrast, record iterations and times, write a summary table and plot.
 
 ---
+- Notes (done, verify on the installed Firedrake): builder in `dimswe/elliptic_solvers.py` (pure Python; `get_elliptic_solver_parameters(SolverContext)` returns options + the preconditioner kind). `riesz-amg`: MINRES + additive fieldsplit of the weighted Riesz blocks (`riesz_form`), BoomerAMG/GAMG on H1, `firedrake.HypreAMS`/`HypreADS` only for lowest-order N1curl/RT on simplices (`hypre_auxiliary_space`), LU fallback otherwise, `bjacobi`+LU on L2. `riesz-gmg`: PCMG on the `MeshHierarchy` / `ExtrudedMeshHierarchy` built from `mesh.refinement_levels` (nx/ny/nz = coarsest level; the finest mesh is the model mesh, `mesh.mesh_hierarchy` keeps the hierarchy alive), Chebyshev + Jacobi (H1) or `ASMStarPC`/`ASMExtrudedStarPC` (AFW vertex-star patches), LU coarse. `riesz-pmg`: `PMGPC` to degree 1, same smoothers. The multigrid blocks of `riesz-gmg`/`riesz-pmg` are wrapped in `firedrake.AssembledPC`: Firedrake's multigrid rediscretizes the split block's *system* form on coarse levels, which inside the fieldsplit is the indefinite Hodge block, not the Riesz map (measured 20/64/138 iterations over three refinements before, 6/6/6 with exact block solves, and each block solver alone was mesh-independent). `schur-mass` (k = n): full Schur with `selfp`, GMRES+Jacobi on the (negative-definite) σ mass, BoomerAMG on S. `elliptic.block_solvers` picks variants per space type (`lu` forces exact block solves); `ksp_rtol`/`ksp_max_it`. `nullspace` with iterative solvers uses a `LinearVariationalSolver` (Firedrake field information is needed for fieldsplit/PMG/PCMG) with the nullspace attached, after the explicit lifting/projection; `lagrange` uses matrix-free MINRES with `AssembledPC` per block and the identity on the R blocks (works, not recommended at scale). Statistics: `ksp_iterations`, `ksp_converged_reason`, `solve_time` (PETSc event "elliptic solve"), `num_dofs`; a non-converged iterative solve is logged as a warning. Eigenproblems: `elliptic.eigen.inner_solver: iterative` (GMRES preconditioned by the assembled Riesz matrix with an index-set fieldsplit of algebraic block solvers; the problem is not restricted then). New problem `two-material-sine` (κ jump, cfg `contrast`) for robustness studies. Workflow: `workflows/elliptic_solver_scaling.py` (+ `.sh`): sweeps `--nx`, `--order`, `--solver`, `--contrast` (rank scaling = one sweep per `mpiexec -n`), writes `summary.yaml`/`.csv` and `iterations.png`. Tests: `tests/unit/test_elliptic_solvers.py`, `tests/integration/test_elliptic_iterative_solvers.py` (matches direct for every solver, bounded iterations over 3 refinements, κ contrast 1→10³, both harmonic treatments, hierarchy keeps faces/periodicity, 3D extruded GMG (slow), iterative eigen inner solve, scaling workflow, `mpi` smoke test).
+
+### 4.13 Numerical harmonic forms (separate task, `dimswe/harmonic_forms.py`, `dimswe/elliptic_eigen.py`)
+Goal: `elliptic.harmonic_forms: numerical` computes a discrete basis of `𝔥^k` on any mesh (curved,
+`file` meshes, the non-box utility meshes of §4.14, partial-face BCs), so the harmonic constraint
+and the nullspace work without the Künneth rule of §1.4. The box rule stays the default
+(`auto`), and the numerical path is cross-checked against it.
+
+**Mathematics.** The discrete harmonic forms are the kernel of the mixed Hodge Laplacian, i.e.
+the eigenvalue-0 eigenvectors `(σ, u) = (0, h)` of the §4.11 problem with homogeneous BCs. Their
+dimension is the `k`-th Betti number (relative to the essential boundary), which can be
+computed combinatorially. So the eigen-solve gives the forms and the topology gives the count:
+- `b_k = dim ker d_k − rank d_{k−1}` on the discrete complex. This is computable from the
+  sparse incidence (`d`) matrices of the lowest-order complex, or directly from the mesh's
+  DMPlex (Euler characteristic, boundary components, periodic identifications).
+- A closed-form shortcut for meshes with known topology: annuli/disks/spheres/tori/cylinders
+  (§4.14 meshes) report their Betti numbers.
+
+**Algorithm (`numerical_harmonic_basis(model_like, m=None)`).**
+1. Build the homogeneous-BC eigenproblem of §4.11 (unweighted, `c = 0`) on the model's spaces.
+   Target `−1`, as in §4.11, so the singular operator is never factored at the shift.
+2. Request `nev = m + margin` eigenpairs, where `m` comes from the Betti-number computation (or
+   from `elliptic.harmonic_forms_count`, overriding it). Accept eigenvalues with
+   `|λ| < zero_tol · λ_1`, where `λ_1` is the first eigenvalue clearly above zero. Report the gap
+   ratio `λ_{m+1} / max|λ_{≤m}|`, and warn below `1e6`.
+3. Check that the count of accepted eigenvalues equals `m`. If it doesn't, raise an error with
+   the computed spectrum (the eigen-solve missed a mode or found a spurious one).
+4. Take the `u` parts. Verify that `σ ≈ 0` (`‖σ‖ < tol·‖u‖`, which distinguishes true harmonic
+   forms from round-off) and that `d u ≈ 0`.
+5. Orthonormalize in `L²` with the existing `orthonormalize_harmonic_basis` (two-pass
+   Gram–Schmidt; eigenvectors of a degenerate eigenvalue are only defined up to rotation).
+6. Return Functions in `V^k`. Everything downstream (lagrange multipliers, nullspace, rhs
+   projection, `p` reporting, adjoints, HVPs) already takes a list of orthonormal Functions.
+
+**Cheaper alternative (option `numerical_method: kernel`).** Compute `ker` of the assembled
+symmetric operator directly, by inverse iteration with the regularized LU preconditioner already
+used for `nullspace` (`a + ε(u, v)`), starting from `m` random vectors and deflating as it goes.
+Same acceptance tests. This is used when SLEPc is unavailable, and as a cross-check.
+
+**Interfaces and wiring.**
+- [x] `harmonic_forms.HARMONIC_FORM_MODES`: `numerical` stops raising. `get_harmonic_index_sets`
+  returns `None` (no index sets) for `numerical`, and the model calls
+  `numerical_harmonic_basis` instead of `harmonic_basis + orthonormalize`.
+- [x] `build_harmonic_basis(config, mesh, ...)` in `elliptic.py` dispatches `auto`/`none`/`numerical`.
+  `auto` on a non-box mesh (`file` and the §4.14 non-box meshes) becomes `numerical` instead of
+  raising.
+- [x] `betti_number(mesh, k, essential_faces)` (new `dimswe/topology.py`): from the
+  lowest-order incidence matrices (`d` assembled between `CG1 → N1curl_1/RTCE_1 → …`, with the
+  essential BCs removing boundary dofs) via sparse rank (`scipy.sparse.linalg` / QR on the
+  small integer matrices), or from DMPlex Euler characteristics. Unit-testable on small meshes.
+- [x] Caching: the basis depends only on mesh, spaces, `k` and the BC types, not on
+  coefficients or data. Cache it on the mesh like the face registry, so optimization loops and
+  eigen sweeps compute it once.
+- [x] Statistics: `num_harmonic_forms` (as now), `harmonic_gap_ratio`, and
+  `harmonic_max_sigma_ratio`. `harmonic_forms: numerical` is logged with the accepted spectrum.
+- Weighted `u` inner product: moved to its own task, §4.15 (it touches the operator, every harmonic helper, the eigen mass, MMS, adjoints/HVPs and the Riesz maps).
+
+**Tests.**
+- [x] Numerical vs Künneth basis on every box case of `test_harmonic_basis_is_discretely_harmonic`:
+  same dimension, and same span (`‖P_num − P_auto‖ < tol`, compared through the projectors, since
+  the bases differ by a rotation).
+- [x] Betti numbers: unit square/cube, all-periodic tori, cylinders (§4.14 meshes), the annulus
+  (`b_1 = 1` for natural BCs), and a square with a hole from a `file` mesh.
+- [x] MMS convergence and lagrange-vs-nullspace agreement with `harmonic_forms: numerical` on an
+  annulus (k = 1, curl-div, the classical "flow around a hole" harmonic field) and on a
+  partial-face-BC mesh.
+- [x] Failure modes: forcing a wrong count raises with a clear message, and a tiny gap warns.
+- Notes (done, verify on the installed Firedrake): `dimswe/topology.py` (`betti_number`: b_k = dim V^k_0 − rank d_k − rank d_{k−1} on the lowest-order complex of the same mesh, `B_j = (dφ, ψ)` ranks by dense SVD; serial only and up to `DEFAULT_MAX_ENTRIES`, otherwise `None`; cached on the mesh). `dimswe/numerical_harmonic.py` (`numerical_harmonic_basis`; `classify_zero_eigenvalues` is pure Python): `eigen` = SLEPc shift-and-invert at −1 on the unweighted operator with homogeneous BCs (restricted), doubling the request while all eigenvalues are zero; `kernel` = block inverse iteration with `A + εM` + Rayleigh–Ritz (needs the count; two extra vectors estimate the gap). Checks: count = Betti number, ‖σ‖/‖u‖ < 1e-6, gap ratio warning below 1e6; result cached on the mesh and rebuilt in the caller's V^k, then L2-orthonormalized. `harmonic_forms: numerical` works, `auto` on `file` meshes becomes numerical (`harmonic_forms.resolve_harmonic_mode`); no index sets are produced on that path. New cfg entries: `elliptic.harmonic_method` (eigen | kernel), `harmonic_forms_count`, `harmonic_zero_tolerance`. Statistics `harmonic_gap_ratio`, `harmonic_max_sigma_ratio`. Tests: `tests/unit/test_numerical_harmonic.py`, `tests/integration/test_numerical_harmonic_forms.py` (Betti = Künneth and span equality via projectors on 12 box cases × both methods, MMS and lagrange = nullspace with numerical forms, wrong counts raise, a DMPlex square with a hole has b = (1, 1, 0) for natural BCs and a closed, co-closed 1-form). Not yet: the annulus MMS of the plan (needs §4.14's AnnulusMesh and radial problems) and a parallel path (Betti numbers are serial; with `harmonic_forms_count` the eigen method works in parallel).
+
+### 4.14 Remaining Firedrake utility meshes (separate task, `dimswe/meshes.py`)
+Goal: every utility mesh Firedrake ships can be selected by `mesh.type`, for the elliptic models
+(and, where the spaces make sense, the time-dependent ones), with the BC registry, harmonic forms
+and problem data working on each.
+
+**Inventory and classification** (names to be **verified against the installed Firedrake**; the
+list below is from `firedrake.utility_meshes`):
+
+| class | meshes | domain / topology | BC faces | harmonic forms |
+|---|---|---|---|---|
+| boxes (have) | `IntervalMesh`, `RectangleMesh`, `BoxMesh`, periodic variants, extruded boxes | box | `left/right/...` | Künneth (`auto`) |
+| more boxes | `UnitIntervalMesh`, `UnitSquareMesh`, `UnitCubeMesh`, `SquareMesh`, `CubeMesh`, `TensorRectangleMesh`, `TensorBoxMesh`, `PeriodicUnitSquareMesh`, `PeriodicSquareMesh`, `PeriodicUnitCubeMesh`, `PeriodicUnitIntervalMesh` | box, possibly graded | same registry | Künneth |
+| periodic box variants | `PeriodicRectangleMesh(direction=...)` (have), `PeriodicBoxMesh(directions=...)` (have, hexes) | partially periodic box | same | Künneth |
+| disks/annuli | `UnitDiskMesh`, `CircleManifoldMesh` (1D manifold), `AnnulusMesh` (where available) | disk, annulus | `outer`, `inner` (new names) | numerical (§4.13); annulus `b_1 = 1` |
+| balls/shells | `UnitBallMesh`, `CylinderMesh` | ball, cylinder shell | `outer`, `top`/`bottom` | numerical |
+| manifolds | `IcosahedralSphereMesh`, `UnitIcosahedralSphereMesh`, `OctahedralSphereMesh`, `CubedSphereMesh`, `UnitCubedSphereMesh`, `TorusMesh`, `CylinderMesh` (surface) | closed 2D manifolds in 3D | none (closed) | numerical; sphere `b_1 = 0`, torus `b_1 = 2` |
+| other | `UnitTetrahedronMesh`, `UnitTriangleMesh`, `CircleManifoldMesh` | single cell / curve | vertex/edge ids | numerical |
+
+**Design.**
+- [ ] A table-driven registry `MESH_TYPES = {name: MeshSpec(builder, dim, gdim, topology, faces,
+  periodic_allowed, simplicial_only, ...)}` replaces the `LINE/RECTANGLE/BOX_MESH_TYPES` tuples and
+  the `if` chain in `build_mesh`. Every existing type keeps its name and behaviour; the existing
+  `build_mesh` tests must pass unchanged. `get_mesh_type_dimension` reads `MeshSpec.dim`.
+- [ ] cfg: `mesh.type` takes the new names, with the mesh's own parameters under `mesh`
+  (`radius`, `inner_radius`, `refinement_level`, `degree` for curved coordinates, `nr`/`nt` for
+  annuli, ...). Builders take `(mesh_cfg, domain)` and validate their own keys.
+- [ ] Geometric dimension ≠ topological dimension (manifolds): `DeRhamComplex` and
+  `differential_forms` assume `gdim = tdim`. On immersed manifolds the proxies need the cell
+  orientation (`mesh.init_cell_orientations(x)`) and the `skewgrad`/`curl2D` operators become
+  `k̂ × grad`, `div(k̂ × u)` with the outward normal `k̂`. Add a `ManifoldDeRhamComplex` path and
+  manifold variants of `exterior_derivative`/`codifferential` (§1.2 table with `k̂`), and verify
+  them with the integration-by-parts and `d² = 0` tests on the sphere.
+- [ ] Boundary registry for non-box domains: `get_boundary_registry` dispatches on
+  `MeshSpec.faces`. Disks/annuli/balls get `outer`/`inner` with the utility mesh's own boundary
+  ids (verify numbering with a geometric check, like `verify_boundary_registry`: radius instead
+  of coordinate). Closed manifolds have no faces. `domain_bounds` is `None` for non-box meshes,
+  and everything that uses it already handles `None` (problem data fall back to the problem's own
+  domain; exact box spectra are skipped).
+- [ ] Problem data on non-box domains: `normalized_coordinates` is box-specific. Add
+  coordinate-free MMS problems, e.g. `RadialProblem` (disk/annulus, polar sine modes) and
+  `SphericalHarmonicProblem` (sphere: the Laplace–Beltrami eigenfunctions, exact for k = 0 and
+  k = 2, and their `d`/`δ` for k = 1).
+- [ ] Harmonic forms: non-box meshes use `numerical` (§4.13) automatically. The sphere (`b_1 = 0`)
+  and torus (`b_1 = 2`) are the reference checks.
+- [ ] Multigrid: `MeshHierarchy` of a curved/immersed mesh needs the coarse mesh and
+  `reorder=False`, plus re-snapping of refined vertices to the curved boundary/surface (a
+  `MeshHierarchy` callback). Document which types support `refinement_levels`.
+- [ ] FEEC families per cell type: disks/annuli/balls are simplicial (P±); `CubedSphereMesh` is
+  quadrilateral (Q); extruded variants keep Q. Validation uses `FAMILY_CELLS` as now.
+
+**Tests.**
+- [ ] Every registered type builds (small sizes), reports the right `dim`/`gdim`/cell, and its
+  faces pass the geometric registry check. Existing mesh tests unchanged.
+- [ ] Manifold operators: `d² = 0` and integration by parts on the icosahedral and cubed spheres.
+- [ ] MMS convergence for k = 0 on the disk and annulus (Dirichlet/Neumann) and for k = 0, 2 on
+  the sphere. Then k = 1 on the annulus with the numerical harmonic form.
+- [ ] Eigenproblems: the sphere spectrum `l(l+1)/R²` with multiplicity `2l + 1` (k = 0).
+- Status: stages 1–2 done (registry + box-like meshes; disks/annuli/balls); stages 3 (immersed manifolds: spheres, torus, cubed sphere, CylinderMesh surface) and 4 (hierarchies on curved meshes) are open. Notes (verify names on the installed Firedrake): `meshes.MESH_TYPES` maps every type to a `MeshSpec` (dim, topology 'box' | 'radial', base box builder, default periodicity, unit domain, simplicial-only, faces); the old `LINE/RECTANGLE/BOX_MESH_TYPES` tuples are derived from it, `get_mesh_type_dimension` and `get_periodic_directions` read it, and the historic types build exactly as before. New box aliases: `unit-interval`, `periodic-unit-interval`, `unit-square`, `periodic-unit-square`, `square`, `periodic-square`, `unit-cube`, `periodic-unit-cube`, `cube` (unit-* fix the domain to [0, 1]^n), graded `tensor-rectangle` / `tensor-box` (`mesh.x_coords`, ...; tensor-box simplicial only). Radial: `unit-disk`, `unit-ball` (simplicial, `mesh.refinement`), `annulus` (`inner_radius`, `outer_radius`, `nr`, `nt`, quads by default). Their faces `outer`/`inner` are found by mean radius (`boundary_conditions.radial_face_registry`); `mesh.mesh_topology` is recorded; `domain_bounds` is None; `harmonic_forms: auto` becomes numerical; box problems raise on them and `elliptic-problem: radial` (`RadialProblem`, Cartesian sines about the origin) is the MMS problem. Firedrake's `CylinderMesh` is an immersed surface, so it moved to stage 3. Tests: `tests/unit/test_mesh_types.py`, `tests/integration/test_elliptic_radial_meshes.py` (disk/annulus/ball MMS, the annulus harmonic 1-form for natural and curl-div essential BCs, rejection of box problems).
+
+### 4.15 Weighted `u` inner product (separate task, split from §4.13)
+Generalize the `u` inner product to `(w u, v)`, with `w` a positive scalar or SPD tensor coefficient
+(`elliptic.coefficients.w`, default 1). It changes:
+- the operator: `δ_w = w^{-1} δ` (the codifferential is the adjoint in the weighted product), so
+  MMS sources become `f = w^{-1}(...)` (`weighted_hodge_fields`);
+- the harmonic space: the kernel changes (h is harmonic iff dh = 0 and δ(w h) = 0), so on
+  boxes the Künneth constants are no longer harmonic for non-constant `w`. `auto` must switch to
+  `numerical` when `w` is not constant;
+- every harmonic helper (`orthonormalize_harmonic_basis`, the rhs projection,
+  `remove_harmonic_component`, the multiplier coupling, the nullspace vectors) uses the weighted
+  product;
+- the eigenproblem mass `M = (w u, v)`, the Riesz maps, and the adjoints and HVPs (w as a
+  parameter).
+Tests: MMS with variable/tensor `w`, numerical harmonic forms weighted-orthonormal and
+discretely harmonic, lagrange = nullspace, eigen spectra for constant `w` (λ/w), and Taylor tests
+with `w` as a parameter.
 
 ## 5. Implementation order (each step py_compile-clean and independently reviewable)
 1. `differential_forms.py` + unit tests for the §1.2 table.
@@ -561,7 +705,16 @@ and coefficient changes) for every (dim, complex, k, family), in parallel.
     iterative → `riesz-gmg`/`riesz-pmg` → scaling workflow.
 12. Plotting, convergence workflow, README/workflows README updates.
 
-Steps 8–11 are independent of each other once step 7 is done and can go in any order. §4.12's
+13. Numerical harmonic forms (§4.13): Betti numbers (`topology.py`) → `numerical_harmonic_basis`
+    via the §4.11 eigensolver → wiring into `build_harmonic_basis` + caching → cross-check against
+    the Künneth rule on every box case → weighted `u` inner product.
+14. Utility meshes (§4.14): `MeshSpec` registry refactor (existing types unchanged) → box-like
+    utility meshes → disks/annuli/balls with `outer`/`inner` faces + radial MMS → manifolds
+    (`ManifoldDeRhamComplex`, manifold operators, sphere MMS and spectrum) → hierarchies on
+    curved meshes.
+
+Steps 8–11 are independent of each other once step 7 is done and can go in any order. Step 14's
+non-box meshes need step 13 for k > 0 with harmonic forms; the box-like part of 14 does not. §4.12's
 coefficient robustness tests need §4.10.
 
 ---
@@ -600,7 +753,7 @@ Unit tests (`tests/unit/`):
 - [x] `test_elliptic_eigen.py::test_exact_box_eigenvalues` — pure Python: known 1D/2D spectra
   and multiplicities (e.g. unit-square k=0 Neumann: 0, π², π², 2π², …; k=1 multiplicities on
   the torus), and the zero-eigenvalue count equals the §1.4 harmonic dimension.
-- [ ] `test_elliptic_solvers.py` — solver-parameter builder produces the right fieldsplit
+- [x] `test_elliptic_solvers.py` — solver-parameter builder produces the right fieldsplit
   indices for every block layout (with/without `σ`, with/without `R`) — pure Python.
 
 Integration tests (`tests/integration/test_elliptic.py`):
@@ -628,7 +781,7 @@ Integration tests (`tests/integration/test_elliptic.py`):
   multiplicities, with no spurious modes in the window, and the eigenvalue error converges at
   `≈ 2·order`. Cover all 12 (dim, complex, k) combos (3D small/`slow`) and at least one case per
   BC type, including mixed and partially periodic.
-- [ ] Iterative solvers: for `riesz-amg` (and `riesz-gmg` where supported), the solution matches
+- [x] Iterative solvers: for `riesz-amg` (and `riesz-gmg` where supported), the solution matches
   `elliptic-direct` to tolerance; iteration counts over 3 refinements stay below a bound and grow
   by at most a small factor; coefficient-contrast sweep (`κ` jump 1→10³) for robustness; nullspace
   case converges. Parallel smoke test under `mpiexec -n 2` (`slow`/`mpi` marker).
@@ -640,7 +793,7 @@ Integration tests (`tests/integration/test_elliptic.py`):
   integration-by-parts test.
 
 ---
-- Status: every item except the two §4.12 solver items is implemented. Test locations differ in places from the names above: the coefficient Taylor tests and optimization tests are in `tests/integration/test_elliptic_coefficients_solve.py`, the eigenproblem integration tests in `tests/integration/test_elliptic_eigensolver.py` (unique basename), the family matrix in `tests/integration/test_elliptic_families.py` (S- excluded: unusable with the installed FIAT), and the steady-state workflow tests in `tests/integration/test_steady_state_optimization_workflow.py`.
+- Status: every item is implemented (the §4.12 solver items in `tests/unit/test_elliptic_solvers.py` and `tests/integration/test_elliptic_iterative_solvers.py`). Test locations differ in places from the names above: the coefficient Taylor tests and optimization tests are in `tests/integration/test_elliptic_coefficients_solve.py`, the eigenproblem integration tests in `tests/integration/test_elliptic_eigensolver.py` (unique basename), the family matrix in `tests/integration/test_elliptic_families.py` (S- excluded: unusable with the installed FIAT), and the steady-state workflow tests in `tests/integration/test_steady_state_optimization_workflow.py`.
 
 ## 7. Decisions (resolved)
 1. Inhomogeneous BC data: **supported** for essential and natural BCs (§1.6, §4.5), from the
@@ -657,9 +810,9 @@ Integration tests (`tests/integration/test_elliptic.py`):
 ---
 
 ## 8. Deferred / future work
-- Numerical harmonic forms for general meshes (`mesh.type: file`): take the zero-eigenvalue
-  eigenvectors from the §4.11 solver, then orthonormalize.
-- Weighted `u` inner product `(w u, v)` (and hence weighted harmonic forms), which needs the
-  numerical harmonic-form path.
+- Numerical harmonic forms for general meshes: planned in §4.13.
+- Weighted `u` inner product `(w u, v)` (and hence weighted harmonic forms): planned in §4.15
+  (it needs the numerical harmonic-form path of §4.13).
+- Non-box Firedrake utility meshes (disks, annuli, balls, spheres, tori): planned in §4.14.
 - Mixed BCs on sub-portions of a face (needs mesh markers from `file` meshes; harmonic forms then
-  require the numerical path).
+  require the numerical path of §4.13).

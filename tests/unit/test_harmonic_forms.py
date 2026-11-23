@@ -19,7 +19,7 @@ from dimswe.harmonic_forms import (build_harmonic_nullspace, combine_harmonic_fo
                                    lagrange_preconditioner_form, lagrange_solver_parameters,
                                    multiplier_coefficients,
                                    orthonormalize_harmonic_basis, project_rhs_orthogonal_to_harmonic,
-                                   remove_harmonic_component)
+                                   remove_harmonic_component, resolve_harmonic_mode)
 from dimswe.meshes import get_mesh_and_spaces
 
 MESH_FOR_DIM = {1: 'line', 2: 'rectangle', 3: 'box'}
@@ -98,13 +98,13 @@ def test_harmonic_index_sets_errors(periodic, face_bcs):
 
 
 def test_get_harmonic_index_sets_modes():
-    """'none' gives nothing, 'auto' the rule, 'numerical' and 'file' meshes are not available."""
+    """'none' gives nothing, 'auto' the rule; 'numerical' (and 'auto' on 'file' meshes) has no index sets."""
     assert get_harmonic_index_sets('none', 0, 2, ('x', 'y'), {}, 'rectangle') == []
     assert get_harmonic_index_sets('auto', 1, 2, ('x', 'y'), {}, 'rectangle') == [('x',), ('y',)]
-    with pytest.raises(NotImplementedError):
-        get_harmonic_index_sets('numerical', 1, 2, ('x', 'y'), {}, 'rectangle')
-    with pytest.raises(NotImplementedError):
-        get_harmonic_index_sets('auto', 1, 2, (), {}, 'file')
+    assert get_harmonic_index_sets('numerical', 1, 2, ('x', 'y'), {}, 'rectangle') is None
+    assert get_harmonic_index_sets('auto', 1, 2, (), {}, 'file') is None
+    assert resolve_harmonic_mode('auto', 'file') == 'numerical'
+    assert resolve_harmonic_mode('auto', 'rectangle') == 'auto'
     with pytest.raises(ValueError):
         get_harmonic_index_sets('sometimes', 1, 2, (), {}, 'rectangle')
 

@@ -32,12 +32,12 @@ Each face carries exactly one BC type, 'essential' or 'natural' (TODO-elliptic ย
 from dataclasses import dataclass
 from typing import Tuple, Union
 
-from firedrake import Constant, DirichletBC, Function, SpatialCoordinate, assemble, ds, ds_b, ds_t, ds_v
+from firedrake import Constant, DirichletBC, Function, SpatialCoordinate, assemble, ds, ds_b, ds_t, ds_v, sqrt
 
 from ufl import zero
 
 from .differential_forms import boundary_pairing
-from .meshes import DIRECTIONS, get_mesh_type_dimension
+from .meshes import DIRECTIONS, get_mesh_type_dimension, is_box_mesh_type
 from .ufl_helpers import ufl_attribute
 
 # Logical face name -> (direction, side). Ordered by direction, low side first.
@@ -46,6 +46,9 @@ FACE_LOCATIONS = {
     'bottom': ('y', 0), 'top': ('y', 1),
     'back': ('z', 0), 'front': ('z', 1),
 }
+
+# Logical faces of non-box ('radial') meshes: disk/ball 'outer', annulus 'inner' and 'outer'.
+RADIAL_FACES = ('inner', 'outer')
 
 # Allowed boundary condition types.
 BC_TYPES = ('essential', 'natural')
@@ -137,6 +140,8 @@ def get_boundary_registry(mesh, mesh_type, periodic_directions=None):
     dim = get_mesh_type_dimension(mesh_type)
     if dim is None:
         raise NotImplementedError("boundary registry for 'file' meshes is not implemented")
+    if not is_box_mesh_type(mesh_type):
+        return radial_face_registry(mesh, mesh_type)
     if periodic_directions is None:
         periodic_directions = getattr(mesh, 'periodic_directions', ())
     # The detection assembles a few small forms per marker; cache the result on the mesh, since
@@ -151,6 +156,53 @@ def get_boundary_registry(mesh, mesh_type, periodic_directions=None):
         bounds = getattr(mesh, 'domain_bounds', None) or _coordinate_bounds(mesh, dim)
         cache[key] = detect_face_ids(mesh, registry, bounds)
     return dict(cache[key])  # BoundaryFace entries are immutable; the dict is a fresh copy
+
+
+def radial_face_registry(mesh, mesh_type):
+    """Faces of a disk/annulus/ball (TODO-elliptic ยง4.14), detected by radius about the origin.
+
+    Every non-empty boundary marker belongs to 'outer' (disk, ball), or, for the annulus, to
+    'inner' or 'outer' depending on whether its mean radius is below or above the mean of the two
+    radii (robust for polygonal approximations of the circles). Faces carry direction None and are
+    integrated with ds over their markers. Cached on the mesh like the box registry.
+    """
+    from .meshes import get_mesh_spec
+    spec = get_mesh_spec(mesh_type)
+    cache = getattr(mesh, '_dimswe_face_registries', None)
+    if cache is None:
+        cache = {}
+        mesh._dimswe_face_registries = cache
+    key = (mesh_type, 'radial')
+    if key in cache:
+        return dict(cache[key])
+    markers = _boundary_markers(mesh) or []
+    X = SpatialCoordinate(mesh)
+    radius = sqrt(sum(X[i] ** 2 for i in range(spec.dim)))
+    means = {}
+    for marker in markers:
+        if _marker_facet_count(mesh, marker) == 0:
+            continue
+        dm = ds(marker, domain=mesh)
+        area = assemble(Constant(1.0) * dm)
+        if area > 0.0:
+            means[marker] = assemble(radius * dm) / area
+    if not means:
+        raise ValueError("mesh type " + mesh_type + " has no boundary markers")
+    groups = {name: [] for name in spec.faces}
+    if 'inner' in spec.faces:
+        split = 0.5 * (min(means.values()) + max(means.values()))
+        for marker, mean in means.items():
+            groups['inner' if mean < split else 'outer'].append(marker)
+    else:
+        groups['outer'] = list(means)
+    registry = {}
+    for side, name in enumerate(spec.faces):
+        ids = tuple(sorted(groups[name]))
+        if not ids:
+            raise ValueError("no boundary marker of the " + mesh_type + " lies on face '" + name + "'")
+        registry[name] = BoundaryFace(name, None, side, ids, 'ds', ids[0] if len(ids) == 1 else ids)
+    cache[key] = registry
+    return dict(registry)
 
 
 def _coordinate_bounds(mesh, dim):
@@ -254,8 +306,8 @@ def parse_boundary_conditions(cfg, registry):
     parsed = {}
     for key, value in cfg.items():
         name = str(key).strip().lower()
-        if name not in FACE_LOCATIONS:
-            raise ValueError("unknown boundary face '" + str(key) + "' (valid: " + str(list(FACE_LOCATIONS)) + ")")
+        if name not in FACE_LOCATIONS and name not in RADIAL_FACES:
+            raise ValueError("unknown boundary face '" + str(key) + "' (valid: " + str(list(FACE_LOCATIONS) + list(RADIAL_FACES)) + ")")
         if name not in registry:
             raise ValueError("boundary face '" + name + "' does not exist on this mesh (it is periodic or beyond the mesh dimension)")
         if name in parsed:
@@ -283,6 +335,8 @@ def face_bcs_by_direction(registry, face_bcs):
     """
     grouped = {}
     for name, face in registry.items():
+        if face.direction is None:
+            raise ValueError("face_bcs_by_direction only applies to box meshes (face '" + name + "' is not axis-aligned)")
         grouped.setdefault(face.direction, [None, None])[face.side] = face_bcs[name]
     return {direction: tuple(types) for direction, types in grouped.items()}
 

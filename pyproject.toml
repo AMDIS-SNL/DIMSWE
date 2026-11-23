@@ -31,4 +31,5 @@ testpaths = [
 markers = [
     "integration: short integration tests that exercise multiple components",
     "slow: longer tests (e.g. 3D elliptic convergence); deselect with -m 'not slow'",
+    "mpi: parallel smoke tests; run with `mpiexec -n 2 pytest -m mpi` (skipped in serial)",
 ]

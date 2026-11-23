@@ -29,7 +29,9 @@ from firedrake import Function, LinearEigenproblem, LinearEigensolver, assemble,
 
 from .boundary_conditions import BC_TYPES, FACE_LOCATIONS
 from .elliptic import (EllipticConfig, build_block_layout, build_essential_bc_lists, build_harmonic_basis,
-                       hodge_bilinear_form, split_arguments)
+                       hodge_bilinear_form, riesz_form, split_arguments)
+from .elliptic_solvers import eigen_inner_solver_options
+from .numerical_harmonic import physical_eigenpairs
 from .elliptic_coefficients import EllipticCoefficients
 from .elliptic_problems import get_elliptic_problem
 from .logger import EmptyLogger
@@ -186,6 +188,9 @@ class EigenConfig:
     deflate_harmonic: bool = False
     zero_tolerance: float = 1e-6
     bc_shift: float = 1e8
+    inner_solver: str = 'direct'
+    inner_rtol: float = 1e-12
+    inner_max_it: int = 1000
 
     @classmethod
     def from_parameters(cls, parameters):
@@ -198,7 +203,12 @@ class EigenConfig:
                      max_it=None if cfg.get('max_it') is None else int(cfg['max_it']),
                      deflate_harmonic=bool(cfg.get('deflate_harmonic', False)),
                      zero_tolerance=float(cfg.get('zero_tolerance', 1e-6)),
-                     bc_shift=float(cfg.get('bc_shift', 1e8)))
+                     bc_shift=float(cfg.get('bc_shift', 1e8)),
+                     inner_solver=str(cfg.get('inner_solver', 'direct')),
+                     inner_rtol=float(cfg.get('inner_rtol', 1e-12)),
+                     inner_max_it=int(cfg.get('inner_max_it', 1000)))
+        if config.inner_solver not in ('direct', 'iterative'):
+            raise ValueError("elliptic.eigen.inner_solver must be 'direct' or 'iterative'")
         if config.nev < 1:
             raise ValueError("elliptic.eigen.nev must be >= 1")
         if config.ncv is not None and config.ncv < config.nev:
@@ -218,8 +228,12 @@ class EigenConfig:
             return self.ncv
         return max(2 * m, m + 16)
 
-    def solver_parameters(self):
-        """SLEPc options: Krylov-Schur, generalized non-Hermitian, shift-and-invert with MUMPS."""
+    def solver_parameters(self, inner_options=None):
+        """SLEPc options: Krylov-Schur, generalized non-Hermitian, shift-and-invert.
+
+        The inner solve is MUMPS LU by default; inner_options (st_* keys, e.g. from
+        elliptic_solvers.eigen_inner_solver_options) replace it for inner_solver: iterative.
+        """
         params = {
             'eps_type': 'krylovschur',
             'eps_gen_non_hermitian': None,
@@ -233,6 +247,10 @@ class EigenConfig:
         }
         if self.max_it is not None:
             params['eps_max_it'] = self.max_it
+        if inner_options is not None:
+            for key in ('st_ksp_type', 'st_pc_type', 'st_pc_factor_mat_solver_type'):
+                params.pop(key)
+            params.update(inner_options)
         return params
 
 
@@ -274,7 +292,9 @@ class HodgeLaplacianEigenproblem():
         self.reaction_positive = self.coefficients.reaction_is_positive()
         self.harmonic_index_sets, self.harmonic = build_harmonic_basis(self.config, self.mesh,
                                                                        parameters['mesh']['type'], self.Vk, self.dx,
-                                                                       reaction_positive=self.reaction_positive)
+                                                                       reaction_positive=self.reaction_positive,
+                                                                       spaces=self.spaces, parameters=parameters,
+                                                                       logger=self.logger)
         self.num_harmonic = len(self.harmonic)
         bcs_sigma, bcs_u = build_essential_bc_lists(self.layout, self.config)
         self.bcs = bcs_sigma + bcs_u
@@ -292,14 +312,17 @@ class HodgeLaplacianEigenproblem():
     # --- solve --------------------------------------------------------------------------------
 
     def _make_problem(self, restrict):
-        """LinearEigenproblem, restricted to the free dofs if supported and requested."""
+        """LinearEigenproblem, restricted to the free dofs or not (bc_shift), as requested.
+
+        restrict is always passed explicitly: newer Firedrake restricts by default, which breaks
+        anything working on the full space (deflation vectors, the Riesz preconditioner matrix of
+        the iterative inner solve). Older Firedrake without the argument only does bc_shift.
+        """
         kwargs = {'M': self.m, 'bcs': self.bcs or None, 'bc_shift': self.eigen.bc_shift}
-        if restrict:
-            try:
-                return LinearEigenproblem(self.a, restrict=True, **kwargs)
-            except TypeError:
-                pass  # older Firedrake without restrict: fall back to bc_shift
-        return LinearEigenproblem(self.a, **kwargs)
+        try:
+            return LinearEigenproblem(self.a, restrict=bool(restrict), **kwargs)
+        except TypeError:
+            return LinearEigenproblem(self.a, **kwargs)  # older Firedrake: no restrict argument
 
     def _deflation_vectors(self):
         """PETSc vectors of the harmonic eigenvectors (sigma, u) = (0, h_i) in W."""
@@ -320,22 +343,34 @@ class HodgeLaplacianEigenproblem():
         eigenvalues at the end of the window.
         """
         deflate = self.eigen.deflate_harmonic and self.num_harmonic > 0
-        # Deflation vectors live in the full space, so the problem is not restricted then.
-        problem = self._make_problem(restrict=not deflate)
+        iterative = self.eigen.inner_solver == 'iterative'
+        # Deflation vectors and the iterative inner solve's field index sets live in the full
+        # space, so the problem is not restricted then (essential BCs use bc_shift).
+        problem = self._make_problem(restrict=not (deflate or iterative))
         nev = self.eigen.nev
         requested = self.eigen.num_requested()
-        solver = LinearEigensolver(problem, n_evals=requested, solver_parameters=self.eigen.solver_parameters(),
+        inner = None
+        if iterative:
+            inner, _ = eigen_inner_solver_options(self.k, self.dim, self.complex, rtol=self.eigen.inner_rtol,
+                                                  max_it=self.eigen.inner_max_it)
+        solver = LinearEigensolver(problem, n_evals=requested, solver_parameters=self.eigen.solver_parameters(inner),
                                    ncv=self.eigen.subspace_size(), options_prefix='elliptic_eigen_')
         if deflate:
             solver.es.setDeflationSpace(self._deflation_vectors())
+        if iterative:
+            self._setup_iterative_inner_solve(solver)
         self.num_converged = solver.solve()
         entries = []
         for i in range(self.num_converged):
             value = complex(solver.eigenvalue(i))
             real, _ = solver.eigenfunction(i)
             entries.append((value.real, value.imag, float(solver.es.computeError(i)), real.copy(deepcopy=True)))
-        # Smallest first (the target sits below the spectrum); keep at most nev.
-        entries.sort(key=lambda e: e[0])
+        # Drop the spurious "infinite" eigenvalues of the singular pencil (pure sigma modes, possibly
+        # returned as huge values of either sign), then smallest first; keep at most nev.
+        physical = physical_eigenpairs([(e[0], e[3]) for e in entries], self.layout, self.dx)
+        kept = {id(mode) for _, mode in physical}
+        self.num_spurious = len(entries) - len(physical)
+        entries = sorted((e for e in entries if id(e[3]) in kept), key=lambda e: e[0])
         entries = entries[:nev]
         self.eigenvalues = [e[0] for e in entries]
         self.imaginary_parts = [e[1] for e in entries]
@@ -344,6 +379,24 @@ class HodgeLaplacianEigenproblem():
         self.logger.output('elliptic-eigen: ' + str(self.num_converged) + ' converged; eigenvalues '
                            + str(numpy.round(self.eigenvalues, 6).tolist()), 0)
         return self.eigenvalues
+
+    def _setup_iterative_inner_solve(self, solver):
+        """Riesz-map preconditioner for the shift-and-invert inner solve (TODO-elliptic §4.12).
+
+        The ST's KSP solves (A - target M) x = b. Its preconditioner matrix is the assembled,
+        weighted Riesz matrix (riesz_form: SPD, with the essential BC rows set to the identity), and
+        for mixed problems an additive fieldsplit is set up from the field index sets of W (SLEPc's
+        KSP has no Firedrake DM, so the fields cannot be inferred). The block solvers are algebraic
+        (elliptic_solvers.algebraic_block_pc_options).
+        """
+        self._st_riesz = assemble(riesz_form(self.trial, self.test, self.k, self.dim, self.complex, self.dx,
+                                             self.weights), bcs=self.bcs or None, mat_type='aij')
+        st = solver.es.getST()
+        st.setPreconditionerMat(self._st_riesz.petscmat)
+        if self.layout.num_blocks > 1:
+            pc = st.getKSP().getPC()
+            pc.setType('fieldsplit')
+            pc.setFieldSplitIS(*[(str(i), iset) for i, iset in enumerate(self.W.dof_dset.field_ises)])
 
     def _normalized(self, mode):
         """Copy of a mode scaled to unit L2 norm of its u part (in a space without BC lifting)."""
