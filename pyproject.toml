@@ -11,6 +11,16 @@ dependencies = [
     "matplotlib",
     "firedrake",
     "h5py",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+# Sphinx documentation build (docs/sphinx, see docs/Makefile).
+docs = [
+    "sphinx>=7.2",
+    "furo",
+    "myst-parser>=2.0",
+    "sphinx-copybutton",
 ]
 
 [tool.setuptools.packages.find]

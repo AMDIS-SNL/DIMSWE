@@ -1,7 +1,6 @@
 # Python bytecode caches
 __pycache__/
 *.py[cod]
-<<<<<<< HEAD
 
 # Simulation output (not part of the repository, see AGENTS.md)
 runs/
@@ -12,8 +11,11 @@ runs/
 *.out
 *.toc
 docs/*.pdf
-=======
->>>>>>> main
+
+# Sphinx documentation build output (sources in docs/sphinx, see TODO-documentation.md)
+docs/_build/
+# autosummary stub pages, regenerated on every build from docs/sphinx/api/index.rst
+docs/sphinx/api/generated/
 
 # Local Firedrake/PyOP2 kernel caches (CI keeps them with actions/cache)
 .cache/

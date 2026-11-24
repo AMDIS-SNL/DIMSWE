@@ -67,9 +67,18 @@ docs/
 
 ## Steps
 
-1. **Housekeeping.** Resolve the `.gitignore` conflict and add `docs/_build/` to it. Fix the CI `paths-ignore` to `docs/**`.
-2. **Scaffold.** Add `conf.py`, `index.md`, a `Makefile`, and a `docs` optional dependency in `pyproject.toml` (sphinx, furo, myst-parser, sphinx-copybutton).
-3. **API reference.** Write `api/index.rst` with grouped autosummary tables and a custom template that shows members and inheritance. Inheritance matters here because of hierarchies like `BracketBase` → `PoissonBracket` → the concrete brackets.
+1. **Housekeeping.** *(done)* Resolve the `.gitignore` conflict and add `docs/_build/` to it. Fix the CI `paths-ignore` to `docs/**`.
+   The LaTeX ignore entries stay until step 5, because `hodge_laplacian.tex` and its build artifacts still exist.
+2. **Scaffold.** *(done)* Add `conf.py`, `index.md`, a `Makefile`, and a `docs` optional dependency in `pyproject.toml` (sphinx, furo, myst-parser, sphinx-copybutton).
+   - Sources are in `docs/sphinx/`, and `make -C docs html` / `make -C docs strict` builds into `docs/_build/`.
+   - Mocking is controlled by `DIMSWE_DOCS_MOCK` (`1` = mock, `0` = real imports; when unset, mock only if Firedrake is missing).
+   - The intersphinx inventory URLs for Firedrake, UFL and PETSc4py have not been checked yet; check them on the first CI build.
+3. **API reference.** *(done)* Write `api/index.rst` with grouped autosummary tables and a custom template that shows members and inheritance. Inheritance matters here because of hierarchies like `BracketBase` → `PoissonBracket` → the concrete brackets.
+   - `docs/sphinx/api/index.rst` lists all 54 modules of `dimswe/`, `dimswe/plotting/` and `workflows/` in eight groups. `docs/sphinx/_templates/autosummary/module.rst` gives each module one page: its docstring, summary tables, then the full entries with "Bases:".
+   - Stubs are generated into `docs/sphinx/api/generated/`, which is gitignored.
+   - Left for step 7: many module docstrings cite `TODO-elliptic §x.y`, a file that is not published. Reword those references to point at doc pages.
+   - Left for step 7: with `undoc-members`, module-level data such as the solver-parameter dicts in `dimswe/parameters.py` is shown with its full value. Document it or add `:meta hide-value:` where that is noisy.
+   - Possible later addition: class inheritance diagrams (`sphinx.ext.inheritance_diagram`), which need Graphviz in the CI image.
 4. **Bring in existing prose.** Make README sections the overview and getting-started pages, and include `hessian_vector_products.md` and `workflows/README.md` with MyST.
 5. **Convert the Hodge Laplacian notes.** Fully convert `hodge_laplacian.tex` to `theory/hodge_laplacian.md`: a first pass with pandoc, then manual cleanup.
    - Turn sections into headings, equations into `$$ ... $$` / `{math}` blocks with labels, and `\ref`/`\eqref` into MyST cross-references.
@@ -77,7 +86,7 @@ docs/
    - Rely on the macros ported into `mathjax3_config`.
    - From then on the web page is the only maintained version. Once the conversion has been checked against the PDF, delete `docs/hodge_laplacian.tex`, `docs/hodge_laplacian.pdf`, and the LaTeX build artifacts (`.aux`, `.log`, `.out`, `.toc`). No PDF download is offered.
    - Point the existing references at the web page instead of `docs/hodge_laplacian.tex`: `README.md:37`, `elliptic.cfg:1` and `workflows/README.md:583`.
-   - Remove the LaTeX entries from `.gitignore` (`*.aux`, `*.log`, `*.out`, `*.toc`, `docs/*.pdf`) while resolving the merge conflict in step 1, unless another LaTeX source still needs them.
+   - Remove the LaTeX entries from `.gitignore` (`*.aux`, `*.log`, `*.out`, `*.toc`, `docs/*.pdf`) when the `.tex` is deleted, unless another LaTeX source still needs them.
 6. **Configuration reference.** Document each cfg block with its keys, types, defaults and allowed values, using the comments in the root `.cfg` files and the code that reads them. This is probably the most useful new page for users.
 7. **Full docstring backfill.** Write a module docstring and Google-style docstrings (`Args:` / `Returns:` / `Raises:`) for every public and nontrivial private function, class and method in `dimswe/`, `dimswe/plotting/` and `workflows/`. AGENTS.md requires this anyway. Put the math in `.. math::` blocks, and add a package docstring for `dimswe`.
    Work in this order, one module per change, checking each with `py_compile`:
