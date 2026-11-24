@@ -347,7 +347,7 @@ Restrictions, all checked when the spec is loaded (also with `--dry-run`):
   - `diagonal` only uses the division, `cellwise` prefers the cellwise inverse for DG fields, and `factor` always LU-factors the whole matrix (the previous behaviour).
   - Every cheap inverse is checked once against the assembled matrix and replaced by LU if the check fails. `profile_hvp.py` reports the choice as `mass solver`.
   - Measured on the Newton-CG example: an HVP went from 16.8 s to 7.5 s and a gradient from 9.8 s to 7.3-7.9 s, with unchanged evaluation counts and losses.
-  - It helps first-order methods too. The results agree with `states` to round-off. See plan items A1/A2 in [docs/hvp_performance_plan.md](../docs/hvp_performance_plan.md).
+  - It helps first-order methods too. The results agree with `states` to round-off. See plan items A1/A2 in [docs/hvp_performance_plan.md](https://github.com/AMDIS-SNL/DIMSWE/blob/main/docs/hvp_performance_plan.md).
 - **Time stepping.** HVPs are implemented for explicit RK (`GeneralRK`) and for `LieSplit` composed of explicit RK sub-integrators, as in the template `mtswe.cfg`. These are the only time steppers DIMSWE implements; the DIRK and implicit RK placeholders raise `NotImplementedError` already when they are constructed. A `LieSplit` keeps the stage values it computes while recomputing each step's substeps, and its adjoint and second-order adjoint substeps reuse them instead of solving them again. Set `timestepping.reuse_stages: false` to switch this off; the results agree to round-off.
 
 The examples `examples/optimize_ic_params_newton_cg.cfg` and `examples/optimize_coeff_trust_constr.cfg` solve the same problems as their L-BFGS-B counterparts (see the [Quick start](#quick-start) tables). Use [Comparing optimizer methods](#comparing-optimizer-methods) to compare the results.
@@ -480,7 +480,7 @@ Wall time is reported as a ratio and only checked with `--time-factor`, since it
 
 ### Profiling evaluations
 
-`workflows/profile_hvp.sh` measures where one job's evaluations spend their time ([docs/hvp_performance_plan.md](../docs/hvp_performance_plan.md), section 2):
+`workflows/profile_hvp.sh` measures where one job's evaluations spend their time ([docs/hvp_performance_plan.md](https://github.com/AMDIS-SNL/DIMSWE/blob/main/docs/hvp_performance_plan.md), section 2):
 
 ```bash
 bash workflows/profile_hvp.sh <mpi-ranks> <optimize-cfg> [--job SUBSTRING] [--repeats N] [--seed S] [--output-dir DIR] [--results RESULT.yaml ...] [--recompute-stages] [--checkpoint states|stages] [--flamegraph] [PETSc options]

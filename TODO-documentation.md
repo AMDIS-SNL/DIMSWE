@@ -79,7 +79,11 @@ docs/
    - Left for step 7: many module docstrings cite `TODO-elliptic §x.y`, a file that is not published. Reword those references to point at doc pages.
    - Left for step 7: with `undoc-members`, module-level data such as the solver-parameter dicts in `dimswe/parameters.py` is shown with its full value. Document it or add `:meta hide-value:` where that is noisy.
    - Possible later addition: class inheritance diagrams (`sphinx.ext.inheritance_diagram`), which need Graphviz in the CI image.
-4. **Bring in existing prose.** Make README sections the overview and getting-started pages, and include `hessian_vector_products.md` and `workflows/README.md` with MyST.
+4. **Bring in existing prose.** *(done)* Make README sections the overview and getting-started pages, and include `hessian_vector_products.md` and `workflows/README.md` with MyST.
+   - New pages: `overview.md`, `getting_started.md`, `theory/hessian_vector_products.md` and `user_guide/workflows.md`. `index.md` now has Introduction / User guide / Theory / Reference toctrees.
+   - All existing prose is included, not copied, so each text has a single source. The README has HTML-comment markers (`docs-overview-start`, `docs-overview-end`, `docs-tests-start`) that are invisible on GitHub; renaming or removing them breaks the include.
+   - `getting_started.md` is new text (installation, running and plotting a model, the example cfgs, output files) plus the README's "Running the tests" section. `maxwell.cfg` is left out because `model.type: maxwell` is not accepted by `get_model`.
+   - Removed references to unpublished files: the README no longer points to `TODO-elliptic.md`, and `docs/hessian_vector_products.md` no longer cites a (nonexistent) `TODO.md`. The two `workflows/README.md` links to `docs/hvp_performance_plan.md` are now absolute GitHub URLs (on `main`), because that planning note is not part of the docs.
 5. **Convert the Hodge Laplacian notes.** Fully convert `hodge_laplacian.tex` to `theory/hodge_laplacian.md`: a first pass with pandoc, then manual cleanup.
    - Turn sections into headings, equations into `$$ ... $$` / `{math}` blocks with labels, and `\ref`/`\eqref` into MyST cross-references.
    - Turn theorem/definition environments into admonitions, and `booktabs` tables into Markdown/list-tables.

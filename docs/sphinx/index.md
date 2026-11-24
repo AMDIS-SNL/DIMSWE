@@ -15,13 +15,38 @@ Hamiltonians and entropies. On top of this, DIMSWE provides:
 - mixed finite element exterior calculus (FEEC) solvers for Hodge Laplacian problems and eigenproblems
   on box meshes, curved domains and immersed surfaces.
 
+Start with {doc}`getting_started` to install DIMSWE and run a first model, or read the {doc}`overview` for
+the formulations and methods.
+
 ```{note}
-This documentation is under construction. The getting-started guide, theory pages, user guide and API
-reference are being added step by step.
+This documentation is under construction. The configuration reference, the remaining user-guide and theory
+pages, and docstrings for every module are still being added.
 ```
 
 ```{toctree}
 :maxdepth: 2
+:caption: Introduction
+
+getting_started
+overview
+```
+
+```{toctree}
+:maxdepth: 1
+:caption: User guide
+
+user_guide/workflows
+```
+
+```{toctree}
+:maxdepth: 1
+:caption: Theory
+
+theory/hessian_vector_products
+```
+
+```{toctree}
+:maxdepth: 1
 :caption: Reference
 
 api/index

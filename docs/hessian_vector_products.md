@@ -1,6 +1,6 @@
 # Hessian-vector products in DIMSWE: design notes
 
-This note covers steps 1 and 2 of the plan in `TODO.md`.
+This note covers steps 1 and 2 of the Hessian-vector-product implementation plan.
 
 1. It maps the existing first-order optimization path in `dimswe/optimize.py` and
    `dimswe/timestepping.py`.

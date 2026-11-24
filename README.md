@@ -1,5 +1,6 @@
 # DIMSWE
 
+<!-- docs-overview-start: included in the Sphinx docs (docs/sphinx/overview.md) -->
 # Description
 - DIMSWE (Data-Integrated Moist thermal Shallow Water) is a Firedrake based code for simulation and PDE-constrained optimization of neutral and charged viscous fluids with learnable neural network components.
 - It can mimic the spatial and temporal numerics used in the HOMME dycore when the H1 formulation and appropriate forcings and LieSplit time integration is used
@@ -34,7 +35,7 @@
 - See `docs/hessian_vector_products.md` for the derivation and design, and `workflows/README.md` for how to choose a method in the optimization workflow and compare methods
 
 
-- Elliptic Hodge Laplacian problems `(d delta + delta d) u = f` for k-forms in 1D/2D/3D can be solved with `model.type: elliptic` (see `elliptic.cfg`, `TODO-elliptic.md` and `docs/hodge_laplacian.tex`)
+- Elliptic Hodge Laplacian problems `(d delta + delta d) u = f` for k-forms in 1D/2D/3D can be solved with `model.type: elliptic` (see `elliptic.cfg` and `docs/hodge_laplacian.tex`)
   - Mixed FEEC formulation with essential, natural, periodic or mixed per-face boundary conditions and harmonic forms (Lagrange multipliers or a PETSc nullspace)
   - FEEC families `Q` (tensor product), `P-`/`P+` (simplicial) and `S` (serendipity, 2D) via `spatial-discretization.family` (`S-` is defined but rejected: the installed FIAT cannot assemble trimmed serendipity elements)
   - Run with `python run_model.py elliptic.cfg`; convergence sweeps with `workflows/elliptic_convergence.py`
@@ -42,8 +43,10 @@
   - Box meshes (with partial periodicity), Firedrake's unit/graded box meshes, disks, annuli, balls and immersed surfaces (spheres, torus, cylinder surface), with numerical harmonic forms on non-box domains
   - Direct or scalable iterative solvers (`riesz-amg`, `riesz-gmg` on a mesh hierarchy, `riesz-pmg`, `schur-mass`; MINRES with Arnold–Falk–Winther Riesz-map preconditioners), see `dimswe/elliptic_solvers.py`
   - Hodge Laplacian eigenproblems with `model.type: elliptic-eigen` (SLEPc shift-and-invert; see `elliptic-eigen.cfg`), compared against exact box spectra
+<!-- docs-overview-end -->
 
 # Running the tests
+<!-- docs-tests-start: included in the Sphinx docs (docs/sphinx/getting_started.md) -->
 - `pytest` runs everything; `pytest -m "not slow"` skips the 3D convergence/eigen cases.
 - The suite is large (parametrized convergence, eigenvalue and FEEC-family matrices) and parallelizes well with
   [pytest-xdist](https://pypi.org/project/pytest-xdist/): `pip install pytest-xdist`, then `pytest -n auto`
